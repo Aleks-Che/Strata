@@ -154,6 +154,14 @@ int main() {
     // Configured budgets can be restored after dynamic use, with byte parity.
     policy.mode=0;control(0,&policy,&live);check(0,9,1);
     control(0,nullptr,&live);ok &= live.cache_bytes<=(4ULL<<20);
+    stats(gpu,&after);ok &= after.ordered_reuses>0;
+    // Growth headroom must not freeze admission below the actual byte limit.
+    // A same-size replacement needs no extra VRAM, even with <64 MiB spare.
+    policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+8;
+    control(0,&policy,&live);
+    auto resident_bytes=live.cache_bytes;stats(gpu,&before);
+    check(1,1,1);stats(gpu,&after);control(0,nullptr,&live);
+    ok &= after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes;
     // Cancel a partially consumed plan and change residency before a new plan.
     begin(gpu,0,count-1,1);copy(gpu,source,dest,0,0,1);finish(gpu);
     policy.mode=1;policy.matrices=0;control(0,&policy,&live);
