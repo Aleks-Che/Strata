@@ -154,6 +154,14 @@ int main() {
     // Configured budgets can be restored after dynamic use, with byte parity.
     policy.mode=0;control(0,&policy,&live);check(0,9,1);
     control(0,nullptr,&live);ok &= live.cache_bytes<=(4ULL<<20);
+    stats(gpu,&after);ok &= after.ordered_reuses>0;
+    // Growth headroom must not freeze admission below the actual byte limit.
+    // A same-size replacement needs no extra VRAM, even with <64 MiB spare.
+    policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+8;
+    control(0,&policy,&live);
+    auto resident_bytes=live.cache_bytes;stats(gpu,&before);
+    check(1,1,1);stats(gpu,&after);control(0,nullptr,&live);
+    ok &= after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes;
     // Cancel a partially consumed plan and change residency before a new plan.
     begin(gpu,0,count-1,1);copy(gpu,source,dest,0,0,1);finish(gpu);
     policy.mode=1;policy.matrices=0;control(0,&policy,&live);
@@ -161,6 +169,36 @@ int main() {
     stats(gpu,&after);
     if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0)
         ok &= after.pipeline_groups>0 && after.pipeline_chunks>0 && after.pipeline_fallbacks==0;
+    // Repeated hot matrices survive a stream of one-use weights. Rejected
+    // admissions must still arrive byte-for-byte in the working tensor, and a
+    // newly repeated matrix must eventually enter the cache.
+#ifdef _WIN32
+    _putenv_s("STRATA_EXPERT_CACHE_POLICY","frequency");
+#else
+    setenv("STRATA_EXPERT_CACHE_POLICY","frequency",1);
+#endif
+    auto *frequency_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    budget(4);policy.mode=1;policy.matrices=3;control(0,&policy,&live);
+    auto frequency_copy=[&](int id) {
+        begin(frequency_gpu,id,id,1);copy(frequency_gpu,source,dest,id,id,1);finish(frequency_gpu);
+        ggml_backend_synchronize(frequency_gpu);
+        ggml_backend_tensor_get(dest,actual.data(),id*width,width);
+        ok &= std::memcmp(actual.data(),expected.data()+id*width,width)==0;
+    };
+    for(int repeat=0;repeat<8;++repeat)for(int id=0;id<3;++id)frequency_copy(id);
+    stats(frequency_gpu,&before);
+    for(int id=4;id<10;++id)frequency_copy(id);
+    stats(frequency_gpu,&after);
+    ok &= after.admission_rejects==before.admission_rejects+6 && after.evictions==before.evictions;
+    before=after;
+    for(int id=0;id<3;++id)frequency_copy(id);
+    stats(frequency_gpu,&after);ok &= after.hits==before.hits+3;
+    for(int repeat=0;repeat<12;++repeat)frequency_copy(4);
+    stats(frequency_gpu,&before);frequency_copy(4);stats(frequency_gpu,&after);
+    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    // Live cache limits remain authoritative even for hot entries.
+    policy.matrices=0;control(0,&policy,&live);ok &= live.cache_bytes==0 && live.matrices==0;
+    ggml_backend_free(frequency_gpu);
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);

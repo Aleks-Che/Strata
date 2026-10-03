@@ -41,6 +41,27 @@ list(FILTER llama_sources EXCLUDE REGEX "(^|/)llama-model-loader\\.cpp$")
 set_property(TARGET llama PROPERTY SOURCES "${llama_sources};${CMAKE_CURRENT_BINARY_DIR}/strata-model-loader.cpp")
 set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/strata-model-loader.cpp" PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
+# Register the exact file identity and offset-zero mapping lifetime for native
+# expert reads. Keep this out of upstream sources and the Qwen executable.
+file(READ "${STRATA_LLAMA_DIR}/src/llama-mmap.cpp" mmap_source)
+set(mmap_ctor "const ranges & lazy_ranges) : pimpl(std::make_unique<impl>(file, prefetch, numa, lazy_ranges)) {}")
+set(mmap_dtor "llama_mmap::~llama_mmap() = default;")
+foreach(anchor "${mmap_ctor}" "${mmap_dtor}")
+  string(FIND "${mmap_source}" "${anchor}" found)
+  if(found EQUAL -1)
+    message(FATAL_ERROR "Pinned mmap lifecycle entry point not found")
+  endif()
+endforeach()
+string(REPLACE "${mmap_ctor}" "const ranges & lazy_ranges) : pimpl(std::make_unique<impl>(file, prefetch, numa, lazy_ranges)) { strata_expert_file::add(addr(), size(), file->file_id()); }" mmap_source "${mmap_source}")
+string(REPLACE "${mmap_dtor}" "llama_mmap::~llama_mmap() { strata_expert_file::remove(addr()); }" mmap_source "${mmap_source}")
+string(PREPEND mmap_source "#include \"expert_file.hpp\"\n")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/strata-mmap.cpp" "${mmap_source}")
+get_target_property(llama_sources llama SOURCES)
+list(FILTER llama_sources EXCLUDE REGEX "(^|/)llama-mmap\\.cpp$")
+set_property(TARGET llama PROPERTY SOURCES "${llama_sources};${CMAKE_CURRENT_BINARY_DIR}/strata-mmap.cpp")
+set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/strata-mmap.cpp" TARGET_DIRECTORY llama PROPERTIES
+  SKIP_UNITY_BUILD_INCLUSION ON INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}")
+
 # Whole-context restore compacts rows starting at zero. Continue at its tail,
 # as before saving, rather than immediately recycling old SWA cells at zero.
 # Changing the physical order of keys changes DeepSeek's FP16 attention result.
@@ -90,6 +111,9 @@ set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/strata-ggml-backend.cpp
   PROPERTIES INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}")
 
 if(TARGET ggml-cuda)
+  if(WIN32)
+    target_link_libraries(ggml-cuda PRIVATE psapi)
+  endif()
   file(READ "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda/ggml-cuda.cu" cuda_source)
   set(free_anchor "static void ggml_backend_cuda_free(ggml_backend_t backend) {")
   string(FIND "${cuda_source}" "${free_anchor}" found)
@@ -117,6 +141,8 @@ target_link_libraries(strata-deepseek4 PRIVATE llama)
 set_target_properties(strata-deepseek4 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(deepseek4_expert_frequency_test test_expert_frequency.cpp)
+  add_test(NAME deepseek4_expert_frequency COMMAND deepseek4_expert_frequency_test)
   add_executable(deepseek4_vram_policy_test test_vram_policy.cpp)
   add_test(NAME deepseek4_vram_policy COMMAND deepseek4_vram_policy_test)
   add_executable(deepseek4_speculative_test test_speculative.cpp)

@@ -31,6 +31,7 @@ def main():
     ap.add_argument('--generation-prompt', type=Path, help='UTF-8 file with the generation prompt')
     ap.add_argument('--repeats', type=int, default=1, help='Number of warm repeats of the same prompt')
     ap.add_argument('--timeout', type=int, default=240, help='Seconds per request, including prefill')
+    ap.add_argument('--physical-disk', help='psutil disk name, e.g. PhysicalDrive6; records device-wide physical reads, including other processes')
     ap.add_argument('--output', type=Path, default=ROOT / 'bench/results' / f'deepseek4-{time.strftime("%Y%m%d-%H%M%S")}.json')
     args = ap.parse_args()
     if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10:
@@ -43,6 +44,16 @@ def main():
     tok = Tokenizer.from_gguf(cfg['args'][cfg['args'].index('--native') + 1])
     template = DeepSeekTemplate(Path(cfg['tokenizer']) / 'chat_template.jinja')
     result = {'config': cfg, 'os_file_cache_cleared': False, 'samples': [], 'requests': {}}
+    def disk_counters():
+        if not args.physical_disk:
+            return None
+        counters = psutil.disk_io_counters(perdisk=True).get(args.physical_disk)
+        if counters is None:
+            raise ValueError(f'Physical disk counter unavailable: {args.physical_disk}')
+        return counters
+    disk_counters()
+    result['physical_disk'] = args.physical_disk
+    result['physical_disk_scope'] = 'entire device, all processes' if args.physical_disk else None
     done = threading.Event()
     phase, deadline = 'loading', time.monotonic() + args.timeout
     engine = None
@@ -106,6 +117,7 @@ def main():
             if len(ids) + count + 8 > engine.max_context:
                 raise ValueError('Prompt plus output exceeds configured context')
             started, output, cancel = time.monotonic(), [], threading.Event()
+            disk_before = disk_counters()
             timer = threading.Timer(args.timeout - 10, cancel.set)
             timer.start()
             try:
@@ -117,9 +129,14 @@ def main():
             timings = dict(engine.last)
             entry = {'elapsed_seconds': time.monotonic() - started, 'timings': timings,
                      'token_ids': output, 'text': tok.decode(output)}
+            entry['vram_status'] = dict(getattr(engine, 'vram_status', {}) or {})
+            if disk_before is not None:
+                disk_after = disk_counters()
+                entry['physical_read_bytes'] = disk_after.read_bytes - disk_before.read_bytes
+                entry['physical_read_operations'] = disk_after.read_count - disk_before.read_count
             entry['decode_tokens_per_second'] = timings.get('generated', 0) * 1000 / max(timings.get('decode_ms', 0), 0.001)
             result['requests'][name] = entry
-            print(name, json.dumps({k: v for k, v in entry.items() if k not in ('text', 'token_ids')}, ensure_ascii=True), flush=True)
+            print(name, json.dumps({k: v for k, v in entry.items() if k not in ('text', 'token_ids', 'vram_status')}, ensure_ascii=True), flush=True)
             if timings.get('finish') == 'cancel':
                 raise TimeoutError(f'{name} exceeded benchmark time limit')
         repeats = [entry for name, entry in result['requests'].items() if name.startswith('repeat')]

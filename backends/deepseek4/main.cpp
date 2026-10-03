@@ -40,7 +40,10 @@ struct Options {
     uint64_t budget=2048ULL<<20, floor=8192ULL<<20;
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0;
+    std::string expert_cache_policy="lru";
     int expert_pipeline=0;
+    int expert_readers=2;
+    std::string expert_read_mode="mmap";
     int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
     float draft_min_confidence=0;
     bool vocab_only=false;
@@ -57,8 +60,10 @@ static Options options(int argc, char **argv) {
                 "GPU-only forward; cold expert weights stream from mapped GGUF to GPU\n"
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
+                "--expert-cache-policy lru|frequency (frequency gates LRU admission using decaying access counts)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
+                "--expert-readers 2 (1..4 bounded readers); --expert-read-mode mmap|file|auto\n"
                 "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
                 "--draft-max 3 (1..5 target-verified draft tokens)\n"
                 "--draft-min-confidence 0 (0..1; reject low-confidence draft suffix; 0 disables)\n"
@@ -86,8 +91,11 @@ static Options options(int argc, char **argv) {
         else if (k=="--gpu-layers") o.gpu_layers=integer(v);
         else if (k=="--gpu-expert-layers") o.gpu_expert_layers=integer(v);
         else if (k=="--expert-cache-mib") o.expert_cache_mib=integer(v);
+        else if (k=="--expert-cache-policy") o.expert_cache_policy=v;
         else if (k=="--expert-stage-mib") o.expert_stage_mib=integer(v);
         else if (k=="--expert-pipeline") o.expert_pipeline=integer(v);
+        else if (k=="--expert-readers") o.expert_readers=integer(v);
+        else if (k=="--expert-read-mode") o.expert_read_mode=v;
         else if (k=="--conversation-cache-slots") o.slots=integer(v);
         else if (k=="--conversation-cache-mib" || k=="--conversation-cache-min-free-mib" || k=="--working-set-mib") {
             int n=integer(v); if(n<0) throw std::runtime_error("negative memory limit");
@@ -98,8 +106,15 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid model/context/batch/thread/cache settings");
     if(o.expert_cache_mib<0 || o.expert_cache_mib>65536 || o.expert_stage_mib<0 || o.expert_stage_mib>256)
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
+    if(o.expert_cache_policy!="lru" && o.expert_cache_policy!="frequency")
+        throw std::runtime_error("expert-cache-policy must be lru/frequency");
     if(o.expert_pipeline<0 || o.expert_pipeline>1 || (o.expert_pipeline && !o.expert_stage_mib))
         throw std::runtime_error("expert-pipeline must be 0/1 and requires expert-stage-mib > 0");
+    if(o.expert_readers<1 || o.expert_readers>4 || (o.expert_read_mode!="mmap" && o.expert_read_mode!="file" && o.expert_read_mode!="auto"))
+        throw std::runtime_error("expert-readers must be 1..4; expert-read-mode must be mmap/file/auto");
+#ifndef _WIN32
+    if(o.expert_pipeline && o.expert_read_mode=="file")throw std::runtime_error("native expert file reads require Windows");
+#endif
     if(o.draft_max<1 || o.draft_max>5 || o.draft_expert_cache_mib<0 || o.draft_expert_cache_mib>65536 || o.draft_gpu_expert_layers<0 || o.draft_gpu_expert_layers>3)
         throw std::runtime_error("invalid DSpark draft size/cache/resident-layer setting");
     if(!o.draft_model.empty() && o.batch<o.draft_max+1)
@@ -476,13 +491,19 @@ int main(int argc,char**argv) {
 #ifdef _WIN32
         _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH","1");
         _putenv_s("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str());
+        _putenv_s("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str());
         _putenv_s("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str());
         _putenv_s("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str());
+        _putenv_s("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str());
+        _putenv_s("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str());
 #else
         setenv("GGML_OP_OFFLOAD_MIN_BATCH","1",1);
         setenv("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str(),1);
+        setenv("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str(),1);
         setenv("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str(),1);
         setenv("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str(),1);
+        setenv("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str(),1);
+        setenv("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str(),1);
 #endif
         ggml_backend_load_all();llama_backend_init();
         auto gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU);
@@ -581,7 +602,9 @@ int main(int argc,char**argv) {
         std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
             <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
+            <<" expert_cache_policy="<<o.expert_cache_policy
             <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
+            <<" expert_readers="<<(o.expert_pipeline?o.expert_readers:0)<<" expert_read_mode="<<o.expert_read_mode
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
             <<" draft_vram_pipeline_bytes="<<(draft_ctx && o.draft_gpu_expert_layers<3?uint64_t(o.expert_pipeline)*4*o.expert_stage_mib*1048576:0)

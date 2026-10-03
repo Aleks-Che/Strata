@@ -96,8 +96,11 @@ def main():
     ap.add_argument("--batch-size", type=int, default=512)
     ap.add_argument("--gpu-expert-layers", type=int, default=0, help="Keep the last N layers' routed experts in VRAM; size depends on quantization")
     ap.add_argument("--expert-cache-mib", type=int, default=0, help="GPU LRU budget for individual expert matrices")
+    ap.add_argument("--expert-cache-policy", choices=("lru", "frequency"), default="lru", help="Frequency admission keeps repeatedly used matrices over one-use weights; access counts decay")
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
     ap.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0, help="Background mmap reads, four staging slots and a separate H2D stream; needs expert-stage-mib > 0")
+    ap.add_argument("--expert-readers", type=int, choices=range(1, 5), default=2, help="Bounded reader concurrency; uses the existing four staging slots")
+    ap.add_argument("--expert-read-mode", choices=("mmap", "file", "auto"), default="mmap", help="Windows file uses overlapped reads; auto queues nonresident prefill slices and uses mmap for decode")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
     ap.add_argument("--draft-min-confidence", type=float, default=0, help="0 disables filtering; otherwise keep the draft prefix with predicted acceptance >= this threshold")
@@ -109,6 +112,8 @@ def main():
     args = ap.parse_args()
     if args.expert_pipeline and args.expert_stage_mib <= 0:
         ap.error("expert-pipeline requires expert-stage-mib > 0")
+    if args.expert_pipeline and args.expert_read_mode == "file" and sys.platform != "win32":
+        ap.error("native expert file reads require Windows")
     if args.profile_tag and not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", args.profile_tag):
         ap.error("--profile-tag must contain lowercase letters, numbers, hyphens or underscores")
     first = sorted(args.model_dir.glob("*-00001-of-*.gguf"))
@@ -141,7 +146,9 @@ def main():
                     "--threads", str(args.threads), "--batch-size", str(args.batch_size),
                     "--gpu-layers", "99", "--gpu-expert-layers", str(args.gpu_expert_layers), "--conversation-cache-mib", "2048",
                     "--expert-cache-mib", str(args.expert_cache_mib), "--expert-stage-mib", str(args.expert_stage_mib),
+                    "--expert-cache-policy", args.expert_cache_policy,
                     "--expert-pipeline", str(args.expert_pipeline),
+                    "--expert-readers", str(args.expert_readers), "--expert-read-mode", args.expert_read_mode,
                     "--conversation-cache-slots", "4", "--conversation-cache-min-free-mib", "8192"],
            "tokenizer": str(pack / "tokenizer"), "model_name": "deepseek-v4-flash-0731" + ("-" + args.profile_tag if args.profile_tag else ""),
            "log": str(ROOT / f"strata-{profile_name}.log"), "host": "127.0.0.1", "port": args.port,
