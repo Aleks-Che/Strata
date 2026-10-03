@@ -40,6 +40,7 @@ struct Options {
     uint64_t budget=2048ULL<<20, floor=8192ULL<<20;
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0;
+    int expert_pipeline=0;
     int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
     float draft_min_confidence=0;
     bool vocab_only=false;
@@ -57,6 +58,7 @@ static Options options(int argc, char **argv) {
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
+                "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
                 "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
                 "--draft-max 3 (1..5 target-verified draft tokens)\n"
                 "--draft-min-confidence 0 (0..1; reject low-confidence draft suffix; 0 disables)\n"
@@ -85,6 +87,7 @@ static Options options(int argc, char **argv) {
         else if (k=="--gpu-expert-layers") o.gpu_expert_layers=integer(v);
         else if (k=="--expert-cache-mib") o.expert_cache_mib=integer(v);
         else if (k=="--expert-stage-mib") o.expert_stage_mib=integer(v);
+        else if (k=="--expert-pipeline") o.expert_pipeline=integer(v);
         else if (k=="--conversation-cache-slots") o.slots=integer(v);
         else if (k=="--conversation-cache-mib" || k=="--conversation-cache-min-free-mib" || k=="--working-set-mib") {
             int n=integer(v); if(n<0) throw std::runtime_error("negative memory limit");
@@ -95,6 +98,8 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid model/context/batch/thread/cache settings");
     if(o.expert_cache_mib<0 || o.expert_cache_mib>65536 || o.expert_stage_mib<0 || o.expert_stage_mib>256)
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
+    if(o.expert_pipeline<0 || o.expert_pipeline>1 || (o.expert_pipeline && !o.expert_stage_mib))
+        throw std::runtime_error("expert-pipeline must be 0/1 and requires expert-stage-mib > 0");
     if(o.draft_max<1 || o.draft_max>5 || o.draft_expert_cache_mib<0 || o.draft_expert_cache_mib>65536 || o.draft_gpu_expert_layers<0 || o.draft_gpu_expert_layers>3)
         throw std::runtime_error("invalid DSpark draft size/cache/resident-layer setting");
     if(!o.draft_model.empty() && o.batch<o.draft_max+1)
@@ -472,10 +477,12 @@ int main(int argc,char**argv) {
         _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH","1");
         _putenv_s("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str());
         _putenv_s("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str());
+        _putenv_s("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str());
 #else
         setenv("GGML_OP_OFFLOAD_MIN_BATCH","1",1);
         setenv("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str(),1);
         setenv("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str(),1);
+        setenv("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str(),1);
 #endif
         ggml_backend_load_all();llama_backend_init();
         auto gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU);
@@ -548,11 +555,12 @@ int main(int argc,char**argv) {
             vram.enqueue(std::string("VRAM_SET ")+vram_policy);vram.poll();
             if(!vram.configured())throw std::runtime_error("invalid or unsupported STRATA_VRAM_POLICY");
         }
-        if((o.expert_cache_mib || draft_ctx) && !vram.configured()) {
+        if((o.expert_cache_mib || draft_ctx || o.expert_pipeline) && !vram.configured()) {
             size_t free=0,total=0;ggml_backend_dev_memory(gpu,&free,&total);
             auto draft_cache=draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0;
-            if(uint64_t(free)<(uint64_t(o.expert_cache_mib)+draft_cache+512)*1048576)
-                throw std::runtime_error("not enough free VRAM for target/draft expert caches plus 512 MiB reserve; reduce cache budgets or resident expert layers");
+            auto pipeline_mib=o.expert_pipeline*4*o.expert_stage_mib*((o.gpu_expert_layers<layers)+(draft_ctx && o.draft_gpu_expert_layers<3));
+            if(uint64_t(free)<(uint64_t(o.expert_cache_mib)+draft_cache+pipeline_mib+512)*1048576)
+                throw std::runtime_error("not enough free VRAM for expert caches, pipeline buffers and 512 MiB reserve; reduce cache budgets or resident expert layers");
         }
         if(o.working_set) {
 #ifdef _WIN32
@@ -573,8 +581,10 @@ int main(int argc,char**argv) {
         std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
             <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
+            <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
+            <<" draft_vram_pipeline_bytes="<<(draft_ctx && o.draft_gpu_expert_layers<3?uint64_t(o.expert_pipeline)*4*o.expert_stage_mib*1048576:0)
             <<" draft_min_confidence="<<(draft_ctx?o.draft_min_confidence:0)
             <<" working_set_mib="<<(o.working_set>>20)<<" kv=fp16\n"
             <<"READY "<<o.context<<" stop session-id cache-admin"<<(control_gpu?" vram-control":"")<<"\n"<<std::flush;

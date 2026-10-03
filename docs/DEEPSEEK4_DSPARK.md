@@ -6,6 +6,9 @@
 Дополнительные замеры длины черновика, фильтр confidence и направления
 оптимизации: [DEEPSEEK4_DSPARK_TUNING.md](DEEPSEEK4_DSPARK_TUNING.md).
 
+Конвейер чтения матриц, отдельный H2D stream, ограничения памяти и замеры:
+[DEEPSEEK4_EXPERT_PIPELINE.md](DEEPSEEK4_EXPERT_PIPELINE.md).
+
 ## Какие веса нужны
 
 В локальных `UD-Q3_K_XL` и `UD-Q8_K_XL` отсутствуют MTP-тензоры.

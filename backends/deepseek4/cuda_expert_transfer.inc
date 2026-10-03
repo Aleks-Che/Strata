@@ -7,7 +7,9 @@
 #include <cstring>
 #include <mutex>
 #include <limits>
+#include <unordered_set>
 #include "device_memory.inc"
+#include "expert_pipeline.hpp"
 
 static thread_local int strata_expert_thread_budget=-1;
 static void strata_cuda_expert_budget(int mib) {
@@ -33,6 +35,37 @@ struct StrataExpertTransfer {
     StrataExpertCounters stats;
     bool managed=false;
     size_t allocated=0;
+    std::unique_ptr<StrataExpertPipeline> pipeline;
+    std::unordered_set<const void *> protected_keys;
+
+    void finish_plan() {
+        if(pipeline)pipeline->finish(false);
+        protected_keys.clear();
+    }
+    StrataExpertCounters counters() {
+        auto result=stats;
+        if(pipeline) {
+            auto p=pipeline->counters();
+            result.pipeline_groups=p.groups;result.pipeline_chunks=p.chunks;result.pipeline_unused=p.unused;
+            result.h2d_bytes+=p.h2d_bytes;result.d2d_bytes+=p.d2d_bytes;result.stage_bytes+=p.h2d_bytes;
+            result.stage_us+=p.read_us;result.wait_us+=p.wait_us;result.submit_us+=p.submit_us;
+        }
+        return result;
+    }
+    void plan(const StrataExpertSlice *slices,size_t count) {
+        finish_plan();
+        if(!pipeline)return;
+        std::vector<StrataExpertSlice> misses;
+        for(size_t i=0;i<count;++i) {
+            if(slices[i].cacheable && entries.find(slices[i].data)!=entries.end())
+                protected_keys.insert(slices[i].data);
+            else misses.push_back(slices[i]);
+        }
+        pipeline->start(misses);
+    }
+    auto evictable() {
+        return std::find_if(lru.rbegin(),lru.rend(),[&](const void *key){return protected_keys.find(key)==protected_keys.end();});
+    }
 
     static size_t env_mib(const char *name) {
         const char *s=std::getenv(name);
@@ -55,24 +88,42 @@ struct StrataExpertTransfer {
             CUDA_CHECK(cudaHostAlloc((void **)&stage[i],stage_size,write_combined?cudaHostAllocWriteCombined:cudaHostAllocDefault));
             CUDA_CHECK(cudaEventCreateWithFlags(&ready[i],cudaEventDisableTiming|cudaEventBlockingSync));
         }
-        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=lru prefill_bypass=1 stage_wc=%d\n",capacity>>20,stage_size>>20,int(write_combined));
+        const char *pipe=std::getenv("STRATA_EXPERT_PIPELINE");
+        try {
+            if(pipe && std::strcmp(pipe,"1")==0)pipeline=std::make_unique<StrataExpertPipeline>(device,stage_size,write_combined);
+        } catch(...) {
+            // A failed ring allocation or worker creation must not leak the
+            // already allocated cache and legacy staging buffers.
+            for(int i=0;i<2;++i) {
+                if(ready[i])cudaEventDestroy(ready[i]);
+                if(stage[i])cudaFreeHost(stage[i]);
+            }
+            if(arena)cudaFree(arena);
+            throw;
+        }
+        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=lru prefill_bypass=1 stage_wc=%d pipeline=%d pipeline_slots=%zu\n",capacity>>20,stage_size>>20,int(write_combined),int(bool(pipeline)),pipeline?StrataExpertPipeline::slots:0);
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);
+        finish_plan();
         CUDA_CHECK(cudaStreamSynchronize(stream));
+        stats=counters();pipeline.reset();
         for(int i=0;i<2;++i) {
             if(ready[i]) CUDA_CHECK(cudaEventDestroy(ready[i]));
             if(stage[i]) CUDA_CHECK(cudaFreeHost(stage[i]));
         }
         if(arena) CUDA_CHECK(cudaFree(arena));
         for(auto &entry:entries) if(entry.second.allocation) CUDA_CHECK(cudaFree(entry.second.allocation));
-        GGML_LOG_INFO("STRATA_EXPERT_TOTAL hits=%llu misses=%llu bypass=%llu evictions=%llu h2d_bytes=%llu d2d_bytes=%llu stage_us=%llu wait_us=%llu submit_us=%llu\n",
+        GGML_LOG_INFO("STRATA_EXPERT_TOTAL hits=%llu misses=%llu bypass=%llu evictions=%llu h2d_bytes=%llu d2d_bytes=%llu stage_us=%llu wait_us=%llu submit_us=%llu pipeline_groups=%llu pipeline_chunks=%llu pipeline_unused=%llu pipeline_fallbacks=%llu\n",
             (unsigned long long)stats.hits,(unsigned long long)stats.misses,(unsigned long long)stats.bypass,(unsigned long long)stats.evictions,
             (unsigned long long)stats.h2d_bytes,(unsigned long long)stats.d2d_bytes,(unsigned long long)stats.stage_us,
-            (unsigned long long)stats.wait_us,(unsigned long long)stats.submit_us);
+            (unsigned long long)stats.wait_us,(unsigned long long)stats.submit_us,
+            (unsigned long long)stats.pipeline_groups,(unsigned long long)stats.pipeline_chunks,
+            (unsigned long long)stats.pipeline_unused,(unsigned long long)stats.pipeline_fallbacks);
     }
     void manage() {
         if(managed)return;
+        finish_plan();
         // Cached copies are never referenced directly by model graphs. Wait for
         // queued D2D reads before returning their allocation to the driver.
         ggml_cuda_set_device(device);
@@ -81,14 +132,15 @@ struct StrataExpertTransfer {
         arena=nullptr;entries.clear();lru.clear();free_blocks.clear();managed=true;
     }
     uint8_t *evict(bool reuse=false) {
-        if(lru.empty())return nullptr;
+        auto candidate=evictable();
+        if(candidate==lru.rend())return nullptr;
         ggml_cuda_set_device(device);
         CUDA_CHECK(cudaStreamSynchronize(stream));
-        auto it=entries.find(lru.back());
+        auto it=entries.find(*candidate);
         auto *ptr=it->second.allocation;
         allocated-=it->second.bytes;
         if(!reuse) {CUDA_CHECK(cudaFree(ptr));ptr=nullptr;}
-        entries.erase(it);lru.pop_back();++stats.evictions;
+        lru.erase(it->second.lru);entries.erase(it);++stats.evictions;
         return ptr;
     }
     void release(size_t offset,size_t bytes) {
@@ -108,13 +160,18 @@ struct StrataExpertTransfer {
                 if(remaining)free_blocks.emplace(offset+bytes,remaining);
                 return offset;
             }
-            GGML_ASSERT(!lru.empty());
-            auto old=entries.find(lru.back());
+            auto candidate=evictable();
+            if(candidate==lru.rend())return SIZE_MAX;
+            auto old=entries.find(*candidate);
             release(old->second.offset,old->second.bytes);
-            lru.pop_back();entries.erase(old);++stats.evictions;
+            lru.erase(old->second.lru);entries.erase(old);++stats.evictions;
         }
     }
     void upload(void *dst,const void *src,size_t bytes) {
+        if(pipeline) {
+            if(pipeline->transfer(dst,src,bytes,stream))return;
+            ++stats.pipeline_fallbacks;finish_plan();
+        }
         stats.h2d_bytes+=bytes;
         if(!stage_size) {
             int64_t t=ggml_time_us();
@@ -145,7 +202,7 @@ struct StrataExpertTransfer {
         GGML_ASSERT(first>=0 && last>=first && last<count && width>0);
         // The quantized bytes and their original indices stay unchanged. The
         // extra 512 bytes preserve GGML's MMQ padding contract at expert edges.
-        if(!capacity || tokens>8) {
+        if((!capacity || tokens>8) && !pipeline) {
             size_t offset=size_t(first)*width,bytes=size_t(last-first+1)*width+(last<count-1?std::min<size_t>(width,512):0);
             stats.bypass+=last-first+1;
             upload((uint8_t *)dest->data+offset,(const uint8_t *)source->data+offset,bytes);
@@ -154,14 +211,16 @@ struct StrataExpertTransfer {
         for(int id=first;id<=last;++id) {
             size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
             const void *key=(const uint8_t *)source->data+offset;
-            if(bytes>capacity) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
+            if(bytes>capacity || tokens>8) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
             auto found=entries.find(key);
             if(found!=entries.end()) {
                 GGML_ASSERT(found->second.bytes==bytes);
                 ++stats.hits;lru.splice(lru.begin(),lru,found->second.lru);
+                if(pipeline)pipeline->transfer(nullptr,key,bytes,stream);
             } else {
                 ++stats.misses;
                 size_t slot=allocate(bytes);
+                if(slot==SIZE_MAX) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
                 upload(arena+slot,key,bytes);
                 lru.push_front(key);
                 found=entries.emplace(key,Entry{slot,bytes,lru.begin()}).first;
@@ -184,6 +243,18 @@ struct StrataDeviceCacheControl {
 };
 static std::map<int,StrataDeviceCacheControl> strata_device_cache_controls;
 
+static StrataExpertTransfer &strata_expert_state(ggml_backend_t backend) {
+    auto found=strata_expert_transfers.find(backend);
+    if(found==strata_expert_transfers.end()) {
+        auto *ctx=(ggml_backend_cuda_context *)backend->context;
+        auto state=std::make_unique<StrataExpertTransfer>(ctx,strata_device_cache_controls[ctx->device].enabled);
+        // Publish only a fully constructed state. Control/stats may be called
+        // after an allocation failure and must never encounter a null entry.
+        found=strata_expert_transfers.emplace(backend,std::move(state)).first;
+    }
+    return *found->second;
+}
+
 static void strata_cache_totals(int device,StrataVramStatus &out) {
     out.cache_bytes=out.matrices=0;
     for(auto &kv:strata_expert_transfers) if(kv.second->device==device) {
@@ -198,7 +269,8 @@ static StrataExpertTransfer *strata_oldest_cache(int device) {
     for(auto &kv:strata_expert_transfers) {
         auto &s=*kv.second;
         if(s.device!=device || s.lru.empty())continue;
-        auto touched=s.entries.find(s.lru.back())->second.touched;
+        auto candidate=s.evictable();if(candidate==s.lru.rend())continue;
+        auto touched=s.entries.find(*candidate)->second.touched;
         if(!oldest || touched<stamp) {stamp=touched;oldest=&s;}
     }
     return oldest;
@@ -270,16 +342,18 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
     const size_t width=source->nb[2];
     const int count=int(source->ne[2]);
     GGML_ASSERT(first>=0 && last>=first && last<count && width>0);
-    if(tokens>8) {
+    if(tokens>8 && !s.pipeline) {
         size_t offset=size_t(first)*width,bytes=size_t(last-first+1)*width+(last<count-1?std::min<size_t>(width,512):0);
         s.stats.bypass+=last-first+1;s.upload((uint8_t *)dest->data+offset,(const uint8_t *)source->data+offset,bytes);return;
     }
     for(int id=first;id<=last;++id) {
         size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
         const void *key=(const uint8_t *)source->data+offset;
+        if(tokens>8) {++s.stats.bypass;s.upload((uint8_t *)dest->data+offset,key,bytes);continue;}
         auto found=s.entries.find(key);
         if(found!=s.entries.end()) {
             ++s.stats.hits;s.lru.splice(s.lru.begin(),s.lru,found->second.lru);
+            if(s.pipeline)s.pipeline->transfer(nullptr,key,bytes,s.stream);
         } else {
             strata_cache_totals(s.device,c.status);
             const uint64_t max_count=c.policy.mode==1?c.policy.matrices:UINT64_MAX;
@@ -290,15 +364,19 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
                 while(c.status.cache_bytes+bytes>c.status.limit_bytes || c.status.matrices>=max_count ||
                       (c.policy.mode==0 && s.allocated+bytes>s.capacity)) {
                     auto *oldest=c.policy.mode==0 && s.allocated+bytes>s.capacity?&s:strata_oldest_cache(s.device);
-                    if(!oldest || oldest->lru.empty())break;
-                    auto old_bytes=oldest->entries.find(oldest->lru.back())->second.bytes;
+                    if(!oldest)break;
+                    auto candidate=oldest->evictable();if(candidate==oldest->lru.rend())break;
+                    auto old_bytes=oldest->entries.find(*candidate)->second.bytes;
                     bool reuse=!allocation && old_bytes==bytes;
                     auto *released=oldest->evict(reuse);
                     if(reuse)allocation=released;
                     strata_cache_totals(s.device,c.status);
                 }
+                fits=c.status.cache_bytes+bytes<=c.status.limit_bytes && c.status.matrices<max_count &&
+                    (c.policy.mode!=0 || s.allocated+bytes<=s.capacity);
+                if(!fits && allocation) {CUDA_CHECK(cudaFree(allocation));allocation=nullptr;}
                 ggml_cuda_set_device(s.device);
-                if(!allocation) {
+                if(fits && !allocation) {
                     // Recheck at allocation time: another process can allocate
                     // after the last periodic sample. Keep a growth margin.
                     size_t free=0,total=0;
@@ -323,17 +401,25 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
 static void strata_cuda_expert_copy(ggml_backend_t backend,const ggml_tensor *source,ggml_tensor *dest,int first,int last,int tokens) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto *ctx=(ggml_backend_cuda_context *)backend->context;
-    auto &state=strata_expert_transfers[backend];
-    if(!state)state=std::make_unique<StrataExpertTransfer>(ctx,strata_device_cache_controls[ctx->device].enabled);
-    GGML_ASSERT(state->stream==ctx->stream());
-    GGML_ASSERT(strata_expert_thread_budget<0 || state->capacity==(size_t(strata_expert_thread_budget)<<20));
-    if(state->managed)strata_managed_copy(*state,source,dest,first,last,tokens);
-    else state->copy(source,dest,first,last,tokens);
+    auto &state=strata_expert_state(backend);
+    GGML_ASSERT(state.stream==ctx->stream());
+    GGML_ASSERT(strata_expert_thread_budget<0 || state.capacity==(size_t(strata_expert_thread_budget)<<20));
+    if(state.managed)strata_managed_copy(state,source,dest,first,last,tokens);
+    else state.copy(source,dest,first,last,tokens);
 }
 static void strata_cuda_expert_stats(ggml_backend_t backend,StrataExpertCounters *out) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
-    *out=it==strata_expert_transfers.end()?StrataExpertCounters{}:it->second->stats;
+    *out=it==strata_expert_transfers.end()?StrataExpertCounters{}:it->second->counters();
+}
+static void strata_cuda_expert_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    strata_expert_state(backend).plan(slices,count);
+}
+static void strata_cuda_expert_finish(ggml_backend_t backend) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    auto it=strata_expert_transfers.find(backend);
+    if(it!=strata_expert_transfers.end())it->second->finish_plan();
 }
 static void strata_cuda_expert_free(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);

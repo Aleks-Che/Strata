@@ -55,15 +55,28 @@ def main():
         assert engine.info.get('gpu_only') == 1
         assert engine.info.get('speculative') == ('none' if args.baseline else 'dspark')
         results['engine_info'] = engine.info
-        def run(name, ids, count, session, cancel_after=None, sampling=None):
+        def run(name, ids, count, session, cancel_after=None, sampling=None, cancel_seconds=None):
             event = threading.Event()
             output = []
             start = time.monotonic()
-            for token in engine.generate(ids, count, sampling or {'temperature': 0}, event, session_id=session):
-                if token is not None:
-                    output.append(token)
-                if cancel_after and len(output) >= cancel_after:
-                    event.set()
+            def stop_during_prefill():
+                event.set()
+                # generate() can be waiting for a prompt-progress line. Send
+                # STOP directly so this exercises cancellation inside a graph.
+                engine.write_command('STOP\n')
+            cancel_timer = threading.Timer(cancel_seconds, stop_during_prefill) if cancel_seconds else None
+            if cancel_timer:
+                cancel_timer.start()
+            try:
+                for token in engine.generate(ids, count, sampling or {'temperature': 0}, event, session_id=session):
+                    if token is not None:
+                        output.append(token)
+                    if cancel_after and len(output) >= cancel_after:
+                        event.set()
+            finally:
+                if cancel_timer:
+                    cancel_timer.cancel()
+                    cancel_timer.join()
             entry = {'token_ids': output, 'timings': dict(engine.last), 'elapsed_seconds': time.monotonic() - start}
             results[name] = entry
             print(name, json.dumps(entry['timings']), flush=True)
@@ -94,6 +107,9 @@ def main():
         print('full_prefill_identical', c == d, flush=True)
         run('single_token', ids, 1, 'validation-a')
         assert results['single_token']['timings']['drafts_offered'] == 0
+        run('cancel_prefill', ids, 256, 'validation-cancel-prefill', cancel_seconds=0.05)
+        assert results['cancel_prefill']['timings']['finish'] == 'cancel'
+        assert not results['cancel_prefill']['token_ids'], 'Timed cancellation missed prefill'
         run('cancel', ids, 256, 'validation-cancel', cancel_after=4)
         assert results['cancel']['timings']['finish'] == 'cancel'
         e = run('after_cancel', ids, args.tokens, 'validation-a')
