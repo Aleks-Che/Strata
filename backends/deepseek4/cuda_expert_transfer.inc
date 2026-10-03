@@ -11,6 +11,7 @@
 #include "device_memory.inc"
 #include "expert_pipeline.hpp"
 #include "expert_reuse.hpp"
+#include "expert_frequency.hpp"
 
 static thread_local int strata_expert_thread_budget=-1;
 static void strata_cuda_expert_budget(int mib) {
@@ -39,6 +40,12 @@ struct StrataExpertTransfer {
     std::unique_ptr<StrataExpertPipeline> pipeline;
     std::unordered_set<const void *> protected_keys;
     StrataExpertReuseFence reuse_fence;
+    std::unique_ptr<StrataExpertFrequency> frequency;
+
+    bool admits(const void *key,const StrataExpertTransfer &owner,const void *victim) {
+        if(!frequency || !owner.frequency || frequency->score(key)>=owner.frequency->score(victim))return true;
+        ++stats.admission_rejects;return false;
+    }
 
     void finish_plan() {
         if(pipeline)pipeline->finish(false);
@@ -90,6 +97,9 @@ struct StrataExpertTransfer {
     explicit StrataExpertTransfer(ggml_backend_cuda_context *ctx,bool dynamic=false):device(ctx->device),stream(ctx->stream()),managed(dynamic) {
         ggml_cuda_set_device(device);
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
+        const char *policy=std::getenv("STRATA_EXPERT_CACHE_POLICY");
+        if(policy && std::strcmp(policy,"frequency")==0)
+            frequency=std::make_unique<StrataExpertFrequency>(std::max<size_t>(4096,capacity>>17));
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
         const char *wc=std::getenv("STRATA_EXPERT_STAGE_WC");
         bool write_combined=wc && std::strcmp(wc,"1")==0;
@@ -117,7 +127,7 @@ struct StrataExpertTransfer {
             if(arena)cudaFree(arena);
             throw;
         }
-        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=lru prefill_bypass=1 stage_wc=%d pipeline=%d pipeline_slots=%zu readers=%d read_mode=%d\n",capacity>>20,stage_size>>20,int(write_combined),int(bool(pipeline)),pipeline?StrataExpertPipeline::slots:0,n_readers,read_mode);
+        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=%s prefill_bypass=1 stage_wc=%d pipeline=%d pipeline_slots=%zu readers=%d read_mode=%d\n",capacity>>20,stage_size>>20,frequency?"frequency":"lru",int(write_combined),int(bool(pipeline)),pipeline?StrataExpertPipeline::slots:0,n_readers,read_mode);
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);
@@ -136,9 +146,10 @@ struct StrataExpertTransfer {
             (unsigned long long)stats.wait_us,(unsigned long long)stats.submit_us,
             (unsigned long long)stats.pipeline_groups,(unsigned long long)stats.pipeline_chunks,
             (unsigned long long)stats.pipeline_unused,(unsigned long long)stats.pipeline_fallbacks);
-        GGML_LOG_INFO("STRATA_EXPERT_IO file_bytes=%llu mmap_bytes=%llu read_peak=%llu ordered_reuses=%llu reuse_events=%llu eviction_syncs=%llu\n",
+        GGML_LOG_INFO("STRATA_EXPERT_IO file_bytes=%llu mmap_bytes=%llu read_peak=%llu ordered_reuses=%llu reuse_events=%llu eviction_syncs=%llu admission_rejects=%llu\n",
             (unsigned long long)stats.file_read_bytes,(unsigned long long)stats.mmap_read_bytes,(unsigned long long)stats.read_peak,
-            (unsigned long long)stats.ordered_reuses,(unsigned long long)stats.reuse_events,(unsigned long long)stats.eviction_syncs);
+            (unsigned long long)stats.ordered_reuses,(unsigned long long)stats.reuse_events,(unsigned long long)stats.eviction_syncs,
+            (unsigned long long)stats.admission_rejects);
     }
     void manage() {
         if(managed)return;
@@ -176,7 +187,7 @@ struct StrataExpertTransfer {
         if(next!=free_blocks.end() && offset+bytes==next->first) {bytes+=next->second;free_blocks.erase(next);}
         free_blocks.emplace(offset,bytes);
     }
-    size_t allocate(size_t bytes) {
+    size_t allocate(size_t bytes,const void *key) {
         for(;;) {
             for(auto it=free_blocks.begin();it!=free_blocks.end();++it) if(it->second>=bytes) {
                 size_t offset=it->first, remaining=it->second-bytes;
@@ -186,6 +197,7 @@ struct StrataExpertTransfer {
             }
             auto candidate=evictable();
             if(candidate==lru.rend())return SIZE_MAX;
+            if(!admits(key,*this,*candidate))return SIZE_MAX;
             auto old=entries.find(*candidate);
             release(old->second.offset,old->second.bytes);
             lru.erase(old->second.lru);entries.erase(old);++stats.evictions;
@@ -236,6 +248,7 @@ struct StrataExpertTransfer {
             size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
             const void *key=(const uint8_t *)source->data+offset;
             if(bytes>capacity || tokens>8) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
+            if(frequency)frequency->record(key);
             auto found=entries.find(key);
             if(found!=entries.end()) {
                 GGML_ASSERT(found->second.bytes==bytes);
@@ -243,7 +256,7 @@ struct StrataExpertTransfer {
                 if(pipeline)pipeline->transfer(nullptr,key,bytes,stream);
             } else {
                 ++stats.misses;
-                size_t slot=allocate(bytes);
+                size_t slot=allocate(bytes,key);
                 if(slot==SIZE_MAX) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
                 upload(arena+slot,key,bytes);
                 lru.push_front(key);
@@ -378,6 +391,7 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
         size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
         const void *key=(const uint8_t *)source->data+offset;
         if(tokens>8) {++s.stats.bypass;s.upload((uint8_t *)dest->data+offset,key,bytes);continue;}
+        if(s.frequency)s.frequency->record(key);
         auto found=s.entries.find(key);
         if(found!=s.entries.end()) {
             ++s.stats.hits;s.lru.splice(s.lru.begin(),s.lru,found->second.lru);
@@ -389,19 +403,21 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
             bool fits=c.status.telemetry_ok && bytes<=c.status.limit_bytes && max_count>0 &&
                 (c.policy.mode!=0 || bytes<=s.capacity);
             if(fits) {
+                bool rejected=false;
                 while(c.status.cache_bytes+bytes>c.status.limit_bytes || c.status.matrices>=max_count ||
                       (c.policy.mode==0 && s.allocated+bytes>s.capacity)) {
                     size_t prefer=allocation?0:bytes;
                     auto *oldest=c.policy.mode==0 && s.allocated+bytes>s.capacity?&s:strata_oldest_cache(s.device,prefer);
                     if(!oldest)break;
                     auto candidate=oldest->evictable(prefer);if(candidate==oldest->lru.rend())break;
+                    if(!allocation && !s.admits(key,*oldest,*candidate)) {rejected=true;break;}
                     auto old_bytes=oldest->entries.find(*candidate)->second.bytes;
                     bool reuse=!allocation && old_bytes==bytes;
                     auto *released=oldest->evict(reuse,s.stream,prefer);
                     if(reuse)allocation=released;
                     strata_cache_totals(s.device,c.status);
                 }
-                fits=c.status.cache_bytes+bytes<=c.status.limit_bytes && c.status.matrices<max_count &&
+                fits=!rejected && c.status.cache_bytes+bytes<=c.status.limit_bytes && c.status.matrices<max_count &&
                     (c.policy.mode!=0 || s.allocated+bytes<=s.capacity);
                 if(!fits && allocation) {CUDA_CHECK(cudaFree(allocation));allocation=nullptr;}
                 ggml_cuda_set_device(s.device);
@@ -422,7 +438,8 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
                         auto *oldest=strata_oldest_cache(s.device,bytes);
                         if(oldest) {
                             auto candidate=oldest->evictable(bytes);
-                            if(candidate!=oldest->lru.rend() && oldest->entries.find(*candidate)->second.bytes==bytes)
+                            if(candidate!=oldest->lru.rend() && oldest->entries.find(*candidate)->second.bytes==bytes &&
+                               s.admits(key,*oldest,*candidate))
                                 allocation=oldest->evict(true,s.stream,bytes);
                         }
                     }

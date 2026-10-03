@@ -10,6 +10,7 @@ struct StrataExpertCounters {
     uint64_t pipeline_groups=0, pipeline_chunks=0, pipeline_unused=0, pipeline_fallbacks=0;
     uint64_t file_read_bytes=0, mmap_read_bytes=0, read_peak=0;
     uint64_t ordered_reuses=0, reuse_events=0, eviction_syncs=0;
+    uint64_t admission_rejects=0;
 };
 // Only immutable source addresses are planned. Scheduler destinations may
 // alias live activations and must not be written until their normal copy point.
