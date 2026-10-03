@@ -7,6 +7,12 @@
 #include <cstring>
 #include <mutex>
 
+static thread_local int strata_expert_thread_budget=-1;
+static void strata_cuda_expert_budget(int mib) {
+    GGML_ASSERT(mib>=0 && mib<=65536);
+    strata_expert_thread_budget=mib;
+}
+
 struct StrataExpertTransfer {
     struct Entry { size_t offset, bytes; std::list<const void *>::iterator lru; };
     int device;
@@ -29,7 +35,7 @@ struct StrataExpertTransfer {
     }
     explicit StrataExpertTransfer(ggml_backend_cuda_context *ctx):device(ctx->device),stream(ctx->stream()) {
         ggml_cuda_set_device(device);
-        capacity=env_mib("STRATA_EXPERT_CACHE_MIB");
+        capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
         if(capacity) {
             CUDA_CHECK(cudaMalloc((void **)&arena,capacity));
@@ -145,6 +151,7 @@ static void strata_cuda_expert_copy(ggml_backend_t backend,const ggml_tensor *so
     auto &state=strata_expert_transfers[backend];
     if(!state)state=std::make_unique<StrataExpertTransfer>(ctx);
     GGML_ASSERT(state->stream==ctx->stream());
+    GGML_ASSERT(strata_expert_thread_budget<0 || state->capacity==(size_t(strata_expert_thread_budget)<<20));
     state->copy(source,dest,first,last,tokens);
 }
 static void strata_cuda_expert_stats(ggml_backend_t backend,StrataExpertCounters *out) {

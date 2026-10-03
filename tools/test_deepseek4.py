@@ -4,7 +4,7 @@ import struct
 import tempfile
 import unittest
 
-from tools.setup_deepseek4 import inspect_model
+from tools.setup_deepseek4 import inspect_model, inspect_draft
 from tools.strata_tokenizer import Tokenizer, bytes_to_unicode
 
 
@@ -59,6 +59,58 @@ class ModelAdmissionTests(unittest.TestCase):
             shard(path, architecture='qwen4exp', count=1)
             with self.assertRaisesRegex(ValueError, 'existing Qwen profile'):
                 inspect_model(path)
+
+
+class DraftAdmissionTests(unittest.TestCase):
+    def write_draft(self, path, overrides=None, truncated=False, missing_head=False):
+        meta = {'general.architecture': 'dflash', 'dflash.block_count': 3,
+                'dflash.embedding_length': 4096, 'dflash.hyper_connection.count': 4,
+                'dflash.block_size': 5, 'dflash.target_layers': [41, 42, 43]}
+        meta.update(overrides or {})
+        names = ['markov_w1.weight', 'markov_w2.weight', 'blk.0.ffn_up_exps.weight']
+        if missing_head:
+            names.remove('markov_w2.weight')
+        data = b'GGUF' + struct.pack('<IQQ', 3, len(names), len(meta))
+        for key, value in meta.items():
+            data += string(key)
+            if isinstance(value, str):
+                data += struct.pack('<I', 8) + string(value)
+            elif isinstance(value, list):
+                data += struct.pack('<IIQ', 9, 4, len(value)) + struct.pack(f'<{len(value)}I', *value)
+            elif isinstance(value, bool):
+                data += struct.pack('<I?', 7, value)
+            else:
+                data += struct.pack('<II', 4, value)
+        for i, name in enumerate(names):
+            data += string(name) + struct.pack('<IQIQ', 1, 8, 0, i * 32)
+        data += bytes((-len(data)) % 32) + bytes(32 * len(names) - int(truncated))
+        path.write_bytes(data)
+
+    def test_admits_matching_complete_sidecar_and_counts_experts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'draft.gguf'
+            self.write_draft(path)
+            report = inspect_draft(path)
+            self.assertEqual((report['tensors'], report['weight_bytes'], report['expert_bytes']), (3, 96, 32))
+
+    def test_rejects_wrong_target_layers_architecture_and_attention(self):
+        for override in ({'dflash.target_layers': [40, 41, 42]}, {'general.architecture': 'qwen4exp'},
+                         {'dflash.attention.causal': True}, {'dflash.sample_from_anchor': False}):
+            with self.subTest(override=override), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'draft.gguf'
+                self.write_draft(path, override)
+                with self.assertRaises(ValueError):
+                    inspect_draft(path)
+
+    def test_rejects_incomplete_copy_and_missing_markov(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'draft.gguf'
+            self.write_draft(path, truncated=True)
+            with self.assertRaisesRegex(ValueError, 'Incomplete'):
+                inspect_draft(path)
+            self.write_draft(path, missing_head=True)
+            with self.assertRaisesRegex(ValueError, 'Markov'):
+                inspect_draft(path)
 
 
 class TokenizerTests(unittest.TestCase):

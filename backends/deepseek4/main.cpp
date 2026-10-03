@@ -2,6 +2,8 @@
 // Strata's pipe protocol; Qwen continues to use the existing specialized engine.
 #include "llama.h"
 #include "ggml-backend.h"
+#include "expert_transfer.h"
+#include "speculative.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -13,6 +15,7 @@
 #include <cstdio>
 #include <deque>
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -31,11 +34,12 @@ static int integer(const std::string &s) {
     return n;
 }
 struct Options {
-    std::string model;
+    std::string model, draft_model;
     int context=8192, batch=512, threads=1, gpu_layers=99, gpu_expert_layers=0, slots=4;
     uint64_t budget=2048ULL<<20, floor=8192ULL<<20;
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0;
+    int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
     bool vocab_only=false;
 };
 static Options options(int argc, char **argv) {
@@ -51,6 +55,9 @@ static Options options(int argc, char **argv) {
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
+                "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
+                "--draft-max 3 (1..5 target-verified draft tokens)\n"
+                "--draft-expert-cache-mib 1024 --draft-gpu-expert-layers 0 (0..3)\n"
                 "--working-set-mib 0 (Windows process RAM cap; 0 leaves paging to the OS)\n"
                 "--conversation-cache-mib 2048 --conversation-cache-slots 4\n"
                 "--conversation-cache-min-free-mib 8192; --tokenizer: vocab-only protocol\n";
@@ -59,6 +66,10 @@ static Options options(int argc, char **argv) {
         if (++i>=argc) throw std::runtime_error("missing value for "+k);
         std::string v=argv[i];
         if (k=="--native") o.model=v;
+        else if (k=="--draft-model") o.draft_model=v;
+        else if (k=="--draft-max") o.draft_max=integer(v);
+        else if (k=="--draft-expert-cache-mib") o.draft_expert_cache_mib=integer(v);
+        else if (k=="--draft-gpu-expert-layers") o.draft_gpu_expert_layers=integer(v);
         else if (k=="--max-context") o.context=integer(v);
         else if (k=="--threads") o.threads=integer(v);
         else if (k=="--batch-size") o.batch=integer(v);
@@ -76,6 +87,10 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid model/context/batch/thread/cache settings");
     if(o.expert_cache_mib<0 || o.expert_cache_mib>65536 || o.expert_stage_mib<0 || o.expert_stage_mib>256)
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
+    if(o.draft_max<1 || o.draft_max>5 || o.draft_expert_cache_mib<0 || o.draft_expert_cache_mib>65536 || o.draft_gpu_expert_layers<0 || o.draft_gpu_expert_layers>3)
+        throw std::runtime_error("invalid DSpark draft size/cache/resident-layer setting");
+    if(!o.draft_model.empty() && o.batch<o.draft_max+1)
+        throw std::runtime_error("DSpark batch size must fit anchor plus draft tokens");
     return o;
 }
 struct Request {
@@ -145,12 +160,15 @@ struct Snapshot {
     uint64_t id;
     std::string session;
     std::vector<llama_token> tokens;
-    std::vector<uint8_t> state;
+    std::vector<uint8_t> state, draft_state;
     int64_t used;
-    size_t bytes() const { return state.size()+tokens.size()*sizeof(llama_token); }
+    size_t bytes() const { return state.size()+draft_state.size()+tokens.size()*sizeof(llama_token); }
 };
 class Runner {
     llama_context *ctx;
+    llama_context *draft_ctx;
+    std::unique_ptr<DSpark> spec;
+    StrataExpertBudget expert_budget;
     const llama_vocab *vocab;
     Options o;
     std::atomic<bool> &stop;
@@ -163,7 +181,13 @@ class Runner {
     static bool prefix(const std::vector<llama_token>&a,const std::vector<llama_token>&b) {
         return !a.empty() && a.size()<b.size() && std::equal(a.begin(),a.end(),b.begin());
     }
-    void reset() { llama_memory_clear(llama_get_memory(ctx),true); active.clear(); active_session.clear(); }
+    void reset() {
+        llama_memory_clear(llama_get_memory(ctx),true);
+        if(draft_ctx)llama_memory_clear(llama_get_memory(draft_ctx),true);
+        active.clear();active_session.clear();
+    }
+    void budget(bool draft) { if(expert_budget)expert_budget(draft?o.draft_expert_cache_mib:o.expert_cache_mib); }
+    void inject(const llama_batch& b) { if(spec) {budget(true);spec->inject(b);} }
     void status(const char *phase,const char *source,double save=0,double restore=0,const char *reason=nullptr) {
         if(!reason)reason=save_reason;
         std::cout<<"CACHE phase="<<phase<<" source="<<source<<" reason="<<reason<<" bytes="<<used()<<" sessions="<<cache.size()
@@ -173,9 +197,12 @@ class Runner {
         for(size_t i=begin;i<end;) {
             if(stop.load()) return false;
             size_t n=std::min(size_t(o.batch),end-i);
-            auto b=llama_batch_get_one(const_cast<llama_token*>(tokens.data()+i),int(n));
-            int rc=llama_decode(ctx,b);
+            Batch batch{int(n)};
+            batch.positions(int(n),int(active.size()),false);batch.value.logits[n-1]=true;
+            std::copy_n(tokens.data()+i,n,batch.value.token);
+            budget(false);int rc=llama_decode(ctx,batch.value);
             if(rc) { if(stop.load()) return false; throw std::runtime_error("llama_decode failed: "+std::to_string(rc)); }
+            inject(batch.value);
             active.insert(active.end(),tokens.begin()+i,tokens.begin()+i+n); i+=n;
             if(prompt) std::cout<<"PP "<<i<<" "<<tokens.size()<<"\n"<<std::flush;
         }
@@ -188,7 +215,8 @@ class Runner {
         for(const auto &entry:cache) {
             if(entry.session==r.session && entry.tokens==active) {save_reason="retained";return 0;}
         }
-        size_t size=llama_state_get_size(ctx),bytes=size+active.size()*sizeof(llama_token);
+        size_t size=llama_state_get_size(ctx),draft_size=draft_ctx?llama_state_get_size(draft_ctx):0;
+        size_t bytes=size+draft_size+active.size()*sizeof(llama_token);
         if(bytes>o.budget) {++skips;save_reason="budget";return 0;}
         for(auto i=cache.begin();i!=cache.end();) {
             if(i->session==r.session) i=cache.erase(i); else ++i;
@@ -197,16 +225,21 @@ class Runner {
         if(auto *why=strata::core::conversation_memory_blocker(strata::core::conversation_memory_status(),bytes,o.floor)) {++skips;save_reason=why;return 0;}
         status("saving","prompt"); auto t=Clock::now();
         try {
-            Snapshot s{++serial,r.session,active,{},epoch_ms()}; s.state.resize(size);
+            Snapshot s{++serial,r.session,active,{},{},epoch_ms()}; s.state.resize(size);s.draft_state.resize(draft_size);
             size_t written=llama_state_get_data(ctx,s.state.data(),size);
             if(written!=size) throw std::runtime_error("incomplete state snapshot");
+            if(draft_ctx && llama_state_get_data(draft_ctx,s.draft_state.data(),draft_size)!=draft_size)
+                throw std::runtime_error("incomplete DSpark state snapshot");
             cache.push_back(std::move(s));
             save_reason="ok";
         } catch(const std::bad_alloc&) {++skips;save_reason="allocation_failed";}
         return ms(t);
     }
 public:
-    Runner(llama_context*c,const llama_vocab*v,Options opts,std::atomic<bool>&s):ctx(c),vocab(v),o(opts),stop(s) {}
+    Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b):
+        ctx(c),draft_ctx(d),expert_budget(b),vocab(v),o(opts),stop(s) {
+        if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max);
+    }
     void inventory() {
         std::cout<<"CACHE_ENTRIES {\"entries\":[";
         bool first=true;
@@ -230,8 +263,13 @@ public:
         std::cout<<"CACHE_DROPPED "<<nonce<<" "<<(found?"removed":"missing")<<"\n"<<std::flush;
     }
     void run(const std::string&line) {
+        Request r;
+        int generated=0,offered=0,accepted=0;
+        size_t reused=0;
+        double prompt_ms=0;
+        auto dt=Clock::now();
         try {
-            Request r=request(line,o.context,llama_vocab_n_tokens(vocab));
+            r=request(line,o.context,llama_vocab_n_tokens(vocab));
             save_reason="not_saved";
             std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> smpl(sampler(r,llama_vocab_n_tokens(vocab)),llama_sampler_free);
             auto started=Clock::now();double restore=0,save_ms=0;const char*source="miss";
@@ -245,20 +283,89 @@ public:
                     status("restoring","ram");auto t=Clock::now();
                     if(llama_state_set_data(ctx,best->state.data(),best->state.size())!=best->state.size())
                         throw std::runtime_error("state restore failed");
+                    if(draft_ctx && llama_state_set_data(draft_ctx,best->draft_state.data(),best->draft_state.size())!=best->draft_state.size())
+                        throw std::runtime_error("DSpark state restore failed");
                     active=best->tokens;best->used=epoch_ms();restore=ms(t);source="ram";++hits;
                     Snapshot s=std::move(*best);cache.erase(best);cache.push_back(std::move(s));
                 } else ++misses;
             }
-            active_session=r.session;size_t reused=active.size();
+            active_session=r.session;reused=active.size();
             std::cout<<"RESUME "<<reused<<"\n"<<std::flush;
             // Save BEFORE the last prompt token: an identical request can restore
             // this exact compressor state then recompute logits without a rewind.
             bool ok=decode(r.tokens,reused,r.tokens.size()-1,true);
             if(ok && !stop.load())save_ms=save(r);
-            if(ok)ok=decode(r.tokens,active.size(),r.tokens.size(),true);
-            double prompt_ms=ms(started);auto dt=Clock::now();int generated=0;std::string finish="length";
+            if(ok && !spec)ok=decode(r.tokens,active.size(),r.tokens.size(),true);
+            prompt_ms=ms(started);dt=Clock::now();std::string finish="length";
+            int rounds=0;double draft_ms=0,verify_ms=0;
             status("decoding",source,save_ms,restore);
-            if(ok) for(int i=0;i<r.count && !stop.load();++i) {
+            if(ok && spec) {
+                llama_token pending=r.tokens.back();
+                while(generated<r.count && !stop.load()) {
+                    const int base=int(active.size());
+                    auto t=Clock::now();budget(true);
+                    auto draft=spec->propose(pending,base,r.count-generated-1);
+                    draft_ms+=ms(t);offered+=int(draft.size());++rounds;
+                    Batch batch(int(draft.size())+1);
+                    batch.positions(int(draft.size())+1,base,true);
+                    batch.value.token[0]=pending;
+                    std::copy(draft.begin(),draft.end(),batch.value.token+1);
+                    t=Clock::now();budget(false);
+                    // Diagnostic causality probe: same anchor and batch shape,
+                    // different future tokens. Never used in normal execution.
+                    std::vector<uint8_t> probe_state;
+                    if(std::getenv("STRATA_SPEC_CHECK_CAUSAL") && rounds<=3 && !draft.empty()) {
+                        probe_state.resize(llama_state_get_size(ctx));
+                        if(llama_state_get_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
+                            throw std::runtime_error("causality probe snapshot failed");
+                    }
+                    if(llama_decode(ctx,batch.value))throw std::runtime_error("DSpark target verification failed");
+                    if(!probe_state.empty()) {
+                        auto restore_probe=[&] {
+                            if(llama_state_set_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
+                                throw std::runtime_error("causality probe restore failed");
+                        };
+                        const auto *logits=llama_get_logits_ith(ctx,0);
+                        std::vector<float> expected(logits,logits+llama_vocab_n_tokens(vocab));
+                        restore_probe();
+                        for(size_t i=0;i<draft.size();++i)batch.value.token[i+1]=(draft[i]+17)%llama_vocab_n_tokens(vocab);
+                        if(llama_decode(ctx,batch.value))throw std::runtime_error("causality probe decode failed");
+                        logits=llama_get_logits_ith(ctx,0);float diff=0;
+                        for(size_t i=0;i<expected.size();++i)diff=std::max(diff,std::abs(expected[i]-logits[i]));
+                        std::cerr<<"STRATA_SPEC_CAUSAL pos="<<base<<" max_logit_diff="<<diff
+                            <<" original="<<(std::max_element(expected.begin(),expected.end())-expected.begin())
+                            <<" changed="<<(std::max_element(logits,logits+expected.size())-logits)<<"\n";
+                        restore_probe();std::copy(draft.begin(),draft.end(),batch.value.token+1);
+                        if(llama_decode(ctx,batch.value))throw std::runtime_error("causality probe replay failed");
+                    }
+                    if(stop.load()) {ok=false;break;}
+                    auto verified=verify_draft(draft,r.count-generated,
+                        [&](int row){return llama_sampler_sample(smpl.get(),ctx,row);},
+                        [&](llama_token token){return llama_vocab_is_eog(vocab,token);});
+                    if(std::getenv("STRATA_SPEC_TRACE") && rounds<=5) {
+                        std::cerr<<"STRATA_SPEC_TRACE source="<<source<<" pos="<<base<<" draft=";
+                        for(auto token:draft)std::cerr<<token<<",";
+                        std::cerr<<" output=";
+                        for(auto token:verified.tokens)std::cerr<<token<<",";
+                        const float *logits=llama_get_logits_ith(ctx,0);
+                        auto best=std::max_element(logits,logits+llama_vocab_n_tokens(vocab));
+                        std::cerr<<" top="<<(best-logits)<<":"<<std::setprecision(9)<<*best<<"\n";
+                    }
+                    // Keep anchor + accepted inputs, leave the last sampled
+                    // output pending. Recurrent compressor rollback is bounded
+                    // by n_rs_seq and must succeed before emitting any tokens.
+                    int keep=int(verified.tokens.size());
+                    if(!llama_memory_seq_rm(llama_get_memory(ctx),0,base+keep,-1))
+                        throw std::runtime_error("DeepSeek speculative rollback failed");
+                    batch.value.n_tokens=keep;inject(batch.value);
+                    active.insert(active.end(),batch.value.token,batch.value.token+keep);
+                    verify_ms+=ms(t);accepted+=verified.accepted;
+                    for(auto token:verified.tokens) {++generated;std::cout<<"T "<<token<<"\n"<<std::flush;}
+                    pending=verified.tokens.back();
+                    if(verified.eog) {finish="stop";break;}
+                    if(generated==r.count)ok=decode(std::vector<llama_token>{pending},0,1,false);
+                }
+            } else if(ok) for(int i=0;i<r.count && !stop.load();++i) {
                 auto token=llama_sampler_sample(smpl.get(),ctx,-1);
                 ++generated;std::cout<<"T "<<token<<"\n"<<std::flush;
                 if(llama_vocab_is_eog(vocab,token)) {finish="stop";break;}
@@ -267,9 +374,17 @@ public:
                 if(!decode(std::vector<llama_token>{token},0,1,false)) {ok=false;break;}
             }
             if(!ok || stop.load()) {finish="cancel";reset();}
+            if(spec)std::cerr<<"STRATA_SPEC type=dspark rounds="<<rounds<<" offered="<<offered<<" accepted="<<accepted
+                <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<"\n";
             inventory();status("idle",source,save_ms,restore);
-            std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" "<<finish<<" 0 0 "<<reused<<"\n"<<std::flush;
-        } catch(const std::exception&e) {reset();std::cout<<"ERR "<<e.what()<<"\n"<<std::flush;}
+            std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" "<<finish<<" "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
+        } catch(const std::exception&e) {
+            reset();
+            if(stop.load()) {
+                inventory();status("idle","none",0,0,"cancelled");
+                std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" cancel "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
+            } else std::cout<<"ERR "<<e.what()<<"\n"<<std::flush;
+        }
     }
 };
 
@@ -302,6 +417,26 @@ int main(int argc,char**argv) {
                 throw std::runtime_error("this backend requires the first deepseek4 GGUF shard; use strata.exe for Qwen");
             layers=int(blocks->u);
         }
+        if(!o.draft_model.empty()) {
+            strata::GgufFile header(o.draft_model);
+            auto require=[&](const char*key,uint64_t value) {
+                auto *v=header.get(key);
+                if(!v || v->u!=value)throw std::runtime_error(std::string("incompatible 0731 DSpark metadata: ")+key);
+            };
+            auto *a=header.get("general.architecture");
+            if(!a || a->s!="dflash")throw std::runtime_error("--draft-model requires the 0731 DSpark GGUF (architecture=dflash)");
+            require("dflash.block_count",3);require("dflash.embedding_length",4096);
+            require("dflash.hyper_connection.count",4);require("dflash.block_size",5);
+            // These optional keys default to true/false in pinned llama.cpp.
+            if(auto*v=header.get("dflash.sample_from_anchor");v && !v->u)
+                throw std::runtime_error("DSpark requires anchor-first sampling");
+            if(auto*v=header.get("dflash.attention.causal");v && v->u)
+                throw std::runtime_error("DSpark requires non-causal draft attention");
+            bool markov=false;
+            for(auto&t:header.tensors())if(t.name=="markov_w1.weight")markov=true;
+            if(!markov)throw std::runtime_error("DSpark Markov head is missing");
+            if(layers!=43)throw std::runtime_error("DSpark sidecar requires a 43-layer 0731 target");
+        }
         if(o.gpu_expert_layers>layers || (!o.vocab_only && o.gpu_layers>=0 && o.gpu_layers<layers+1))
             throw std::runtime_error("GPU-only inference requires all dense layers offloaded");
         llama_log_set([](ggml_log_level level,const char*text,void*) {
@@ -326,6 +461,9 @@ int main(int argc,char**argv) {
             if(!ggml_backend_reg_get_proc_address(reg,"strata_expert_copy"))
                 throw std::runtime_error("this GPU backend does not support the requested expert cache/staging path");
         }
+        auto budget_gpu=gpu?reinterpret_cast<StrataExpertBudget>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_budget")):nullptr;
+        if(!o.vocab_only && !o.draft_model.empty() && o.draft_gpu_expert_layers<3 && !budget_gpu)
+            throw std::runtime_error("streamed DSpark requires CUDA expert budget support");
         auto mp=llama_model_default_params();mp.n_gpu_layers=o.vocab_only?0:o.gpu_layers;
         mp.split_mode=LLAMA_SPLIT_MODE_NONE;mp.load_mode=LLAMA_LOAD_MODE_MMAP;
         mp.use_extra_bufts=false;mp.vocab_only=o.vocab_only;mp.load_mtp=false;
@@ -348,15 +486,41 @@ int main(int argc,char**argv) {
         std::atomic<bool> stop{false};
         auto cp=llama_context_default_params();cp.n_ctx=o.context;cp.n_batch=o.batch;cp.n_ubatch=o.batch;
         cp.n_seq_max=1;cp.n_threads=o.threads;cp.n_threads_batch=o.threads;cp.no_perf=false;
+        cp.n_rs_seq=o.draft_model.empty()?0:o.draft_max;
+        if(!o.draft_model.empty())cp.n_outputs_max=cp.n_outputs_max_per_seq=o.draft_max+1;
         cp.op_offload=true;cp.offload_kqv=true;
         cp.type_k=GGML_TYPE_F16;cp.type_v=GGML_TYPE_F16;cp.flash_attn_type=LLAMA_FLASH_ATTN_TYPE_ENABLED;
         cp.abort_callback=[](void*p){return static_cast<std::atomic<bool>*>(p)->load();};cp.abort_callback_data=&stop;
         std::unique_ptr<llama_context,decltype(&llama_free)>ctx(llama_init_from_model(model.get(),cp),llama_free);
         if(!ctx)throw std::runtime_error("could not create DeepSeek context");
-        if(o.expert_cache_mib) {
+        // Declare the draft after the target: borrowed embeddings/output tensors
+        // must outlive the draft model, context and speculative adapter.
+        std::unique_ptr<llama_model,decltype(&llama_model_free)>draft_model(nullptr,llama_model_free);
+        std::unique_ptr<llama_context,decltype(&llama_free)>draft_ctx(nullptr,llama_free);
+        if(!o.draft_model.empty()) {
+            auto dp=llama_model_default_params();dp.n_gpu_layers=99;dp.split_mode=LLAMA_SPLIT_MODE_NONE;
+            dp.load_mode=LLAMA_LOAD_MODE_MMAP;dp.use_extra_bufts=false;
+            std::vector<std::string> patterns;
+            for(int layer=0;layer<3-o.draft_gpu_expert_layers;++layer)
+                patterns.push_back("blk\\."+std::to_string(layer)+"\\.ffn_(gate|up|down)_exps\\.weight");
+            std::vector<llama_model_tensor_buft_override> placement;
+            for(auto&p:patterns)placement.push_back({p.c_str(),ggml_backend_dev_buffer_type(cpu)});
+            placement.push_back({nullptr,nullptr});dp.tensor_buft_overrides=placement.data();
+            draft_model.reset(llama_model_load_from_file(o.draft_model.c_str(),dp));
+            if(!draft_model)throw std::runtime_error("could not load DSpark model");
+            auto dc=cp;dc.n_rs_seq=0;dc.ctx_other=ctx.get();
+            // Draft noise has at most five tokens. Feature injection is cheap
+            // and chunked, so avoid reserving a 4096-token draft MoE graph.
+            dc.n_batch=dc.n_ubatch=std::min(o.batch,256);
+            dc.n_outputs_max=dc.n_outputs_max_per_seq=o.draft_max;
+            draft_ctx.reset(llama_init_from_model(draft_model.get(),dc));
+            if(!draft_ctx)throw std::runtime_error("could not create DSpark context");
+        }
+        if(o.expert_cache_mib || draft_ctx) {
             size_t free=0,total=0;ggml_backend_dev_memory(gpu,&free,&total);
-            if(uint64_t(free)<(uint64_t(o.expert_cache_mib)+512)*1048576)
-                throw std::runtime_error("not enough free VRAM for expert cache plus 512 MiB reserve; reduce --expert-cache-mib or --gpu-expert-layers");
+            auto draft_cache=draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0;
+            if(uint64_t(free)<(uint64_t(o.expert_cache_mib)+draft_cache+512)*1048576)
+                throw std::runtime_error("not enough free VRAM for target/draft expert caches plus 512 MiB reserve; reduce cache budgets or resident expert layers");
         }
         if(o.working_set) {
 #ifdef _WIN32
@@ -366,9 +530,19 @@ int main(int argc,char**argv) {
             throw std::runtime_error("--working-set-mib is Windows-only; use OS memory controls on Linux");
 #endif
         }
-        Runner runner(ctx.get(),vocab,o,stop);
-        std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec=0 expert_storage=mmap expert_compute=gpu gpu_only=1"
+        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu);
+        llama_memory_breakdown_data draft_memory;
+        if(draft_ctx)for(const auto &[buft,data]:llama_get_memory_breakdown(draft_ctx.get())) {
+            auto *device=ggml_backend_buft_get_device(buft);
+            if(device && !ggml_backend_buft_is_host(buft) && ggml_backend_dev_type(device)==GGML_BACKEND_DEVICE_TYPE_GPU) {
+                draft_memory.model+=data.model;draft_memory.context+=data.context;draft_memory.compute+=data.compute;
+            }
+        }
+        std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
+            <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
+            <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
+            <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
             <<" working_set_mib="<<(o.working_set>>20)<<" kv=fp16\n"
             <<"READY "<<o.context<<" stop session-id cache-admin\n"<<std::flush;
         std::mutex mutex;std::condition_variable cv;std::deque<std::string> commands;bool ended=false;

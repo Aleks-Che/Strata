@@ -640,7 +640,9 @@ function renderAbout(eng, hw, st) {
     ["KV cache", kv ? `${kv}${eng.kv_resident ? `, streamed: ${fmt(eng.kv_resident)} positions per layer in VRAM, the rest in RAM` : ", all in VRAM"}` : null],
     ["Experts in VRAM", eng.expert_slots ? `${fmt(eng.expert_slots)} (${gb((eng.expert_cache_mib || 0) * 1048576)} GB)` : null],
     ["Expert placement", eng.architecture === "deepseek4" ? `GPU computation; ${eng.gpu_expert_layers || 0} resident expert layers${eng.expert_cache_mib ? `, ${gb(eng.expert_cache_mib * 1048576)} GB cache of individual expert matrices` : ""}, other weights streamed from GGUF` : null],
-    ["Speculation", eng.architecture === "deepseek4" ? "Off — MTP is not supported by this backend yet" : eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
+    ["Speculation", eng.architecture === "deepseek4" ? eng.speculative === "dspark" && eng.spec ? `DSpark (experimental): up to ${eng.spec} draft tokens, verified by the main model` : "Off" : eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
+    ["DSpark experts", eng.speculative === "dspark" ? `${eng.draft_gpu_expert_layers || 0} resident layers; ${gb((eng.draft_expert_cache_mib || 0) * 1048576)} GB GPU cache; other experts streamed from GGUF` : null],
+    ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache budget` : null],
     ["Images", eng.images ? "on" : "off"],
     ["Experimental speed projection", projectionText(eng.cvec)],
   ]);

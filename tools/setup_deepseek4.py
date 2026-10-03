@@ -56,6 +56,34 @@ def inspect_model(first):
             "first_shard": str(first)}
 
 
+def inspect_draft(path):
+    """Reject wrong architecture, incompatible 0731 sidecars and partial copies."""
+    path = Path(path).resolve()
+    gguf = GGUFFile(path)
+    meta = gguf.metadata
+    required = {"general.architecture": "dflash", "dflash.block_count": 3,
+                "dflash.embedding_length": 4096, "dflash.hyper_connection.count": 4,
+                "dflash.block_size": 5, "dflash.target_layers": [41, 42, 43]}
+    for key, value in required.items():
+        if meta.get(key) != value:
+            raise ValueError(f"Incompatible DeepSeek 0731 DSpark: {key}")
+    if meta.get("dflash.sample_from_anchor", True) is not True or meta.get("dflash.attention.causal", False) is not False:
+        raise ValueError("DSpark requires anchor-first non-causal decoding")
+    names = {tensor.name for tensor in gguf.tensors}
+    if not {"markov_w1.weight", "markov_w2.weight"} <= names:
+        raise ValueError("Missing DSpark Markov head")
+    total = experts = 0
+    for tensor in gguf.tensors:
+        size = tensor.expected_bytes()
+        if size is None or path.stat().st_size < gguf.data_start + tensor.offset + size:
+            raise ValueError(f"Incomplete or unsupported DSpark tensor: {tensor.name}")
+        total += size
+        if "_exps." in tensor.name:
+            experts += size
+    return {"path": str(path), "tensors": len(gguf.tensors), "weight_bytes": total,
+            "expert_bytes": experts, "dense_bytes": total - experts}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model-dir", type=Path, required=True)
@@ -68,6 +96,10 @@ def main():
     ap.add_argument("--gpu-expert-layers", type=int, default=0, help="Keep the last N layers' routed experts in VRAM; size depends on quantization")
     ap.add_argument("--expert-cache-mib", type=int, default=0, help="GPU LRU budget for individual expert matrices")
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
+    ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
+    ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
+    ap.add_argument("--draft-expert-cache-mib", type=int, default=1024)
+    ap.add_argument("--draft-gpu-expert-layers", type=int, default=0, choices=range(4))
     ap.add_argument("--working-set-mib", type=int, default=0, help="Windows-only process working-set cap; 0 uses OS default")
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--check-only", action="store_true")
@@ -80,6 +112,10 @@ def main():
     if len(first) != 1:
         ap.error("The directory must contain exactly one model's first shard.")
     report = inspect_model(first[0])
+    if args.draft_model:
+        report["draft"] = inspect_draft(args.draft_model)
+        if args.batch_size < args.draft_max + 1 or not 0 <= args.draft_expert_cache_mib <= 65536:
+            ap.error("DSpark needs batch >= draft-max + 1 and a valid draft cache budget")
     print(json.dumps(report, indent=2))
     if args.check_only:
         return
@@ -102,6 +138,10 @@ def main():
            "gpu": 0, "statistics_file": f"data/{profile_name}-usage-statistics.sqlite"}
     if args.cuda_dir:
         cfg["lib_dirs"] = [str((args.cuda_dir / sub).resolve()) for sub in ("bin", "bin/x64") if (args.cuda_dir / sub).is_dir()]
+    if args.draft_model:
+        cfg["args"] += ["--draft-model", report["draft"]["path"], "--draft-max", str(args.draft_max),
+                        "--draft-expert-cache-mib", str(args.draft_expert_cache_mib),
+                        "--draft-gpu-expert-layers", str(args.draft_gpu_expert_layers)]
     if args.working_set_mib:
         if sys.platform != "win32":
             ap.error("--working-set-mib is Windows-only")

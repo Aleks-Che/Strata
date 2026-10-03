@@ -9,3 +9,6 @@ struct StrataExpertCounters {
 };
 using StrataExpertCopy = void (*)(ggml_backend_t, const ggml_tensor *, ggml_tensor *, int, int, int);
 using StrataExpertStats = void (*)(ggml_backend_t, StrataExpertCounters *);
+// Set the budget on the calling decode thread. Each CUDA backend owns its own
+// arena. Existing arenas must retain their budget until that backend is freed.
+using StrataExpertBudget = void (*)(int cache_mib);

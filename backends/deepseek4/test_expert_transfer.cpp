@@ -19,7 +19,9 @@ int main() {
     auto reg=ggml_backend_dev_backend_reg(ggml_backend_get_device(gpu));
     auto copy=(StrataExpertCopy)ggml_backend_reg_get_proc_address(reg,"strata_expert_copy");
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(reg,"strata_expert_stats");
-    if(!copy || !stats)return 1;
+    auto budget=(StrataExpertBudget)ggml_backend_reg_get_proc_address(reg,"strata_expert_budget");
+    if(!copy || !stats || !budget)return 1;
+    budget(4);
     constexpr int count=10;
     constexpr size_t width=(1<<20)+(256<<10); // crosses the 1 MiB staging boundary
     auto *host_ctx=ggml_init({ggml_tensor_overhead()*2,nullptr,true});
@@ -56,6 +58,20 @@ int main() {
     check(0,9,32);stats(gpu,&after); // prefill bypass must not populate/evict cache
     ok &= before.hits==after.hits && before.misses==after.misses && before.evictions==after.evictions;
     check(9,9,1); // final expert: no padding beyond tensor end
+    // A second context gets a separate smaller arena. It must neither inherit
+    // the target's 4 MiB nor clear its entries when the draft context is freed.
+    auto *draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    budget(1); // too small for a 1.25 MiB expert => bypass, no cached entries
+    copy(draft_gpu,source,dest,2,2,1);
+    ggml_backend_synchronize(draft_gpu);
+    StrataExpertCounters draft_stats;
+    stats(draft_gpu,&draft_stats);
+    ok &= draft_stats.bypass==1 && draft_stats.misses==0;
+    ggml_backend_tensor_get(dest,actual.data(),2*width,width);
+    ok &= std::memcmp(actual.data(),expected.data()+2*width,width)==0;
+    ggml_backend_free(draft_gpu);
+    budget(4);stats(gpu,&before);check(9,9,1);stats(gpu,&after);
+    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);
