@@ -62,12 +62,14 @@ class ModelAdmissionTests(unittest.TestCase):
 
 
 class DraftAdmissionTests(unittest.TestCase):
-    def write_draft(self, path, overrides=None, truncated=False, missing_head=False):
+    def write_draft(self, path, overrides=None, truncated=False, missing_head=False, confidence=False):
         meta = {'general.architecture': 'dflash', 'dflash.block_count': 3,
                 'dflash.embedding_length': 4096, 'dflash.hyper_connection.count': 4,
                 'dflash.block_size': 5, 'dflash.target_layers': [41, 42, 43]}
         meta.update(overrides or {})
         names = ['markov_w1.weight', 'markov_w2.weight', 'blk.0.ffn_up_exps.weight']
+        if confidence:
+            names.append('conf_proj.weight')
         if missing_head:
             names.remove('markov_w2.weight')
         data = b'GGUF' + struct.pack('<IQQ', 3, len(names), len(meta))
@@ -92,6 +94,9 @@ class DraftAdmissionTests(unittest.TestCase):
             self.write_draft(path)
             report = inspect_draft(path)
             self.assertEqual((report['tensors'], report['weight_bytes'], report['expert_bytes']), (3, 96, 32))
+            self.assertFalse(report['confidence_head'])
+            self.write_draft(path, confidence=True)
+            self.assertTrue(inspect_draft(path)['confidence_head'])
 
     def test_rejects_wrong_target_layers_architecture_and_attention(self):
         for override in ({'dflash.target_layers': [40, 41, 42]}, {'general.architecture': 'qwen4exp'},

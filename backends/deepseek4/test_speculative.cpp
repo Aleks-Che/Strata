@@ -1,9 +1,18 @@
 #include "speculative.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
 
 static void check(bool ok) { if(!ok)std::abort(); }
 int main() {
+    check(confidence_prefix({},0.8f)==0);
+    check(confidence_prefix({0.9f,0.8f,0.2f,0.99f},0.8f)==2);
+    check(confidence_prefix({0.1f,0.99f},0.8f)==0);
+    check(confidence_prefix({0.2f,0.3f},0)==2);
+    check(confidence_prefix({0.9f,std::numeric_limits<float>::quiet_NaN(),0.99f},0.8f)==1);
+    check(confidence_prefix({std::numeric_limits<float>::infinity()},0.8f)==0);
+    check(confidence_prefix({1.1f},0.8f)==0);
+    check(confidence_prefix({1.0f,1.0f},1.0f)==2);
     // Exhaust partial acceptance, full acceptance, EOS at every position and
     // output limits. Never sample a rejected suffix: sampler history and its
     // RNG must advance only for tokens actually emitted.

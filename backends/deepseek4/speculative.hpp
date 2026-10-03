@@ -2,10 +2,24 @@
 #include "llama.h"
 #include "llama-ext.h"
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <vector>
+
+// A rejected position also rejects its entire suffix. Invalid head outputs
+// must not turn into unverified proposals; zero disables the filter entirely.
+inline int confidence_prefix(const std::vector<float>& confidence, float minimum) {
+    if(minimum<=0)return int(confidence.size());
+    int n=0;
+    for(float p:confidence) {
+        if(!std::isfinite(p) || p<minimum || p>1)break;
+        ++n;
+    }
+    return n;
+}
 
 // One sequence, explicit positions, RAII. Feature injection must see exactly
 // one target ubatch; the layer outputs are overwritten by the next decode.
@@ -29,13 +43,16 @@ struct Batch {
 class DSpark {
     llama_context *target, *draft;
     int width, limit;
+    float minimum;
+    std::vector<float> confidence;
+    int proposed=0;
     llama_token mask;
     std::vector<int32_t> layers;
     Batch features, noise;
     std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> greedy;
 public:
-    DSpark(llama_context *t, llama_context *d, int n):target(t),draft(d),
-        width(llama_model_n_embd(llama_get_model(t))),limit(n),
+    DSpark(llama_context *t, llama_context *d, int n, float p_min=0):target(t),draft(d),
+        width(llama_model_n_embd(llama_get_model(t))),limit(n),minimum(p_min),
         mask(llama_vocab_mask(llama_model_get_vocab(llama_get_model(d)))),
         features(llama_n_ubatch(d),width*llama_model_target_layer_ids_n(llama_get_model(d))),
         noise(n),greedy(llama_sampler_init_greedy(),llama_sampler_free) {
@@ -50,6 +67,8 @@ public:
         llama_set_embeddings_nextn(draft,true,true);
         llama_set_causal_attn(draft,false);
     }
+    const std::vector<float>& last_confidence() const {return confidence;}
+    int last_proposed() const {return proposed;}
     void inject(const llama_batch &batch) {
         std::vector<const float *> inputs;
         for(int layer:layers) {
@@ -67,12 +86,22 @@ public:
     }
     std::vector<llama_token> propose(llama_token anchor,int position,int remaining) {
         const int n=std::min(limit,remaining);
+        proposed=n;confidence.clear();
         if(n<=0)return {};
         noise.positions(n,position,true);
         for(int i=0;i<n;++i)noise.value.token[i]=i?mask:anchor;
         if(llama_decode(draft,noise.value))throw std::runtime_error("DSpark draft decode failed");
+        int kept=n;
+        if(minimum>0 || std::getenv("STRATA_SPEC_CONFIDENCE_TRACE")) {
+            const float *conf=llama_get_embeddings_nextn(draft);
+            if(!conf && minimum>0)throw std::runtime_error("DSpark confidence head output is missing");
+            if(conf) {
+                for(int i=0;i<n;++i)confidence.push_back(conf[size_t(i)*width]);
+                kept=confidence_prefix(confidence,minimum);
+            }
+        }
         std::vector<llama_token> result;
-        for(int i=0;i<n;++i)result.push_back(llama_sampler_sample(greedy.get(),draft,i));
+        for(int i=0;i<kept;++i)result.push_back(llama_sampler_sample(greedy.get(),draft,i));
         // Noise KV must never be used as target history. Injection replaces it
         // with real features after verification. Retain the previous ring rows.
         if(!llama_memory_seq_rm(llama_get_memory(draft),0,position,-1))

@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
+import statistics
 import sys
 import threading
 import time
@@ -27,11 +28,13 @@ def main():
     ap.add_argument('--config', type=Path, required=True)
     ap.add_argument('--prompt-tokens', type=int, default=4096)
     ap.add_argument('--tokens', type=int, default=128)
+    ap.add_argument('--generation-prompt', type=Path, help='UTF-8 file with the generation prompt')
+    ap.add_argument('--repeats', type=int, default=1, help='Number of warm repeats of the same prompt')
     ap.add_argument('--timeout', type=int, default=240, help='Seconds per request, including prefill')
     ap.add_argument('--output', type=Path, default=ROOT / 'bench/results' / f'deepseek4-{time.strftime("%Y%m%d-%H%M%S")}.json')
     args = ap.parse_args()
-    if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30:
-        ap.error('Require prompt-tokens >= 64, tokens >= 1 and timeout >= 30')
+    if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10:
+        ap.error('Require prompt-tokens >= 64, tokens >= 1, timeout >= 30, repeats in [1, 10]')
     cfg = json.loads(args.config.read_text(encoding='utf-8'))
     if cfg.get('architecture') != 'deepseek4':
         ap.error('This benchmark requires a DeepSeek profile')
@@ -85,11 +88,15 @@ def main():
         prefill = ' '.join(f'Запись {i}: синий квадрат.' for i in range(args.prompt_tokens // 8 + 1))
         prefill += '\nОтветь одним словом: какого цвета квадраты?'
         generation = 'Напиши подробное объяснение на русском: как устроен кэш процессора и чем L1 отличается от L2 и L3.'
-        for name, session, prompt, count in (
+        if args.generation_prompt:
+            generation = args.generation_prompt.read_text(encoding='utf-8')
+        result['generation_prompt'] = generation
+        requests = [
             ('prefill', 'bench-context', prefill, 8),
             ('decode', 'bench-generation', generation, args.tokens),
-            ('repeat', 'bench-generation', generation, args.tokens),
-        ):
+        ] + [('repeat' if i==0 else f'repeat_{i+1}', 'bench-generation', generation, args.tokens)
+             for i in range(args.repeats)]
+        for name, session, prompt, count in requests:
             phase, deadline = name, time.monotonic() + args.timeout
             ids = tok.encode(template.render([{'role': 'user', 'content': prompt}], enable_thinking=False), parse_special=True)
             if name == 'prefill':
@@ -115,7 +122,9 @@ def main():
             print(name, json.dumps({k: v for k, v in entry.items() if k not in ('text', 'token_ids')}, ensure_ascii=True), flush=True)
             if timings.get('finish') == 'cancel':
                 raise TimeoutError(f'{name} exceeded benchmark time limit')
-        result['repeat_identical'] = result['requests']['decode']['token_ids'] == result['requests']['repeat']['token_ids']
+        repeats = [entry for name, entry in result['requests'].items() if name.startswith('repeat')]
+        result['warm_median_tokens_per_second'] = statistics.median(entry['decode_tokens_per_second'] for entry in repeats)
+        result['repeat_identical'] = all(result['requests']['decode']['token_ids'] == entry['token_ids'] for entry in repeats)
         if not result['repeat_identical']:
             raise RuntimeError('Greedy cached repeat differs from original output')
     finally:

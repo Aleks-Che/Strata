@@ -3,6 +3,17 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <chrono>
+#include <thread>
+#include <exception>
+
+static void stage_size(const char *value) {
+#ifdef _WIN32
+    _putenv_s("STRATA_EXPERT_STAGE_MIB",value);
+#else
+    setenv("STRATA_EXPERT_STAGE_MIB",value,1);
+#endif
+}
 
 int main() {
 #ifdef _WIN32
@@ -20,7 +31,10 @@ int main() {
     auto copy=(StrataExpertCopy)ggml_backend_reg_get_proc_address(reg,"strata_expert_copy");
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(reg,"strata_expert_stats");
     auto budget=(StrataExpertBudget)ggml_backend_reg_get_proc_address(reg,"strata_expert_budget");
-    if(!copy || !stats || !budget)return 1;
+    auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(reg,"strata_expert_control");
+    auto plan=(StrataExpertPlan)ggml_backend_reg_get_proc_address(reg,"strata_expert_plan");
+    auto finish=(StrataExpertFinish)ggml_backend_reg_get_proc_address(reg,"strata_expert_finish");
+    if(!copy || !stats || !budget || !control || !plan || !finish)return 1;
     budget(4);
     constexpr int count=10;
     constexpr size_t width=(1<<20)+(256<<10); // crosses the 1 MiB staging boundary
@@ -34,9 +48,26 @@ int main() {
     for(size_t i=0;i<expected.size();++i)expected[i]=uint8_t((i*17+(i>>11)*23)&255);
     ggml_backend_tensor_set(source,expected.data(),0,expected.size());
     bool ok=true;
+    if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0) {
+        // Force construction to fail after allocating the legacy cache. The
+        // registry must remain empty and allow a clean retry on this backend.
+        stage_size("0");bool rejected=false;
+        try {plan(gpu,nullptr,0);}catch(const std::exception &) {rejected=true;}
+        stage_size("1");
+        StrataExpertCounters empty;stats(gpu,&empty);
+        StrataVramStatus live;control(0,nullptr,&live);
+        ok &= rejected && empty.pipeline_groups==0 && live.cache_bytes==0 && live.matrices==0;
+    }
+    auto begin=[&](ggml_backend_t backend,int first,int last,int tokens) {
+        std::vector<StrataExpertSlice> slices;
+        for(int i=first;i<=last;++i)slices.push_back({(uint8_t *)source->data+size_t(i)*width,width+(i<count-1?512:0),tokens<=8});
+        plan(backend,slices.data(),slices.size());
+    };
     auto check=[&](int first,int last,int tokens) {
         ggml_backend_buffer_clear(device,0xA5);
+        begin(gpu,first,last,tokens);
         copy(gpu,source,dest,first,last,tokens);
+        finish(gpu);
         ggml_backend_synchronize(gpu);
         ggml_backend_tensor_get(dest,actual.data(),0,actual.size());
         size_t begin=size_t(first)*width,end=(size_t(last)+1)*width+(last<count-1?512:0);
@@ -50,7 +81,11 @@ int main() {
     check(2,3,1);stats(gpu,&after);
     ok &= after.hits==before.hits+2 && after.h2d_bytes==before.h2d_bytes;
     // Force arena fragmentation, eviction, and reuse while CUDA copies are queued.
-    for(int round=0;round<3;++round) for(int i=0;i<count;++i)copy(gpu,source,dest,i,i,1);
+    for(int round=0;round<3;++round) {
+        begin(gpu,0,count-1,1);
+        for(int i=0;i<count;++i)copy(gpu,source,dest,i,i,1);
+        finish(gpu);
+    }
     ggml_backend_synchronize(gpu);
     ggml_backend_tensor_get(dest,actual.data(),0,actual.size());
     ok &= expected==actual;
@@ -62,7 +97,9 @@ int main() {
     // the target's 4 MiB nor clear its entries when the draft context is freed.
     auto *draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
     budget(1); // too small for a 1.25 MiB expert => bypass, no cached entries
+    begin(draft_gpu,2,2,1);
     copy(draft_gpu,source,dest,2,2,1);
+    finish(draft_gpu);
     ggml_backend_synchronize(draft_gpu);
     StrataExpertCounters draft_stats;
     stats(draft_gpu,&draft_stats);
@@ -72,6 +109,58 @@ int main() {
     ggml_backend_free(draft_gpu);
     budget(4);stats(gpu,&before);check(9,9,1);stats(gpu,&after);
     ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    // Changing policy converts the fixed arena once. Thereafter individual
+    // matrices can be freed without discarding the remaining hot entries.
+    StrataVramPolicy policy;policy.mode=1;policy.matrices=3;policy.reserve_mib=128;
+    StrataVramStatus live;
+    ok &= control(0,&policy,&live);
+    check(2,3,1);check(4,4,1);
+    control(0,nullptr,&live);ok &= live.matrices==3 && live.cache_bytes>3*width;
+    policy.matrices=2;control(0,&policy,&live);ok &= live.matrices==2;
+    stats(gpu,&before);check(3,4,1);stats(gpu,&after);
+    ok &= after.hits==before.hits+2; // only the oldest was released
+    // The matrix cap is shared with a second (DSpark) CUDA context.
+    draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    budget(1);begin(draft_gpu,5,5,1);copy(draft_gpu,source,dest,5,5,1);finish(draft_gpu);ggml_backend_synchronize(draft_gpu);
+    control(0,nullptr,&live);ok &= live.matrices==2;
+    ggml_backend_free(draft_gpu);budget(4);
+    policy.matrices=0;control(0,&policy,&live);ok &= live.matrices==0 && live.cache_bytes==0;
+    check(0,9,1);control(0,nullptr,&live);ok &= live.matrices==0;
+    policy.matrices=6;control(0,&policy,&live);check(2,5,1);
+    control(0,nullptr,&live);ok &= live.matrices==4;
+    // A separate allocation stands in for another application taking VRAM.
+    policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+128;
+    control(0,&policy,&live);
+    auto *pressure=ggml_backend_alloc_buffer(gpu,256ULL<<20);
+    if(!pressure)ok=false;
+    else {
+        // WDDM residency is visible globally after the allocation is touched.
+        ggml_backend_buffer_clear(pressure,0);ggml_backend_synchronize(gpu);
+        for(int i=0;i<30;++i) {
+            control(0,nullptr,&live);
+            if(!live.matrices)break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        control(0,nullptr,&live);ok &= live.matrices==0 && live.target_unreachable;
+        ggml_backend_buffer_free(pressure);
+        for(int i=0;i<30;++i) {
+            control(0,nullptr,&live);
+            if(!live.target_unreachable && live.limit_bytes>(64ULL<<20))break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        control(0,nullptr,&live);check(2,3,1);
+        control(0,nullptr,&live);ok &= live.matrices==2 && !live.target_unreachable;
+    }
+    // Configured budgets can be restored after dynamic use, with byte parity.
+    policy.mode=0;control(0,&policy,&live);check(0,9,1);
+    control(0,nullptr,&live);ok &= live.cache_bytes<=(4ULL<<20);
+    // Cancel a partially consumed plan and change residency before a new plan.
+    begin(gpu,0,count-1,1);copy(gpu,source,dest,0,0,1);finish(gpu);
+    policy.mode=1;policy.matrices=0;control(0,&policy,&live);
+    check(8,9,1);
+    stats(gpu,&after);
+    if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0)
+        ok &= after.pipeline_groups>0 && after.pipeline_chunks>0 && after.pipeline_fallbacks==0;
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);

@@ -109,6 +109,78 @@ async function loadHealth() {
 }
 
 // ------------------------------------------------------------------ persistent token statistics
+let vramData = null, vramSaving = false, vramLoaded = false, vramError = "";
+function vramModeFields() {
+  const mode = $("vram-mode").value;
+  $("vram-matrices-field").hidden = mode !== "count";
+  $("vram-matrices").disabled = mode !== "count";
+  $("vram-target-field").hidden = mode !== "vram";
+  $("vram-target").disabled = mode !== "vram";
+}
+$("vram-mode").onchange = vramModeFields;
+$("vram-close").onclick = () => $("vram-dialog").close();
+function renderVram(data) {
+  if (!data) return;
+  vramData = data;
+  if (!$("vram-dialog").open) return;
+  const live = data.live || {}, available = data.alive && live.telemetry_ok;
+  $("vram-used").textContent = available ? `${gb(live.total_bytes - live.free_bytes, 2)} / ${gb(live.total_bytes)} GiB` : "–";
+  $("vram-count").textContent = data.alive && live.cached_matrices != null ? fmt(live.cached_matrices) : "–";
+  $("vram-cache").textContent = available ? `${gb(live.cache_bytes, 2)} / ${gb(live.limit_bytes, 2)} GiB` : "–";
+  $("vram-free").textContent = available ? `${gb(live.free_bytes, 2)} GiB` : "–";
+  $("vram-fields").disabled = !vramLoaded || !data.supported || vramSaving;
+  let note = data.persistent ? "Settings are saved for this launch profile." : "Settings last until the server is closed.";
+  let error = vramError || data.storage_error || "";
+  if (!data.supported) error = "Live VRAM settings require the updated DeepSeek CUDA engine. This engine does not advertise support.";
+  else if (!data.alive) note = "Model unloaded. Saved settings will apply when it loads.";
+  else if (data.pending) note = "Saved. Waiting for the current GPU operation to finish…";
+  else if (!live.enabled) note = "Startup cache budgets are active. Apply settings to enable live memory control.";
+  else if (!live.telemetry_ok) error = "GPU memory readings are unavailable. Cache growth is paused.";
+  else if (live.target_unreachable) error = "The cache has been released. Fixed model memory and other apps still exceed the target or free-memory reserve.";
+  if (live.allocation_failures && !error) note += ` GPU cache allocations failed ${fmt(live.allocation_failures)} time(s); affected matrices were streamed.`;
+  $("vram-status").textContent = error || (vramSaving ? "Saving…" : note);
+  $("vram-status").dataset.error = String(Boolean(error));
+}
+$("vram-settings-btn").onclick = async () => {
+  vramError = ""; vramLoaded = false;
+  $("vram-fields").disabled = true;
+  $("vram-status").textContent = "Loading settings…";
+  $("vram-dialog").showModal();
+  try {
+    const response = await fetch("vram/settings", {headers: headers(), cache: "no-store", signal: AbortSignal.timeout(10000)});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || `HTTP ${response.status}`);
+    $("vram-mode").value = data.settings.mode;
+    $("vram-matrices").value = data.settings.matrices;
+    $("vram-target").value = data.settings.target_mib ? data.settings.target_mib / 1024 :
+      Math.max(0.125, Math.floor(((data.live?.total_bytes || 26 * 1073741824) / 1073741824 - 2) * 8) / 8);
+    $("vram-reserve").value = data.settings.reserve_mib;
+    vramModeFields();
+    vramLoaded = true;
+    renderVram(data);
+  } catch (error) {
+    vramError = error.message;
+    $("vram-status").textContent = vramError;
+    $("vram-status").dataset.error = "true";
+  }
+};
+$("vram-form").onsubmit = async (event) => {
+  event.preventDefault();
+  if (vramSaving || !vramData?.supported || !$("vram-form").reportValidity()) return;
+  const settings = {mode: $("vram-mode").value, matrices: Number($("vram-matrices").value),
+                    target_mib: Math.round(Number($("vram-target").value) * 1024), reserve_mib: Number($("vram-reserve").value)};
+  vramSaving = true; vramError = ""; renderVram(vramData);
+  try {
+    const response = await fetch("vram/settings", {method: "POST", headers: headers(true), body: JSON.stringify(settings),
+                                                  signal: AbortSignal.timeout(10000)});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || `HTTP ${response.status}`);
+    vramData = data;
+  } catch (error) { vramError = error.message; }
+  finally { vramSaving = false; renderVram(vramData); }
+};
+
+// ------------------------------------------------------------------ persistent token statistics
 let statisticsLoading = false, statisticsData = null;
 const STATS_SERIES = [
   {key: "input_tokens", label: "Processed input", cls: "stats-input"},
@@ -276,6 +348,7 @@ function setPill(state, text) {
 }
 
 function render(m) {
+  renderVram(m.vram);
   const live = m.live || {}, hw = m.hardware || {}, st = m.hardware_static || {}, eng = m.engine || {}, h = m.history || {};
   const last = (m.requests || [])[0];
   // the header pill
@@ -380,8 +453,9 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept, sessi
   $("ctx-fill").style.opacity = 235.6 * frac >= 3 ? "1" : "0";         // a near-zero arc would draw just its round cap
   $("ctx-pct").textContent = `${Math.round(frac * 100)}%`;
   $("ctx-sub").textContent = ctx ? `${kfmt(used)} / ${ctxfmt(ctx)}` : "–";
-  const cacheBytes = (eng.expert_cache_mib || 0) * 1048576;
-  $("slots-text").textContent = eng.expert_slots ? `${fmt(eng.expert_slots)} · ${gb(cacheBytes)} GB` : "–";
+  const cacheBytes = eng.expert_cache_live_bytes ?? (eng.expert_cache_mib || 0) * 1048576;
+  $("slots-text").textContent = eng.expert_cached_matrices != null ? `${fmt(eng.expert_cached_matrices)} matrices · ${gb(cacheBytes)} GiB` :
+    eng.expert_slots ? `${fmt(eng.expert_slots)} · ${gb(cacheBytes)} GB` : "–";
   $("slots-bar").style.width = hw.gpu_mem_total ? `${Math.min(100, (100 * cacheBytes) / hw.gpu_mem_total)}%` : "0%";
   $("ram-text").textContent = hw.ram_total ? `${gb(hw.ram_used)} / ${gb(hw.ram_total, 0)} GB` : "–";
   const ramPct = hw.ram_total ? (100 * hw.ram_used) / hw.ram_total : 0;
@@ -642,7 +716,9 @@ function renderAbout(eng, hw, st) {
     ["Expert placement", eng.architecture === "deepseek4" ? `GPU computation; ${eng.gpu_expert_layers || 0} resident expert layers${eng.expert_cache_mib ? `, ${gb(eng.expert_cache_mib * 1048576)} GB cache of individual expert matrices` : ""}, other weights streamed from GGUF` : null],
     ["Speculation", eng.architecture === "deepseek4" ? eng.speculative === "dspark" && eng.spec ? `DSpark (experimental): up to ${eng.spec} draft tokens, verified by the main model` : "Off" : eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
     ["DSpark experts", eng.speculative === "dspark" ? `${eng.draft_gpu_expert_layers || 0} resident layers; ${gb((eng.draft_expert_cache_mib || 0) * 1048576)} GB GPU cache; other experts streamed from GGUF` : null],
-    ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache budget` : null],
+    ["DSpark confidence filter", eng.speculative === "dspark" ? Number(eng.draft_min_confidence) > 0 ? `Keep draft prefix with confidence ≥ ${Number(eng.draft_min_confidence).toFixed(2)}` : "Off" : null],
+    ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_vram_pipeline_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache and pipeline budgets` : null],
+    ["Expert transfer pipeline", eng.architecture === "deepseek4" ? eng.expert_pipeline ? `${eng.expert_pipeline_slots} staging slots per model; background reads and a separate GPU copy stream` : "Off" : null],
     ["Images", eng.images ? "on" : "off"],
     ["Experimental speed projection", projectionText(eng.cvec)],
   ]);

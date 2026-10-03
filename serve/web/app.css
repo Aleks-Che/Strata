@@ -194,6 +194,16 @@ main { flex: 1; min-height: 0; display: flex; }
 #archive-status { min-height: 1.4em; color: var(--st-ink-muted); }
 #archive-status[data-error="true"] { color: var(--st-danger-text); }
 .archive-foot { margin-bottom: 0; }
+.vram-dialog { width: min(560px, calc(100vw - 32px)); }
+.vram-readings { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px;
+                 background: var(--st-bg); border: 1px solid var(--st-line); border-radius: var(--st-r-md); }
+.vram-readings strong, .vram-readings span { display: block; }
+.vram-readings strong { margin-top: 4px; font-variant-numeric: tabular-nums; }
+#vram-fields { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+#vram-fields .st-field { margin-bottom: 18px; }
+#vram-fields .st-field[hidden] { display: none; }
+#vram-status { min-height: 1.4em; color: var(--st-ink-muted); }
+#vram-status[data-error="true"] { color: var(--st-danger-text); }
 @media (max-width: 600px) { .archive-dialog { padding: 16px; } }
 
 /* ---------------------------------------------------------------- about */

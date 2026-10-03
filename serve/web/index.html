@@ -30,6 +30,9 @@
       <svg class="st-icon st-icon--sm"><use href="web/sprite.svg#i-info"/></svg>About</button>
   </nav>
   <span class="st-header__spacer"></span>
+  <button class="st-btn st-btn--icon" id="vram-settings-btn" title="GPU memory settings" aria-label="GPU memory settings"
+          aria-haspopup="dialog" aria-controls="vram-dialog">
+    <svg class="st-icon" aria-hidden="true"><use href="web/sprite.svg#i-settings"/></svg></button>
   <span class="st-pill" id="pill" data-state="idle" role="status" aria-live="polite">
     <span class="st-pill__dot"></span><span id="pill-text">Connecting&hellip;</span></span>
   <button class="st-btn st-btn--icon" id="theme-btn" title="Light / dark" aria-label="Switch between light and dark">
@@ -309,6 +312,40 @@
   </table></div>
   <p class="muted small archive-foot">The active session uses reserved RAM / VRAM and cannot be released here.
     Internal checkpoints are managed together with their session. Session snapshots stay in memory.</p>
+</dialog>
+<dialog class="archive-dialog vram-dialog" id="vram-dialog" aria-labelledby="vram-title" aria-describedby="vram-note">
+  <div class="archive-head"><div><h2 id="vram-title">GPU memory</h2><p class="muted">Expert matrix cache</p></div>
+    <button class="st-btn st-btn--secondary" id="vram-close" type="button" autofocus>Close</button></div>
+  <p class="muted small" id="vram-note">Adjust the cache while the model is running. Changes apply between GPU operations.
+    Memory is checked every second, or after the current operation finishes.</p>
+  <div class="vram-readings" aria-label="Current GPU memory">
+    <div><span class="muted small">GPU used / total</span><strong id="vram-used">–</strong></div>
+    <div><span class="muted small">Cached matrices</span><strong id="vram-count">–</strong></div>
+    <div><span class="muted small">Cache / allowed</span><strong id="vram-cache">–</strong></div>
+    <div><span class="muted small">Free VRAM</span><strong id="vram-free">–</strong></div>
+  </div>
+  <form id="vram-form">
+    <fieldset id="vram-fields" disabled>
+      <label class="st-field"><span class="st-label">Cache mode</span>
+        <select class="st-input" id="vram-mode">
+          <option value="config">Configured cache budgets</option>
+          <option value="count">Manual matrix limit</option>
+          <option value="vram">Automatic · target GPU usage</option>
+        </select></label>
+      <label class="st-field" id="vram-matrices-field" hidden><span class="st-label">Maximum cached matrices</span>
+        <input class="st-input" id="vram-matrices" type="number" min="0" max="1000000" step="1" value="0" required>
+        <span class="muted small">Across the target and DSpark caches. 0 releases the cache. One expert has several matrices.</span></label>
+      <label class="st-field" id="vram-target-field" hidden><span class="st-label">Target GPU usage, GiB</span>
+        <input class="st-input" id="vram-target" type="number" min="0.125" max="1024" step="any" value="24" required>
+        <span class="muted small">Total occupied VRAM, including other apps. Their allocations reduce the room available for this cache.</span></label>
+      <label class="st-field"><span class="st-label">Keep free, MiB</span>
+        <input class="st-input" id="vram-reserve" type="number" min="128" max="1048576" step="1" value="1024" required>
+        <span class="muted small">Applies to every mode. Matrices are released when free VRAM falls below this reserve.</span></label>
+      <p class="muted small">The cache refills on demand when memory becomes available. Dense weights, context buffers and fixed resident layers remain allocated.</p>
+      <button class="st-btn st-btn--primary" id="vram-apply" type="submit">Apply</button>
+    </fieldset>
+  </form>
+  <p class="small" id="vram-status" role="status" aria-live="polite">Loading settings…</p>
 </dialog>
 <script src="web/app.js"></script>
 </body>

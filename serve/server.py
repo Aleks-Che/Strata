@@ -54,6 +54,7 @@ from serve.frontend import (ChatTemplate, Event, OutputParser, anthropic_to_mess
 from serve.mcp import McpCancelled, hub_from_config  # noqa: E402
 from serve.usage_stats import UsageStatistics
 from serve.archive_policy import ArchivePolicy
+from serve.vram_settings import VramSettings
 from serve.winjob import contain  # noqa: E402
 from serve.structured import StructuredOutputError, prepare_format, validated_json  # noqa: E402
 
@@ -227,6 +228,9 @@ class StrataEngine:
         self.ended, self.unloaded = True, True
         self.max_context = int(args[args.index("--max-context") + 1]) if "--max-context" in args else 4096
         self.can_session_id = self.can_cache_admin = False
+        self.can_vram_control = False
+        self.vram_status = {}
+        self.stdin_lock = threading.RLock()
         self.cache_generation = uuid.uuid4().hex
         self.cache_inventory = {"entries": [], "updated_at_ms": None}
         self.cache_replies = queue.Queue()
@@ -258,6 +262,8 @@ class StrataEngine:
         contain(self.proc)                               # ends with the server, however it ends (Windows)
         self.max_context = 0
         for line in self.proc.stdout:
+            if line.startswith("VRAM_STATUS "):
+                self.vram_status = json.loads(line[len("VRAM_STATUS "):])
             if line.startswith("INFO "):
                 for kv in line.split()[1:]:
                     k, _, v = kv.partition("=")
@@ -268,6 +274,7 @@ class StrataEngine:
                 self.can_stop = "stop" in f[2:]
                 self.can_session_id = "session-id" in f[2:]
                 self.can_cache_admin = "cache-admin" in f[2:]
+                self.can_vram_control = "vram-control" in f[2:]
                 break
         loading.set()
         if self.max_context <= 0:
@@ -288,6 +295,9 @@ class StrataEngine:
         for line in proc.stdout:
             if self.proc is not proc:
                 break
+            if line.startswith("VRAM_STATUS "):
+                self.vram_status = json.loads(line[len("VRAM_STATUS "):])
+                continue
             if line.startswith("CACHE_ENTRIES "):
                 self.cache_inventory = json.loads(line[len("CACHE_ENTRIES "):])
                 continue
@@ -302,12 +312,27 @@ class StrataEngine:
             self.ended = True                           # its output closed: it is gone, even before the OS says so
         lines.put(None)
 
+    def write_command(self, command):
+        # Settings may arrive while GEN or STOP is being written. Keep each
+        # complete line and its flush together, including large prompts.
+        with self.stdin_lock:
+            self.proc.stdin.write(command)
+            self.proc.stdin.flush()
+
+    def set_vram_policy(self, wire):
+        with self.stdin_lock:
+            exe, args, cwd, log, env = self.spawn
+            env = dict(os.environ if env is None else env)
+            env["STRATA_VRAM_POLICY"] = wire
+            self.spawn = (exe, args, cwd, log, env)
+            if self.alive():
+                self.write_command(f"VRAM_SET {wire}\n")
+
     def drop_cache_entry(self, entry_id):
         """Called only while holding the service FIFO. Control replies never enter the token queue."""
         request_id = uuid.uuid4().hex
         try:
-            self.proc.stdin.write(f"CACHE_DROP {request_id} {entry_id}\n")
-            self.proc.stdin.flush()
+            self.write_command(f"CACHE_DROP {request_id} {entry_id}\n")
         except OSError:
             raise EngineDied("the engine stopped before the cache could be released") from None
         deadline = time.monotonic() + 15
@@ -476,8 +501,7 @@ class StrataEngine:
             count, sep, tail = rest.partition(" ")
             head = f"{verb} {count} session={key}" + (f" {tail}" if sep else "")
         try:
-            self.proc.stdin.write(f"{head} {','.join(str(int(t)) for t in ids)}\n")
-            self.proc.stdin.flush()
+            self.write_command(f"{head} {','.join(str(int(t)) for t in ids)}\n")
         except OSError:                                  # the pipe is gone: the engine died (not the client)
             raise EngineDied(f"the engine stopped unexpectedly (exit code {self.exit_code()})") from None
         done = False
@@ -522,8 +546,7 @@ class StrataEngine:
             if not done:                                  # the consumer stopped early: stop the engine, drain to DONE
                 if self.can_stop:
                     try:
-                        self.proc.stdin.write("STOP\n")
-                        self.proc.stdin.flush()
+                        self.write_command("STOP\n")
                     except OSError:
                         pass
                 while True:
@@ -550,8 +573,7 @@ class StrataEngine:
         try:
             if self.proc.poll() is None:
                 try:
-                    self.proc.stdin.write("QUIT\n")
-                    self.proc.stdin.flush()
+                    self.write_command("QUIT\n")
                     self.proc.stdin.close()  # Windows' detached stdin reader must see EOF before shutdown
                     self.proc.wait(timeout=20)
                 except (OSError, ValueError, subprocess.TimeoutExpired):
@@ -829,7 +851,8 @@ class Detokenizer:
 class Service:
     def __init__(self, engine: Engine, tokenizer, template: ChatTemplate, model_name: str = "qwen3.8-flash-next",
                  vision: Vision | None = None, sampling_defaults: dict | None = None,
-                 fit_max_tokens: bool = False, statistics: UsageStatistics | None = None, archive_settings_path=None):
+                 fit_max_tokens: bool = False, statistics: UsageStatistics | None = None, archive_settings_path=None,
+                 vram_settings=None):
         self.engine, self.tok, self.template, self.model, self.vision = engine, tokenizer, template, model_name, vision
         self.fit_max_tokens = fit_max_tokens          # --fit-max-tokens: clamp the output cap instead of 400
         self.aliases: list[str] = []                  # #297: other names of the model (the config's `aliases`)
@@ -863,6 +886,7 @@ class Service:
         self.status_lock = threading.Lock()
         self.statistics = statistics if statistics is not None else UsageStatistics()
         self.archive_policy = ArchivePolicy(archive_settings_path)
+        self.vram_settings = vram_settings if vram_settings is not None else VramSettings()
         self.mcp = None                                  # serve/mcp.py's McpHub when MCP servers are configured
         # sharing the GPU with other programs (all off by default): unload the engine after this many idle seconds,
         # only start it again when this much VRAM is free, and run this command first (e.g. to unload another
@@ -1181,8 +1205,12 @@ class Service:
             live["prompt_read"], live["prompt_total"] = progress
         engine = {"model": self.model, "max_context": self.engine.max_context, "images": self.vision is not None,
                   **dict(getattr(self.engine, "info", {}) or {})}
+        vram = self.vram_settings.snapshot(self.engine)
+        if vram["alive"] and "cache_bytes" in vram["live"]:
+            engine["expert_cache_live_bytes"] = vram["live"]["cache_bytes"]
+            engine["expert_cached_matrices"] = vram["live"]["cached_matrices"]
         tel = self.telemetry.snapshot() if getattr(self, "telemetry", None) else {"now": {}, "history": {}, "static": {}}
-        return {"engine": engine, "conversation_cache": cache, "live": live, "requests": hist[::-1][:None if all_requests else 12],
+        return {"engine": engine, "vram": vram, "conversation_cache": cache, "live": live, "requests": hist[::-1][:None if all_requests else 12],
                 "requests_kept": len(hist), "totals": totals, "hardware": tel["now"],
                 "hardware_static":
                 tel["static"], "history": tel["history"], "time": now}
@@ -1231,6 +1259,17 @@ class Service:
         finally:
             self.fifo.release()
 
+
+    def set_vram_settings(self, req):
+        if not getattr(self.engine, "can_vram_control", False):
+            return 501, {"error": {"message": "Live VRAM settings require a DeepSeek CUDA engine with vram-control support"}}
+        with self.vram_settings.lock:
+            try:
+                self.vram_settings.update(req)
+                self.engine.set_vram_policy(self.vram_settings.wire())
+            except OSError as error:
+                return 503, {"error": {"message": str(error)}}
+            return 200, self.vram_settings.snapshot(self.engine)
 
     def set_archive_policy(self, req):
         if not getattr(self.engine, "can_cache_admin", False):
@@ -2072,6 +2111,10 @@ def make_handler(svc: Service):
                         print(f"[strata] cannot read statistics: {error}", flush=True)
                         self._json(503, {"error": {"message": "Statistics storage is unavailable"}})
                 return
+            if path == "/vram/settings":
+                if self._authorized():
+                    self._json(200, svc.vram_settings.snapshot(svc.engine))
+                return
             if path == "/cache/entries":
                 if self._authorized():
                     self._json(200, svc.cache_entries())
@@ -2169,6 +2212,10 @@ def make_handler(svc: Service):
                 req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
                 if not isinstance(req, dict):
                     raise ValueError("send a JSON object")
+                if path == "/vram/settings":
+                    if self._own_page("VRAM settings can be changed"):
+                        self._json(*svc.set_vram_settings(req))
+                    return
                 if path in ("/cache/release", "/cache/settings"):
                     if not self._own_page("the session archive can be changed"):
                         return
@@ -2679,6 +2726,7 @@ def main() -> int:
     ap.add_argument("--statistics-file", help="SQLite token statistics file (default: data/usage-statistics.sqlite; mock: memory)")
     a = ap.parse_args()
     cfg = json.loads(Path(a.config).read_text(encoding="utf-8-sig")) if a.config else {}   # Notepad adds a BOM
+    vram_settings = VramSettings(str(Path(a.config).with_suffix("")) + ".vram-settings.json" if a.config else None)
     if a.gpu is not None:
         cfg["gpu"] = int(a.gpu) if a.gpu.strip().isdigit() else a.gpu
     a.host = a.host or cfg.get("host") or "127.0.0.1"   # issue #26: the run scripts pass no --host, the config can
@@ -2710,6 +2758,9 @@ def main() -> int:
             ap.error("--engine strata needs --config")
         vision = None
         env = child_env(cfg)
+        if vram_settings.wire() and cfg.get("architecture") == "deepseek4":
+            env = dict(os.environ if env is None else env)
+            env["STRATA_VRAM_POLICY"] = vram_settings.wire()
         sampling_defaults = sampling_defaults_from_config(cfg)
         if sampling_defaults:
             pretty = ", ".join(f"{k}={v}" for k, v in sampling_defaults.items())
@@ -2757,7 +2808,7 @@ def main() -> int:
                   model_name=cfg.get("model_name", "qwen3.8-flash-next"), vision=vision,
                   sampling_defaults=sampling_defaults,
                   fit_max_tokens=a.fit_max_tokens or cfg.get("fit_max_tokens") is True,
-                  statistics=statistics, archive_settings_path=archive_path)
+                  statistics=statistics, archive_settings_path=archive_path, vram_settings=vram_settings)
     try:
         svc.set_aliases(cfg.get("aliases"))             # #297: other names the model answers to
     except ValueError as e:

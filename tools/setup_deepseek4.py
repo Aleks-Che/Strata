@@ -81,7 +81,8 @@ def inspect_draft(path):
         if "_exps." in tensor.name:
             experts += size
     return {"path": str(path), "tensors": len(gguf.tensors), "weight_bytes": total,
-            "expert_bytes": experts, "dense_bytes": total - experts}
+            "expert_bytes": experts, "dense_bytes": total - experts,
+            "confidence_head": "conf_proj.weight" in names}
 
 
 def main():
@@ -96,14 +97,18 @@ def main():
     ap.add_argument("--gpu-expert-layers", type=int, default=0, help="Keep the last N layers' routed experts in VRAM; size depends on quantization")
     ap.add_argument("--expert-cache-mib", type=int, default=0, help="GPU LRU budget for individual expert matrices")
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
+    ap.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0, help="Background mmap reads, four staging slots and a separate H2D stream; needs expert-stage-mib > 0")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
+    ap.add_argument("--draft-min-confidence", type=float, default=0, help="0 disables filtering; otherwise keep the draft prefix with predicted acceptance >= this threshold")
     ap.add_argument("--draft-expert-cache-mib", type=int, default=1024)
     ap.add_argument("--draft-gpu-expert-layers", type=int, default=0, choices=range(4))
     ap.add_argument("--working-set-mib", type=int, default=0, help="Windows-only process working-set cap; 0 uses OS default")
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
+    if args.expert_pipeline and args.expert_stage_mib <= 0:
+        ap.error("expert-pipeline requires expert-stage-mib > 0")
     if args.profile_tag and not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", args.profile_tag):
         ap.error("--profile-tag must contain lowercase letters, numbers, hyphens or underscores")
     first = sorted(args.model_dir.glob("*-00001-of-*.gguf"))
@@ -114,8 +119,12 @@ def main():
     report = inspect_model(first[0])
     if args.draft_model:
         report["draft"] = inspect_draft(args.draft_model)
+        if args.draft_min_confidence > 0 and not report["draft"]["confidence_head"]:
+            ap.error("DSpark sidecar has no confidence head")
         if args.batch_size < args.draft_max + 1 or not 0 <= args.draft_expert_cache_mib <= 65536:
             ap.error("DSpark needs batch >= draft-max + 1 and a valid draft cache budget")
+    if not 0 <= args.draft_min_confidence <= 1 or (args.draft_min_confidence > 0 and not args.draft_model):
+        ap.error("draft-min-confidence must be in [0, 1] and needs a draft model when enabled")
     print(json.dumps(report, indent=2))
     if args.check_only:
         return
@@ -132,6 +141,7 @@ def main():
                     "--threads", str(args.threads), "--batch-size", str(args.batch_size),
                     "--gpu-layers", "99", "--gpu-expert-layers", str(args.gpu_expert_layers), "--conversation-cache-mib", "2048",
                     "--expert-cache-mib", str(args.expert_cache_mib), "--expert-stage-mib", str(args.expert_stage_mib),
+                    "--expert-pipeline", str(args.expert_pipeline),
                     "--conversation-cache-slots", "4", "--conversation-cache-min-free-mib", "8192"],
            "tokenizer": str(pack / "tokenizer"), "model_name": "deepseek-v4-flash-0731" + ("-" + args.profile_tag if args.profile_tag else ""),
            "log": str(ROOT / f"strata-{profile_name}.log"), "host": "127.0.0.1", "port": args.port,
@@ -140,6 +150,7 @@ def main():
         cfg["lib_dirs"] = [str((args.cuda_dir / sub).resolve()) for sub in ("bin", "bin/x64") if (args.cuda_dir / sub).is_dir()]
     if args.draft_model:
         cfg["args"] += ["--draft-model", report["draft"]["path"], "--draft-max", str(args.draft_max),
+                        "--draft-min-confidence", str(args.draft_min_confidence),
                         "--draft-expert-cache-mib", str(args.draft_expert_cache_mib),
                         "--draft-gpu-expert-layers", str(args.draft_gpu_expert_layers)]
     if args.working_set_mib:
