@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
+#include <limits>
+#include "device_memory.inc"
 
 static thread_local int strata_expert_thread_budget=-1;
 static void strata_cuda_expert_budget(int mib) {
@@ -14,7 +16,11 @@ static void strata_cuda_expert_budget(int mib) {
 }
 
 struct StrataExpertTransfer {
-    struct Entry { size_t offset, bytes; std::list<const void *>::iterator lru; };
+    struct Entry {
+        size_t offset, bytes; std::list<const void *>::iterator lru;
+        uint8_t *allocation=nullptr;
+        uint64_t touched=0;
+    };
     int device;
     cudaStream_t stream;
     uint8_t *arena=nullptr, *stage[2]={nullptr,nullptr};
@@ -25,6 +31,8 @@ struct StrataExpertTransfer {
     std::list<const void *> lru;
     std::unordered_map<const void *,Entry> entries;
     StrataExpertCounters stats;
+    bool managed=false;
+    size_t allocated=0;
 
     static size_t env_mib(const char *name) {
         const char *s=std::getenv(name);
@@ -33,13 +41,13 @@ struct StrataExpertTransfer {
         GGML_ASSERT(end != s && *end == 0 && value >= 0 && value <= 65536);
         return size_t(value)<<20;
     }
-    explicit StrataExpertTransfer(ggml_backend_cuda_context *ctx):device(ctx->device),stream(ctx->stream()) {
+    explicit StrataExpertTransfer(ggml_backend_cuda_context *ctx,bool dynamic=false):device(ctx->device),stream(ctx->stream()),managed(dynamic) {
         ggml_cuda_set_device(device);
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
         const char *wc=std::getenv("STRATA_EXPERT_STAGE_WC");
         bool write_combined=wc && std::strcmp(wc,"1")==0;
-        if(capacity) {
+        if(capacity && !managed) {
             CUDA_CHECK(cudaMalloc((void **)&arena,capacity));
             free_blocks.emplace(0,capacity);
         }
@@ -57,10 +65,31 @@ struct StrataExpertTransfer {
             if(stage[i]) CUDA_CHECK(cudaFreeHost(stage[i]));
         }
         if(arena) CUDA_CHECK(cudaFree(arena));
+        for(auto &entry:entries) if(entry.second.allocation) CUDA_CHECK(cudaFree(entry.second.allocation));
         GGML_LOG_INFO("STRATA_EXPERT_TOTAL hits=%llu misses=%llu bypass=%llu evictions=%llu h2d_bytes=%llu d2d_bytes=%llu stage_us=%llu wait_us=%llu submit_us=%llu\n",
             (unsigned long long)stats.hits,(unsigned long long)stats.misses,(unsigned long long)stats.bypass,(unsigned long long)stats.evictions,
             (unsigned long long)stats.h2d_bytes,(unsigned long long)stats.d2d_bytes,(unsigned long long)stats.stage_us,
             (unsigned long long)stats.wait_us,(unsigned long long)stats.submit_us);
+    }
+    void manage() {
+        if(managed)return;
+        // Cached copies are never referenced directly by model graphs. Wait for
+        // queued D2D reads before returning their allocation to the driver.
+        ggml_cuda_set_device(device);
+        CUDA_CHECK(cudaStreamSynchronize(stream));
+        if(arena)CUDA_CHECK(cudaFree(arena));
+        arena=nullptr;entries.clear();lru.clear();free_blocks.clear();managed=true;
+    }
+    uint8_t *evict(bool reuse=false) {
+        if(lru.empty())return nullptr;
+        ggml_cuda_set_device(device);
+        CUDA_CHECK(cudaStreamSynchronize(stream));
+        auto it=entries.find(lru.back());
+        auto *ptr=it->second.allocation;
+        allocated-=it->second.bytes;
+        if(!reuse) {CUDA_CHECK(cudaFree(ptr));ptr=nullptr;}
+        entries.erase(it);lru.pop_back();++stats.evictions;
+        return ptr;
     }
     void release(size_t offset,size_t bytes) {
         auto next=free_blocks.lower_bound(offset);
@@ -147,14 +176,159 @@ struct StrataExpertTransfer {
 // is released before the CUDA context/stream, never shared across model loads.
 static std::unordered_map<ggml_backend_t,std::unique_ptr<StrataExpertTransfer>> strata_expert_transfers;
 static std::mutex strata_expert_transfer_mutex;
+struct StrataDeviceCacheControl {
+    bool enabled=false;
+    StrataVramPolicy policy;
+    StrataVramStatus status;
+    uint64_t clock=0;
+};
+static std::map<int,StrataDeviceCacheControl> strata_device_cache_controls;
+
+static void strata_cache_totals(int device,StrataVramStatus &out) {
+    out.cache_bytes=out.matrices=0;
+    for(auto &kv:strata_expert_transfers) if(kv.second->device==device) {
+        auto &s=*kv.second;
+        out.cache_bytes+=s.managed?s.allocated:s.capacity;
+        out.matrices+=s.entries.size();
+    }
+}
+static StrataExpertTransfer *strata_oldest_cache(int device) {
+    StrataExpertTransfer *oldest=nullptr;
+    uint64_t stamp=std::numeric_limits<uint64_t>::max();
+    for(auto &kv:strata_expert_transfers) {
+        auto &s=*kv.second;
+        if(s.device!=device || s.lru.empty())continue;
+        auto touched=s.entries.find(s.lru.back())->second.touched;
+        if(!oldest || touched<stamp) {stamp=touched;oldest=&s;}
+    }
+    return oldest;
+}
+static bool strata_cuda_expert_control(int device,const StrataVramPolicy *policy,StrataVramStatus *out) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    auto &control=strata_device_cache_controls[device];
+    if(policy) {
+        if(!policy->valid())return false;
+        control.enabled=true;control.policy=*policy;
+        for(auto &kv:strata_expert_transfers) if(kv.second->device==device)kv.second->manage();
+    }
+    ggml_cuda_set_device(device);
+    control.status.enabled=control.enabled;
+    size_t free=0,total=0;
+    control.status.telemetry_ok=strata_device_memory(device,free,total);
+    strata_cache_totals(device,control.status);
+    // Manual release works even if the memory provider is temporarily down.
+    if(control.enabled) {
+        const auto max_count=control.policy.mode==1?control.policy.matrices:UINT64_MAX;
+        while(control.status.matrices>max_count) {
+            auto *oldest=strata_oldest_cache(device);
+            if(!oldest)break;
+            oldest->evict();strata_cache_totals(device,control.status);
+        }
+        if(control.policy.mode==0)for(auto &kv:strata_expert_transfers) {
+            auto &s=*kv.second;
+            if(s.device==device)while(s.allocated>s.capacity)s.evict();
+        }
+        // Account for releases when deriving the non-cache portion below.
+        strata_cache_totals(device,control.status);
+        control.status.telemetry_ok=strata_device_memory(device,free,total);
+    }
+    if(control.status.telemetry_ok) {
+        control.status.free_bytes=free;control.status.total_bytes=total;
+        control.status.limit_bytes=control.policy.byte_limit(free,total,control.status.cache_bytes);
+        if(control.enabled) {
+            const auto max_count=control.policy.mode==1?control.policy.matrices:UINT64_MAX;
+            while(control.status.cache_bytes>control.status.limit_bytes || control.status.matrices>max_count) {
+                auto *oldest=strata_oldest_cache(device);
+                if(!oldest)break;
+                oldest->evict();strata_cache_totals(device,control.status);
+            }
+            // A restored configured budget is also enforced per model/backend.
+            if(control.policy.mode==0)for(auto &kv:strata_expert_transfers) {
+                auto &s=*kv.second;
+                if(s.device==device)while(s.allocated>s.capacity)s.evict();
+            }
+            strata_cache_totals(device,control.status);
+            control.status.telemetry_ok=strata_device_memory(device,free,total);
+            if(control.status.telemetry_ok) {control.status.free_bytes=free;control.status.total_bytes=total;}
+        }
+        auto ceiling=total-std::min<uint64_t>(total,control.policy.reserve_mib<<20);
+        if(control.policy.mode==2)ceiling=std::min(ceiling,control.policy.target_mib<<20);
+        control.status.target_unreachable=control.enabled && total-free>ceiling && !control.status.cache_bytes;
+    } else {
+        // No reliable free-memory reading: keep existing copies, admit no more.
+        control.status.limit_bytes=control.status.cache_bytes;
+    }
+    *out=control.status;
+    return true;
+}
+
+// Individually owned allocations allow pressure to release a subset of cached
+// matrices. Equal-sized LRU replacements reuse the allocation after its reads
+// finish; a failed allocation falls back to the normal streaming path.
+static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *source,ggml_tensor *dest,int first,int last,int tokens) {
+    auto &c=strata_device_cache_controls[s.device];
+    const size_t width=source->nb[2];
+    const int count=int(source->ne[2]);
+    GGML_ASSERT(first>=0 && last>=first && last<count && width>0);
+    if(tokens>8) {
+        size_t offset=size_t(first)*width,bytes=size_t(last-first+1)*width+(last<count-1?std::min<size_t>(width,512):0);
+        s.stats.bypass+=last-first+1;s.upload((uint8_t *)dest->data+offset,(const uint8_t *)source->data+offset,bytes);return;
+    }
+    for(int id=first;id<=last;++id) {
+        size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
+        const void *key=(const uint8_t *)source->data+offset;
+        auto found=s.entries.find(key);
+        if(found!=s.entries.end()) {
+            ++s.stats.hits;s.lru.splice(s.lru.begin(),s.lru,found->second.lru);
+        } else {
+            strata_cache_totals(s.device,c.status);
+            const uint64_t max_count=c.policy.mode==1?c.policy.matrices:UINT64_MAX;
+            uint8_t *allocation=nullptr;
+            bool fits=c.status.telemetry_ok && bytes<=c.status.limit_bytes && max_count>0 &&
+                (c.policy.mode!=0 || bytes<=s.capacity);
+            if(fits) {
+                while(c.status.cache_bytes+bytes>c.status.limit_bytes || c.status.matrices>=max_count ||
+                      (c.policy.mode==0 && s.allocated+bytes>s.capacity)) {
+                    auto *oldest=c.policy.mode==0 && s.allocated+bytes>s.capacity?&s:strata_oldest_cache(s.device);
+                    if(!oldest || oldest->lru.empty())break;
+                    auto old_bytes=oldest->entries.find(oldest->lru.back())->second.bytes;
+                    bool reuse=!allocation && old_bytes==bytes;
+                    auto *released=oldest->evict(reuse);
+                    if(reuse)allocation=released;
+                    strata_cache_totals(s.device,c.status);
+                }
+                ggml_cuda_set_device(s.device);
+                if(!allocation) {
+                    // Recheck at allocation time: another process can allocate
+                    // after the last periodic sample. Keep a growth margin.
+                    size_t free=0,total=0;
+                    fits=c.status.cache_bytes+bytes+(64ULL<<20)<=c.status.limit_bytes &&
+                        cudaMemGetInfo(&free,&total)==cudaSuccess &&
+                        c.policy.byte_limit(free,total,c.status.cache_bytes)>=c.status.cache_bytes+bytes+(64ULL<<20);
+                    if(fits && cudaMalloc((void **)&allocation,bytes)!=cudaSuccess) {
+                        cudaGetLastError();++c.status.allocation_failures;allocation=nullptr;
+                    }
+                }
+            }
+            if(!allocation) {++s.stats.bypass;s.upload((uint8_t *)dest->data+offset,key,bytes);continue;}
+            ++s.stats.misses;s.upload(allocation,key,bytes);s.lru.push_front(key);
+            found=s.entries.emplace(key,StrataExpertTransfer::Entry{0,bytes,s.lru.begin(),allocation,0}).first;
+            s.allocated+=bytes;
+        }
+        found->second.touched=++c.clock;
+        CUDA_CHECK(cudaMemcpyAsync((uint8_t *)dest->data+offset,found->second.allocation,bytes,cudaMemcpyDeviceToDevice,s.stream));
+        s.stats.d2d_bytes+=bytes;
+    }
+}
 static void strata_cuda_expert_copy(ggml_backend_t backend,const ggml_tensor *source,ggml_tensor *dest,int first,int last,int tokens) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto *ctx=(ggml_backend_cuda_context *)backend->context;
     auto &state=strata_expert_transfers[backend];
-    if(!state)state=std::make_unique<StrataExpertTransfer>(ctx);
+    if(!state)state=std::make_unique<StrataExpertTransfer>(ctx,strata_device_cache_controls[ctx->device].enabled);
     GGML_ASSERT(state->stream==ctx->stream());
     GGML_ASSERT(strata_expert_thread_budget<0 || state->capacity==(size_t(strata_expert_thread_budget)<<20));
-    state->copy(source,dest,first,last,tokens);
+    if(state->managed)strata_managed_copy(*state,source,dest,first,last,tokens);
+    else state->copy(source,dest,first,last,tokens);
 }
 static void strata_cuda_expert_stats(ggml_backend_t backend,StrataExpertCounters *out) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);

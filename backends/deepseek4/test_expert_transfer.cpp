@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 int main() {
 #ifdef _WIN32
@@ -20,7 +22,8 @@ int main() {
     auto copy=(StrataExpertCopy)ggml_backend_reg_get_proc_address(reg,"strata_expert_copy");
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(reg,"strata_expert_stats");
     auto budget=(StrataExpertBudget)ggml_backend_reg_get_proc_address(reg,"strata_expert_budget");
-    if(!copy || !stats || !budget)return 1;
+    auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(reg,"strata_expert_control");
+    if(!copy || !stats || !budget || !control)return 1;
     budget(4);
     constexpr int count=10;
     constexpr size_t width=(1<<20)+(256<<10); // crosses the 1 MiB staging boundary
@@ -72,6 +75,51 @@ int main() {
     ggml_backend_free(draft_gpu);
     budget(4);stats(gpu,&before);check(9,9,1);stats(gpu,&after);
     ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    // Changing policy converts the fixed arena once. Thereafter individual
+    // matrices can be freed without discarding the remaining hot entries.
+    StrataVramPolicy policy;policy.mode=1;policy.matrices=3;policy.reserve_mib=128;
+    StrataVramStatus live;
+    ok &= control(0,&policy,&live);
+    check(2,3,1);check(4,4,1);
+    control(0,nullptr,&live);ok &= live.matrices==3 && live.cache_bytes>3*width;
+    policy.matrices=2;control(0,&policy,&live);ok &= live.matrices==2;
+    stats(gpu,&before);check(3,4,1);stats(gpu,&after);
+    ok &= after.hits==before.hits+2; // only the oldest was released
+    // The matrix cap is shared with a second (DSpark) CUDA context.
+    draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    budget(1);copy(draft_gpu,source,dest,5,5,1);ggml_backend_synchronize(draft_gpu);
+    control(0,nullptr,&live);ok &= live.matrices==2;
+    ggml_backend_free(draft_gpu);budget(4);
+    policy.matrices=0;control(0,&policy,&live);ok &= live.matrices==0 && live.cache_bytes==0;
+    check(0,9,1);control(0,nullptr,&live);ok &= live.matrices==0;
+    policy.matrices=6;control(0,&policy,&live);check(2,5,1);
+    control(0,nullptr,&live);ok &= live.matrices==4;
+    // A separate allocation stands in for another application taking VRAM.
+    policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+128;
+    control(0,&policy,&live);
+    auto *pressure=ggml_backend_alloc_buffer(gpu,256ULL<<20);
+    if(!pressure)ok=false;
+    else {
+        // WDDM residency is visible globally after the allocation is touched.
+        ggml_backend_buffer_clear(pressure,0);ggml_backend_synchronize(gpu);
+        for(int i=0;i<30;++i) {
+            control(0,nullptr,&live);
+            if(!live.matrices)break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        control(0,nullptr,&live);ok &= live.matrices==0 && live.target_unreachable;
+        ggml_backend_buffer_free(pressure);
+        for(int i=0;i<30;++i) {
+            control(0,nullptr,&live);
+            if(!live.target_unreachable && live.limit_bytes>(64ULL<<20))break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        control(0,nullptr,&live);check(2,3,1);
+        control(0,nullptr,&live);ok &= live.matrices==2 && !live.target_unreachable;
+    }
+    // Configured budgets can be restored after dynamic use, with byte parity.
+    policy.mode=0;control(0,&policy,&live);check(0,9,1);
+    control(0,nullptr,&live);ok &= live.cache_bytes<=(4ULL<<20);
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);

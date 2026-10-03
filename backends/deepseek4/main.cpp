@@ -3,6 +3,7 @@
 #include "llama.h"
 #include "ggml-backend.h"
 #include "expert_transfer.h"
+#include "vram_control.hpp"
 #include "speculative.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
@@ -178,6 +179,7 @@ class Runner {
     llama_context *draft_ctx;
     std::unique_ptr<DSpark> spec;
     StrataExpertBudget expert_budget;
+    VramControl &vram;
     const llama_vocab *vocab;
     Options o;
     std::atomic<bool> &stop;
@@ -195,7 +197,7 @@ class Runner {
         if(draft_ctx)llama_memory_clear(llama_get_memory(draft_ctx),true);
         active.clear();active_session.clear();
     }
-    void budget(bool draft) { if(expert_budget)expert_budget(draft?o.draft_expert_cache_mib:o.expert_cache_mib); }
+    void budget(bool draft) { vram.poll();if(expert_budget)expert_budget(draft?o.draft_expert_cache_mib:o.expert_cache_mib); }
     void inject(const llama_batch& b) { if(spec) {budget(true);spec->inject(b);} }
     void status(const char *phase,const char *source,double save=0,double restore=0,const char *reason=nullptr) {
         if(!reason)reason=save_reason;
@@ -245,8 +247,8 @@ class Runner {
         return ms(t);
     }
 public:
-    Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b):
-        ctx(c),draft_ctx(d),expert_budget(b),vocab(v),o(opts),stop(s) {
+    Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,VramControl &vc):
+        ctx(c),draft_ctx(d),expert_budget(b),vram(vc),vocab(v),o(opts),stop(s) {
         if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence);
     }
     void inventory() {
@@ -484,6 +486,7 @@ int main(int argc,char**argv) {
                 throw std::runtime_error("this GPU backend does not support the requested expert cache/staging path");
         }
         auto budget_gpu=gpu?reinterpret_cast<StrataExpertBudget>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_budget")):nullptr;
+        auto control_gpu=gpu?reinterpret_cast<StrataExpertControl>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_control")):nullptr;
         if(!o.vocab_only && !o.draft_model.empty() && o.draft_gpu_expert_layers<3 && !budget_gpu)
             throw std::runtime_error("streamed DSpark requires CUDA expert budget support");
         auto mp=llama_model_default_params();mp.n_gpu_layers=o.vocab_only?0:o.gpu_layers;
@@ -538,7 +541,14 @@ int main(int argc,char**argv) {
             draft_ctx.reset(llama_init_from_model(draft_model.get(),dc));
             if(!draft_ctx)throw std::runtime_error("could not create DSpark context");
         }
-        if(o.expert_cache_mib || draft_ctx) {
+        const char *vram_policy=std::getenv("STRATA_VRAM_POLICY");
+        // split_mode=NONE uses CUDA device 0 (after CUDA_VISIBLE_DEVICES).
+        VramControl vram(control_gpu,0);
+        if(vram_policy && *vram_policy) {
+            vram.enqueue(std::string("VRAM_SET ")+vram_policy);vram.poll();
+            if(!vram.configured())throw std::runtime_error("invalid or unsupported STRATA_VRAM_POLICY");
+        }
+        if((o.expert_cache_mib || draft_ctx) && !vram.configured()) {
             size_t free=0,total=0;ggml_backend_dev_memory(gpu,&free,&total);
             auto draft_cache=draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0;
             if(uint64_t(free)<(uint64_t(o.expert_cache_mib)+draft_cache+512)*1048576)
@@ -552,7 +562,7 @@ int main(int argc,char**argv) {
             throw std::runtime_error("--working-set-mib is Windows-only; use OS memory controls on Linux");
 #endif
         }
-        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu);
+        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu,vram);
         llama_memory_breakdown_data draft_memory;
         if(draft_ctx)for(const auto &[buft,data]:llama_get_memory_breakdown(draft_ctx.get())) {
             auto *device=ggml_backend_buft_get_device(buft);
@@ -567,19 +577,23 @@ int main(int argc,char**argv) {
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
             <<" draft_min_confidence="<<(draft_ctx?o.draft_min_confidence:0)
             <<" working_set_mib="<<(o.working_set>>20)<<" kv=fp16\n"
-            <<"READY "<<o.context<<" stop session-id cache-admin\n"<<std::flush;
+            <<"READY "<<o.context<<" stop session-id cache-admin"<<(control_gpu?" vram-control":"")<<"\n"<<std::flush;
         std::mutex mutex;std::condition_variable cv;std::deque<std::string> commands;bool ended=false;
         std::thread reader([&]{
             std::string line;while(std::getline(std::cin,line)) {
                 if(line=="STOP") {stop.store(true);continue;}
                 if(line=="QUIT")break;
+                if(line.rfind("VRAM_SET ",0)==0) {vram.enqueue(line);cv.notify_one();continue;}
                 {std::lock_guard lock(mutex);if(line.rfind("GEN ",0)==0)stop.store(false);commands.push_back(line);}cv.notify_one();
             }
             {std::lock_guard lock(mutex);ended=true;stop.store(true);}cv.notify_one();
         });
         while(true) {
             std::string line;
-            {std::unique_lock lock(mutex);cv.wait(lock,[&]{return ended||!commands.empty();});if(ended)break;line=std::move(commands.front());commands.pop_front();}
+            {std::unique_lock lock(mutex);if(!ended && commands.empty())cv.wait_for(lock,std::chrono::seconds(1));
+             if(ended)break;if(!commands.empty()){line=std::move(commands.front());commands.pop_front();}}
+            vram.poll();
+            if(line.empty())continue;
             if(line.rfind("CACHE_DROP ",0)==0)runner.drop(line);else runner.run(line);
         }
         reader.join();return 0;

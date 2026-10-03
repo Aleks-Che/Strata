@@ -92,6 +92,7 @@ class SessionHeaders(unittest.TestCase):
 class CacheProtocol(unittest.TestCase):
     def engine(self):
         engine = StrataEngine.__new__(StrataEngine)
+        engine.stdin_lock = threading.RLock()
         engine.proc = SimpleNamespace(stdin=io.StringIO())
         engine.can_session_id = True
         engine.can_stop = True
