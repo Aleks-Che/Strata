@@ -872,8 +872,11 @@ class Service:
         self.before_load = None
         self.reasoning_budget_tokens = 0                 # #123: the config's default thinking budget (0: none)
         self.anthropic_think_unasked = True               # #278: "anthropic_thinking": "on_request" -> False
-        self.stop_ids = set(tokenizer.encode(IM_END, parse_special=True) +
-                            tokenizer.encode("<|endoftext|>", parse_special=True))
+        if getattr(template, "architecture", None) == "deepseek4":
+            self.stop_ids = {tokenizer.special_ids["tokenizer.ggml.eos_token_id"]}
+        else:
+            self.stop_ids = set(tokenizer.encode(IM_END, parse_special=True) +
+                                tokenizer.encode("<|endoftext|>", parse_special=True))
 
     def loaded(self) -> bool:
         return not hasattr(self.engine, "alive") or self.engine.alive()
@@ -1379,7 +1382,8 @@ class Service:
         if defaults:                   # the request's own fields win (explicit 0 stays greedy)
             req_values = {k: v for k, v in (sampling or {}).items() if v is not None}
             sampling = {**defaults, **req_values}
-        parser = OutputParser(thinking=thinking, tools=tools, stream_tools=True)
+        parser_type = getattr(self.template, "output_parser", OutputParser)
+        parser = parser_type(thinking=thinking, tools=tools, stream_tools=True)
         detok, n, finish = Detokenizer(self.tok), 0, "length"
         timings, before = None, None                    # this request's timings; the engine's `last` before it
         raw_ids = []                                    # every generated id (STRATA_DEBUG: dump raw model text)
@@ -2697,7 +2701,9 @@ def main() -> int:
             tokens[i] = t
         merges = (tpath / "merges.txt").read_text(encoding="utf-8").split("\n")
         types = json.loads((tpath / "token_type.json").read_text())
-        tok = ST.Tokenizer(tokens, merges, types)
+        tokenizer_config = json.loads((tpath / "tokenizer.json").read_text(encoding="utf-8")) if (tpath / "tokenizer.json").exists() else {}
+        tok = ST.Tokenizer(tokens, merges, types, pre=tokenizer_config.get("pre", "qwen35"),
+                           special_ids=tokenizer_config.get("special_ids"))
     hub = hub_from_config(cfg, a.mcp_config)            # before the minutes of loading: a bad entry stops here
     if a.engine == "strata":
         if not cfg:
@@ -2739,7 +2745,15 @@ def main() -> int:
     archive_path = str(Path(a.config).with_suffix("")) + ".archive-settings.json" if a.config else None
     # the model's own chat template (exported with its tokenizer), else the original model's
     tpl = tpath / "chat_template.jinja"
-    svc = Service(engine, tok, ChatTemplate(tpl if tpl.exists() else ROOT / "serve/chat_template.jinja"),
+    template_type = ChatTemplate
+    if cfg.get("architecture") == "deepseek4":
+        from serve.deepseek import DeepSeekTemplate
+        template_type = DeepSeekTemplate
+        if tok.pre != "joyai-llm" or not tpl.exists():
+            raise SystemExit("DeepSeek requires its own exported tokenizer and chat template")
+    elif cfg.get("architecture") not in (None, "qwen4exp"):
+        raise SystemExit(f"Unsupported model architecture: {cfg['architecture']}")
+    svc = Service(engine, tok, template_type(tpl if tpl.exists() else ROOT / "serve/chat_template.jinja"),
                   model_name=cfg.get("model_name", "qwen3.8-flash-next"), vision=vision,
                   sampling_defaults=sampling_defaults,
                   fit_max_tokens=a.fit_max_tokens or cfg.get("fit_max_tokens") is True,

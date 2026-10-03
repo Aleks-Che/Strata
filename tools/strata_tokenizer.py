@@ -63,6 +63,14 @@ QWEN35_PATTERN = (
     r"|\s+"
 )
 
+# Ordered splits, as in the pinned llama.cpp LLAMA_VOCAB_PRE_TYPE_JOYAI_LLM.
+# Joining these with | changes boundaries around numbers and CJK text.
+JOYAI_PATTERNS = (
+    r"\p{N}{1,3}",
+    r"[一-龥぀-ゟ゠-ヿ]+",
+    r'''[!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~][A-Za-z]+|[^\r\n\p{L}\p{P}\p{S}]?[\p{L}\p{M}]+| ?[\p{P}\p{S}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+''',
+)
+
 
 class Tokenizer:
     def __init__(self, tokens: list[str], merges: list[str], token_types: list[int] | None = None,
@@ -86,7 +94,10 @@ class Tokenizer:
             if parts[0] not in self.ids or parts[1] not in self.ids:
                 raise ValueError("merge %d names a token outside the vocabulary: %r" % (i, m))
             self.ranks[(parts[0], parts[1])] = i
+        if pre not in ("qwen35", "joyai-llm"):
+            raise ValueError(f"unsupported pre-tokenizer: {pre}")
         self._re = regex.compile(QWEN35_PATTERN)
+        self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre == "joyai-llm" else None
 
         # The literals matched directly instead of being run through BPE.  GGUF token types: 3 = CONTROL,
         # 4 = USER_DEFINED.  The two classes behave DIFFERENTLY and llama.cpp's own tokenizer settled which:
@@ -204,7 +215,20 @@ class Tokenizer:
 
     def _encode_plain(self, text: str) -> list[int]:
         out: list[int] = []
-        for piece in self._re.findall(text):
+        pieces = self._re.findall(text) if self._splits is None else [text]
+        for pattern in self._splits or ():
+            split = []
+            for piece in pieces:
+                pos = 0
+                for m in pattern.finditer(piece):
+                    if m.start() > pos:
+                        split.append(piece[pos:m.start()])
+                    split.append(m.group())
+                    pos = m.end()
+                if pos < len(piece):
+                    split.append(piece[pos:])
+            pieces = split
+        for piece in pieces:
             mapped = "".join(BYTE_TO_UNICODE[b] for b in piece.encode("utf-8"))
             for tok in self._bpe(mapped):
                 i = self.ids.get(tok)
@@ -248,6 +272,9 @@ class Tokenizer:
         if b is None:
             if i < 0 or i >= len(self.tokens):
                 raise IndexError("token id %d is outside the vocabulary (%d)" % (i, len(self.tokens)))
+            if self.tokens[i] in self.special_tokens:
+                b = cache[i] = self.tokens[i].encode("utf-8")
+                return b
             raw = bytearray()
             for ch in self.tokens[i]:
                 v = UNICODE_TO_BYTE.get(ch)
@@ -276,8 +303,8 @@ def extract(gguf_path, out_dir) -> dict:
         "add_bos_token": False,
         # The pattern is SHIPPED, not recomputed by the reader: it is transcribed from llama.cpp for the
         # declared `pre` type, and a C++ port that re-derived it would be free to get `\p{M}` wrong again.
-        "pre_pattern": QWEN35_PATTERN,
-        "pre_pattern_source": ".ref/llama.cpp src/llama-vocab.cpp L396 (LLAMA_VOCAB_PRE_TYPE_QWEN35)",
+        "pre_pattern": list(JOYAI_PATTERNS) if tk.pre == "joyai-llm" else QWEN35_PATTERN,
+        "pre_pattern_source": "llama.cpp 3cf03257 src/llama-vocab.cpp (" + tk.pre + ")",
     }
     (out / "vocab.json").write_text(json.dumps(tk.ids, ensure_ascii=False), encoding="utf-8")
     (out / "merges.txt").write_text("\n".join("%s %s" % k for k, _ in
