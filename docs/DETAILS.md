@@ -501,6 +501,11 @@ system prompts and tool lists. Engine options: `--prompt-cache N` (0 = off), `--
 in a bounded 8 GiB host-RAM cache. This preserves controller/worker histories when
 their requests alternate; it does not execute requests concurrently. No client session
 ID is required: only exact token/image prefixes with matching steering mode are reused.
+Clients may send `X-Strata-Session-Id` to isolate histories. Named sessions only match
+their own namespace; anonymous requests still use automatic prefix matching. The web
+chat keeps a session ID across reloads and changes it on New chat. See
+[session archive and token statistics](SESSION_ARCHIVE.md) for the inspector, manual
+release, idle expiry, API endpoints and persistent usage totals.
 The default budget is 0 (disabled); `--prompt-cache 0` also disables parking.
 The initial shared-core integration supports a single session GPU: combining
 enabled parking with `--layer-split` is rejected before model loading. Ordinary
@@ -516,14 +521,16 @@ retained for the next parking operation; growth appends storage without copying
 the existing pages. Rewinds refresh the affected pages, and running state and
 checkpoints are captured again. Retained active K/V counts against the same byte
 budget and is discarded before evicting parked entries under memory pressure.
-If reserving space for growth would evict another conversation, parking uses a
-full capture instead.
+Retention is optional and its allocated capacity is included in admission; parking
+may evict older saved conversations to fit the configured budget.
 Oldest parked entries are evicted first.
 Oversized snapshots or host allocation failures fall back to ordinary prompt processing.
 `--conversation-cache-min-free-mib N` (default 2560) additionally requires that
 physical-RAM headroom remain available: the engine checks before allocation and
 again after capture. Unknown telemetry or insufficient RAM skips parking. Windows
-uses `GlobalMemoryStatusEx`, Linux uses `MemAvailable`; these are host-level samples,
+also checks commit headroom, with a separate reserve of at most 256 MiB. It can probe
+an untouched allocation to let an already growable page file expand; no Windows
+settings change. Windows uses `GlobalMemoryStatusEx`, Linux uses `MemAvailable`; these are host-level samples,
 not a reservation or enforcement of container/job memory limits. An 8 GiB budget
 is a cap, not a recommendation for every machine.
 

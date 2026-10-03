@@ -52,6 +52,8 @@ sys.path.insert(0, str(ROOT))   # run as a script (run-<model>.bat) as well as a
 from serve.frontend import (ChatTemplate, Event, OutputParser, anthropic_to_messages,  # noqa: E402
                             images_of, openai_to_messages)
 from serve.mcp import McpCancelled, hub_from_config  # noqa: E402
+from serve.usage_stats import UsageStatistics
+from serve.archive_policy import ArchivePolicy
 from serve.winjob import contain  # noqa: E402
 from serve.structured import StructuredOutputError, prepare_format, validated_json  # noqa: E402
 
@@ -83,9 +85,11 @@ class MockEngine:
         self.scripts = [tokenizer.encode(x, parse_special=True) + end for x in ([script] if isinstance(script, str)
                                                                                  else script)]
         self.script, self.turns = self.scripts[0], 0
+        self.can_session_id = True
         self.last_prompt: list[int] = []
 
-    def generate(self, ids, max_new, sampling, cancel, embeddings=None):
+    def generate(self, ids, max_new, sampling, cancel, embeddings=None, session_id=None):
+        self.last_session_id = session_id
         self.last_prompt = list(ids)
         self.last_embeddings = embeddings
         if len(self.scripts) > 1:
@@ -222,6 +226,12 @@ class StrataEngine:
         self.proc, self.pump, self.log = None, None, None
         self.ended, self.unloaded = True, True
         self.max_context = int(args[args.index("--max-context") + 1]) if "--max-context" in args else 4096
+        self.can_session_id = self.can_cache_admin = False
+        self.cache_generation = uuid.uuid4().hex
+        self.cache_inventory = {"entries": [], "updated_at_ms": None}
+        self.cache_replies = queue.Queue()
+        self.cache = {}
+        self.request_cache = {}
         self.can_stop = False            # the engine honours a STOP line mid-request (READY <ctx> stop)
         self.last = {}
         self.info = {}                   # INFO key=value facts (engine 0.1.8+): kv, expert slots, ... (Monitor tab)
@@ -256,6 +266,8 @@ class StrataEngine:
                 f = line.split()
                 self.max_context = int(f[1])
                 self.can_stop = "stop" in f[2:]
+                self.can_session_id = "session-id" in f[2:]
+                self.can_cache_admin = "cache-admin" in f[2:]
                 break
         loading.set()
         if self.max_context <= 0:
@@ -272,11 +284,61 @@ class StrataEngine:
 
     def _pump(self):
         proc, lines = self.proc, self.lines             # this process's: a restart replaces both (#344)
+        replies = getattr(self, "cache_replies", None)
         for line in proc.stdout:
+            if self.proc is not proc:
+                break
+            if line.startswith("CACHE_ENTRIES "):
+                self.cache_inventory = json.loads(line[len("CACHE_ENTRIES "):])
+                continue
+            if line.startswith("CACHE_DROPPED "):
+                replies.put(line.split()[1:])
+                continue
+            if line.startswith("CACHE phase=idle "):
+                self._parse_cache(line, request=False)
+                continue
             lines.put(line)
         if self.proc is proc:                           # a killed engine's pump must not mark its successor dead
             self.ended = True                           # its output closed: it is gone, even before the OS says so
         lines.put(None)
+
+    def drop_cache_entry(self, entry_id):
+        """Called only while holding the service FIFO. Control replies never enter the token queue."""
+        request_id = uuid.uuid4().hex
+        try:
+            self.proc.stdin.write(f"CACHE_DROP {request_id} {entry_id}\n")
+            self.proc.stdin.flush()
+        except OSError:
+            raise EngineDied("the engine stopped before the cache could be released") from None
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            try:
+                reply_id, result = self.cache_replies.get(timeout=min(1, max(.001, deadline - time.monotonic())))
+            except queue.Empty:
+                if not self.alive():
+                    raise EngineDied("the engine stopped while releasing the cache") from None
+                continue
+            if reply_id == request_id:
+                return result == "removed"
+        raise EngineDied("cache release was not confirmed; refresh the archive before retrying")
+
+
+    def _parse_cache(self, line, request=True):
+        fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
+        for key in ("bytes", "sessions", "evictions", "hits", "misses", "expired", "pressure_evictions", "deduplicated",
+                    "save_attempts", "skipped_saves", "last_save_at_ms", "last_save_bytes", "last_save_physical", "last_save_commit"):
+            if key in fields:
+                fields[key] = int(fields[key])
+        for key in ("save_ms", "restore_ms"):
+            if key in fields:
+                fields[key] = float(fields[key])
+        self.cache = {**self.cache, **fields}
+        if request:
+            self.request_cache = {**getattr(self, "request_cache", {}),
+                                  "cache_source": self.cache.get("source"), "cache_save_ms": self.cache.get("save_ms"),
+                                  "cache_restore_ms": self.cache.get("restore_ms"), "cache_reason": self.cache.get("reason")}
+            self.last.update(self.request_cache)
+
 
     def death_note(self) -> str:
         """Why the engine most likely ended, from the end of its log: its own watchdog (issue #29), else RAM."""
@@ -332,6 +394,7 @@ class StrataEngine:
         f = line.split()
         self.last = {"generated": int(f[1]), "prompt_tokens": int(f[2]), "prompt_ms": float(f[3]),
                      "decode_ms": float(f[4]), "finish": f[5]}
+        self.last.update(getattr(self, "request_cache", {}))
         if len(f) >= 9:                                   # the conversation cache's fields (engine 0.1.3+)
             self.last.update(drafts_accepted=int(f[6]), drafts_offered=int(f[7]), reused=int(f[8]))
         if len(f) >= 11:                                  # decode hit rate fields
@@ -393,15 +456,25 @@ class StrataEngine:
         on = sampling.get("experimental_speed_projection")
         return f" cvec={int(on)}" if isinstance(on, bool) else ""
 
-    def generate(self, ids, max_new, sampling, cancel, embeddings=None):
+    def generate(self, ids, max_new, sampling, cancel, embeddings=None, session_id=None):
         """Yields token ids, and None as a heartbeat every 10 s while the engine is quiet (reading a long prompt):
         the HTTP layer turns it into an SSE comment, which keeps clients' watchdogs calm and notices a client that
         has gone.  A consumer that stops early (or `cancel`) makes the engine STOP, so it does not run to max_new."""
         self.progress = None
+        self.request_cache = {}
+        self.cache = {**getattr(self, "cache", {}), "phase": "reading", "source": None, "save_ms": 0, "restore_ms": 0}
         self.prefill_tok_s_mean = None
         # an image request takes the same sampling keys as text (#75: it used to decode greedily whatever was asked)
         head = f"GENI {int(max_new)}{self.sampling_keys(sampling or {})} {embeddings}" if embeddings else \
             f"GEN {int(max_new)}{self.sampling_keys(sampling or {})}"
+        if session_id is not None:
+            if not self.can_session_id:
+                raise ValueError("This engine does not support X-Strata-Session-Id; upgrade the engine or omit the header")
+            # Both protocols accept keys before the embedding path / token list.
+            key = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
+            verb, rest = head.split(" ", 1)
+            count, sep, tail = rest.partition(" ")
+            head = f"{verb} {count} session={key}" + (f" {tail}" if sep else "")
         try:
             self.proc.stdin.write(f"{head} {','.join(str(int(t)) for t in ids)}\n")
             self.proc.stdin.flush()
@@ -432,6 +505,12 @@ class StrataEngine:
                     if cancel.is_set():                   # lines reset the 10 s wait, so without this a long prompt
                         return                            # would send no keep-alives at all)
                     yield None
+                elif line.startswith("CACHE "):
+                    self._parse_cache(line)
+                    yield None
+                elif line.startswith("RESUME "):
+                    self.progress = (int(line.split()[1]), len(ids))
+                    self.request_cache["reused"] = self.progress[0]
                 elif line.startswith("DONE"):
                     self._parse_done(line)
                     done = True
@@ -454,6 +533,14 @@ class StrataEngine:
                     if line.startswith("DONE"):
                         self._parse_done(line)
                         break
+                    if line.startswith("CACHE "):
+                        self._parse_cache(line)
+                    elif line.startswith("PP "):
+                        fields = line.split()
+                        self.progress = (int(fields[1]), int(fields[2]))
+                    elif line.startswith("RESUME "):
+                        self.request_cache["reused"] = int(line.split()[1])
+                        self.progress = (self.request_cache["reused"], len(ids))
 
     def close(self):
         """End the engine process: QUIT first (the engine frees its memory itself - unpinning tens of GB can take
@@ -489,6 +576,9 @@ class StrataEngine:
                 self.proc = None
                 self.ended = True
                 self.progress, self.last = None, {}
+                self.cache_inventory = {"entries": [], "updated_at_ms": None}
+                self.cache = {}
+                self.request_cache = {}
 
 
 class Vision:
@@ -739,7 +829,7 @@ class Detokenizer:
 class Service:
     def __init__(self, engine: Engine, tokenizer, template: ChatTemplate, model_name: str = "qwen3.8-flash-next",
                  vision: Vision | None = None, sampling_defaults: dict | None = None,
-                 fit_max_tokens: bool = False):
+                 fit_max_tokens: bool = False, statistics: UsageStatistics | None = None, archive_settings_path=None):
         self.engine, self.tok, self.template, self.model, self.vision = engine, tokenizer, template, model_name, vision
         self.fit_max_tokens = fit_max_tokens          # --fit-max-tokens: clamp the output cap instead of 400
         self.aliases: list[str] = []                  # #297: other names of the model (the config's `aliases`)
@@ -771,6 +861,8 @@ class Service:
         self.last_request_at = None                      # when a request last started or finished
         self.started_at = time.time()
         self.status_lock = threading.Lock()
+        self.statistics = statistics if statistics is not None else UsageStatistics()
+        self.archive_policy = ArchivePolicy(archive_settings_path)
         self.mcp = None                                  # serve/mcp.py's McpHub when MCP servers are configured
         # sharing the GPU with other programs (all off by default): unload the engine after this many idle seconds,
         # only start it again when this much VRAM is free, and run this command first (e.g. to unload another
@@ -1069,15 +1161,83 @@ class Service:
                 "tok_s_mean": round(self._tok_s_mean(), 1) if state == "generating" else None,
                 "prefill_tok_s_mean": getattr(self.engine, "prefill_tok_s_mean", None) if s.get("busy") else None,
                 "tok_s_window_s": RATE_WINDOW_S if state == "generating" else None}
+        cache = dict(getattr(self.engine, "cache", {}) or {})
+        inventory_snapshot = getattr(self.engine, "cache_inventory", {})
+        inventory = inventory_snapshot.get("entries", [])
+        cache["retained_bytes"] = inventory_snapshot.get("retained_bytes", 0)
+        cache["active_sessions"] = sum(e.get("kind") == "active" for e in inventory)
+        if getattr(self.engine, "can_cache_admin", False):
+            # During prefill, CACHE counters may already describe the next state
+            # while inventory still describes the last completed one. Keep the
+            # monitor and inspector on the same complete snapshot.
+            saved = [e for e in inventory if e.get("kind") == "session"]
+            cache.update(sessions=len(saved), bytes=sum(e.get("bytes") or 0 for e in saved))
+        if state == "reading" and cache.get("phase") in ("saving", "restoring"):
+            live["phase"] = cache["phase"] + " session"
         if state == "reading" and progress:
             live["prompt_read"], live["prompt_total"] = progress
         engine = {"model": self.model, "max_context": self.engine.max_context, "images": self.vision is not None,
                   **dict(getattr(self.engine, "info", {}) or {})}
         tel = self.telemetry.snapshot() if getattr(self, "telemetry", None) else {"now": {}, "history": {}, "static": {}}
-        return {"engine": engine, "live": live, "requests": hist[::-1][:None if all_requests else 12],
+        return {"engine": engine, "conversation_cache": cache, "live": live, "requests": hist[::-1][:None if all_requests else 12],
                 "requests_kept": len(hist), "totals": totals, "hardware": tel["now"],
                 "hardware_static":
                 tel["static"], "history": tel["history"], "time": now}
+
+    def cache_entries(self):
+        with self.status_lock:
+            busy = self.status.get("busy", False) or self.status.get("queued", 0) > 0
+        supported = bool(getattr(self.engine, "can_cache_admin", False))
+        alive = not supported or self.engine.alive()
+        inventory = getattr(self.engine, "cache_inventory", {"entries": [], "updated_at_ms": None})
+        entries = [e for e in inventory["entries"] if e.get("kind") in ("session", "active")]
+        diagnostics = dict(getattr(self.engine, "cache", {}) or {})
+        return {**inventory, "entries": entries, "diagnostics": diagnostics,
+                "auto_release": self.archive_policy.snapshot(),
+                "saved_sessions": sum(e.get("kind") == "session" for e in entries),
+                "active_sessions": sum(e.get("kind") == "active" for e in entries),
+                "supported": supported, "busy": busy, "alive": alive,
+                "generation": getattr(self.engine, "cache_generation", None), "time_ms": time.time() * 1000,
+                "archive_bytes": sum(e.get("bytes") or 0 for e in entries if e.get("kind") == "session") if supported
+                    else (getattr(self.engine, "cache", {}) or {}).get("bytes", 0),
+                "budget_bytes": (getattr(self.engine, "info", {}) or {}).get("conversation_cache_mib", 0) * 1048576}
+
+
+    def drop_cache_entry(self, req):
+        if not isinstance(req, dict) or not isinstance(req.get("id"), str) or not isinstance(req.get("generation"), str):
+            return 400, {"error": {"message": "id and generation are required"}}
+        if not getattr(self.engine, "can_cache_admin", False):
+            return 501, {"error": {"message": "This engine does not support archive management"}}
+        if not self.fifo.acquire(blocking=False):
+            return 409, {"error": {"message": "A request is running. Release cache when the engine is idle"}}
+        try:
+            with self.status_lock:
+                queued = self.status.get("queued", 0) or self.status.get("busy", False)
+            if queued:
+                return 409, {"error": {"message": "Requests are queued. Release cache when the engine is idle"}}
+            if req["generation"] != self.engine.cache_generation:
+                return 409, {"error": {"message": "The engine restarted. Refresh the archive"}}
+            entry = next((e for e in self.engine.cache_inventory["entries"] if e["id"] == req["id"]), None)
+            if entry is None:
+                return 404, {"error": {"message": "This cache block no longer exists"}}
+            if entry.get("kind") != "session" or not entry["deletable"]:
+                return 409, {"error": {"message": "Only complete saved sessions can be released"}}
+            if not self.engine.drop_cache_entry(entry["id"]):
+                return 404, {"error": {"message": "This cache block has already expired or been replaced"}}
+            return 200, self.cache_entries()
+        finally:
+            self.fifo.release()
+
+
+    def set_archive_policy(self, req):
+        if not getattr(self.engine, "can_cache_admin", False):
+            return 501, {"error": {"message": "This engine does not support archive management"}}
+        try:
+            self.archive_policy.update(req)
+        except OSError as error:
+            return 503, {"error": {"message": str(error)}}
+        return 200, self.cache_entries()
+
 
     def v1_status(self) -> dict:
         """GET /v1/status: what this server is and does, for a client that would rather ask than guess (a front-end
@@ -1208,8 +1368,12 @@ class Service:
                   f"{el:.0f} s", flush=True)
         return now
 
-    def run(self, ids, thinking, tools, max_new, sampling, cancel) -> Iterator[tuple[str, object]]:
+    def run(self, ids, thinking, tools, max_new, sampling, cancel, session_id=None) -> Iterator[tuple[str, object]]:
         """Yields ("event", Event) as text arrives, then ("done", {"finish": .., "completion_tokens": ..})."""
+        if session_id is None:
+            session_id = getattr(self.request_trace, "session_id", None)
+        usage = {"input_tokens": 0, "cached_tokens": 0, "output_tokens": 0}
+        ran = False
         budget = self.reasoning_budget(sampling) if thinking else None   # #123: opt-in, off by default
         defaults = {**self.sampling_defaults, **self.shared}   # the config's, then the Chat settings shared with apps
         if defaults:                   # the request's own fields win (explicit 0 stays greedy)
@@ -1235,8 +1399,12 @@ class Service:
                             trace["queue_s"] += round(time.perf_counter() - waiting, 3)
                             trace["state"] = "generating"
                         self.status["queued"] -= 1
+                    if cancel.is_set():
+                        return
+                    engine_last0 = getattr(self.engine, "last", None)
                     # issue #27: it died in an earlier request (or was unloaded) - start it again instead of failing
                     self.ensure_loaded()
+                    self.archive_policy.release_expired_locked(self.engine)
                     with self.status_lock:
                         self.status.update(busy=True, phase="reading the prompt", prompt_tokens=len(ids),
                                            generated=0, started=time.time(), first_token=None, tool=None, tail="",
@@ -1247,8 +1415,12 @@ class Service:
                     last_print = time.time()
                     prompt, thought = ids, 0            # thought: the reasoning tokens so far (the budget's count)
                     while True:
-                        gen = self.engine.generate(prompt, max_new - n, sampling, cancel, embeddings=emb) if emb \
-                            else self.engine.generate(prompt, max_new - n, sampling, cancel)
+                        extra_args = {"embeddings": emb} if emb else {}
+                        if session_id is not None:
+                            extra_args["session_id"] = session_id
+                        gen = self.engine.generate(prompt, max_new - n, sampling, cancel, **extra_args)
+                        segment_last, segment_n = getattr(self.engine, "last", None), n
+                        ran = True
                         seg, wrap = [], False           # this pass's tokens; the budget is reached
                         try:
                             for t in gen:
@@ -1292,6 +1464,18 @@ class Service:
                             gen.close()                 # STOP+drain to THIS request's DONE while still holding the
                             #                             fifo, so a stop-token break can't leave the shared engine
                             #                             queue mid-drain for the next request to read as its own DONE
+                            segment = (dict(getattr(self.engine, "last", {}) or {})
+                                       if getattr(self.engine, "last", None) is not segment_last else {})
+                            # Count actual engine work once per segment; the reasoning-budget wrapper can run two.
+                            # Do not count injected wrap-up tokens as generated model output.
+                            produced = max(n - segment_n, int(segment.get("generated") or 0))
+                            cached = min(len(prompt), max(0, int(segment.get("reused") or
+                                getattr(self.engine, "request_cache", {}).get("reused", 0))))
+                            progress = getattr(self.engine, "progress", None)
+                            read = len(prompt) if produced else min(len(prompt), max(cached, progress[0] if progress else 0))
+                            usage["input_tokens"] += max(0, read - cached)
+                            usage["cached_tokens"] += cached
+                            usage["output_tokens"] += produced
                         if not wrap or cancel.is_set():
                             break
                         # #123: the thinking reached reasoning_budget_tokens.  Close it the way the model would (a
@@ -1317,6 +1501,8 @@ class Service:
                     finish = "disconnect"
                     raise
                 finally:
+                    if ran:
+                        self.statistics.record(**usage)
                     # #266: settle this request's status, history and totals while still holding the fifo: once
                     # it is released the next request sets its own status, which this must not record or clear
                     with self.status_lock:
@@ -1335,6 +1521,7 @@ class Service:
                                 "time": started, "duration_s": round(time.time() - started, 1), "finish": finish,
                                 "prompt_tokens": len(ids), "reused": last.get("reused"), "output_tokens": n,
                                 "engine_generated": last.get("generated"),
+                                **{k: last.get(k) for k in ("cache_source", "cache_save_ms", "cache_restore_ms", "cache_reason")},
                                 "prompt_ms": last.get("prompt_ms"), "decode_ms": last.get("decode_ms"),
                                 "decode_tok_s": round(last["generated"] / (last["decode_ms"] / 1000), 1)
                                 if n and last.get("generated") and last.get("decode_ms") else None,
@@ -1502,7 +1689,7 @@ def run_with_mcp(svc: Service, hub, messages, tools, kw, ids, thinking, max_new,
 
 
 # ------------------------------------------------------------------------------------------------ OpenAI
-def openai_chunks(svc: Service, req: dict, ids, thinking, tools, max_new, cancel, run=None):
+def openai_chunks(svc: Service, req: dict, ids, thinking, tools, max_new, cancel, run=None, session_id=None):
     """`run`: the events to send instead of Service.run's (run_with_mcp); its ("mcp", {...}) items become chunks with
     an empty delta and a `strata_mcp` field, which only the web app reads."""
     cid, created = "chatcmpl-" + uuid.uuid4().hex[:24], int(time.time())
@@ -1516,7 +1703,7 @@ def openai_chunks(svc: Service, req: dict, ids, thinking, tools, max_new, cancel
     calls = 0
     streamed = {}                                  # tool call id -> index, for calls sent piece by piece
     finished = set()                               # ... and the ones whose final tool_call came (#211)
-    for kind, x in run if run is not None else svc.run(ids, thinking, tools, max_new, req, cancel):
+    for kind, x in run if run is not None else svc.run(ids, thinking, tools, max_new, req, cancel, session_id=session_id):
         if kind == "ping":
             yield None
         elif kind == "mcp":
@@ -1627,7 +1814,7 @@ def structured_chunks(chunks, validator):
 
 
 # ------------------------------------------------------------------------------------------------ Anthropic
-def anthropic_events(svc: Service, req: dict, ids, thinking, tools, max_new, cancel):
+def anthropic_events(svc: Service, req: dict, ids, thinking, tools, max_new, cancel, session_id=None):
     mid = "msg_" + uuid.uuid4().hex[:24]
     yield "message_start", {"type": "message_start", "message": {
         "id": mid, "type": "message", "role": "assistant", "model": svc.model_for(req), "content": [],
@@ -1638,7 +1825,7 @@ def anthropic_events(svc: Service, req: dict, ids, thinking, tools, max_new, can
         return ("content_block_stop", {"type": "content_block_stop", "index": index})
 
     streamed, finished = set(), set()              # calls sent piece by piece; those whose final tool_call came (#211)
-    for kind, x in svc.run(ids, thinking, tools, max_new, req, cancel):
+    for kind, x in svc.run(ids, thinking, tools, max_new, req, cancel, session_id=session_id):
         if kind == "ping":
             yield None
             continue
@@ -1870,6 +2057,21 @@ def make_handler(svc: Service):
                                records if request_id else {"requests": records, "retention": 100, "persistent": False,
                                                           "loaded": svc.loaded(), "auto_load": hasattr(svc.engine, "restart")})
                 return
+            if path == "/statistics":
+                if self._authorized():
+                    period = parse_qs(urlsplit(self.path).query).get("range", ["24h"])[0]
+                    try:
+                        self._json(200, svc.statistics.snapshot(period))
+                    except ValueError as error:
+                        self._json(400, {"error": {"message": str(error)}})
+                    except Exception as error:
+                        print(f"[strata] cannot read statistics: {error}", flush=True)
+                        self._json(503, {"error": {"message": "Statistics storage is unavailable"}})
+                return
+            if path == "/cache/entries":
+                if self._authorized():
+                    self._json(200, svc.cache_entries())
+                return
             if path == "/settings":
                 if self._authorized():
                     self._json(200, {"shared": bool(svc.shared), "defaults": svc.shared})
@@ -1897,6 +2099,9 @@ def make_handler(svc: Service):
                     s = dict(svc.status)
                 now = time.time()
                 if s.get("busy"):
+                    cache_phase = (getattr(svc.engine, "cache", {}) or {}).get("phase")
+                    if cache_phase in ("saving", "restoring"):
+                        s["phase"] = cache_phase + " session"
                     s["elapsed_s"] = round(now - s["started"], 1)
                     if s.get("first_token"):
                         s["tokens_per_s"] = round(svc._tok_s(), 1)
@@ -1960,6 +2165,11 @@ def make_handler(svc: Service):
                 req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
                 if not isinstance(req, dict):
                     raise ValueError("send a JSON object")
+                if path in ("/cache/release", "/cache/settings"):
+                    if not self._own_page("the session archive can be changed"):
+                        return
+                    self._json(*(svc.drop_cache_entry(req) if path == "/cache/release" else svc.set_archive_policy(req)))
+                    return
                 if path in ("/v1/load", "/v1/unload"):
                     if not self._own_page("the model can be loaded or unloaded"):
                         return
@@ -2012,6 +2222,7 @@ def make_handler(svc: Service):
                 self._note(outcome="disconnected")
                 raise                                        # as before #332: the server's own handling
             finally:
+                svc.request_trace.session_id = None
                 if self.watch_done is not None:
                     self.watch_done.set()
                 record = self.record
@@ -2122,6 +2333,18 @@ def make_handler(svc: Service):
             finally:
                 items.close()
 
+        def _session_id(self):
+            values = self.headers.get_all("X-Strata-Session-Id", [])
+            if not values:
+                return None
+            value = values[0].strip()
+            if len(values) != 1 or not value or len(value.encode("utf-8")) > 256 or any(ord(c) < 32 or ord(c) == 127 for c in value):
+                raise ValueError("X-Strata-Session-Id must be one nonempty value of at most 256 UTF-8 bytes")
+            if not getattr(svc.engine, "can_session_id", False):
+                raise ValueError("This engine does not support X-Strata-Session-Id; upgrade the engine or omit the header")
+            return value
+
+
         def _openai(self, req):
             req = svc.with_shared(req, "openai")
             messages, tools, kw = openai_to_messages(req)
@@ -2129,6 +2352,7 @@ def make_handler(svc: Service):
             if validator is not None and (tools or req.get("strata_mcp")):
                 raise ValueError("structured response_format with tools/MCP is not supported")
             svc.load()
+            svc.request_trace.session_id = self._session_id()
             max_req = max_new = int(req.get("max_completion_tokens") or req.get("max_tokens") or 0)   # 0/-1: the rest
             use_mcp = req.get("strata_mcp") is True and svc.mcp is not None      # the web app's opt-in (serve/mcp.py)
             own = {t.get("name") for t in tools or []}
@@ -2188,6 +2412,7 @@ def make_handler(svc: Service):
 
         def _anthropic(self, req):
             svc.load()
+            svc.request_trace.session_id = self._session_id()
             req = svc.with_shared(req, "anthropic")
             messages, tools, kw = anthropic_to_messages(req, svc.anthropic_think_unasked)
             max_new = int(req.get("max_tokens") or 0)                  # 0/-1: the rest of the context
@@ -2230,6 +2455,11 @@ class Server(ThreadingHTTPServer):
     # On Windows SO_REUSEADDR lets a second server bind a port that is already serving, and requests then land on
     # either one (a forgotten second start of run-<model>.bat).  Without it the second start fails loudly instead.
     allow_reuse_address = os.name != "nt"
+
+    def server_close(self):
+        if getattr(self, "archive_policy", None) is not None:
+            self.archive_policy.stop()
+        super().server_close()
 
     def handle_error(self, request, client_address):
         if not isinstance(sys.exc_info()[1], ConnectionError):   # a client that hangs up needs no stack trace
@@ -2278,6 +2508,8 @@ def lan_addresses() -> list[str]:
 def serve(svc: Service, host="127.0.0.1", port=8095) -> ThreadingHTTPServer:
     svc.start_telemetry()
     httpd = Server((host, port), make_handler(svc))
+    httpd.archive_policy = svc.archive_policy
+    svc.archive_policy.start(svc)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
@@ -2440,6 +2672,7 @@ def main() -> int:
                          "\"min_free_vram_mib\" in the config; default: always load)")
     ap.add_argument("--before-load", help="a command run before the model is loaded again (e.g. to unload another "
                                           "server's model; also \"before_load\" in the config, a string or a list)")
+    ap.add_argument("--statistics-file", help="SQLite token statistics file (default: data/usage-statistics.sqlite; mock: memory)")
     a = ap.parse_args()
     cfg = json.loads(Path(a.config).read_text(encoding="utf-8-sig")) if a.config else {}   # Notepad adds a BOM
     if a.gpu is not None:
@@ -2498,12 +2731,19 @@ def main() -> int:
     else:
         engine, vision, sampling_defaults = MockEngine(tok, a.script or [
             "Thinking about it.</think>\n\nHello from the mock engine."]), None, {}
+    stats_path = (a.statistics_file or cfg.get("statistics_file") or
+                  (str(ROOT / "data/usage-statistics.sqlite") if a.engine == "strata" else ":memory:"))
+    if stats_path != ":memory:" and not Path(stats_path).is_absolute():
+        stats_path = str(ROOT / stats_path)
+    statistics = UsageStatistics(stats_path)
+    archive_path = str(Path(a.config).with_suffix("")) + ".archive-settings.json" if a.config else None
     # the model's own chat template (exported with its tokenizer), else the original model's
     tpl = tpath / "chat_template.jinja"
     svc = Service(engine, tok, ChatTemplate(tpl if tpl.exists() else ROOT / "serve/chat_template.jinja"),
                   model_name=cfg.get("model_name", "qwen3.8-flash-next"), vision=vision,
                   sampling_defaults=sampling_defaults,
-                  fit_max_tokens=a.fit_max_tokens or cfg.get("fit_max_tokens") is True)
+                  fit_max_tokens=a.fit_max_tokens or cfg.get("fit_max_tokens") is True,
+                  statistics=statistics, archive_settings_path=archive_path)
     try:
         svc.set_aliases(cfg.get("aliases"))             # #297: other names the model answers to
     except ValueError as e:
@@ -2603,7 +2843,7 @@ def main() -> int:
             time.sleep(1)                               # Windows never delivers Ctrl+C to an untimed Event.wait()
     except KeyboardInterrupt:
         print("\n[strata] stopping (Ctrl+C again to end the engine at once) ...", flush=True)
-        closers = [httpd.shutdown, getattr(engine, "close", None), vision.close if vision else None,
+        closers = [httpd.shutdown, httpd.server_close, statistics.close, getattr(engine, "close", None), vision.close if vision else None,
                    hub.close if hub is not None else None]
         for close in filter(None, closers):
             try:

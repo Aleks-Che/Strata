@@ -1,6 +1,7 @@
 #include "strata/core/conversation_memory.hpp"
 
 #include <charconv>
+#include <algorithm>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -33,19 +34,40 @@ std::optional<uint64_t> conversation_mem_available(std::istream& meminfo) {
     return result;
 }
 
-std::optional<uint64_t> conversation_available_memory() {
+ConversationMemory conversation_memory_status() {
 #if defined(_WIN32)
     MEMORYSTATUSEX status{};
     status.dwLength = sizeof status;
-    if (GlobalMemoryStatusEx(&status)) return status.ullAvailPhys;
+    if (GlobalMemoryStatusEx(&status)) return {status.ullAvailPhys, status.ullAvailPageFile};
     return {};
 #elif defined(__linux__)
     std::ifstream meminfo("/proc/meminfo");
     if (!meminfo) return {};
-    return conversation_mem_available(meminfo);
+    return {conversation_mem_available(meminfo), {}};
 #else
     return {};
 #endif
+}
+
+std::optional<uint64_t> conversation_available_memory() {
+    return conversation_memory_status().physical;
+}
+
+ConversationMemory conversation_memory_prepare(uint64_t allocation, uint64_t floor) {
+    auto memory = conversation_memory_status();
+#if defined(_WIN32)
+    const uint64_t required = conversation_commit_probe_bytes(memory, allocation, floor);
+    if (required && required <= std::numeric_limits<SIZE_T>::max()) {
+        // GlobalMemoryStatusEx reports the current limit, not a configured future
+        // page-file maximum. Ask Windows whether this allocation can be committed
+        // before evicting useful snapshots. Untouched pages consume no physical
+        // RAM; release the probe before allocating the actual snapshot vectors.
+        void* probe = VirtualAlloc(nullptr, (SIZE_T) required, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+        if (probe) VirtualFree(probe, 0, MEM_RELEASE);
+        memory = conversation_memory_status();
+    }
+#endif
+    return memory;
 }
 
 } // namespace strata::core

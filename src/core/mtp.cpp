@@ -740,6 +740,11 @@ bool MtpDrafter::prefill(const float* R_rows, const int32_t* next_tokens, int64_
             err = std::string("mtp prefill: ") + cudaGetErrorString(cudaGetLastError());
             return false;
         }
+        // Only complete successful writes belong to a resumable snapshot.
+        for (int64_t c = 0; c < n; c += max_t_) {
+            const int T = (int) std::min<int64_t>(max_t_, n - c);
+            if (cell0 + c + T > first_needed) note_kv_written(cell0 + c, cell0 + c + T);
+        }
         ms_prefill += ms_since(t0);
         return true;
     }
@@ -763,6 +768,7 @@ bool MtpDrafter::prefill(const float* R_rows, const int32_t* next_tokens, int64_
             err = std::string("mtp prefill: ") + cudaGetErrorString(cudaGetLastError());
             return false;
         }
+        note_kv_written(cell0 + c, cell0 + c + T);
     }
     ms_prefill += ms_since(t0);
     return true;
@@ -817,6 +823,7 @@ bool MtpDrafter::draft(int T, const int32_t* tokens, int64_t p, int a, int32_t* 
     }
     for (int j = n; j < max_t_ - 1; ++j) { drafts[j] = 0; if (probs) probs[j] = 0.0f; }
     if (n_drafts) *n_drafts = n;
+    note_kv_written(p, p + a + 1);
     ms_draft += ms_since(t0);
     ++rounds;
     return true;

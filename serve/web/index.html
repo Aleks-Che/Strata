@@ -24,6 +24,8 @@
       <svg class="st-icon st-icon--sm"><use href="web/sprite.svg#i-chat"/></svg>Chat</button>
     <button class="st-tab" role="tab" id="tab-btn-monitor" aria-controls="view-monitor" aria-selected="false" data-tab="monitor">
       <svg class="st-icon st-icon--sm"><use href="web/sprite.svg#i-activity"/></svg>Monitor</button>
+    <button class="st-tab" role="tab" id="tab-btn-statistics" aria-controls="view-statistics" aria-selected="false" data-tab="statistics">
+      <svg class="st-icon st-icon--sm"><use href="/web/sprite.svg#i-layers"/></svg>Statistics</button>
     <button class="st-tab" role="tab" id="tab-btn-about" aria-controls="view-about" aria-selected="false" data-tab="about">
       <svg class="st-icon st-icon--sm"><use href="web/sprite.svg#i-info"/></svg>About</button>
   </nav>
@@ -108,6 +110,15 @@
           <div class="st-progress"><div class="st-progress__bar" id="slots-bar" style="width:0%"></div></div>
           <div class="bar-row"><span>System RAM</span><span class="muted" id="ram-text">&ndash;</span></div>
           <div class="st-progress" id="ram-progress"><div class="st-progress__bar" id="ram-bar" style="width:0%"></div></div>
+          <div id="commit-section" hidden>
+            <div class="bar-row"><span>Windows commit</span><span class="muted" id="commit-text">&ndash;</span></div>
+            <div class="st-progress" id="commit-progress"><div class="st-progress__bar" id="commit-bar" style="width:0%"></div></div>
+            <p class="small muted cache-note" id="commit-note"></p>
+          </div>
+          <button class="bar-row archive-open" id="session-cache-open" type="button" aria-haspopup="dialog" aria-controls="archive-dialog">
+            <span>Session archive <span aria-hidden="true">↗</span></span><span class="muted" id="session-cache-text">&ndash;</span></button>
+          <div class="st-progress"><div class="st-progress__bar" id="session-cache-bar" style="width:0%"></div></div>
+          <p class="small cache-note" id="session-cache-note"></p>
           <div class="bar-row"><span>GPU temperature</span><span class="muted" id="temp-text">&ndash;</span></div>
           <div class="st-progress" data-tone="warn"><div class="st-progress__bar" id="temp-bar" style="width:0%"></div></div>
         </div>
@@ -131,6 +142,59 @@
         <p class="muted small mcp-note">Their tools run on this PC with your rights, when the model decides to call them
           (in this page's chat only; switch it off in Sampling).</p>
       </div>
+    </div>
+  </section>
+
+  <!-- ============================ Statistics ============================ -->
+  <section class="view view--statistics" id="view-statistics" role="tabpanel" aria-labelledby="tab-btn-statistics" hidden>
+    <div class="statistics">
+      <div class="statistics-head">
+        <div><h1>Token statistics</h1><p class="muted" id="stats-since">All requests from Chat and connected apps</p></div>
+        <span class="st-badge" id="stats-saved">Loading&hellip;</span>
+      </div>
+      <p class="stats-error" id="stats-error" role="status" hidden></p>
+      <div class="metrics stats-metrics">
+        <div class="st-card metric-card stats-input"><div class="st-metric">
+          <span class="st-metric__label">Processed input</span><span class="st-metric__value" id="stats-input">&ndash;</span>
+          <span class="st-metric__sub">Newly processed tokens, excluding cache</span>
+        </div></div>
+        <div class="st-card metric-card stats-cached"><div class="st-metric">
+          <span class="st-metric__label">Cached input</span><span class="st-metric__value" id="stats-cached">&ndash;</span>
+          <span class="st-metric__sub" id="stats-cache-rate">Reused from RAM or the active session</span>
+        </div></div>
+        <div class="st-card metric-card stats-output"><div class="st-metric">
+          <span class="st-metric__label">Output</span><span class="st-metric__value" id="stats-output">&ndash;</span>
+          <span class="st-metric__sub">Generated tokens, including thinking</span>
+        </div></div>
+        <div class="st-card metric-card"><div class="st-metric">
+          <span class="st-metric__label">Requests</span><span class="st-metric__value" id="stats-requests">&ndash;</span>
+          <span class="st-metric__sub">All time, including interrupted requests</span>
+        </div></div>
+      </div>
+      <div class="st-card stats-activity">
+        <div class="statistics-head">
+          <div><h2>Activity over time</h2><p class="muted small" id="stats-period">Tokens per interval</p></div>
+          <label class="stats-range-label">Period
+            <select class="st-input" id="stats-range" aria-label="Statistics period">
+              <option value="24h">Last 24 hours</option><option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option><option value="all">All time</option>
+            </select>
+          </label>
+        </div>
+        <p class="muted small" id="stats-period-total"></p>
+        <div class="stats-chart-wrap"><svg id="stats-chart" viewBox="0 0 1040 370" role="img"
+          aria-label="Processed input, cached input and output tokens over time"></svg></div>
+        <p class="muted small" id="stats-hover">Point to an interval to see its totals.</p>
+        <p class="muted" id="stats-empty" hidden>No requests in this period. Activity will appear when a request finishes.</p>
+        <details class="stats-details"><summary>Activity data</summary><div class="table-wrap">
+          <table class="st-table"><thead><tr><th>Interval start (local time)</th><th class="num">Processed input</th>
+            <th class="num">Cached input</th><th class="num">Output</th><th class="num">Requests</th></tr></thead>
+            <tbody id="stats-rows"></tbody></table>
+        </div></details>
+      </div>
+      <p class="muted small stats-foot">Saved after each request and loaded automatically when Strata restarts.
+        Interrupted requests include known work completed before stopping. Graphs use request completion time;
+        each series has its own scale. <span id="stats-file"></span></p>
     </div>
   </section>
 
@@ -218,6 +282,34 @@
 </aside>
 <div class="scrim" id="scrim" hidden></div>
 <div class="st-toasts" id="toasts" aria-live="polite"></div>
+<dialog class="archive-dialog" id="archive-dialog" aria-labelledby="archive-title" aria-describedby="archive-note">
+  <div class="archive-head"><div><h2 id="archive-title">Session archive</h2><p class="muted" id="archive-summary">Loading…</p></div>
+    <button class="st-btn st-btn--secondary" id="archive-close" type="button" autofocus>Close</button></div>
+  <p class="muted small" id="archive-note">Each saved session contains its complete cached state. Release session removes the entire snapshot from RAM;
+    its next request may need to read the conversation again. The active session is listed separately and is not included in archive RAM.</p>
+  <form class="archive-policy" id="archive-policy-form">
+    <div class="archive-policy-controls">
+      <label for="archive-auto-release"><input id="archive-auto-release" type="checkbox" disabled> Auto-release session after</label>
+      <input class="st-input" id="archive-release-hours" type="number" min="0.1" max="8760" step="any" value="2"
+             aria-label="Auto-release inactivity in hours" aria-describedby="archive-policy-note" required disabled>
+      <span>hours of inactivity</span>
+    </div>
+    <p class="muted small" id="archive-policy-note">Applies to saved sessions only. The active session is kept. Changes save automatically.</p>
+    <p class="small" id="archive-policy-status" role="status" aria-live="polite">Loading auto-release settings…</p>
+  </form>
+  <p class="small cache-note" id="archive-save-note"></p>
+  <div class="archive-legend small" aria-label="Time since last use">
+    <span data-age="fresh">● Up to 30 min</span><span data-age="warm">● 30–60 min</span>
+    <span data-age="cool">● 1–2 hours</span><span data-age="old">● Over 2 hours</span>
+  </div>
+  <p class="small" id="archive-status" role="status" aria-live="polite"></p>
+  <div class="table-wrap archive-table-wrap"><table class="st-table archive-table">
+    <thead><tr><th>Session</th><th class="num">Tokens</th><th class="num">RAM</th><th>Last used</th><th>Action</th></tr></thead>
+    <tbody id="archive-body"><tr><td colspan="5">Loading…</td></tr></tbody>
+  </table></div>
+  <p class="muted small archive-foot">The active session uses reserved RAM / VRAM and cannot be released here.
+    Internal checkpoints are managed together with their session. Session snapshots stay in memory.</p>
+</dialog>
 <script src="web/app.js"></script>
 </body>
 </html>

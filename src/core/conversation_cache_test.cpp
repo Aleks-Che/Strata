@@ -83,7 +83,7 @@ int main() {
     }
     const std::vector<int64_t> a = {1, 2, 3, 4}, b = {9, 8, 7, 6};
     {
-        ConversationCache cache(1024, 2);
+        ConversationCache cache(image({1,2,3}).bytes() * 2, 2);
         check(cache.put(image({1, 2, 3})), "park A");
         check(cache.put(image({9, 8, 7})), "park B");
         auto match = cache.best(a, {}, true);
@@ -208,6 +208,115 @@ int main() {
         check(!disabled.enabled() && !no_slots.enabled(), "both disable switches");
         check(!disabled.put(image({1,2,3})) && !no_slots.put(image({1,2,3})), "disabled cache stores nothing");
         check(disabled.best(a,{},true).tokens == 0, "disabled cache has no matches");
+    }
+    {
+        ConversationCache cache(16384, 2);
+        auto s = image({1,2,3});
+        ConversationCheckpoint cp;
+        cp.cache_id = 42; cp.ids = {1,2}; cp.gdn.resize(256);
+        cp.last_used = ConversationCache::Clock::now() - std::chrono::hours(3);
+        s.checkpoints.push_back(cp);
+        cache.put(std::move(s));
+        const auto id = ConversationCache::entry_id(cache.entries().front());
+        const auto before = cache.bytes();
+        check(cache.entries().front().checkpoints.front().last_used == cp.last_used, "checkpoint use time survives parking");
+        check(!cache.erase(id + ":checkpoint-42"), "only whole sessions can be released");
+        check(cache.bytes() == before, "rejected partial release preserves all bytes");
+        check(cache.best(std::vector<int64_t>{1,2,9}, {}, true).tokens == 2, "rejected partial release preserves checkpoint");
+        check(cache.best(a, {}, true).tokens == 3, "full snapshot remains reusable");
+        check(cache.erase(id) && cache.bytes() == 0, "release session frees all its bytes");
+        cache.put(image({9,8,7}));
+        check(!cache.erase(id) && cache.size() == 1, "stale session ID cannot delete its replacement");
+        check(cache.evictions() == 0, "manual releases do not count as automatic evictions");
+    }
+    {
+        auto s = image({1,2,3});
+        s.mtp_valid_begin = 1; s.mtp_valid_end = 3; s.mtp_window = 2;
+        ConversationCheckpoint early; early.ids = {1};
+        s.checkpoints.push_back(early);
+        ConversationCache cache(4096, 4);
+        cache.put(std::move(s));
+        check(cache.best(a,{},true).tokens == 3, "complete MTP window can resume");
+        check(cache.best(std::vector<int64_t>{1,9}, {}, true).tokens == 0,
+              "checkpoint before MTP validity cannot read another session's stale cells");
+        auto incomplete = image({9,8,7}); incomplete.mtp_valid_end = 2;
+        cache.put(std::move(incomplete));
+        check(cache.best(b,{},true).tokens == 0, "uncomputed final MTP cell prevents live reuse");
+    }
+    {
+        ConversationCache cache(4096, 4);
+        auto named = image({1,2,3});
+        ConversationId id{}; id[0] = 'a';
+        named.session_id = id;
+        cache.put(std::move(named));
+        check(cache.best(a,{},true).tokens == 0, "anonymous requests do not match named sessions");
+        check(cache.best(a,{},true,id).tokens == 3, "named session matches its own exact prefix");
+        id[0] = 'b';
+        check(cache.best(a,{},true,id).tokens == 0, "different session IDs are isolated");
+        cache.put(image({1,2,3}));
+        check(cache.best(a,{},true).tokens == 3, "automatic matching still works without IDs");
+    }
+    {
+        using namespace std::chrono;
+        const auto t = ConversationCache::Clock::time_point{};
+        ConversationCache cache(4096, 4, seconds(1800));
+        cache.put(image({1,2,3}), 0, t);
+        cache.put(image({9,8,7}), 0, t + seconds(900));
+        check(cache.expire(t + seconds(1799)) == 0, "TTL does not expire early");
+        check(cache.expire(t + seconds(1800)) == 1, "30 minute idle boundary expires oldest");
+        check(cache.best(a,{},true).tokens == 0 && cache.best(b,{},true).tokens == 3, "live-age entries survive expiry");
+        auto used = cache.take(0);
+        cache.put(std::move(used), 0, t + seconds(1800));
+        check(cache.expire(t + seconds(2700)) == 0, "reuse renews idle lifetime when parked again");
+        check(cache.expire(t + seconds(3600)) == 1 && cache.bytes() == 0, "expiry frees accounting");
+        check(cache.expired() == 2 && cache.evictions() == 0, "TTL and pressure counters are distinct");
+        check(!cache.put(image({1,2,3}),0,t + seconds(4000),t + seconds(1)),
+              "parking cannot revive a history unused longer than TTL");
+        check(cache.put(image({1,2,3}),0,t + seconds(5000),t + seconds(4900)), "park recently used active state");
+        check(cache.expire(t + seconds(6700)) == 1, "TTL starts at last use, not the later parking time");
+        ConversationCache no_ttl(4096, 4);
+        no_ttl.put(image({1,2,3}),0,t);
+        check(no_ttl.expire(t + hours(24)) == 0, "zero TTL disables expiry");
+    }
+    {
+        ConversationCache cache(4096, 4);
+        cache.put(image({1,2,3})); cache.put(image({9,8,7}));
+        auto incoming = cache.take(cache.best(b,{},true).index);
+        check(cache.evict_oldest(true), "memory pressure evicts below byte budget");
+        check(cache.bytes() == 0 && cache.pressure_evictions() == 1, "pressure releases stale state");
+        check(incoming.live.ids == std::vector<int32_t>({9,8,7}), "pressure cannot destroy held incoming state");
+        check(!cache.evict_oldest(true), "allocation retry terminates when no victims remain");
+    }
+    {
+        ConversationCache shared(8192, 4, {}, true);
+        auto s = image({1,2,3}); s.session_id[0] = 'a';
+        ConversationCheckpoint prefix; prefix.ids = {1,2}; s.checkpoints.push_back(prefix);
+        shared.put(std::move(s));
+        ConversationId other{}; other[0] = 'b';
+        check(shared.best(std::vector<int64_t>{1,2,8,9},{},true,other).tokens == 2,
+              "new session with edited suffix reuses a common checkpoint");
+        check(shared.best(std::vector<int64_t>{8,1,2,3},{},true,other).tokens == 0,
+              "same fragment at a different position is not reusable");
+        check(shared.best(a,{},false,other).tokens == 0, "sharing never bypasses steering compatibility");
+        auto duplicate = image({1,2,3}); duplicate.session_id = other;
+        shared.put(std::move(duplicate));
+        check(shared.size() == 1 && shared.deduplicated() == 1, "identical histories do not accumulate across IDs");
+    }
+    {
+        ConversationCache cache(16384, 4);
+        ConversationCheckpoint checkpoint; checkpoint.ids = {1,2};
+        auto first = image({1,2,3}); first.session_id[0] = 'a'; first.checkpoints.push_back(checkpoint);
+        cache.put(std::move(first));
+        auto other = image({1,2,4}); other.session_id[0] = 'b'; other.checkpoints.push_back(checkpoint);
+        cache.put(std::move(other));
+        check(cache.size() == 2 && cache.superseded() == 0,
+              "same checkpoint cannot supersede a different named session");
+        auto next = image({1,2,5}); next.session_id[0] = 'a'; next.checkpoints.push_back(checkpoint);
+        cache.put(std::move(next));
+        ConversationId b_id{}; b_id[0] = 'b';
+        check(cache.size() == 2 && cache.superseded() == 1 &&
+              cache.best(std::vector<int64_t>{1,2,4,9}, {}, true, b_id).tokens == 3,
+              "a newer A supersedes A while preserving B");
     }
     std::printf("conversation_cache_test: %d checks passed\n", checks);
 }
