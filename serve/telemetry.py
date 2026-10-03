@@ -21,6 +21,23 @@ import time
 HISTORY = 60
 
 
+def windows_memory():
+    """Physical RAM and current Windows commit headroom are different limits."""
+    if os.name != "nt":
+        return {}
+    class MS(ctypes.Structure):
+        _fields_ = [("length", ctypes.c_ulong), ("load", ctypes.c_ulong)] + [
+            (name, ctypes.c_ulonglong) for name in ("total_phys", "avail_phys", "total_commit", "avail_commit",
+                                                   "total_virtual", "avail_virtual", "avail_extended")]
+    status = MS()
+    status.length = ctypes.sizeof(status)
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        return {}
+    return {"ram_total": status.total_phys, "ram_used": status.total_phys - status.avail_phys,
+            "commit_limit": status.total_commit, "commit_used": status.total_commit - status.avail_commit,
+            "commit_available": status.avail_commit}
+
+
 # ------------------------------------------------------------------------------------------------ NVML
 class _Nvml:
     class Util(ctypes.Structure):
@@ -338,6 +355,7 @@ class Telemetry:
         else:
             s["cpu"] = self.fallback.cpu()
             s["ram_used"], s["ram_total"] = self.fallback.ram()
+        s.update(windows_memory())
         s["disk_read_mb"], s["disk_write_mb"] = self._disk()
         if self.extra:
             try:

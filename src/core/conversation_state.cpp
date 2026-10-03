@@ -1,5 +1,6 @@
 #include "strata/core/conversation_snapshot.hpp"
 #include "conversation_checked.hpp"
+#include "strata/core/progress.hpp"
 
 #include <algorithm>
 #include <array>
@@ -32,10 +33,17 @@ bool sync(std::string& error) {
 bool copy(void* dst, const void* src, size_t bytes, std::string& error) {
     if (!bytes) return true;
     if (!dst || !src) return fail(error, "missing running-state buffer");
-    const auto status = cudaMemcpy(dst, src, bytes, cudaMemcpyDefault);
-    if (status == cudaSuccess) return true;
-    error = std::string("conversation snapshot running-state copy: ") + cudaGetErrorString(status);
-    return false;
+    constexpr size_t chunk = 64ull << 20;
+    for (size_t offset = 0; offset < bytes; offset += chunk) {
+        const auto status = cudaMemcpy(static_cast<uint8_t*>(dst) + offset,
+            static_cast<const uint8_t*>(src) + offset, std::min(chunk, bytes - offset), cudaMemcpyDefault);
+        if (status != cudaSuccess) {
+            error = std::string("conversation snapshot running-state copy: ") + cudaGetErrorString(status);
+            return false;
+        }
+        progress_beat();
+    }
+    return true;
 }
 
 // The session's carve (#216): `qsa_states` keeps global ordinals and holds the owned ones
@@ -194,7 +202,7 @@ bool conversation_checkpoint_restore(const ConversationCheckpoint& c, SessionSta
 
 bool conversation_snapshot_bytes(const ConversationView& view, const SessionState& ss,
                                  const ModelGeometry& g, const QsaState& draft, size_t& bytes, std::string& error) {
-    bytes = 0;
+    bytes = sizeof(SavedConversation);
     if (!view_validate(view, ss, g, error)) return false;
     ConversationStateSizes z;
     if (!conversation_session_sizes(g, ss, z, error)) return false;

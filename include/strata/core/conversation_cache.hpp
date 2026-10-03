@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <string>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -14,6 +16,8 @@
 
 namespace strata::core {
 
+using ConversationId = std::array<char, 65>; // SHA-256 hex; empty is the anonymous namespace
+
 struct ConversationImageKey {
     int64_t start = 0;
     uint64_t hash = 0;
@@ -21,6 +25,8 @@ struct ConversationImageKey {
 };
 
 struct ConversationCheckpoint {
+    uint64_t cache_id = 0;
+    std::chrono::steady_clock::time_point last_used{};
     std::vector<int32_t> ids;
     std::vector<ConversationImageKey> imgs;
     std::vector<uint8_t> gdn, ple, tails, dead, block_pos;
@@ -61,6 +67,7 @@ struct ConversationKvReuse {
 };
 
 struct SavedConversation {
+    uint64_t archive_id = 0;
     // Runtime compatibility only; NOT a model/weights identity or disk schema.
     std::array<int64_t, 18> geometry{};
     // The session's layer carve the image was captured from ([0, n_layers) on one GPU); restore requires the same.
@@ -69,9 +76,18 @@ struct SavedConversation {
     std::vector<ConversationCheckpoint> checkpoints;
     std::vector<ConversationKv> kv; // main layers followed by the draft layer
     bool cvec = true;
+    ConversationId session_id{};
+    int64_t mtp_valid_begin = 0, mtp_valid_end = INT64_MAX, mtp_window = 0;
+    std::chrono::steady_clock::time_point last_used{};
+
+    bool can_resume(int64_t position) const {
+        const int64_t first = mtp_window > 0 && position > mtp_window ? position - mtp_window : 0;
+        return position > 0 && mtp_valid_begin <= first && mtp_valid_end >= position;
+    }
+
 
     size_t bytes() const {
-        size_t n = live.bytes() + checkpoints.capacity() * sizeof(ConversationCheckpoint) +
+        size_t n = sizeof(SavedConversation) + live.bytes() + checkpoints.capacity() * sizeof(ConversationCheckpoint) +
                    kv.capacity() * sizeof(ConversationKv);
         for (const auto& c : checkpoints) n += c.bytes();
         for (const auto& k : kv) n += k.bytes();
@@ -96,17 +112,62 @@ int64_t conversation_prefix(const ConversationCheckpoint& c, const std::vector<T
 
 class ConversationCache {
 public:
+    using Clock = std::chrono::steady_clock;
     struct Match {
         size_t index = 0;
         int64_t tokens = 0;
         bool live = false;
     };
 
-    ConversationCache(size_t budget, size_t slots) : budget_(budget), slots_(slots) {}
+    ConversationCache(size_t budget, size_t slots, std::chrono::seconds ttl = {}, bool shared_prefix = false)
+        : budget_(budget), slots_(slots), ttl_(ttl), shared_prefix_(shared_prefix) {}
     bool enabled() const { return budget_ != 0 && slots_ != 0; }
     size_t bytes() const { return bytes_ + reuse_.bytes(); }
     size_t size() const { return entries_.size(); }
     size_t evictions() const { return evictions_; }
+
+    size_t expired() const { return expired_; }
+    size_t pressure_evictions() const { return pressure_evictions_; }
+    size_t deduplicated() const { return deduplicated_; }
+    const std::deque<SavedConversation>& entries() const { return entries_; }
+
+    // IDs never depend on deque positions and are never reused in this process.
+    // A stale UI action cannot remove the entry that replaced an older snapshot.
+    static std::string entry_id(const SavedConversation& e) { return "session-" + std::to_string(e.archive_id); }
+    bool erase(const std::string& id) {
+        for (auto i = entries_.begin(); i != entries_.end(); ++i) {
+            const auto parent = entry_id(*i);
+            if (id == parent) {
+                bytes_ -= i->bytes();
+                entries_.erase(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    size_t expire(Clock::time_point now = Clock::now()) {
+        size_t count = 0;
+        if (ttl_.count() <= 0) return 0;
+        for (auto i = entries_.begin(); i != entries_.end();) {
+            if (now - i->last_used >= ttl_) {
+                bytes_ -= i->bytes();
+                i = entries_.erase(i);
+                ++count;
+            } else ++i;
+        }
+        expired_ += count;
+        return count;
+    }
+
+    bool evict_oldest(bool memory_pressure = false) {
+        if (entries_.empty()) return false;
+        bytes_ -= entries_.front().bytes();
+        entries_.pop_front();
+        ++evictions_;
+        if (memory_pressure) ++pressure_evictions_;
+        return true;
+    }
 
     // Retain only the restored K/V buffers, not duplicate running checkpoints.
     // This optimization never evicts a parked conversation to make itself fit.
@@ -127,16 +188,17 @@ public:
     }
 
     template<class Token>
-    Match best(const std::vector<Token>& prompt, const std::vector<ConversationImageKey>& images, bool cvec) const {
+    Match best(const std::vector<Token>& prompt, const std::vector<ConversationImageKey>& images, bool cvec,
+               const ConversationId& session_id = {}) const {
         Match best;
         // Ties prefer the most recently parked branch. The caller prefers its
         // already-active state when that offers the same prefix length.
         for (size_t i = entries_.size(); i-- > 0;) {
             const auto& e = entries_[i];
-            if (e.cvec != cvec) continue;
+            if (e.cvec != cvec || (!shared_prefix_ && e.session_id != session_id)) continue;
             auto consider = [&](const ConversationCheckpoint& c, bool live) {
                 const int64_t n = conversation_prefix(c, prompt, images);
-                if (n > best.tokens) best = {i, n, live};
+                if (n > best.tokens && e.can_resume(n)) best = {i, n, live};
             };
             consider(e.live, true);
             for (const auto& c : e.checkpoints) consider(c, false);
@@ -172,7 +234,8 @@ public:
     // checkpoints, or whose deepest checkpoint the outgoing chain does not hold (another conversation that only
     // shares the system prompt's root with it), is kept.  Returns how many were dropped.
     size_t drop_superseded(const std::vector<int32_t>& ids, const std::vector<ConversationImageKey>& images,
-                           const std::vector<ConversationCheckpoint>& checkpoints, bool cvec) {
+                           const std::vector<ConversationCheckpoint>& checkpoints, bool cvec,
+                           const ConversationId& session_id = {}) {
         auto held = [&](const ConversationCheckpoint& c) {
             if (c.ids == ids && c.imgs == images) return true;
             for (const auto& k : checkpoints)
@@ -185,7 +248,7 @@ public:
             const ConversationCheckpoint* deepest = nullptr;
             for (const auto& c : e.checkpoints)
                 if (!deepest || c.ids.size() > deepest->ids.size()) deepest = &c;
-            if (e.cvec == cvec && deepest && !deepest->ids.empty() && held(*deepest)) {
+            if (e.cvec == cvec && (shared_prefix_ || e.session_id == session_id) && deepest && !deepest->ids.empty() && held(*deepest)) {
                 bytes_ -= e.bytes();
                 entries_.erase(entries_.begin() + (std::ptrdiff_t) i);
                 ++dropped;
@@ -198,17 +261,38 @@ public:
     }
     size_t superseded() const { return superseded_; }
 
-    bool put(SavedConversation&& image, size_t held = 0) {
+    bool put(SavedConversation&& image, size_t held = 0, Clock::time_point now = Clock::now(),
+             Clock::time_point used_at = {}) {
         const size_t n = image.bytes();
-        if (!enabled() || held > budget_ || n > budget_ - held) return false;   // make_room's refusal, first
-        drop_superseded(image.live.ids, image.live.imgs, image.checkpoints, image.cvec);
+        expire(now);
+        const auto touched = used_at == Clock::time_point{} ? now : used_at;
+        if (ttl_.count() > 0 && now - touched >= ttl_) return false;
+        // Replace identical histories in content-sharing mode. Different suffixes
+        // remain separate branches; an ID alone never proves equivalent state.
+        if (shared_prefix_ && enabled() && held <= budget_ && n <= budget_ - held) {
+            for (auto i = entries_.begin(); i != entries_.end();) {
+                if (i->cvec == image.cvec && i->live.ids == image.live.ids && i->live.imgs == image.live.imgs) {
+                    bytes_ -= i->bytes();
+                    i = entries_.erase(i);
+                    ++deduplicated_;
+                } else ++i;
+            }
+        }
+        if (!enabled() || held > budget_ || n > budget_ - held) return false;
+        drop_superseded(image.live.ids, image.live.imgs, image.checkpoints, image.cvec, image.session_id);
         if (!make_room(n, held)) return false;
+        image.last_used = touched;
+        image.archive_id = ++next_id_;
         entries_.push_back(std::move(image));
         bytes_ += n;
         return true;
     }
 
 private:
+    uint64_t next_id_ = 0;
+    size_t expired_ = 0, pressure_evictions_ = 0, deduplicated_ = 0;
+    std::chrono::seconds ttl_{};
+    bool shared_prefix_ = false;
     size_t budget_ = 0, slots_ = 0, bytes_ = 0, evictions_ = 0, superseded_ = 0;
     std::deque<SavedConversation> entries_; // least recently active first
     ConversationKvReuse reuse_;

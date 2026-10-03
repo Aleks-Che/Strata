@@ -73,12 +73,13 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
 
 let tab = "chat";
 function showTab(name) {
-  tab = ["chat", "monitor", "about"].includes(name) ? name : "chat";
+  tab = ["chat", "monitor", "statistics", "about"].includes(name) ? name : "chat";
   for (const b of document.querySelectorAll(".st-tab")) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
-  for (const v of ["chat", "monitor", "about"]) $(`view-${v}`).hidden = v !== tab;
+  for (const v of ["chat", "monitor", "statistics", "about"]) $(`view-${v}`).hidden = v !== tab;
   if (location.hash.slice(1) !== tab) history.replaceState(null, "", tab === "chat" ? location.pathname : `#${tab}`);
   if (tab === "chat") $("input").focus();
   if (tab === "monitor") loadMcp();
+  if (tab === "statistics") loadStatistics();
   if (lastMetrics) render(lastMetrics);
 }
 for (const b of document.querySelectorAll(".st-tab")) b.onclick = () => showTab(b.dataset.tab);
@@ -106,6 +107,104 @@ async function loadHealth() {
     setTimeout(loadHealth, 2000);
   }
 }
+
+// ------------------------------------------------------------------ persistent token statistics
+let statisticsLoading = false, statisticsData = null;
+const STATS_SERIES = [
+  {key: "input_tokens", label: "Processed input", cls: "stats-input"},
+  {key: "cached_tokens", label: "Cached input", cls: "stats-cached"},
+  {key: "output_tokens", label: "Output", cls: "stats-output"},
+];
+const savedStatsRange = store.get("statsRange", "24h");
+$("stats-range").value = ["24h", "7d", "30d", "all"].includes(savedStatsRange) ? savedStatsRange : "24h";
+$("stats-range").onchange = () => {
+  store.set("statsRange", $("stats-range").value);
+  loadStatistics();
+};
+async function loadStatistics() {
+  if (statisticsLoading) return;
+  statisticsLoading = true;
+  const period = $("stats-range").value;
+  try {
+    const response = await fetch(`/statistics?range=${encodeURIComponent(period)}`, {
+      headers: headers(), cache: "no-store", signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error(response.status === 401 ? "Add the API key under About > Settings." : `HTTP ${response.status}`);
+    const data = await response.json();
+    if (period !== $("stats-range").value) return;
+    statisticsData = data;
+    renderStatistics(data);
+  } catch (error) {
+    $("stats-error").hidden = false;
+    $("stats-error").textContent = `Statistics could not be refreshed. ${error.message} Last displayed values may be outdated.`;
+    $("stats-saved").textContent = "Unavailable";
+  } finally {
+    statisticsLoading = false;
+    if (period !== $("stats-range").value && tab === "statistics") loadStatistics();
+  }
+}
+setInterval(() => { if (tab === "statistics" && !document.hidden) loadStatistics(); }, 5000);
+
+function renderStatistics(data) {
+  const totals = data.totals, selected = data.period_totals;
+  $("stats-input").textContent = fmt(totals.input_tokens);
+  $("stats-cached").textContent = fmt(totals.cached_tokens);
+  $("stats-output").textContent = fmt(totals.output_tokens);
+  $("stats-requests").textContent = fmt(totals.requests);
+  const input = totals.input_tokens + totals.cached_tokens;
+  $("stats-cache-rate").textContent = input ? `${fmt(100 * totals.cached_tokens / input, 1)}% of input reused · RAM + active session` : "Reused from RAM or the active session";
+  $("stats-since").textContent = `All time · since ${new Date(data.started_at * 1000).toLocaleString()} · Chat and connected apps`;
+  $("stats-saved").textContent = data.storage_error ? "Not saved" : data.persistent ? "Saved on this PC" : "Memory only";
+  $("stats-error").hidden = !data.storage_error;
+  $("stats-error").textContent = data.storage_error ? `Could not save ${fmt(data.pending_requests)} requests. Retrying automatically: ${data.storage_error}` : "";
+  $("stats-file").textContent = data.persistent ? `File: ${data.storage_file}` : "This test server uses memory only.";
+  const interval = data.interval_s < 86400 ? `${data.interval_s / 3600} hour` : `${data.interval_s / 86400} day`;
+  $("stats-period").textContent = `Tokens per ${interval} interval · local time · updated after each request`;
+  $("stats-period-total").textContent = `This period: ${fmt(selected.requests)} requests · ${fmt(selected.input_tokens)} processed · ${fmt(selected.cached_tokens)} cached · ${fmt(selected.output_tokens)} output`;
+  $("stats-empty").hidden = selected.requests > 0;
+  // Keep a stable chart during polling, including the pointed-to interval and table scroll.
+  const signature = JSON.stringify([data.range, data.points]);
+  if ($("stats-chart").dataset.signature === signature) return;
+  $("stats-chart").dataset.signature = signature;
+  $("stats-hover").textContent = "Point to an interval to see its totals. Exact values are also in Activity data below.";
+  const points = data.points, left = 66, width = 954, dx = width / Math.max(1, points.length);
+  const parts = ['<title>Token activity</title><desc>Three series with independent vertical scales. Exact values are in the Activity data table below.</desc>'];
+  STATS_SERIES.forEach((series, index) => {
+    const top = 16 + index * 108, bottom = top + 84;
+    const max = Math.max(1, ...points.map((p) => p[series.key]));
+    parts.push(`<g class="${series.cls}"><text class="stats-series-name" x="${left}" y="${top}">${series.label}</text>`);
+    parts.push(`<text x="${left - 10}" y="${top + 26}" text-anchor="end">${kfmt(max)}</text><text x="${left - 10}" y="${bottom}" text-anchor="end">0</text>`);
+    parts.push(`<path class="stats-grid" d="M${left},${top + 20}H${left + width}M${left},${bottom}H${left + width}"/>`);
+    points.forEach((point, i) => {
+      const height = point[series.key] ? Math.max(1, point[series.key] / max * 64) : 0;
+      parts.push(`<rect class="stats-bar" x="${(left + i * dx + dx * .12).toFixed(2)}" y="${(bottom - height).toFixed(2)}" width="${(dx * .76).toFixed(2)}" height="${height.toFixed(2)}" rx="2"/>`);
+    });
+    parts.push("</g>");
+  });
+  points.forEach((point, i) => {
+    parts.push(`<rect class="stats-hit" data-index="${i}" x="${left + i * dx}" y="8" width="${dx}" height="310"><title>${esc(statisticsIntervalText(point, data.interval_s))}</title></rect>`);
+  });
+  const tickCount = Math.min(5, points.length);
+  for (let i = 0; i < tickCount; i++) {
+    const index = tickCount === 1 ? 0 : Math.round(i * (points.length - 1) / (tickCount - 1));
+    const date = new Date(points[index].time * 1000);
+    const label = data.range === "24h" ? date.toLocaleString(undefined, {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})
+      : date.toLocaleDateString(undefined, {month: "short", day: "numeric", ...(data.range === "all" ? {year: "numeric"} : {})});
+    const anchor = i === 0 ? "start" : i === tickCount - 1 ? "end" : "middle";
+    parts.push(`<text x="${left + index * dx + dx / 2}" y="353" text-anchor="${anchor}">${esc(label)}</text>`);
+  }
+  $("stats-chart").innerHTML = parts.join("");
+  $("stats-rows").innerHTML = points.filter((p) => p.requests).reverse().map((p) => `<tr><td>${esc(new Date(p.time * 1000).toLocaleString())}</td>${[...STATS_SERIES.map((s) => s.key), "requests"].map((key) => `<td class="num">${fmt(p[key])}</td>`).join("")}</tr>`).join("") || '<tr><td colspan="5" class="muted">No requests in this period</td></tr>';
+}
+function statisticsIntervalText(point, interval) {
+  const begin = new Date(point.time * 1000).toLocaleString();
+  const end = new Date((point.time + interval) * 1000).toLocaleString();
+  return `${begin} – ${end}: ${fmt(point.input_tokens)} processed · ${fmt(point.cached_tokens)} cached · ${fmt(point.output_tokens)} output · ${fmt(point.requests)} requests`;
+}
+$("stats-chart").addEventListener("pointerover", (event) => {
+  const index = event.target.dataset.index;
+  if (index != null && statisticsData) $("stats-hover").textContent = statisticsIntervalText(statisticsData.points[+index], statisticsData.interval_s);
+});
 
 // ------------------------------------------------------------------ Monitor
 const METRICS = [
@@ -189,7 +288,7 @@ function render(m) {
     setPill("idle", "Idle");
   }
   if (live.queued > 0) setPill("queued", `${live.queued} queued`);
-  if (tab === "monitor") renderMonitor(live, hw, st, eng, h, last, m.requests || [], m.totals, m.requests_kept);
+  if (tab === "monitor") renderMonitor(live, hw, st, eng, h, last, m.requests || [], m.totals, m.requests_kept, m.conversation_cache || {});
   if (tab === "about") renderAbout(eng, hw, st);
 }
 
@@ -202,14 +301,14 @@ function renderTotals(t) {
   return `Since ${since}: ${fmt(t.requests)} requests · ${fmt(read)} prompt tokens read${pSpeed} (${fmt(t.reused)} reused) · ` +
          `${fmt(t.output_tokens)} written${oSpeed}`;
 }
-function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
+function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept, sessionCache = {}) {
   // model state
   const on = live.queued > 0 ? "queued" : live.state;
   for (const b of document.querySelectorAll("#state-badges .st-badge")) b.classList.toggle("on", b.dataset.s === on || b.dataset.s === live.state);
   const prog = $("state-progress");
   let label = "Waiting for a request", detail = "", pct = 0;
   if (live.state === "reading") {
-    label = "Reading prompt";
+    label = live.phase === "saving session" ? "Saving session" : live.phase === "restoring session" ? "Restoring session" : "Reading prompt";
     prog.dataset.tone = "info";
     if (live.prompt_total) {
       pct = (100 * live.prompt_read) / live.prompt_total;
@@ -287,6 +386,24 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
   $("ram-text").textContent = hw.ram_total ? `${gb(hw.ram_used)} / ${gb(hw.ram_total, 0)} GB` : "–";
   const ramPct = hw.ram_total ? (100 * hw.ram_used) / hw.ram_total : 0;
   $("ram-bar").style.width = `${ramPct}%`;
+  $("commit-section").hidden = hw.commit_limit == null;
+  if (hw.commit_limit) {
+    const used = 100 * hw.commit_used / hw.commit_limit;
+    $("commit-text").textContent = `${gb(hw.commit_used)} / ${gb(hw.commit_limit)} GiB`;
+    $("commit-bar").style.width = `${Math.min(100, used)}%`;
+    $("commit-progress").dataset.tone = used > 95 ? "danger" : "";
+    $("commit-note").textContent = `${gb(hw.commit_available)} GiB available for allocations. This is separate from free physical RAM.`;
+  }
+  const sessionBudget = (eng.conversation_cache_mib || 0) * 1048576;
+  const sessionBytes = sessionCache.bytes || 0;
+  $("session-cache-text").textContent = sessionBudget ?
+    `${fmt(sessionBytes / 1073741824, 2)} / ${fmt(sessionBudget / 1073741824, 0)} GiB · ${fmt(sessionCache.sessions || 0)} saved + ${fmt(sessionCache.active_sessions || 0)} active` : "Off";
+  $("session-cache-bar").style.width = sessionBudget ? `${Math.min(100, (sessionBytes + (sessionCache.retained_bytes || 0)) / sessionBudget * 100)}%` : "0%";
+  $("session-cache-text").title = `RAM restores: ${sessionCache.hits || 0}; evictions: ${sessionCache.evictions || 0} (${sessionCache.pressure_evictions || 0} under memory pressure); expired: ${sessionCache.expired || 0}; duplicates replaced: ${sessionCache.deduplicated || 0}. Active session memory is separate.`;
+  const cacheNote = cacheSaveNote(sessionCache);
+  $("session-cache-note").textContent = sessionBudget ? cacheNote.text + (sessionCache.retained_bytes ?
+    ` Another ${archiveBytes(sessionCache.retained_bytes)} retains the active session's KV for its next save, within the same budget.` : "") : "";
+  $("session-cache-note").dataset.warning = String(cacheNote.warning);
   if (ramPct > 92) $("ram-progress").dataset.tone = "danger"; else delete $("ram-progress").dataset.tone;
   $("temp-text").textContent = hw.gpu_temp == null ? "–" : `${fmt(hw.gpu_temp)} °C`;
   $("temp-bar").style.width = hw.gpu_temp == null ? "0%" : `${Math.min(100, hw.gpu_temp)}%`;
@@ -304,7 +421,7 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept) {
       const proj = r.projection == null ? "" : ` <span class="st-badge${r.projection ? " st-badge--reading" : ""}" title="experimental speed projection ${r.projection ? "on" : "off"}">${r.projection ? "ESP" : "stock"}</span>`;
       const hit = r.hit_rate == null ? "–" : `${(r.hit_rate * 100).toFixed(1)}%`;
       return `<tr><td>${esc(t)}</td><td><span class="st-badge ${cls}">${esc(text)}</span>${proj}</td><td class="num">${fmt(r.prompt_tokens)}</td>
-        <td class="num">${fmt(r.reused)}</td><td class="num">${fmt(r.output_tokens)}</td><td class="num">${fmt(r.decode_tok_s, 1)}</td>
+        <td class="num" title="${esc(r.cache_source || '')}; save ${fmt(r.cache_save_ms, 1)} ms; restore ${fmt(r.cache_restore_ms, 1)} ms">${fmt(r.reused)}</td><td class="num">${fmt(r.output_tokens)}</td><td class="num">${fmt(r.decode_tok_s, 1)}</td>
         <td class="num">${hit}</td><td class="num">${fmt(r.duration_s, 1)} s</td></tr>`;
     }).join("");
   }
@@ -329,15 +446,203 @@ function projectionText(c) {
          `${single ? ` (layer ${single.replace("single", "")}'s direction)` : ""}. Per chat in Sampling. Its package ` +
          "describes the vector as a refusal-direction projection; measure the speed yourself";
 }
+// ------------------------------------------------------------------ Archive inspector
+let archiveData = null, archiveReceived = 0, archiveTimer = null, archiveReleasing = false, archiveSerial = 0, archiveRows = "";
+let archivePolicySaving = false;
+function renderArchivePolicy() {
+  const policy = archiveData?.auto_release;
+  const disabled = !policy || !archiveData.supported || archiveData.stale || archivePolicySaving || archiveReleasing;
+  $("archive-auto-release").disabled = disabled;
+  $("archive-release-hours").disabled = disabled;
+  if (policy && !archivePolicySaving) {
+    $("archive-auto-release").checked = policy.enabled;
+    if (document.activeElement !== $("archive-release-hours")) $("archive-release-hours").value = policy.hours;
+  }
+  const error = policy?.storage_error || policy?.last_error;
+  const status = $("archive-policy-status");
+  status.dataset.error = String(!!error);
+  status.textContent = archivePolicySaving ? "Saving…" : error || (!policy ? "Auto-release settings unavailable." :
+    policy.enabled ? `On · release after ${fmt(policy.hours, 2)} hours without use. Cleanup runs when idle or between requests.` :
+    "Off · sessions are kept until released manually or evicted for memory limits.");
+}
+async function saveArchivePolicy() {
+  if (archivePolicySaving || archiveReleasing || !archiveData?.auto_release || archiveData.stale) return;
+  if (!$("archive-policy-form").reportValidity()) return;
+  const request = {enabled: $("archive-auto-release").checked, hours: Number($("archive-release-hours").value)};
+  archivePolicySaving = true;
+  ++archiveSerial; clearTimeout(archiveTimer);
+  renderArchive();
+  try {
+    const r = await fetch("/cache/settings", {method: "POST", headers: headers(true), body: JSON.stringify(request), signal: AbortSignal.timeout(20000)});
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
+    archiveData = data;
+    archiveReceived = performance.now();
+    toast("success", "Auto-release saved", request.enabled ? `Saved sessions expire after ${request.hours} hours without use.` : "Automatic session release is off.");
+  } catch (e) {
+    toast("error", "Could not save auto-release", e.message, 6000);
+    archiveData.stale = true;
+  } finally {
+    archivePolicySaving = false;
+    renderArchive();
+    refreshArchive();
+  }
+}
+$("archive-auto-release").addEventListener("change", saveArchivePolicy);
+$("archive-release-hours").addEventListener("change", saveArchivePolicy);
+$("archive-policy-form").addEventListener("submit", event => { event.preventDefault(); saveArchivePolicy(); });
+function archiveAge(seconds) {
+  if (seconds <= 1800) return "fresh";
+  if (seconds <= 3600) return "warm";
+  if (seconds <= 7200) return "cool";
+  return "old";
+}
+function archiveBytes(bytes) {
+  if (bytes == null) return "Reserved";
+  return bytes >= 1073741824 ? `${fmt(bytes / 1073741824, 2)} GiB` : `${fmt(bytes / 1048576, 1)} MiB`;
+}
+function archiveStatus(text, error = false) {
+  $("archive-status").textContent = text;
+  $("archive-status").dataset.error = String(error);
+}
+function cacheSaveNote(cache) {
+  const reason = cache.last_save_reason;
+  const skipped = cache.skipped_saves || 0;
+  const suffix = skipped ? ` Skipped saves since start: ${fmt(skipped)}.` : "";
+  if (!reason || reason === "never") return {warning: false,
+    text: "Archive RAM counts saved sessions only. A continuing session stays active; a snapshot is saved when switching or rewinding."};
+  const when = cache.last_save_at_ms ? new Date(cache.last_save_at_ms).toLocaleString() : "";
+  if (reason === "saved") return {warning: false,
+    text: `Last save: ${when} · ${archiveBytes(cache.last_save_bytes)}.${suffix}`};
+  const causes = {commit_limit: "Windows commit limit", physical_ram: "free physical RAM reserve",
+    memory_unknown: "memory information unavailable", free_ram: "memory headroom", budget: "archive size limit",
+    idle_expired: "idle timeout", invalid_state: "snapshot state could not be validated", allocation: "memory allocation failed"};
+  const memory = reason === "commit_limit" || reason === "physical_ram";
+  let detail = ` Snapshot: ${archiveBytes(cache.last_save_bytes)}.`;
+  if (memory && cache.last_save_commit >= 0) detail += ` Available commit: ${archiveBytes(cache.last_save_commit)}.`;
+  if (memory && cache.last_save_physical >= 0) detail += ` Free physical RAM: ${archiveBytes(cache.last_save_physical)}.`;
+  return {warning: true, text: `Last save skipped (${when}): ${causes[reason] || reason}.${detail} A safety reserve is also required.${suffix}`};
+}
+function renderArchive() {
+  const d = archiveData;
+  if (!d) return;
+  renderArchivePolicy();
+  const entries = (d.entries || []).filter(e => e.kind === "session" || e.kind === "active");
+  const saved = entries.filter(e => e.kind === "session").length;
+  const active = entries.filter(e => e.kind === "active").length;
+  $("archive-summary").textContent = `${saved} saved + ${active} active · ${archiveBytes(d.archive_bytes)} / ${archiveBytes(d.budget_bytes)} archive RAM` +
+    (d.retained_bytes ? ` · ${archiveBytes(d.retained_bytes)} retained active KV within this budget` : "");
+  const note = cacheSaveNote(d.diagnostics || {});
+  $("archive-save-note").textContent = note.text;
+  $("archive-save-note").dataset.warning = String(note.warning);
+  if (!d.supported) archiveStatus("This engine does not support the archive inspector. Start the updated engine.", true);
+  else if (!d.alive) archiveStatus("The engine stopped. These entries are no longer available.", true);
+  else if (d.stale) archiveStatus("Unable to refresh. Showing the last snapshot; release is disabled.", true);
+  else if (archiveReleasing) archiveStatus("Releasing the selected session…");
+  else if (d.busy) archiveStatus("A request is running or queued. The list shows the last completed state; release is available when idle.");
+  else archiveStatus("Updates every 3 seconds. Times show when each session was last used.");
+  const now = d.time_ms + performance.now() - archiveReceived;
+  const focused = document.activeElement?.dataset?.cacheRelease;
+  const rows = entries.map(e => {
+    const seconds = Math.max(0, (now - e.last_used_ms) / 1000);
+    const age = archiveAge(seconds);
+    const ago = seconds < 60 ? "Just now" : seconds < 3600 ? `${fmt(Math.floor(seconds / 60))} min ago` : `${fmt(seconds / 3600, 1)} hours ago`;
+    const title = e.kind === "active" ? "Active session" : "Saved session";
+    const identity = e.session_id ? `Session ${e.session_id.slice(0, 12)}…` : "Matched by conversation history";
+    const removable = e.kind === "session" && e.deletable;
+    const disabled = !removable || d.busy || !d.alive || d.stale || archiveReleasing || archivePolicySaving;
+    return `<tr data-age="${age}">
+      <td><strong>${title}</strong><span class="small muted" title="${esc(e.session_id || '')}">${esc(identity)} · ${esc(e.id)}</span></td>
+      <td class="num">${fmt(e.tokens)}</td><td class="num">${archiveBytes(e.bytes)}</td>
+      <td><span class="archive-age">${ago}</span><span class="small muted">${esc(new Date(e.last_used_ms).toLocaleString())}</span></td>
+      <td>${removable ? `<button class="st-btn st-btn--danger" type="button" data-cache-release="${esc(e.id)}" ${disabled ? "disabled" : ""}>Release session</button>` : '<span class="small muted">Active session</span>'}</td></tr>`;
+  }).join("") || `<tr><td colspan="5" class="muted">${d.supported ? "No cached sessions yet. They appear after requests are processed." : "Archive details unavailable."}</td></tr>`;
+  if (archiveRows !== rows) {
+    archiveRows = rows;
+    $("archive-body").innerHTML = rows;
+    if (focused) {
+      const next = [...$("archive-body").querySelectorAll("[data-cache-release]")].find(button => button.dataset.cacheRelease === focused && !button.disabled);
+      (next || $("archive-close")).focus({preventScroll: true});
+    }
+  }
+}
+async function refreshArchive() {
+  clearTimeout(archiveTimer);
+  if (!$("archive-dialog").open) return;
+  const serial = ++archiveSerial;
+  try {
+    if (archiveReleasing || archivePolicySaving) return;
+    const r = await fetch("/cache/entries", {headers: headers(), cache: "no-store", signal: AbortSignal.timeout(8000)});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    if (serial !== archiveSerial) return;
+    archiveData = data;
+    archiveReceived = performance.now();
+    renderArchive();
+  } catch (e) {
+    if (serial !== archiveSerial) return;
+    if (archiveData) { archiveData.stale = true; renderArchive(); }
+    else { archiveStatus(`Could not load the archive: ${e.message}`, true); archiveRows = ""; $("archive-body").innerHTML = '<tr><td colspan="5">Archive unavailable</td></tr>'; }
+  } finally {
+    if (serial === archiveSerial && $("archive-dialog").open) archiveTimer = setTimeout(refreshArchive, 3000);
+  }
+}
+$("session-cache-open").onclick = () => {
+  $("archive-dialog").showModal();
+  if (archiveData) { archiveData.stale = true; renderArchive(); }
+  refreshArchive();
+};
+$("archive-close").onclick = () => $("archive-dialog").close();
+$("archive-dialog").addEventListener("close", () => { clearTimeout(archiveTimer); ++archiveSerial; });
+$("archive-body").addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-cache-release]");
+  if (!button || button.disabled || archiveReleasing || !archiveData) return;
+  const request = {id: button.dataset.cacheRelease, generation: archiveData.generation};
+  archiveReleasing = true;
+  ++archiveSerial; clearTimeout(archiveTimer);
+  renderArchive();
+  try {
+    const r = await fetch("/cache/release", {method: "POST", headers: headers(true), body: JSON.stringify(request), signal: AbortSignal.timeout(20000)});
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || `HTTP ${r.status}`);
+    archiveData = data;
+    archiveReceived = performance.now();
+    toast("success", "Session released", "Its RAM is now available for reuse.");
+  } catch (e) {
+    toast("error", "Could not release cache", e.message, 6000);
+  } finally {
+    archiveReleasing = false;
+    renderArchive();
+    refreshArchive();
+  }
+});
+
+function facts(el, rows) {
+  el.innerHTML = rows.filter((r) => r[1] != null && r[1] !== "").map(([k, v, copy]) =>
+    `<dt>${esc(k)}</dt><dd>${copy ? `<code>${esc(v)}</code><button class="st-btn st-btn--icon" data-copy="${esc(v)}" aria-label="Copy">${icon("copy")}</button>` : esc(v)}</dd>`).join("");
+}
+// INFO cvec=project:4-44[:singleL] | add:A-B | 0
+function projectionText(c) {
+  if (!c || c === "0" || c === 0) return null;
+  const [mode, range, single] = String(c).split(":");
+  const [a, b] = (range || "").split("-");
+  return `${mode === "project" ? "Projection" : "Additive"} control vector on layers ${a}–${b}` +
+         `${single ? ` (layer ${single.replace("single", "")}'s direction)` : ""}. Per chat in Sampling. Its package ` +
+         "describes the vector as a refusal-direction projection; measure the speed yourself";
+}
 function renderAbout(eng, hw, st) {
   const kv = {int8: "8-bit", q4_0: "4-bit (Hadamard-rotated)", fp16: "16-bit"}[eng.kv] || eng.kv;
   facts($("facts-engine"), [
     ["Model", eng.model],
     ["Engine", eng.version ? `v${eng.version}` : "built from source"],
+    ["Architecture", eng.architecture],
     ["Context", eng.max_context ? `${fmt(eng.max_context)} tokens` : null],
     ["KV cache", kv ? `${kv}${eng.kv_resident ? `, streamed: ${fmt(eng.kv_resident)} positions per layer in VRAM, the rest in RAM` : ", all in VRAM"}` : null],
     ["Experts in VRAM", eng.expert_slots ? `${fmt(eng.expert_slots)} (${gb((eng.expert_cache_mib || 0) * 1048576)} GB)` : null],
-    ["Speculation", eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
+    ["Expert placement", eng.architecture === "deepseek4" ? `GPU computation; ${eng.gpu_expert_layers || 0} resident expert layers${eng.expert_cache_mib ? `, ${gb(eng.expert_cache_mib * 1048576)} GB cache of individual expert matrices` : ""}, other weights streamed from GGUF` : null],
+    ["Speculation", eng.architecture === "deepseek4" ? eng.speculative === "dspark" && eng.spec ? `DSpark (experimental): up to ${eng.spec} draft tokens, verified by the main model` : "Off" : eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
+    ["DSpark experts", eng.speculative === "dspark" ? `${eng.draft_gpu_expert_layers || 0} resident layers; ${gb((eng.draft_expert_cache_mib || 0) * 1048576)} GB GPU cache; other experts streamed from GGUF` : null],
+    ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache budget` : null],
     ["Images", eng.images ? "on" : "off"],
     ["Experimental speed projection", projectionText(eng.cvec)],
   ]);
@@ -464,6 +769,8 @@ function markdown(text) {
 const DEFAULTS = {thinking: "high", temperature: 0.6, top_p: 0.95, top_k: 20, max: "", seed: "", show: true, esp: true, mcp: true};
 let settings = {...DEFAULTS, ...store.get("sampling", {})};
 let messages = store.get("chat", []);
+let chatSessionId = store.get("chatSessionId", null) || crypto.randomUUID();
+store.set("chatSessionId", chatSessionId);
 let attachments = [];                 // {name, url}
 let busy = null;                      // {controller, msg}
 
@@ -697,7 +1004,7 @@ async function send() {
   let firstAt = null, thinkStart = null, usage = null, frame = 0;
   const paint = () => { frame = 0; updateAssistant(el, m, true); scrollDown(); };
   try {
-    const r = await fetch("v1/chat/completions", {method: "POST", headers: headers(true), body: JSON.stringify(body),
+    const r = await fetch("v1/chat/completions", {method: "POST", headers: {...headers(true), "X-Strata-Session-Id": chatSessionId}, body: JSON.stringify(body),
                                                    signal: controller.signal});
     if (!r.ok) {
       let msg = `HTTP ${r.status}`;
@@ -776,11 +1083,13 @@ $("input").addEventListener("input", autosize);
 $("new-btn").onclick = () => {
   if (busy) { toast("warn", "Still writing", "Stop the answer first."); return; }
   if (!messages.length) return;
-  const backup = messages;
+  const backup = messages, backupSessionId = chatSessionId;
+  chatSessionId = crypto.randomUUID();
+  store.set("chatSessionId", chatSessionId);
   messages = [];
   saveChat();
   renderChat();
-  toast("info", "New chat", "The last one was cleared.", 6000, {label: "Undo", run: () => { messages = backup; saveChat(); renderChat(); }});
+  toast("info", "New chat", "The last one was cleared.", 6000, {label: "Undo", run: () => { messages = backup; chatSessionId = backupSessionId; store.set("chatSessionId", chatSessionId); saveChat(); renderChat(); }});
 };
 $("export-btn").onclick = () => {
   if (!messages.length) { toast("info", "Nothing to save yet"); return; }

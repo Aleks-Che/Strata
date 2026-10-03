@@ -51,6 +51,20 @@ public:
     uint64_t vram_bytes() const { return vram_; }
     /// The draft layer's K/V state (read-only: --serve's STRATA_STATE_HASH check hashes it)
     const QsaState& kv_state() const { return st_; }
+    int64_t kv_valid_begin() const { return valid_begin_; }
+    int64_t kv_valid_end() const { return valid_end_; }
+    int64_t kv_window() const { return window_; }
+    void kv_valid_range(int64_t begin, int64_t end) { valid_begin_ = begin; valid_end_ = end; }
+    bool kv_can_resume(int64_t position) const {
+        const int64_t first = window_ > 0 && position > window_ ? position - window_ : 0;
+        return position > 0 && valid_begin_ <= first && valid_end_ >= position;
+    }
+    void note_kv_written(int64_t begin, int64_t end) {
+        if (begin > valid_end_ || end < valid_begin_) valid_begin_ = begin;
+        else if (begin < valid_begin_) valid_begin_ = begin;
+        // Writes after a rewind replace a speculative/stale suffix.
+        valid_end_ = end;
+    }
     /// KV streaming: refill the ring of the drafter's window from its host copy for a sequence that continues at
     /// `upto` (a conversation-cache resume). No-op unless the drafter's K/V is a ring.
     void kv_restore(int64_t upto);
@@ -159,6 +173,7 @@ private:
     int64_t n_dvocab_ = 0;
     std::string rt_dir_;
     int64_t window_ = 0;        // attention over the last window_ cells (0 = every cell)
+    int64_t valid_begin_ = 0, valid_end_ = 0;
     int64_t prompt_len_ = 0;
     float* probs_ = nullptr;
     // device

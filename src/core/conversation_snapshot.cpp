@@ -1,6 +1,7 @@
 #include "strata/core/conversation_snapshot.hpp"
 #include "strata/kernels/kv_q4.hpp"
 #include "conversation_checked.hpp"
+#include "strata/core/progress.hpp"
 #include <cuda_runtime.h>
 
 #include <array>
@@ -110,10 +111,19 @@ bool transfer(void* dst, const void* src, size_t n, std::string& error) {
     if (!n) return true;
     if (!src || !dst) { error = "conversation snapshot: missing state buffer"; return false; }
     // Default handles both device allocations and device-mapped host pool aliases.
-    const cudaError_t e = cudaMemcpy(dst, src, n, cudaMemcpyDefault);
-    if (e == cudaSuccess) return true;
-    error = std::string("conversation snapshot copy: ") + cudaGetErrorString(e);
-    return false;
+    // Keep watchdog progress visible even on a large pageable host snapshot.
+    constexpr size_t chunk = 64ull << 20;
+    for (size_t offset = 0; offset < n; offset += chunk) {
+        const size_t size = n - offset < chunk ? n - offset : chunk;
+        const cudaError_t e = cudaMemcpy(static_cast<uint8_t*>(dst) + offset,
+                                       static_cast<const uint8_t*>(src) + offset, size, cudaMemcpyDefault);
+        if (e != cudaSuccess) {
+            error = std::string("conversation snapshot copy: ") + cudaGetErrorString(e);
+            return false;
+        }
+        progress_beat();
+    }
+    return true;
 }
 } // namespace
 
