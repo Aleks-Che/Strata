@@ -37,15 +37,17 @@ struct StrataExpertTransfer {
         ggml_cuda_set_device(device);
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
+        const char *wc=std::getenv("STRATA_EXPERT_STAGE_WC");
+        bool write_combined=wc && std::strcmp(wc,"1")==0;
         if(capacity) {
             CUDA_CHECK(cudaMalloc((void **)&arena,capacity));
             free_blocks.emplace(0,capacity);
         }
         if(stage_size) for(int i=0;i<2;++i) {
-            CUDA_CHECK(cudaMallocHost((void **)&stage[i],stage_size));
+            CUDA_CHECK(cudaHostAlloc((void **)&stage[i],stage_size,write_combined?cudaHostAllocWriteCombined:cudaHostAllocDefault));
             CUDA_CHECK(cudaEventCreateWithFlags(&ready[i],cudaEventDisableTiming|cudaEventBlockingSync));
         }
-        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=lru prefill_bypass=1\n",capacity>>20,stage_size>>20);
+        GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=lru prefill_bypass=1 stage_wc=%d\n",capacity>>20,stage_size>>20,int(write_combined));
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);

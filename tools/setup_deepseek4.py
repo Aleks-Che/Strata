@@ -81,7 +81,8 @@ def inspect_draft(path):
         if "_exps." in tensor.name:
             experts += size
     return {"path": str(path), "tensors": len(gguf.tensors), "weight_bytes": total,
-            "expert_bytes": experts, "dense_bytes": total - experts}
+            "expert_bytes": experts, "dense_bytes": total - experts,
+            "confidence_head": "conf_proj.weight" in names}
 
 
 def main():
@@ -98,6 +99,7 @@ def main():
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
+    ap.add_argument("--draft-min-confidence", type=float, default=0, help="0 disables filtering; otherwise keep the draft prefix with predicted acceptance >= this threshold")
     ap.add_argument("--draft-expert-cache-mib", type=int, default=1024)
     ap.add_argument("--draft-gpu-expert-layers", type=int, default=0, choices=range(4))
     ap.add_argument("--working-set-mib", type=int, default=0, help="Windows-only process working-set cap; 0 uses OS default")
@@ -114,8 +116,12 @@ def main():
     report = inspect_model(first[0])
     if args.draft_model:
         report["draft"] = inspect_draft(args.draft_model)
+        if args.draft_min_confidence > 0 and not report["draft"]["confidence_head"]:
+            ap.error("DSpark sidecar has no confidence head")
         if args.batch_size < args.draft_max + 1 or not 0 <= args.draft_expert_cache_mib <= 65536:
             ap.error("DSpark needs batch >= draft-max + 1 and a valid draft cache budget")
+    if not 0 <= args.draft_min_confidence <= 1 or (args.draft_min_confidence > 0 and not args.draft_model):
+        ap.error("draft-min-confidence must be in [0, 1] and needs a draft model when enabled")
     print(json.dumps(report, indent=2))
     if args.check_only:
         return
@@ -140,6 +146,7 @@ def main():
         cfg["lib_dirs"] = [str((args.cuda_dir / sub).resolve()) for sub in ("bin", "bin/x64") if (args.cuda_dir / sub).is_dir()]
     if args.draft_model:
         cfg["args"] += ["--draft-model", report["draft"]["path"], "--draft-max", str(args.draft_max),
+                        "--draft-min-confidence", str(args.draft_min_confidence),
                         "--draft-expert-cache-mib", str(args.draft_expert_cache_mib),
                         "--draft-gpu-expert-layers", str(args.draft_gpu_expert_layers)]
     if args.working_set_mib:

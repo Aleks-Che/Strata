@@ -40,6 +40,7 @@ struct Options {
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0;
     int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
+    float draft_min_confidence=0;
     bool vocab_only=false;
 };
 static Options options(int argc, char **argv) {
@@ -57,6 +58,7 @@ static Options options(int argc, char **argv) {
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
                 "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
                 "--draft-max 3 (1..5 target-verified draft tokens)\n"
+                "--draft-min-confidence 0 (0..1; reject low-confidence draft suffix; 0 disables)\n"
                 "--draft-expert-cache-mib 1024 --draft-gpu-expert-layers 0 (0..3)\n"
                 "--working-set-mib 0 (Windows process RAM cap; 0 leaves paging to the OS)\n"
                 "--conversation-cache-mib 2048 --conversation-cache-slots 4\n"
@@ -68,6 +70,11 @@ static Options options(int argc, char **argv) {
         if (k=="--native") o.model=v;
         else if (k=="--draft-model") o.draft_model=v;
         else if (k=="--draft-max") o.draft_max=integer(v);
+        else if (k=="--draft-min-confidence") {
+            size_t end=0;o.draft_min_confidence=std::stof(v,&end);
+            if(end!=v.size() || !std::isfinite(o.draft_min_confidence) || o.draft_min_confidence<0 || o.draft_min_confidence>1)
+                throw std::runtime_error("invalid DSpark confidence threshold");
+        }
         else if (k=="--draft-expert-cache-mib") o.draft_expert_cache_mib=integer(v);
         else if (k=="--draft-gpu-expert-layers") o.draft_gpu_expert_layers=integer(v);
         else if (k=="--max-context") o.context=integer(v);
@@ -91,6 +98,8 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid DSpark draft size/cache/resident-layer setting");
     if(!o.draft_model.empty() && o.batch<o.draft_max+1)
         throw std::runtime_error("DSpark batch size must fit anchor plus draft tokens");
+    if(o.draft_min_confidence>0 && o.draft_model.empty())
+        throw std::runtime_error("DSpark confidence filtering requires --draft-model");
     return o;
 }
 struct Request {
@@ -238,7 +247,7 @@ class Runner {
 public:
     Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b):
         ctx(c),draft_ctx(d),expert_budget(b),vocab(v),o(opts),stop(s) {
-        if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max);
+        if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence);
     }
     void inventory() {
         std::cout<<"CACHE_ENTRIES {\"entries\":[";
@@ -297,7 +306,7 @@ public:
             if(ok && !stop.load())save_ms=save(r);
             if(ok && !spec)ok=decode(r.tokens,active.size(),r.tokens.size(),true);
             prompt_ms=ms(started);dt=Clock::now();std::string finish="length";
-            int rounds=0;double draft_ms=0,verify_ms=0;
+            int rounds=0,proposed=0;double draft_ms=0,verify_ms=0;
             status("decoding",source,save_ms,restore);
             if(ok && spec) {
                 llama_token pending=r.tokens.back();
@@ -305,7 +314,8 @@ public:
                     const int base=int(active.size());
                     auto t=Clock::now();budget(true);
                     auto draft=spec->propose(pending,base,r.count-generated-1);
-                    draft_ms+=ms(t);offered+=int(draft.size());++rounds;
+                    double round_draft_ms=ms(t);
+                    draft_ms+=round_draft_ms;proposed+=spec->last_proposed();offered+=int(draft.size());++rounds;
                     Batch batch(int(draft.size())+1);
                     batch.positions(int(draft.size())+1,base,true);
                     batch.value.token[0]=pending;
@@ -359,7 +369,15 @@ public:
                         throw std::runtime_error("DeepSeek speculative rollback failed");
                     batch.value.n_tokens=keep;inject(batch.value);
                     active.insert(active.end(),batch.value.token,batch.value.token+keep);
-                    verify_ms+=ms(t);accepted+=verified.accepted;
+                    double round_verify_ms=ms(t);
+                    verify_ms+=round_verify_ms;accepted+=verified.accepted;
+                    if(std::getenv("STRATA_SPEC_CONFIDENCE_TRACE")) {
+                        std::cerr<<"STRATA_SPEC_ROUND round="<<rounds<<" proposed="<<spec->last_proposed()
+                            <<" offered="<<draft.size()<<" accepted="<<verified.accepted
+                            <<" draft_ms="<<round_draft_ms<<" verify_ms="<<round_verify_ms<<" confidence=";
+                        for(float p:spec->last_confidence())std::cerr<<p<<",";
+                        std::cerr<<"\n";
+                    }
                     for(auto token:verified.tokens) {++generated;std::cout<<"T "<<token<<"\n"<<std::flush;}
                     pending=verified.tokens.back();
                     if(verified.eog) {finish="stop";break;}
@@ -375,7 +393,7 @@ public:
             }
             if(!ok || stop.load()) {finish="cancel";reset();}
             if(spec)std::cerr<<"STRATA_SPEC type=dspark rounds="<<rounds<<" offered="<<offered<<" accepted="<<accepted
-                <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<"\n";
+                <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<" proposed="<<proposed<<" filtered="<<proposed-offered<<"\n";
             inventory();status("idle",source,save_ms,restore);
             std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" "<<finish<<" "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
         } catch(const std::exception&e) {
@@ -432,9 +450,13 @@ int main(int argc,char**argv) {
                 throw std::runtime_error("DSpark requires anchor-first sampling");
             if(auto*v=header.get("dflash.attention.causal");v && v->u)
                 throw std::runtime_error("DSpark requires non-causal draft attention");
-            bool markov=false;
-            for(auto&t:header.tensors())if(t.name=="markov_w1.weight")markov=true;
+            bool markov=false,confidence=false;
+            for(auto&t:header.tensors()) {
+                if(t.name=="markov_w1.weight")markov=true;
+                if(t.name=="conf_proj.weight")confidence=true;
+            }
             if(!markov)throw std::runtime_error("DSpark Markov head is missing");
+            if(o.draft_min_confidence>0 && !confidence)throw std::runtime_error("DSpark confidence head is missing");
             if(layers!=43)throw std::runtime_error("DSpark sidecar requires a 43-layer 0731 target");
         }
         if(o.gpu_expert_layers>layers || (!o.vocab_only && o.gpu_layers>=0 && o.gpu_layers<layers+1))
@@ -543,6 +565,7 @@ int main(int argc,char**argv) {
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
+            <<" draft_min_confidence="<<(draft_ctx?o.draft_min_confidence:0)
             <<" working_set_mib="<<(o.working_set>>20)<<" kv=fp16\n"
             <<"READY "<<o.context<<" stop session-id cache-admin\n"<<std::flush;
         std::mutex mutex;std::condition_variable cv;std::deque<std::string> commands;bool ended=false;
