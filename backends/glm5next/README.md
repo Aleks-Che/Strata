@@ -75,6 +75,47 @@ CUDA timing events or graph synchronization were added. GLM INFO/monitor and GPU
 execution timelines still require runtime integration. Passing these checks does
 not establish an inference throughput change.
 
+P3.7a adds an explicit warm transport benchmark to the range checker. It uses
+real selected GGUF ranges, no inference or cache. For example, with the CUDA
+runtime DLL directory on PATH:
+
+```text
+python -m tools.benchmark_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --output docs/GLM53/GLM53_FLASH_IQ3_XXS_TRANSPORT_BENCHMARK.json
+```
+
+Default selection is layers 3/11/45, experts 0–6/287, all three projections:
+72 matrices. Each of mmap/native/auto × 1/2/4 readers × prefill/decode runs in
+a fresh process, in seeded shuffled order. Defaults are 1 MiB chunks, two warmup
+passes and five samples. All selected mapped bytes are first compared against
+independent stdio reads. Every pass checks complete GPU payloads and inter-matrix
+guards outside the timer. The measured region includes pipeline start, ordered
+transfers, finish and final consumer-stream synchronization, with no per-matrix
+sync. Allocations, warmup, destination initialization and D2H validation are
+excluded. Destination storage is capped at 512 MiB; host expected/actual buffers
+each match that storage. Four pinned and four device-ring slots are additional.
+
+The report contains raw samples, CPU wait counters, exact source/H2D/D2D bytes,
+configuration, binary/header hashes and file sizes/mtimes. Decode mmap/auto still
+uses one active reader for any configured reader count; native decode honors
+the count. `effective_readers` states that existing policy. Source counters do
+not measure physical disk I/O. This test deliberately warms only selected ranges;
+it does not establish whole-model RAM residency, compute overlap or token rate.
+The parser accepts `--benchmark READERS DECODE WARMUPS REPEATS` with the existing
+plain range manifest on stdin, rejecting cache/dispatch manifests.
+
+On Windows / Ryzen 9 9950X / RTX 5090 / CUDA 13.0 (2026-10-04), 18 cases per
+profile passed with 9072 matrix comparisons each. For the 227 MiB IQ3_XXS
+selection, mmap prefill medians for 1/2/4 readers were 18.301/17.380/17.582 ms;
+mmap decode with one configured/active reader was 18.029 ms. For the 294.5 MiB
+UD-Q3_K_XL selection, mmap prefill medians were 23.230/23.011/23.159 ms.
+Decode mmap/auto differences are small and overlap sample ranges. These are
+component observations, not new runtime defaults. Reports:
+[IQ3_XXS](../../docs/GLM53/GLM53_FLASH_IQ3_XXS_TRANSPORT_BENCHMARK.json),
+[UD-Q3_K_XL](../../docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_TRANSPORT_BENCHMARK.json).
+Protocol checks: `python -m unittest tools.test_glm5next_transfer_benchmark`.
+Cold storage, representative routed workloads, chunk-size sweeps and integrated
+GLM compute remain necessary before choosing production reader settings.
+
 `expert_plan.hpp` provides the native route-to-range planner (P3.1b), without CUDA,
 llama.cpp or payload reads. The loader supplies the full model identity and load
 generation, main/total/leading-dense block counts, one layer's three routed tensor

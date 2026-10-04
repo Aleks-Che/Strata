@@ -39,6 +39,13 @@ static std::string hex(const std::string &s) {
 }
 struct Range {uint64_t offset;size_t bytes;std::string path;strata_glm::ExpertKey key{};};
 struct Plan {size_t chunk;int mode;std::vector<Range> ranges;bool cached=false,dispatch=false;};
+struct Benchmark {int readers,decode,warmups,repeats;};
+static Benchmark benchmark_options(const std::string &readers,const std::string &decode,
+                                   const std::string &warmups,const std::string &repeats) {
+    auto r=number(readers),d=number(decode),w=number(warmups),n=number(repeats);
+    require(r>=1 && r<=4 && d<=1 && w>=1 && w<=5 && n>=1 && n<=20,"invalid benchmark limits");
+    return {int(r),int(d),int(w),int(n)};
+}
 static Plan parse(std::istream &input) {
     std::string version,chunk,mode,count;
     require(bool(input>>version>>chunk>>mode>>count) &&
@@ -197,6 +204,66 @@ struct Device {
     }
     ~Device() {cudaStreamSynchronize(stream);cudaFree(data);cudaStreamDestroy(stream);}
 };
+// Warm selected-range transport only. No compute, cache, logits or disk-I/O
+// measurement. Allocation, warmup, D2H and byte checks are outside each sample.
+static void run_benchmark(const Plan &plan,const std::map<std::string,std::shared_ptr<MappedSource>> &sources,
+                          const Benchmark &options) {
+    require(!plan.cached,"benchmark requires plain ranges");
+    constexpr size_t guard=37,limit=512*1024*1024;
+    size_t size=guard;uint64_t payload=0,chunks=0;
+    std::vector<size_t> offsets;std::vector<StrataExpertSlice> slices;
+    for(const auto &r:plan.ranges) {
+        require(r.bytes+guard<=limit-size,"benchmark destinations exceed 512 MiB");
+        offsets.push_back(size);size+=r.bytes+guard;payload+=r.bytes;
+        chunks+=(r.bytes+plan.chunk-1)/plan.chunk;
+        slices.push_back({sources.at(r.path)->view+r.offset,r.bytes,bool(options.decode)});
+    }
+    std::vector<uint8_t> expected(size,0xA5),actual(size);
+    for(size_t i=0;i<plan.ranges.size();++i) {
+        const auto &r=plan.ranges[i];sources.at(r.path)->baseline(r,expected.data()+offsets[i]);
+        // Touch every mapped byte as well as the file-cache baseline. Native
+        // reads alone would not make the mmap working set warm for auto mode.
+        require(std::memcmp(slices[i].data,expected.data()+offsets[i],r.bytes)==0,"warm mapping differs from baseline");
+    }
+    Device destination(size);
+    StrataExpertPipeline pipeline(0,plan.chunk,false,options.readers,plan.mode);
+    const auto capacity=pipeline.counters();
+    const int effective=options.decode && plan.mode!=1?1:options.readers;
+    std::printf("BENCH_CONFIG %d %d %d %d %d %llu %zu %llu %llu\n",options.readers,effective,
+                options.decode,options.warmups,options.repeats,(unsigned long long)payload,size,
+                (unsigned long long)capacity.pinned_bytes,(unsigned long long)capacity.device_ring_bytes);
+    for(int pass=0;pass<options.warmups+options.repeats;++pass) {
+        cuda_ok(cudaMemsetAsync(destination.data,0xA5,size,destination.stream));
+        cuda_ok(cudaStreamSynchronize(destination.stream));
+        const auto before=pipeline.counters();
+        const auto start=std::chrono::steady_clock::now();
+        pipeline.start(slices);
+        for(size_t i=0;i<slices.size();++i)
+            require(pipeline.transfer(destination.data+offsets[i],slices[i].data,slices[i].bytes,destination.stream),
+                    "benchmark lost ordered transfer");
+        pipeline.finish();cuda_ok(cudaStreamSynchronize(destination.stream));
+        const auto ns=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-start).count();
+        const auto after=pipeline.counters();
+        cuda_ok(cudaMemcpy(actual.data(),destination.data,size,cudaMemcpyDeviceToHost));
+        require(actual==expected,"benchmark payload or guard mismatch");
+        const auto h2d=after.h2d_bytes-before.h2d_bytes,d2d=after.d2d_bytes-before.d2d_bytes;
+        const auto file=after.file_bytes-before.file_bytes,mmap=after.mmap_bytes-before.mmap_bytes;
+        require(ns>0 && h2d==payload && d2d==payload && file+mmap==payload &&
+                after.chunks-before.chunks==chunks && after.unused==before.unused &&
+                !after.reader_owned_bytes && !after.queued_bytes,"benchmark counters mismatch");
+        if(plan.mode==1)require(file==payload,"benchmark native policy mismatch");
+        if(plan.mode==0 || (plan.mode==2 && options.decode))require(mmap==payload,"benchmark mmap policy mismatch");
+        if(pass>=options.warmups)
+            std::printf("SAMPLE %d %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu\n",
+                        pass-options.warmups,(unsigned long long)ns,(unsigned long long)h2d,(unsigned long long)d2d,
+                        (unsigned long long)file,(unsigned long long)mmap,(unsigned long long)chunks,
+                        (unsigned long long)(after.read_us-before.read_us),
+                        (unsigned long long)(after.slot_wait_us-before.slot_wait_us),
+                        (unsigned long long)(after.consumer_wait_us-before.consumer_wait_us),
+                        (unsigned long long)(after.submit_us-before.submit_us));
+    }
+    std::printf("VERIFIED %zu\n",plan.ranges.size()*size_t(options.warmups+options.repeats));
+}
 // Each consecutive triple supplies A, C, D. B uses C's actual bytes with a
 // distinct generation, giving a same-sized eviction victim even for mixed quants.
 // Serialized byte checks intentionally do not measure overlap or throughput.
@@ -290,7 +357,7 @@ static void run_dispatch(const Plan &plan,
         }
     }
 }
-static void run(const Plan &plan) {
+static void run(const Plan &plan,const Benchmark *benchmark=nullptr) {
     static_assert(sizeof(size_t)==8,"64-bit process required");
     std::map<std::string,std::shared_ptr<MappedSource>> sources;
     std::vector<StrataExpertSlice> slices;
@@ -305,6 +372,7 @@ static void run(const Plan &plan) {
     cudaDeviceProp props{};cuda_ok(cudaGetDeviceProperties(&props,0));
     int runtime=0,driver=0;cuda_ok(cudaRuntimeGetVersion(&runtime));cuda_ok(cudaDriverGetVersion(&driver));
     std::printf("GPU %s %d %d\n",hex(props.name).c_str(),runtime,driver);
+    if(benchmark) {run_benchmark(plan,sources,*benchmark);return;}
     if(plan.dispatch) {run_dispatch(plan,sources,largest);return;}
     constexpr size_t guard=37;
     Device device(largest+2*guard);
@@ -381,7 +449,22 @@ static void run(const Plan &plan) {
 }
 int main(int argc,char **argv) {
     try {
-        if(argc==2 && std::string(argv[1])=="--test-parser") {parser_tests();return 0;}
+        if(argc==2 && std::string(argv[1])=="--test-parser") {
+            parser_tests();benchmark_options("4","1","5","20");
+            for(auto args:std::vector<std::array<std::string,4>>{
+                {"0","0","1","1"},{"5","0","1","1"},{"1","2","1","1"},
+                {"1","0","0","1"},{"1","0","6","1"},{"1","0","1","0"},
+                {"1","0","1","21"},{"-1","0","1","1"}}) {
+                bool rejected=false;
+                try {benchmark_options(args[0],args[1],args[2],args[3]);}catch(const std::exception &){rejected=true;}
+                require(rejected,"invalid benchmark options accepted");
+            }
+            std::puts("Benchmark option bounds passed");return 0;
+        }
+        if(argc==6 && std::string(argv[1])=="--benchmark") {
+            auto options=benchmark_options(argv[2],argv[3],argv[4],argv[5]);
+            run(parse(std::cin),&options);return 0;
+        }
         require(argc==1,"ranges must be provided on stdin; no arguments accepted");
         run(parse(std::cin));return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}

@@ -384,6 +384,12 @@ result работают через оба API; токены и шаблон со
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.
+  - [x] P3.7a: воспроизводимый benchmark выбранных прогретых диапазонов реальных
+    GGUF: mmap/native/auto × 1/2/4 readers × prefill/decode; два warmups и пять
+    samples, полные bytes/guards проверены вне таймера. По 18 конфигураций и
+    9072 matrix comparisons на профиль RTX 5090. JSON содержит все samples,
+    counters, hashes и фактическую decode policy. Runtime defaults не менялись;
+    cold I/O, влияние compute, routing и окончательный подбор остаются открытыми.
 - [ ] Добавить счётчики source bytes, H2D bytes, GPU hits, admission/bypass,
   ожидания read/H2D/compute, evictions и пик staging. Подтвердить перекрытие работ
   CUDA timeline, а не только наличием `Async` в имени вызова.
