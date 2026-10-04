@@ -1,6 +1,6 @@
 # GLM candidate build and tokenizer oracle
 
-This is preparation for P0.3/P2.1b/P3.1a/P3.4a, not a Strata inference backend or launcher.
+This is preparation for P0.3/P2.1b/P3.1a/P3.4, not a Strata inference backend or launcher.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive; its full build and token-ID parity
 have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
@@ -52,7 +52,8 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains four tests. The new test checks 432 matrix transfers
+On Windows the suite contains five tests, including the real-range manifest parser.
+The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
 first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
 4096x2048 matrix geometry (transposed for down), synthetic bytes for all eight
@@ -66,6 +67,38 @@ On non-Windows the GPU test has only the six host-memory cases (144 matrix
 comparisons); native file transport is not implemented there. Only Windows was
 run for P3.4a. Neither synthetic byte parity nor the DeepSeek pipeline regression
 establishes GLM dequantization, graph correctness, model output or throughput.
+
+For read-only byte checks of actual GGUF ranges (P3.4b), the Windows CUDA-test
+configuration also builds `strata-glm5next-transfer-check.exe`. Run the inspector
+and range planner through this wrapper from the repository root:
+
+```text
+python -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --output docs/GLM53/GLM53_FLASH_IQ3_XXS_GPU_TRANSFER.json
+```
+
+Keep the CUDA runtime DLL on PATH as above. For UD-Q3_K_XL, pass its first shard
+and a separate report. These layers cover all eight routed types across the two
+local profiles. Eight IDs select 72 matrices per model, including main and MTP
+weights; deduplication is performed by the existing Python planner. Reported
+offsets belong only to the inspected model, never reuse them across profiles.
+
+The checker reads the range manifest on stdin, maps source files read-only,
+uses the shared CUDA pipeline and compares every returned byte (plus destination
+guards) with an independent `fseek`/`fread` baseline. It bounds matrix/chunk sizes,
+range count and chunk metadata, and rejects ranges outside the actual source file.
+Files and mappings live through completion. `--test-parser` runs without a GPU.
+The runner validates every indexed result and all transport counters; failures or
+timeouts replace an older success report with `status=error` and return exit 1.
+The JSON records selected matrices, header hashes, binary hash, source sizes and
+mtime, GPU/runtime and counters. Source or executable changes during the check
+are rejected. Header hashes are not hashes of all weights; they and binary hashes
+record identity, not independent authenticity. Source files remain unchanged.
+
+Each process uses prefill-style slices and a fresh mapping. Native/mmap counters
+describe the source access path, not physical SSD traffic. This checker serializes
+comparison after each matrix and is not a speed benchmark, full GLM model run,
+numerical quantization test, cache check or MTP execution. Python runner contracts:
+`python -m unittest tools.test_glm5next_transfer_check`.
 
 For the real oracle, use a **different** build directory. Substitute the verified
 local archive and its recorded hash in this command (not executed here):

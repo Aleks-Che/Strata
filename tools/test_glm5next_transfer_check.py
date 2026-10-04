@@ -1,0 +1,149 @@
+"""Real-file runner contracts; scripted child outputs are not GPU evidence."""
+import contextlib
+from dataclasses import replace
+import io
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from tools.check_glm5next_transfer import check, main, manifest, run_transport
+from tools.glm5next_expert_plan import ExpertMatrix
+from tools.test_setup_glm5next import model_fixture, write_shard
+
+
+class TransferCheckTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.script = self.root / 'checker.py'
+        self.matrices = [ExpertMatrix('main', 3, 0, p, 'IQ2_S', 256, 512,
+                                      'weights with spaces.gguf', (1 << 33) + i * 100, 100)
+                         for i, p in enumerate(('gate', 'up', 'down'))]
+        self.output = 'GPU 46697874757265 13000 13000\nOK 0 100\nOK 1 100\nOK 2 100\nTOTAL 300 300 300 0 6\n'
+
+    def emitter(self, output=None, exit_code=0, delay=0, expected=None):
+        self.script.write_text('import sys,time\n'
+                               'data=sys.stdin.buffer.read()\n'
+                               f'expected={expected!r}\n'
+                               'if expected is not None and data!=expected: sys.exit(9)\n'
+                               f'time.sleep({delay!r})\n'
+                               f'sys.stdout.write({self.output if output is None else output!r})\n'
+                               f'sys.exit({exit_code})\n', encoding='utf-8')
+
+    def run_check(self, mode='native', timeout=5):
+        return run_transport([sys.executable, str(self.script)], self.matrices,
+                             self.root, 64, mode, timeout)
+
+    def test_manifest_exact_ranges_modes_and_unicode_paths(self):
+        self.matrices[0] = replace(self.matrices[0], shard='модель.gguf')
+        for mode, number in (('mmap', 0), ('native', 1), ('auto', 2)):
+            expected = f'GLM_RANGES_V1 64 {number} 3\n'
+            for m in self.matrices:
+                expected += f'{m.file_offset} 100 {str((self.root / m.shard).resolve()).encode("utf-8").hex()}\n'
+            self.assertEqual(manifest(self.matrices, self.root, 64, mode), expected.encode('ascii'))
+        self.emitter(expected=manifest(self.matrices, self.root, 64, 'native'))
+        result = self.run_check()
+        self.assertEqual((result['gpu'], result['matrix_count'], result['chunks']), ('Fixture', 3, 6))
+
+    def test_bad_results_never_pass(self):
+        for output in ('', self.output+'OK 3 100\n', self.output.replace('OK 1 100\n', ''),
+                       self.output.replace('OK 0 100', 'OK 1 100'),
+                       self.output.replace('OK 0 100', 'OK 0 99'),
+                       self.output.replace('GPU', 'CPU'), self.output.replace('46697874757265', 'f'),
+                       self.output.replace('300 300 300 0 6', '299 300 300 0 6'),
+                       self.output.replace('300 300 300 0 6', '300 300 299 0 6'),
+                       self.output.replace('300 300 300 0 6', '300 300 300 0 5')):
+            with self.subTest(output=output):
+                self.emitter(output)
+                with self.assertRaises(ValueError):
+                    self.run_check()
+
+    def test_path_specific_counters_and_auto(self):
+        self.emitter()
+        with self.assertRaises(ValueError):
+            self.run_check('mmap')
+        self.emitter(self.output.replace('300 300 300 0 6', '300 300 0 300 6'))
+        self.assertEqual(self.run_check('mmap')['mmap_bytes'], 300)
+        with self.assertRaises(ValueError):
+            self.run_check('native')
+        self.emitter(self.output.replace('300 300 300 0 6', '300 300 150 150 6'))
+        self.assertEqual(self.run_check('auto')['native_bytes'], 150)
+
+    def test_child_failure_timeout_and_invalid_timeout(self):
+        self.emitter(exit_code=1)
+        with self.assertRaises(subprocess.CalledProcessError):
+            self.run_check()
+        self.emitter(delay=10)
+        with self.assertRaises(subprocess.TimeoutExpired):
+            self.run_check(timeout=0.1)
+        for timeout in (0, -1, float('nan'), float('inf')):
+            with self.assertRaises(ValueError):
+                self.run_check(timeout=timeout)
+
+    def test_manifest_limits_and_path_escape(self):
+        for change in ({'bytes': 0}, {'bytes': 268435457}, {'file_offset': -1},
+                       {'file_offset': 1 << 64}, {'shard': '../outside.gguf'}):
+            with self.assertRaises(ValueError):
+                manifest([replace(self.matrices[0], **change)], self.root, 64, 'native')
+        for chunk in (0, True, 16 * 1024 * 1024 + 1):
+            with self.assertRaises(ValueError):
+                manifest(self.matrices, self.root, chunk, 'native')
+        with self.assertRaises(ValueError):
+            manifest([replace(self.matrices[0], bytes=1048577)], self.root, 1, 'native')
+        with self.assertRaises(ValueError):
+            manifest([], self.root, 64, 'native')
+
+    def model(self):
+        gguf = self.root / 'model.gguf'
+        write_shard(gguf, *model_fixture())
+        self.emitter()
+        return gguf
+
+    def test_report_includes_headers_binary_ranges_and_dedup(self):
+        gguf = self.model()
+        with patch('tools.check_glm5next_transfer.run_transport', return_value={'status': 'fixture'}) as run:
+            result = check(gguf, self.script, [1, 2, 1], [1, 0, 1], ['native'], 64, 5)
+        self.assertEqual(result['matrix_count'], 12)
+        self.assertEqual({m['branch'] for m in result['matrices']}, {'main', 'mtp'})
+        self.assertEqual(len(result['checker_sha256']), 64)
+        self.assertEqual(len(result['shards'][0]['header_sha256']), 64)
+        self.assertEqual(run.call_count, 1)
+
+    def test_changed_source_or_checker_rejected(self):
+        for changed in ('model', 'checker'):
+            gguf = self.model()
+            def mutate(*args):
+                path = gguf if changed == 'model' else self.script
+                with path.open('ab') as f:
+                    f.write(b'changed')
+                return {'status': 'fixture'}
+            with patch('tools.check_glm5next_transfer.run_transport', side_effect=mutate):
+                with self.assertRaisesRegex(ValueError, 'changed'):
+                    check(gguf, self.script, [1], [0], ['native'], 64, 5)
+
+    def test_cli_error_replaces_stale_success_and_protects_inputs(self):
+        gguf = self.model()
+        output = self.root / 'result.json'
+        output.write_text('{"status":"pass"}', encoding='utf-8')
+        args = ['--gguf', str(gguf), '--checker', str(self.script), '--output', str(output)]
+        with patch('tools.check_glm5next_transfer.check', side_effect=ValueError('bad range')):
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(args), 1)
+        self.assertEqual(json.loads(output.read_text(encoding='utf-8'))['status'], 'error')
+        before = gguf.read_bytes()
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            main(args[:-1]+[str(gguf)])
+        self.assertEqual(gguf.read_bytes(), before)
+        alias = self.root / 'alias.json'
+        alias.hardlink_to(gguf)
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            main(args[:-1]+[str(alias)])
+
+
+if __name__ == '__main__':
+    unittest.main()

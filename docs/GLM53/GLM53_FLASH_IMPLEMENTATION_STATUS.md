@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a, reference P3.2a и GPU byte fixtures P3.4a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `d0152f41cb956d739ae7f72c36ce450500b4d268`, ветка `dev`; P3.1a уже в HEAD, изменения P3.4a — в рабочем дереве |
-| Последняя выполненная работа | P3.4a: общий CUDA-конвейер, 432 GPU-сравнения матриц; 4/4 CTest, 48 Python-тестов и пересобранный pipeline test DeepSeek прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a, reference P3.2a и GPU byte checks P3.4a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `13a0376a630adfb786518692b5281cd644c0ce81`, ветка `dev`; P3.4a уже в HEAD, P3.4b — в рабочем дереве |
+| Последняя выполненная работа | P3.4b: 432 GPU byte comparisons реальных матриц двух GGUF прошли; 5/5 CTest и 56 Python-тестов, два отдельных JSON-отчёта |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.4a завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P3.4b завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -30,7 +30,11 @@
 Новый основной GGUF проверен 2026-10-04: **1 файл, 1412 тензоров, 112,310 ГиБ**,
 45 основных блоков и 1 MTP; имена/формы прошли существующий loader contract.
 Основная модель: 109,687 ГиБ весов, из них 102,322 ГиБ экспертов; MTP: 2,614 ГиБ,
-из них 2,443 ГиБ экспертов. Полный хеш и содержимое весовых payloads не проверялись.
+из них 2,443 ГиБ экспертов. Полный хеш и численные значения весов не проверялись.
+В P3.4b выбранные payloads слоёв 3/11/45 обоих профилей сравнивались после GPU-доставки
+с обычным чтением файлов: по 72 матрицы в mmap/native/auto, все сравнения прошли.
+[IQ3_XXS](GLM53_FLASH_IQ3_XXS_GPU_TRANSFER.json),
+[UD-Q3_K_XL](GLM53_FLASH_UD_Q3_K_XL_GPU_TRANSFER.json).
 
 Вопреки имени `IQ3_XXS`, фактические routed types — IQ2_S/IQ3_S/IQ4_XS и
 Q2_K/Q3_K для MTP. Среди остальных весов есть BF16. Проверка CUDA должна учитывать
@@ -56,7 +60,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | P3.1a/P3.2a/P3.4a DONE: общий native reader и CUDA pipeline, reference cache keys, 432 GPU byte comparisons восьми layouts | GLM graph/runtime-интеграция и реальные веса, cache parity, отмена графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | P3.1a/P3.2a/P3.4a/b DONE: общий reader/pipeline, reference keys, synthetic и реальные GGUF byte checks восьми types | GLM graph/runtime-интеграция, cache parity, численные outputs, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1153,6 +1157,88 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2 по точке продолжения. После появления GLM
   graph hooks подключить общий pipeline к плану gate/up/down и повторить byte parity
   на диапазонах реального GGUF, затем проверить cache keys/events и численные outputs.
+
+### P3.4b-01 — 2026-10-04, Asia/Yekaterinburg — GPU-доставка реальных GGUF-диапазонов
+
+- **Статус:** DONE для P3.4b и пункта P3 о byte parity экспертных матриц.
+  Исполнитель Codex, цикл 3. Весь P3 остаётся IN_PROGRESS; GLM graph не подключён.
+  Ветка `dev`, база `13a0376a630adfb786518692b5281cd644c0ce81`, дерево перед работой
+  чистое. P3.4a уже в HEAD; новые изменения не закоммичены. Сеть не перепроверялась.
+- **Реализация:** `tools/check_glm5next_transfer.py` запускает существующий GGUF
+  inspector и `plan_expert_reads`, затем `strata-glm5next-transfer-check` из
+  `backends/glm5next/check_expert_ranges.cpp`. Новый Windows C++ target включается
+  `STRATA_GLM_TRANSPORT_TESTS_CUDA`; Unsloth и модельный loader ему не требуются.
+  Манифест передаёт 64-битные offsets/length и UTF-8 paths в hex, без shell parsing.
+  C++ проверяет диапазоны относительно фактической длины read-only файла,
+  ограничивает матрицу 256 МиБ, chunk 16 МиБ, план 4096 матрицами и 1048576 chunks.
+  Общий pipeline выполняет native/mmap → pinned staging → H2D → D2D; после D2H
+  каждый байт и guards сравниваются с отдельным `fseek`/`fread` исходного файла.
+  Источники и mapping остаются живы до завершения. Код общего pipeline не менялся.
+- **Runner:** требует результат каждого индекса и точное соответствие source/H2D/
+  D2D/chunk counters плану. Проверяет режим native/mmap, exit code и timeout;
+  ошибочный запуск заменяет прежний успешный отчёт на `status=error`, exit 1.
+  Запрещает перезапись GGUF/частей/checker, в том числе через hardlink. Сохраняет
+  ranges, types, header hashes всех shards, binary hash, sizes/mtime, GPU/runtime;
+  изменения sizes/mtime исходников или hash бинарника во время запуска отклоняются.
+- **Сборка и CTest:** рабочая директория `C:\work\git\my-repos\Strata`.
+  Выполнен `cmd /c build-local\test-glm5next-transport.cmd`, то есть команды сборки
+  P3.4a-01 (те же vcvars64, PATH, CMake flags и каталог) после добавления нового target.
+  Команда запускалась с выводом в `build-local/glm5next-range-build.log`.
+  Exit 0; **5/5 CTest** без skips. Новый `glm5next_range_parser` проверил формат,
+  лимиты, испорченные записи/paths и offsets >4 ГиБ. Повторно прошли 432 synthetic
+  GPU comparisons и native-reader fixtures.
+  [Сохранённый CTest log](GLM53_FLASH_REAL_TRANSFER_TESTS.txt).
+  MSVC **19.44.35222.0**, SDK **10.0.26100.0**, toolkit **13.0.48**, RTX 5090,
+  CUDA runtime/driver **13000/13000**. Архив кандидата не использовался.
+- **Реальные файлы:** после
+  `set "PATH=%CD%\build-local\cuda-13.0\bin;%CD%\build-local\cuda-13.0\bin\x64;%PATH%"`
+  выполнены команды из корня репозитория:
+
+  ```text
+  .venv\Scripts\python.exe -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --output docs/GLM53/GLM53_FLASH_IQ3_XXS_GPU_TRANSFER.json
+  .venv\Scripts\python.exe -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/UD-Q3_K_XL/GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --output docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_GPU_TRANSFER.json
+  ```
+
+  Обе команды exit 0, `status=pass`; по **72 матрицы × 3 режима**, всего
+  **432 сравнения реальных payloads**. Слои 3/11 — main, 45 — MTP weights,
+  не исполнение MTP; восемь IDs, для каждого вся тройка gate/up/down.
+
+  | Профиль | Types выбранных матриц | Байт за режим H2D (= D2D) | Chunks за режим |
+  |---|---|---:|---:|
+  | Uncensored-IQ3_XXS | IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K | 238026752 | 936 |
+  | UD-Q3_K_XL | IQ3_XXS/IQ4_XS/Q3_K/Q4_K/Q6_K | 308805632 | 1200 |
+
+  Максимальный выбранный offset — **120531408704** байт в одиночном файле и
+  **48237218240** в shard UD-Q3_K_XL. Во всех native/auto-прогонах источник читался
+  через native path, в mmap — через mapped memory. Это не физические чтения SSD.
+  Guard regions по 37 байт сохранились; chunks 262161 байт включают неполные хвосты.
+  Binary SHA-256: `1dc8b4460e641beae81d62db1ef5c7ca8be2239249c0b9f95724f78fe1c29e58`.
+  Результаты и точные ranges:
+  [IQ3_XXS](GLM53_FLASH_IQ3_XXS_GPU_TRANSFER.json),
+  [UD-Q3_K_XL](GLM53_FLASH_UD_Q3_K_XL_GPU_TRANSFER.json).
+- **Python:** `.venv/Scripts/python.exe -m unittest tools.test_glm5next_transfer_check`
+  — exit 0, 8 новых тестов: формат/Unicode/offsets, missing/reordered/results/counters,
+  source mode, child failure/timeout, limits/path escape, provenance/dedup/main-MTP,
+  изменение файла/checker, stale report и защита от перезаписи/hardlink.
+  Это проверки runner со scripted child, не GPU evidence.
+  Затем из того же каталога:
+
+  ```text
+  .venv/Scripts/python.exe -m unittest tools.test_glm5next_transfer_check tools.test_glm5next_build tools.test_glm5next_expert_plan tools.test_glm5next_loader_contract tools.test_setup_glm5next tools.test_deepseek4 tools.test_shards
+  ```
+
+  Exit 0, **56 тестов** без skips. Прежний ResourceWarning `strata_pack.py:351`
+  сохраняется; отдельного Python log нет. `git -c safe.directory=C:/work/git/my-repos/Strata diff --check`
+  — exit 0.
+- **Ограничения:** проверены выбранные диапазоны, не все экспертные веса. Hashes
+  заголовков не удостоверяют полный payload; authenticity весов не проверялась.
+  Нет деквантования/MoE/logits, GLM graph hooks, cache keys/invalidation,
+  исполнения MTP, сессий или замера скорости. Checker синхронизирует GPU после
+  каждой матрицы для сравнения, поэтому не является benchmark. Полный DeepSeek/Qwen
+  inference не запускался; общий runtime в этом цикле не менялся.
+- **Следующий шаг:** P0.3b → P2.1b.2; после сборки GLM graph связать native planner
+  и cache keys с общим pipeline (P3.2b), используя сохранённые byte reports как
+  контроль транспорта, затем подтвердить численную корректность.
 
 ## Шаблон следующей записи
 
