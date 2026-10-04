@@ -39,6 +39,28 @@ class GLMTokenizerTests(unittest.TestCase):
         self.assertEqual(tok._re.findall('١٢٣٤٥٦٧ １２３４５６７'),
                          ['١٢٣', '٤٥٦', '٧', ' ', '１２３', '４５６', '７'])
 
+    def test_glm_whole_vocab_piece_precedes_merges_but_not_substrings(self):
+        # Greedy BPE takes b+c first, making the valid abc token unreachable.
+        # Include a whole word longer than HEAP_MIN and a UTF-8 byte-mapped word
+        # with no merge path at all. This must only affect the glm4 profile.
+        chinese = ''.join(BYTE_TO_UNICODE[b] for b in ' 参考'.encode('utf-8'))
+        long_word = 'x' * 80
+        tokens = list(BYTE_TO_UNICODE.values()) + ['ab', 'bc', 'abc', long_word, chinese]
+        for pre in ('glm4', 'qwen35', 'joyai-llm'):
+            tok = Tokenizer(tokens, ['b c', 'a b', 'ab c'], pre=pre)
+            with self.subTest(pre=pre):
+                if pre == 'glm4':
+                    for text, token in [('abc', 'abc'), (long_word, long_word), (' 参考', chinese)]:
+                        self.assertEqual(tok.encode(text), [tok.ids[token]])
+                        self.assertEqual(tok.decode(tok.encode(text)), text)
+                else:
+                    self.assertEqual(self.pieces(tok, 'abc'), ['a', 'bc'])
+                    self.assertEqual(self.pieces(tok, long_word), ['x'] * 80)
+                # A missing whole piece falls back to merges, with no search for
+                # embedded vocabulary words and no loss of the extra suffix.
+                self.assertEqual(self.pieces(tok, 'abcd'), ['a', 'bc', 'd'])
+                self.assertEqual(self.pieces(tok, long_word + 'z'), ['x'] * 80 + ['z'])
+
     def test_combining_marks_are_not_qwen_letters(self):
         tok = fixture()
         self.assertEqual(self.pieces(tok, 'a\u0301_b'), ['a', '\u0301_', 'b'])
@@ -98,6 +120,8 @@ class GLMTokenizerTests(unittest.TestCase):
             saved = json.loads((root / 'pack/tokenizer/tokenizer.json').read_text(encoding='utf-8'))
             self.assertEqual(saved, cfg)
             self.assertEqual(saved['pre_pattern'], GLM4_PATTERN)
+            self.assertTrue(saved['ignore_merges'])
+            self.assertIn('86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9', saved['pre_pattern_source'])
             self.assertFalse(saved['add_bos_token'])
             self.assertEqual((root / 'pack/tokenizer/chat_template.jinja').read_text(encoding='utf-8'),
                              metadata['tokenizer.chat_template'])

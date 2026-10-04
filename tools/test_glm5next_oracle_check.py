@@ -12,7 +12,7 @@ from unittest.mock import patch
 from serve.glm5next import GLMTemplate
 from tools.check_glm5next_tokenizer import check, compare_ids, main, oracle_version
 from tools.glm5next_loader_contract import LOADER_SHA
-from tools.glm5next_tokenizer_corpus import cases
+from tools.glm5next_tokenizer_corpus import CORPUS, cases
 from tools.test_glm5next_tokenizer import fixture
 from tools.test_setup_glm5next import write_shard
 
@@ -116,7 +116,7 @@ class OracleCheckTests(unittest.TestCase):
              patch('tools.check_glm5next_tokenizer.compare_ids', return_value={'status': 'not-run'}) as compare:
             report = check(gguf, sys.executable, self.archive_hash, 5)
         inputs = dict(compare.call_args.args[1])
-        self.assertEqual(len(inputs), 36)
+        self.assertEqual(len(inputs), len(CORPUS) + 18)
         self.assertIn('Old thought', inputs['prompt/multi-turn/low/clear=0'])
         self.assertNotIn('Old thought', inputs['prompt/multi-turn/low/clear=1'])
         for clear in (0, 1):

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "recorded_at": "2026-10-04T14:53:04.595793+05:00",
+  "scope": "P0.3b.2a/b: metadata-only graph scheduling and synthetic CUDA KDA/mHC/I32 kernels; no full-model inference",
+  "base_revision": "7a721e712340d0d7901226bad56290ffe6494ca0",
+  "cwd": "C:\\work\\git\\my-repos\\Strata",
+  "previous_uncommitted_work_preserved": "P0.3b.1/P2.1b.2 candidate build and tokenizer parity",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "source_audit": {
+    "archive_files_compared": 3599,
+    "missing_files": [],
+    "changed_files": [],
+    "scope": "All archived regular files; extra generated files excluded"
+  },
+  "source_build_record": {
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches_applied_by_harness": "none",
+    "cxx": "MSVC 19.44.35222.0",
+    "cuda_enabled": "ON",
+    "cuda_compiler": "C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe",
+    "cuda_version": "13.0.48",
+    "cuda_architectures_requested": "120",
+    "cuda_architectures": "120a",
+    "graph_validation_enabled": "ON",
+    "scope": "vocab-only oracle and optional graph/kernel validation; no GLM inference engine"
+  },
+  "environment": {
+    "os": "Windows",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "ram_gib": 128,
+    "cpu": "Ryzen 9 9950X",
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "flash_attention": "off"
+  },
+  "harness_files_sha256": {
+    "backends/glm5next/CMakeLists.txt": "2db0c65e582fadad02fb0fadb37c1b82ec3be8d3a48697829fe8f3f1cb0145cd",
+    "backends/glm5next/check_graph.cpp": "e566adbd09a204d5dcc391d42185206338f1e218427b2a4152126e69c65ae4e9",
+    "backends/glm5next/check_ops.cpp": "a4c17289eb380b0dd30da5e30d68140b225f338a5e7456e4bd186940a3b2454a"
+  },
+  "binary_sha256": {
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-graph-check.exe": "1a299316ead9f9eab129366522228aaa9b8aed6c620c250ae96654b3000775d6",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-ops-check.exe": "f49ed9d06a19c3212ac851524a393d0924c41003accd46c5c5aba30b281756a2"
+  },
+  "build": {
+    "command": "cmd /c \"build-local\\build-glm-graph.cmd > build-local\\glm5next-graph-ops-verified-build.log 2>&1\"",
+    "exit_code": 0,
+    "helper_contents": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release \"-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz\" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DCMAKE_CUDA_ARCHITECTURES=120 \"-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe\" \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/glm5next-candidate-cuda --config Release -j 4\nif errorlevel 1 exit /b 1\nctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error\nexit /b %errorlevel%\n",
+    "log_sha256": "09d5888abf07d3a61413412dd67ace9ddabf4262609a55a456414f57546b45a9",
+    "ctest_passed": 7,
+    "record": "docs/GLM53/GLM53_FLASH_GRAPH_VALIDATION_TESTS.txt"
+  },
+  "checks": [
+    {
+      "report": "docs/GLM53/GLM53_FLASH_IQ3_XXS_GRAPH_CHECK.json",
+      "sha256": "be419b5bafb9acef3715c75d72ea2c6af22e8eb54eeee6166bf942c326d32c5b",
+      "command_powershell": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe --gguf H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf > docs\\GLM53\\GLM53_FLASH_IQ3_XXS_GRAPH_CHECK.json 2> build-local\\glm5next-iq3-graph-final.log",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "graph_count": 8,
+      "report_status": "pass"
+    },
+    {
+      "report": "docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_GRAPH_CHECK.json",
+      "sha256": "b6e7af2a597207860af8ca6e92aa2a428fced77fa4bc4b751583b7e127240ede",
+      "command_powershell": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe --gguf H:\\GLM-5.3-Flash-GGUF\\UD-Q3_K_XL\\GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf > docs\\GLM53\\GLM53_FLASH_UD_Q3_K_XL_GRAPH_CHECK.json 2> build-local\\glm5next-udq3-graph-final.log",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "graph_count": 8,
+      "report_status": "pass"
+    },
+    {
+      "report": "docs/GLM53/GLM53_FLASH_GRAPH_CPU_NEGATIVE.json",
+      "sha256": "37fac4aa43d48b85dd16049879c18bb3833ca3e146f0d23d2bf23740bec201b5",
+      "command_powershell": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe --gguf H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --cpu-embedding > docs\\GLM53\\GLM53_FLASH_GRAPH_CPU_NEGATIVE.json 2> build-local\\glm5next-negative-graph-final.log",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "graph_count": 8,
+      "report_status": "fail"
+    },
+    {
+      "report": "docs/GLM53/GLM53_FLASH_OPS_CHECK.json",
+      "sha256": "f083ffdf228b2a2a64057d753071ba6c9a9d3fb514b8542591c33ee7675b057d",
+      "command_powershell": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-ops-check.exe > docs\\GLM53\\GLM53_FLASH_OPS_CHECK.json 2> build-local\\glm5next-ops-final.log",
+      "exit_code": 0,
+      "cases": 22,
+      "worst_max_abs": 1.430511474609375e-06,
+      "worst_nmse": 5.327565010884206e-15
+    }
+  ],
+  "limitations": [
+    "No full model weights loaded or executed",
+    "Graph topology assumes GPU placement, not a VRAM capacity test",
+    "KDA kernel snapshots only; no full hybrid-state/conv/kpool rollback",
+    "No numerical DSA or mixed-quant expert matmul validation",
+    "No logits, generation, performance or peak RAM/VRAM measurement",
+    "No native MTP, session, Linux/HIP or full-model Qwen/DeepSeek regression"
+  ]
+}

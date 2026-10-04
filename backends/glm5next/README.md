@@ -2,8 +2,10 @@
 
 This is preparation for P0.3/P2.1b/P3, not a Strata inference backend or launcher.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
-target requires the audited Unsloth archive; its full build and token-ID parity
-have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
+target requires the audited Unsloth archive. Candidate llama/oracle/CUDA compilation
+and 80 token-ID comparisons on each local GGUF passed on 2026-10-04 (P0.3b.1/P2.1b.2).
+Numerical GPU graphs, independent template rendering and inference remain unverified.
+Qwen and DeepSeek dependencies/build files are unchanged.
 
 The GLM frontend also has a real loopback HTTP integration check (P2.5g):
 
@@ -33,6 +35,15 @@ and record/review its SHA-256 before configuring. There is no default archive ha
 and no download during configure. A matching hash checks archive bytes against the
 supplied value; it does not independently authenticate that the supplied archive
 is the requested commit. This remains an audit candidate, not a production pin.
+
+The archive downloaded from that exact commit's GitHub codeload URL on 2026-10-04
+is 37,493,950 bytes with SHA-256
+`f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`.
+It is saved locally as `build-local/llama-glm-86ebfef2.tar.gz`; 3599 extracted
+source files were compared with the archive and matched. No dependency patches
+were applied. This is a locally recorded checksum, not an independently published
+checksum. [Build record](../../docs/GLM53/GLM53_FLASH_CANDIDATE_BUILD.json),
+[commands and logs](../../docs/GLM53/GLM53_FLASH_CANDIDATE_BUILD_TESTS.txt).
 
 From the Strata root, in an initialized compiler environment:
 
@@ -618,7 +629,8 @@ keys, not model reload. It does not validate dequantization, numerical GLM outpu
 graph cancellation, frequency rejection on real weights, or inference throughput.
 
 For the real oracle, use a **different** build directory. Substitute the verified
-local archive and its recorded hash in this command (not executed here):
+local archive and its recorded hash in this generic CPU-only example. The measured
+Windows CUDA build below uses its own directory:
 
 ```text
 cmake -S backends/glm5next -B build-local/glm5next-oracle -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_ARCHIVE=/path/to/commit.tar.gz -DSTRATA_GLM_ARCHIVE_SHA256=<reviewed-64-digit-hash> -DSTRATA_GLM_CUDA=OFF
@@ -630,13 +642,32 @@ build-local/glm5next-oracle/bin/strata-glm5next-tokenizer --gguf H:/GLM-5.3-Flas
 The executable has `.exe` on Windows; multi-config generators may add `Release/`.
 Source extraction and upstream generated files stay under this private build tree.
 `glm-source-build.txt` records the requested revision, checked archive hash,
-compiler/CUDA settings and that this harness applies no source patches. It is
+compiler/CUDA settings, requested and actual target architectures, and local
+patch IDs/hashes. The candidate rewrites `120` to `120a` inside
+its subdirectory; the record reads the target property to preserve that distinction. It is
 configure evidence, not proof of a successful build or an unmodified extracted tree.
 Use a fresh build tree for a reproducible run. `STRATA_GLM_CUDA=ON` compiles candidate
 CUDA support, but the oracle itself always uses `vocab_only=true`, `n_gpu_layers=0`
 and `load_mtp=false`; it never creates an inference context or computes layers.
 Future inference must separately preserve the initial `NVIDIA_TF32_OVERRIDE=0`
 and flash-attention-off correctness settings from the implementation plan.
+
+The following configuration was built on Windows with MSVC 19.44.35222.0,
+Windows SDK 10.0.26100.0 and local CUDA 13.0.48. Initialize the x64 Native Tools
+environment and put `build-local/cuda-13.0/bin` and `bin/x64` on PATH, as in the
+recorded helper. Commands are relative to the Strata root:
+
+```text
+cmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_ARCHIVE=C:/work/git/my-repos/Strata/build-local/llama-glm-86ebfef2.tar.gz -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120 -DCMAKE_CUDA_COMPILER=C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe -DCUDAToolkit_ROOT=C:/work/git/my-repos/Strata/build-local/cuda-13.0
+cmake --build build-local/glm5next-candidate-cuda --config Release -j 4
+ctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error
+```
+
+In the original P0.3b.1 run, all three commands passed without source patches.
+That fresh build compiled and linked candidate CUDA
+kernels and `bin/strata-glm5next-tokenizer.exe`; 6/6 CTest passed. These CTests
+exercise protocol/planner/readers and compatibility helpers, not GLM compute.
+There were upstream warnings (including CUDA #221-D) but no build errors.
 
 The oracle uses the [candidate's public llama API](https://github.com/unslothai/llama.cpp/blob/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9/include/llama.h),
 validates `general.architecture=glm5next` and `tokenizer.ggml.pre=glm4`, and emits:
@@ -671,16 +702,157 @@ and the supplied archive hash before loading the GGUF. These fields are reported
 by the executable; they do not independently authenticate its build. The report
 also records the binary hash, GGUF header hash and embedded-template hash.
 
-The shared corpus in `tools/glm5next_tokenizer_corpus.py` contains 18 plain inputs
+The shared corpus in `tools/glm5next_tokenizer_corpus.py` contains 22 plain inputs
 and 18 prompts rendered from the actual GGUF template: multi-turn conversation,
 two tool calls with reversed result order, and a new user turn after tools, with
 low/high/max effort and both clear_thinking values. Both tokenizers receive each
-text with parse_special off/on, for 72 comparisons. This tests token-ID parity on
+text with parse_special off/on, for 80 comparisons. Four added mixed Chinese inputs
+exercise vocabulary pieces that greedy merges cannot reach. This tests token-ID parity on
 shared inputs; it is not an independent comparison of template rendering.
 
 Exit 0 requires every ID sequence to match. Exit 1 indicates a mismatch or an
 execution/protocol/provenance error; the JSON status distinguishes `pass`, `fail`
 and `error`. For comparisons the JSON stores input text, both ID lists and the
-first differing index. An error replaces any previous success report. No real
-candidate parity result exists yet. Runner tests use a scripted subprocess:
-`python -m unittest tools.test_glm5next_oracle_check`.
+first differing index. An error replaces any previous success report. Real results:
+[IQ3_XXS](../../docs/GLM53/GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json) and
+[UD-Q3_K_XL](../../docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_TOKENIZER_PARITY.json),
+80/80 matches each with the CUDA-linked oracle above, loading vocabulary only.
+
+The pre-fix Python tokenizer disagreed in 8/80 comparisons, all from the four new
+inputs; the previous 72-case corpus missed this error. For example, ` 参考` must
+produce `[99855]`, not `[26767, 224, 98580]`. The pinned candidate enables
+`ignore_merges` for `glm4`: after regex splitting and byte mapping, an entire
+vocabulary piece is emitted directly, otherwise normal BPE applies. Strata now
+matches that rule and exports the flag and the correct GLM source revision in
+the pack metadata. Qwen/JOYAI retain their merge behavior. The regression fixture
+covers unreachable whole words, UTF-8, words beyond the heap threshold and missing
+whole words that must fall back to BPE. [Pre-fix evidence](../../docs/GLM53/GLM53_FLASH_TOKENIZER_BEFORE.json).
+
+Runner protocol tests still use a scripted subprocess:
+`python -m unittest tools.test_glm5next_oracle_check`. They are distinct from the
+real comparisons above. Independent template rendering and full-model generation
+remain separate checks (P0/P1/P2).
+
+## Graph and kernel validation (P0.3b.2a/b)
+
+Add `-DSTRATA_GLM_GRAPH_CHECK=ON` to the CUDA configure command above and rebuild.
+This adds `strata-glm5next-graph-check` and `strata-glm5next-ops-check`; it requires
+the candidate and `STRATA_GLM_CUDA=ON`. The exact build helper and successful
+7/7 CTest output are in the [validation log](../../docs/GLM53/GLM53_FLASH_GRAPH_VALIDATION_TESTS.txt).
+CTest runs the numerical checker automatically and supplies TF32-off and the
+CUDA DLL search path on Windows. The external GGUF graph audit is run explicitly.
+From the repository root in PowerShell:
+
+```powershell
+$env:PATH = "$PWD\build-local\cuda-13.0\bin;$PWD\build-local\cuda-13.0\bin\x64;$env:PATH"
+$env:NVIDIA_TF32_OVERRIDE = '0'
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-graph-check.exe --gguf H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-ops-check.exe
+```
+
+The graph checker reads model metadata and creates tensor descriptors with
+`no_alloc=true`, `load_mode=NONE`, `load_mtp=false`; internal graph reservation uses
+`split_only=true`. It checks zero weight-buffer bytes and no weight data pointers.
+It never loads the 112 GiB payload or executes a model forward pass. `AUTO` load
+mode can choose mmap and hit the candidate's `!ml.no_alloc` assertion; the public
+C graph-reserve wrapper can allocate workspace, so neither is used here.
+
+Contexts 2048/4096 and batches 1/4/16/256 exercise the dense and sparse indexer
+branches. KV types are F16, recurrent snapshot slots 4, flash attention off.
+All compute nodes must be assigned to a GPU; shape-only views are excluded.
+The audit requires referenced weight blocks and completed layers 0–44, 34 KDA
+nodes, 126 routed expert matmuls, 90 each of mHC PRE/COMB/POST, and 0 or 11 sparse
+indexer nodes according to context. It also rejects loaded MTP weight descriptors.
+
+All 16 graphs across the two GGUF profiles passed. Upstream keeps the input
+embedding on CPU even with all layers offloaded, so the checker explicitly maps
+`token_embd.weight` to CUDA0. The `--cpu-embedding` negative case omits this override
+and correctly exits 1: every graph reports `embd / GET_ROWS` on CPU. Future runtime
+integration must preserve embedding placement and repeat the audit after expert
+streaming is connected. This hypothetical all-GPU weight placement does not prove
+that the weights fit in VRAM.
+
+The numerical checker executes small deterministic fixtures directly on CUDA,
+without a fallback scheduler, and uses an explicit CPU oracle. Its 22 cases cover
+KDA with 64 heads × 128 width and batches around the 16-token chunk boundary,
+an independent double-precision scalar KDA reference, microbatch stitching,
+KDA snapshot rollback accepting 0–4 proposed tokens, mHC at width 4096 with four
+streams and 20 Sinkhorn iterations, and exact I32 pool-cell gathering (including
+odd payload values above 2^24). Float acceptance requires finite values,
+NMSE ≤ 1e-7 and maximum absolute error ≤ 5e-4. On the RTX 5090 / CUDA 13.0.48,
+all 22 passed; worst absolute error was 1.431e-6, worst NMSE 5.328e-15.
+
+The initial P0.3b.2b fixtures do not validate hybrid-state rollback, convolution history,
+partial kpool updates, numerical sparse DSA, mixed-quant expert matmuls or logits.
+They use synthetic values, not GGUF weights. No generation speed or peak memory
+measurement is claimed. Results and source/binary hashes:
+[manifest](../../docs/GLM53/GLM53_FLASH_GRAPH_VALIDATION.json),
+[IQ3_XXS graphs](../../docs/GLM53/GLM53_FLASH_IQ3_XXS_GRAPH_CHECK.json),
+[UD-Q3_K_XL graphs](../../docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_GRAPH_CHECK.json),
+[CPU negative](../../docs/GLM53/GLM53_FLASH_GRAPH_CPU_NEGATIVE.json),
+[numerical fixtures](../../docs/GLM53/GLM53_FLASH_OPS_CHECK.json).
+
+## Hybrid state, matrix kernels and TF32 correction (P0.3b.2c.1/.2)
+
+The same `STRATA_GLM_GRAPH_CHECK=ON` option now also builds
+`strata-glm5next-state-check` and `strata-glm5next-quant-check`; CTest runs both.
+The verified build passed 9/9 tests on the RTX 5090 / CUDA 13.0.48. With the
+PowerShell PATH and TF32 settings above:
+
+```powershell
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-state-check.exe build-local\glm5next-candidate-cuda\state-fixture
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-quant-check.exe
+```
+
+The state checker writes two small deterministic GGUF fixtures into the supplied
+directory and executes the candidate's actual GLM graph. The fixtures have one
+KDA and one DSA layer, width 256, four routed experts, dense/shared FFN and mHC.
+KDA retains head width 128, convolution width 4; the indexer retains 32 × 128
+heads/width and kpool 4. Sparse top-k is reduced to 8 to exercise pool selection
+with short sequences. The dense reference uses identical weights and top-k 512.
+Context is 512, KV is F32, recurrent snapshots 8, flash attention off. This is
+synthetic forward execution, not generation by the downloaded GLM model.
+
+Its 98 checks compare tokenwise/prefill and ubatch16/32 outputs, fused/unfused
+indexing, GPU/CPU logits and sparse/dense attention over the first 11 tokens.
+Thirty prefix/acceptance combinations exercise real hybrid `seq_rm`, including
+KDA, convolution, latent KV and indexer together. Continuation after rollback
+and after saving/restoring a pending rollback is compared to clean execution.
+Complete pooled keys are checked independently with scalar softmax over resident
+raw keys/gates, matched by token positions. An out-of-window removal must fail
+without mutating serialized state. GPU contexts audit every executed compute node.
+
+The first corrected report failed 10 numerical comparisons. Investigation found
+that the candidate's custom F32 MMF kernel emits explicit TF32 MMA instructions;
+`NVIDIA_TF32_OVERRIDE=0` alone does not disable them. `CandidatePatches.cmake`
+now checks the original `mmf.cu` hash and builds a generated copy with a narrow
+selection guard: on NVIDIA, F32 MMF is declined when that variable equals `0`.
+Both execution and CUDA-graph synchronization planning use the same predicate.
+F16/BF16/quantized selection remains as before. The fallback still computes on
+CUDA; F32 routed matmuls may require synchronization. Performance is unmeasured.
+Extracted source files and the DeepSeek dependency remain untouched.
+
+After this patch all 98 checks passed with the original limits (max abs 5e-4,
+NMSE 1e-7). Worst max abs fell from 1.384e-3 to 2.981e-7; worst final NMSE was
+1.607e-13. The matrix checker adds 108 comparisons: all 11 types present across
+the two GLM profiles plus F16, tokens 1/4/17, regular matmul and routed matmul
+with broadcast/per-route activations. Inputs are 512 wide, outputs 64 wide,
+16 experts with 8 selected. It compares CUDA against both the CPU backend and
+a double-accumulation scalar reference over CPU-dequantized packed weights.
+NMSE limits are 1e-10 for F32 and 1e-4 for other types (which may internally
+quantize activations); observed worst CUDA/scalar NMSE is 5.436e-5, F32 1.687e-14.
+
+The initial state report aggregator held a reference invalidated by insertion
+into `ordered_json`; aggregation now precedes insertion, and saved reports were
+independently checked row by row. A localized MSVC include-scan issue also
+required an explicit dependency on `synthetic_glm.hpp`. Neither initial aggregate
+success nor the earlier unpatched binaries should be used as current evidence.
+
+[Manifest and hashes](../../docs/GLM53/GLM53_FLASH_STATE_VALIDATION.json),
+[commands and CTest](../../docs/GLM53/GLM53_FLASH_STATE_VALIDATION_TESTS.txt),
+[before the TF32 correction](../../docs/GLM53/GLM53_FLASH_STATE_BEFORE_TF32_FIX.json),
+[state results](../../docs/GLM53/GLM53_FLASH_STATE_CHECK.json),
+[matrix results](../../docs/GLM53/GLM53_FLASH_QUANT_CHECK.json).
+These checks do not cover the real 45-layer weights, F16 KV accuracy, streamed
+dispatch numerics, long contexts, concurrent sessions, native MTP or tokens/s.
+Next is the P1 synchronous demand-loading engine and its real-model logits baseline.

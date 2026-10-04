@@ -1,0 +1,181 @@
+{
+  "status": "fail",
+  "case_count": 80,
+  "mismatch_count": 8,
+  "cases": [
+    {
+      "name": "plain/18",
+      "text": " 参考",
+      "parse_special": false,
+      "python_ids": [
+        26767,
+        224,
+        98580
+      ],
+      "oracle_ids": [
+        99855
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/18",
+      "text": " 参考",
+      "parse_special": true,
+      "python_ids": [
+        26767,
+        224,
+        98580
+      ],
+      "oracle_ids": [
+        99855
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/19",
+      "text": " 参考资料",
+      "parse_special": false,
+      "python_ids": [
+        26767,
+        224,
+        98580,
+        99304
+      ],
+      "oracle_ids": [
+        99924
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/19",
+      "text": " 参考资料",
+      "parse_special": true,
+      "python_ids": [
+        26767,
+        224,
+        98580,
+        99304
+      ],
+      "oracle_ids": [
+        99924
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/20",
+      "text": " 根据 演员 游戏",
+      "parse_special": false,
+      "python_ids": [
+        51123,
+        117,
+        98586,
+        6567,
+        120,
+        242,
+        98494,
+        96443,
+        116,
+        99160
+      ],
+      "oracle_ids": [
+        103600,
+        103836,
+        104357
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/20",
+      "text": " 根据 演员 游戏",
+      "parse_special": true,
+      "python_ids": [
+        51123,
+        117,
+        98586,
+        6567,
+        120,
+        242,
+        98494,
+        96443,
+        116,
+        99160
+      ],
+      "oracle_ids": [
+        103600,
+        103836,
+        104357
+      ],
+      "match": false,
+      "first_difference": 0
+    },
+    {
+      "name": "plain/21",
+      "text": "English 和中文 mixed 水",
+      "parse_special": false,
+      "python_ids": [
+        22515,
+        102226,
+        102169,
+        9515,
+        6567,
+        108,
+        112
+      ],
+      "oracle_ids": [
+        22515,
+        102226,
+        102169,
+        9515,
+        104302
+      ],
+      "match": false,
+      "first_difference": 4
+    },
+    {
+      "name": "plain/21",
+      "text": "English 和中文 mixed 水",
+      "parse_special": true,
+      "python_ids": [
+        22515,
+        102226,
+        102169,
+        9515,
+        6567,
+        108,
+        112
+      ],
+      "oracle_ids": [
+        22515,
+        102226,
+        102169,
+        9515,
+        104302
+      ],
+      "match": false,
+      "first_difference": 4
+    }
+  ],
+  "oracle_stderr_tail": "u32              = 512\r\nllama_model_loader: - kv  32:          glm5next.attention.key_length_mla u32              = 256\r\nllama_model_loader: - kv  33:        glm5next.attention.value_length_mla u32              = 256\r\nllama_model_loader: - kv  34:      glm5next.attention.layer_norm_epsilon f32              = 0.000001\r\nllama_model_loader: - kv  35:                   glm5next.ssm.conv_kernel u32              = 4\r\nllama_model_loader: - kv  36:                      glm5next.kda.head_dim u32              = 128\r\nllama_model_loader: - kv  37:              glm5next.kda.gate_lower_bound f32              = -5.000000\r\nllama_model_loader: - kv  38:      glm5next.attention.indexer.head_count u32              = 32\r\nllama_model_loader: - kv  39:      glm5next.attention.indexer.key_length u32              = 128\r\nllama_model_loader: - kv  40:           glm5next.attention.indexer.top_k u32              = 2048\r\nllama_model_loader: - kv  41:           glm5next.attention.indexer.kpool u32              = 4\r\nllama_model_loader: - kv  42:            glm5next.hyper_connection.count u32              = 4\r\nllama_model_loader: - kv  43: glm5next.hyper_connection.sinkhorn_iterations u32              = 20\r\nllama_model_loader: - kv  44:          glm5next.hyper_connection.epsilon f32              = 0.000001\r\nllama_model_loader: - kv  45:        glm5next.expert_feed_forward_length u32              = 2048\r\nllama_model_loader: - kv  46: glm5next.expert_shared_feed_forward_length u32              = 2048\r\nllama_model_loader: - kv  47:               glm5next.expert_shared_count u32              = 1\r\nllama_model_loader: - kv  48:         glm5next.leading_dense_block_count u32              = 3\r\nllama_model_loader: - kv  49:              glm5next.expert_weights_scale f32              = 2.500000\r\nllama_model_loader: - kv  50:               glm5next.expert_weights_norm bool             = true\r\nllama_model_loader: - kv  51:                  glm5next.swiglu_clamp_exp arr[f32,46]      = [10.000000, 10.000000, 10.000000, 10....\r\nllama_model_loader: - kv  52:                glm5next.swiglu_clamp_shexp arr[f32,46]      = [10.000000, 10.000000, 10.000000, 10....\r\nllama_model_loader: - kv  53:              glm5next.nextn_predict_layers u32              = 1\r\nllama_model_loader: - kv  54:                       tokenizer.ggml.model str              = gpt2\r\nllama_model_loader: - kv  55:                         tokenizer.ggml.pre str              = glm4\r\nllama_model_loader: - kv  56:                      tokenizer.ggml.tokens arr[str,154880]  = [\"!\", \"\\\"\", \"#\", \"$\", \"%\", \"&\", \"'\", ...\r\nllama_model_loader: - kv  57:                  tokenizer.ggml.token_type arr[i32,154880]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...\r\nllama_model_loader: - kv  58:                      tokenizer.ggml.merges arr[str,321649]  = [\"Ġ Ġ\", \"Ġ ĠĠĠ\", \"ĠĠ ĠĠ\", \"...\r\nllama_model_loader: - kv  59:                tokenizer.ggml.eos_token_id u32              = 154820\r\nllama_model_loader: - kv  60:            tokenizer.ggml.padding_token_id u32              = 154820\r\nllama_model_loader: - kv  61:                tokenizer.ggml.bos_token_id u32              = 154822\r\nllama_model_loader: - kv  62:                tokenizer.ggml.eot_token_id u32              = 154827\r\nllama_model_loader: - kv  63:            tokenizer.ggml.unknown_token_id u32              = 154820\r\nllama_model_loader: - kv  64:                tokenizer.ggml.eom_token_id u32              = 154829\r\nllama_model_loader: - kv  65:                    tokenizer.chat_template str              = [gMASK]<sop>\\n{%- set effective_reason...\r\nllama_model_loader: - kv  66:               general.quantization_version u32              = 2\r\nllama_model_loader: - kv  67:                          general.file_type u32              = 18\r\nllama_model_loader: - kv  68:                      quantize.imatrix.file str              = imatrix_unsloth.gguf_file\r\nllama_model_loader: - kv  69:                   quantize.imatrix.dataset str              = unsloth_calibration_GLM-5.3-Flash.txt\r\nllama_model_loader: - kv  70:             quantize.imatrix.entries_count u32              = 809\r\nllama_model_loader: - kv  71:              quantize.imatrix.chunks_count u32              = 88\r\nllama_model_loader: - type  f32:  638 tensors\r\nllama_model_loader: - type q8_0:   54 tensors\r\nllama_model_loader: - type q2_K:    2 tensors\r\nllama_model_loader: - type q3_K:    1 tensors\r\nllama_model_loader: - type q6_K:  295 tensors\r\nllama_model_loader: - type iq3_s:   41 tensors\r\nllama_model_loader: - type iq2_s:   82 tensors\r\nllama_model_loader: - type iq4_xs:    3 tensors\r\nllama_model_loader: - type bf16:  296 tensors\r\nprint_info: file format = GGUF V3 (latest)\r\nprint_info: file type   = Q6_K\r\nprint_info: file size   = 112.30 GiB (3.01 BPW) \r\nggml_cuda_init: found 1 CUDA devices (Total VRAM: 32606 MiB):\r\n  Device 0: NVIDIA GeForce RTX 5090, compute capability 12.0, VMM: yes, VRAM: 32606 MiB\r\nllama_prepare_model_devices: using device CUDA0 (NVIDIA GeForce RTX 5090) (0000:01:00.0) - 30840 MiB free\r\ninit_tokenizer: initializing tokenizer for type 2\r\nload: 0 unused tokens\r\nload: control token: 154825 '<eop>' is not marked as EOG\r\nload: control token: 154822 '[gMASK]' is not marked as EOG\r\nload: control token: 154853 '<|end_of_box|>' is not marked as EOG\r\nload: control token: 154834 '<|begin_of_audio|>' is not marked as EOG\r\nload: control token: 154826 '<|system|>' is not marked as EOG\r\nload: control token: 154836 '<|begin_of_transcription|>' is not marked as EOG\r\nload: control token: 154835 '<|end_of_audio|>' is not marked as EOG\r\nload: control token: 154827 '<|user|>' is not marked as EOG\r\nload: control token: 154823 '[sMASK]' is not marked as EOG\r\nload: control token: 154837 '<|end_of_transcription|>' is not marked as EOG\r\nload: control token: 154821 '[MASK]' is not marked as EOG\r\nload: control token: 154824 '<sop>' is not marked as EOG\r\nload: control token: 154828 '<|assistant|>' is not marked as EOG\r\nload: control token: 154829 '<|observation|>' is not marked as EOG\r\nload: control token: 154830 '<|begin_of_image|>' is not marked as EOG\r\nload: control token: 154831 '<|end_of_image|>' is not marked as EOG\r\nload: control token: 154832 '<|begin_of_video|>' is not marked as EOG\r\nload: control token: 154833 '<|end_of_video|>' is not marked as EOG\r\nload: control token: 154838 '<|code_prefix|>' is not marked as EOG\r\nload: control token: 154839 '<|code_middle|>' is not marked as EOG\r\nload: control token: 154840 '<|code_suffix|>' is not marked as EOG\r\nload: control token: 154852 '<|begin_of_box|>' is not marked as EOG\r\nload: control token: 154854 '<|image|>' is not marked as EOG\r\nload: control token: 154855 '<|video|>' is not marked as EOG\r\nload: special_eot_id is not in special_eog_ids - the tokenizer config may be incorrect\r\nload: special_eom_id is not in special_eog_ids - the tokenizer config may be incorrect\r\nload: printing all EOG tokens:\r\nload:   - 154820 ('<|endoftext|>')\r\nload:   - 154827 ('<|user|>')\r\nload:   - 154829 ('<|observation|>')\r\nload: special tokens cache size = 36\r\nload: token to piece cache size = 0.9811 MB\r\nprint_info: arch                  = glm5next\r\nprint_info: vocab_only            = 1\r\nprint_info: no_alloc              = 0\r\nprint_info: vocab type            = BPE\r\nprint_info: n_vocab               = 154880\r\nprint_info: n_merges              = 321649\r\nprint_info: BOS token             = 154822 '[gMASK]'\r\nprint_info: EOS token             = 154820 '<|endoftext|>'\r\nprint_info: EOT token             = 154827 '<|user|>'\r\nprint_info: EOM token             = 154829 '<|observation|>'\r\nprint_info: UNK token             = 154820 '<|endoftext|>'\r\nprint_info: PAD token             = 154820 '<|endoftext|>'\r\nprint_info: LF token              = 198 'Ċ'\r\nprint_info: FIM PRE token         = 154838 '<|code_prefix|>'\r\nprint_info: FIM SUF token         = 154840 '<|code_suffix|>'\r\nprint_info: FIM MID token         = 154839 '<|code_middle|>'\r\nprint_info: EOG token             = 154820 '<|endoftext|>'\r\nprint_info: EOG token             = 154827 '<|user|>'\r\nprint_info: EOG token             = 154829 '<|observation|>'\r\nprint_info: max token length      = 1024\r\nllama_model_load: vocab only - skipping tensors\r\n",
+  "oracle_provenance": {
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99"
+  },
+  "oracle_path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-tokenizer.exe",
+  "oracle_binary_sha256": "b873f33b6e8aeac8468dbf6fb750a6d2d3d1dd65b1485034651ff087fdfa6af5",
+  "gguf_first_shard": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+  "gguf_header_bytes": 9518775,
+  "gguf_header_sha256": "024c9a19151d7fe3effa7d95a1602edd5d4c701648818380cdf4ea12c5a5d4a1",
+  "template_sha256": "34d5ee66b12fa6446cdae131c352b8f68cd85369e0e6fda115583805fada3891",
+  "vocab_size": 154880,
+  "schema_version": 1,
+  "scope": "Pre-fix Python tokenizer against real candidate; only mismatched cases stored",
+  "python_base_revision": "7a721e712340d0d7901226bad56290ffe6494ca0",
+  "python_tokenizer_sha256": "382312af845f257d6f1c69f3ce4a2e19d0b65e39d4a044cbf53adc18c27375b6",
+  "corpus_sha256": "92c0ea56506c4523f047581fd64f41d93a8de565969a62560c4cb345fa01f597",
+  "case_storage": "mismatches_only"
+}

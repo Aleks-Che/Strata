@@ -66,7 +66,7 @@ QWEN35_PATTERN = (
 # LLAMA_VOCAB_PRE_TYPE_CHATGLM4 in the local llama.cpp src/llama-vocab.cpp.
 # Unlike qwen35, digits form groups of up to three and combining marks are
 # outside the letter class. Keep this independent of the Qwen pattern.
-# Parity with the selected GLM backend revision still needs its tokenizer oracle.
+# The selected Unsloth revision also enables ignore_merges for glm4 below.
 GLM4_PATTERN = (
     r"(?:'[sS]|'[tT]|'[rR][eE]|'[vV][eE]|'[mM]|'[lL][lL]|'[dD])"
     r"|[^\r\n\p{L}\p{N}]?\p{L}+"
@@ -110,6 +110,10 @@ class Tokenizer:
             self.ranks[(parts[0], parts[1])] = i
         if pre not in ("qwen35", "joyai-llm", "glm4"):
             raise ValueError(f"unsupported pre-tokenizer: {pre}")
+        # Match the pinned GLM candidate: a complete pre-tokenized vocabulary
+        # piece wins even when greedy merges cannot reach it. Other profiles
+        # retain their merge rules; this is not a longest-substring lookup.
+        self.ignore_merges = pre == "glm4"
         self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN35_PATTERN)
         self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre == "joyai-llm" else None
 
@@ -172,6 +176,8 @@ class Tokenizer:
         bytes) goes to _bpe_heap, which applies the same merges in the same order without rescanning every pair
         after each merge (#268: that rescan is O(n^2) and took seconds on an 8K-character CJK run).
         """
+        if self.ignore_merges and word in self.ids:
+            return [word]
         if len(word) > self.HEAP_MIN:
             return self._bpe_heap(word)
         parts = list(word)
@@ -315,10 +321,13 @@ def extract(gguf_path, out_dir) -> dict:
         "n_merges": len(tk.ranks),
         "special_ids": tk.special_ids,
         "add_bos_token": False,
+        "ignore_merges": tk.ignore_merges,
         # The pattern is SHIPPED, not recomputed by the reader: it is transcribed from llama.cpp for the
         # declared `pre` type, and a C++ port that re-derived it would be free to get `\p{M}` wrong again.
         "pre_pattern": list(JOYAI_PATTERNS) if tk.pre == "joyai-llm" else tk._re.pattern,
-        "pre_pattern_source": "llama.cpp 3cf03257 src/llama-vocab.cpp (" + tk.pre + ")",
+        "pre_pattern_source": "llama.cpp " + (
+            "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9" if tk.pre == "glm4" else "3cf03257"
+        ) + " src/llama-vocab.cpp (" + tk.pre + ")",
     }
     (out / "vocab.json").write_text(json.dumps(tk.ids, ensure_ascii=False), encoding="utf-8")
     (out / "merges.txt").write_text("\n".join("%s %s" % k for k, _ in

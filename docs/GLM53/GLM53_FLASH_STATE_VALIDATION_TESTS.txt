@@ -1,0 +1,4744 @@
+GLM P0.3b.2c.1/.2 validation, Windows RTX 5090
+C:\work\git\my-repos\Strata
+
+Build command, exit 0:
+cmd /c "build-local\build-glm-graph.cmd > build-local\glm5next-state-quant-verified-build.log 2>&1"
+
+Helper:
+@echo off
+setlocal
+cd /d "%~dp0.."
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+set "CUDA_PATH=%CD%\build-local\cuda-13.0"
+set "PATH=%CUDA_PATH%\bin;%CUDA_PATH%\bin\x64;%PATH%"
+cmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release "-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DCMAKE_CUDA_ARCHITECTURES=120 "-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe" "-DCUDAToolkit_ROOT=%CUDA_PATH%"
+if errorlevel 1 exit /b 1
+cmake --build build-local/glm5next-candidate-cuda --config Release -j 4
+if errorlevel 1 exit /b 1
+ctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error
+exit /b %errorlevel%
+
+Build log; only localized MSVC include-list lines omitted:
+CMake Warning (dev) at C:/Program Files/CMake/share/cmake-4.1/Modules/FetchContent.cmake:1953 (message):
+  Calling FetchContent_Populate(glm5next_candidate) is deprecated, call
+  FetchContent_MakeAvailable(glm5next_candidate) instead.  Policy CMP0169 can
+  be set to OLD to allow FetchContent_Populate(glm5next_candidate) to be
+  called directly for now, but the ability to call it with declared details
+  will be removed completely in a future version.
+Call Stack (most recent call first):
+  CMakeLists.txt:99 (FetchContent_Populate)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- llama.cpp version: 0.4.1-dev
+CMAKE_BUILD_TYPE=Release
+fatal: detected dubious ownership in repository at 'C:/work/git/my-repos/Strata'
+'C:/work/git/my-repos/Strata' is owned by:
+	'S-1-5-21-1442226519-1654621640-2017387123-1001'
+but the current user is:
+	'S-1-5-21-1442226519-1654621640-2017387123-1008'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory C:/work/git/my-repos/Strata
+fatal: detected dubious ownership in repository at 'C:/work/git/my-repos/Strata'
+'C:/work/git/my-repos/Strata' is owned by:
+	'S-1-5-21-1442226519-1654621640-2017387123-1001'
+but the current user is:
+	'S-1-5-21-1442226519-1654621640-2017387123-1008'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory C:/work/git/my-repos/Strata
+-- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+-- CMAKE_SYSTEM_PROCESSOR: AMD64
+-- CMAKE_GENERATOR_PLATFORM: 
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: /arch:AVX512 GGML_AVX512
+-- CUDA Toolkit found
+-- Replacing 120 in CMAKE_CUDA_ARCHITECTURES with 120a
+-- Replacing 120-real in CMAKE_CUDA_ARCHITECTURES_NATIVE with 120a-real
+-- Using CMAKE_CUDA_ARCHITECTURES=120a CMAKE_CUDA_ARCHITECTURES_NATIVE=120a-real
+-- FlashAttention K-V type combinations: f16-f16;q4_0-q4_0;q8_0-q8_0;bf16-bf16
+-- Could NOT find NCCL (missing: NCCL_LIBRARY NCCL_INCLUDE_DIR) 
+-- Warning: NCCL not found, performance for multiple CUDA GPUs will be suboptimal
+-- Including CUDA backend
+-- ggml version: 0.24.0
+-- ggml commit:  unknown
+-- Configuring done (2.6s)
+-- Generating done (0.2s)
+-- Build files have been written to: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+[1/8] Building CXX object CMakeFiles\strata-glm5next-quant-check.dir\check_quant.cpp.obj
+[2/8] Building CXX object CMakeFiles\strata-glm5next-ops-check.dir\check_ops.cpp.obj
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xutility(4852): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xutility(4852): note: контекст создания экземпляра шаблона (сначала самый старый)
+C:\work\git\my-repos\Strata\backends\glm5next\check_ops.cpp(152): note: выполняется компиляция ссылки на экземпляр шаблон функции "_OutIt std::copy<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,std::_Vector_iterator<std::_Vector_val<std::_Simple_types<float>>>>(_InIt,_InIt,_OutIt)"
+        with
+        [
+            _OutIt=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<float>>>,
+            _Ty=double,
+            _InIt=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<double>>>
+        ]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xutility(4865): note: выполняется компиляция ссылки на экземпляр шаблон функции "_OutIt *std::_Copy_unchecked<double*,double*,float*>(_InIt,_Sent,_OutIt)"
+        with
+        [
+            _OutIt=float *,
+            _InIt=double *,
+            _Sent=double *
+        ]
+[3/8] Linking CXX executable bin\strata-glm5next-quant-check.exe
+[4/8] Building CXX object CMakeFiles\strata-glm5next-graph-check.dir\check_graph.cpp.obj
+[5/8] Linking CXX executable bin\strata-glm5next-ops-check.exe
+[6/8] Building CXX object CMakeFiles\strata-glm5next-state-check.dir\check_state.cpp.obj
+[7/8] Linking CXX executable bin\strata-glm5next-graph-check.exe
+[8/8] Linking CXX executable bin\strata-glm5next-state-check.exe
+UpdateCTestConfiguration  from :C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda/DartConfiguration.tcl
+Test project C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: glm5next_tokenizer_protocol
+
+1: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\glm5next_protocol_test.exe
+1: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+1: Test timeout computed to be: 9999879
+1: GLM tokenizer protocol checks passed (mock encoder, no llama.cpp)
+1/9 Test #1: glm5next_tokenizer_protocol .........   Passed    0.01 sec
+test 2
+    Start 2: glm5next_expert_plan
+
+2: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\glm5next_expert_plan_test.exe
+2: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+2: Test timeout computed to be: 9999879
+2: PASS: 384 native matrix keys, 8 quant types, main/MTP, dedup order, transposed down, split shards and >4 GiB/EOF ranges
+2: PASS: invalid routes, limits, duplicate projections/shards, shapes, overlap, quant, overflow and truncated payload rejected
+2/9 Test #2: glm5next_expert_plan ................   Passed    0.00 sec
+test 3
+    Start 3: deepseek4_expert_frequency_compat
+
+3: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\deepseek4_expert_frequency_compat_test.exe
+3: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+3: Test timeout computed to be: 9999879
+3: Frequency admission history, decay, saturation and bound passed
+3/9 Test #3: deepseek4_expert_frequency_compat ...   Passed    0.00 sec
+test 4
+    Start 4: deepseek4_vram_policy_compat
+
+4: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\deepseek4_vram_policy_compat_test.exe
+4: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+4: Test timeout computed to be: 9999879
+4/9 Test #4: deepseek4_vram_policy_compat ........   Passed    0.00 sec
+test 5
+    Start 5: glm5next_expert_file_test
+
+5: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\glm5next_expert_file_test.exe
+5: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+5: Test timeout computed to be: 60
+5: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+5: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+5: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+5: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+5/9 Test #5: glm5next_expert_file_test ...........   Passed    0.06 sec
+test 6
+    Start 6: deepseek4_expert_file_compat_test
+
+6: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\deepseek4_expert_file_compat_test.exe
+6: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+6: Test timeout computed to be: 60
+6: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+6: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+6: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+6: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+6/9 Test #6: deepseek4_expert_file_compat_test ...   Passed    0.06 sec
+test 7
+    Start 7: glm5next_candidate_ops
+
+7: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\bin\strata-glm5next-ops-check.exe
+7: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+7: Environment variables: 
+7:  NVIDIA_TF32_OVERRIDE=0
+7: Environment variable modifications: 
+7:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/x64
+7:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin
+7: Test timeout computed to be: 120
+7: ggml_cuda_init: found 1 CUDA devices (Total VRAM: 32606 MiB):
+7:   Device 0: NVIDIA GeForce RTX 5090, compute capability 12.0, VMM: yes, VRAM: 32606 MiB
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup complete
+7: ggml_backend_cuda_graph_compute: CUDA graph warmup reset
+7: {
+7:   "schema_version": 1,
+7:   "status": "pass",
+7:   "scope": "synthetic KDA/mHC/integer-gather kernels; not full GLM inference or hybrid-state rollback",
+7:   "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+7:   "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+7:   "seed": 5501349,
+7:   "results": [
+7:     {
+7:       "name": "kda/cpu/tokens=1/snapshots=1",
+7:       "status": "pass",
+7:       "elements": 1056768,
+7:       "finite": true,
+7:       "nmse": 1.5881051688918302e-16,
+7:       "max_abs": 1.4901161193847656e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=4/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4227072,
+7:       "finite": true,
+7:       "nmse": 4.985406787946393e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=15/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4317184,
+7:       "finite": true,
+7:       "nmse": 6.880802030294764e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=16/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4325376,
+7:       "finite": true,
+7:       "nmse": 6.502819186881438e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=17/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4333568,
+7:       "finite": true,
+7:       "nmse": 6.723153814087904e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=33/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4464640,
+7:       "finite": true,
+7:       "nmse": 6.496419983269294e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu/tokens=64/snapshots=4",
+7:       "status": "pass",
+7:       "elements": 4718592,
+7:       "finite": true,
+7:       "nmse": 6.291373753301121e-16,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cuda-vs-scalar",
+7:       "status": "pass",
+7:       "elements": 135424,
+7:       "finite": true,
+7:       "nmse": 3.1074425545017872e-15,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/cpu-vs-scalar",
+7:       "status": "pass",
+7:       "elements": 135424,
+7:       "finite": true,
+7:       "nmse": 2.9547130439439342e-15,
+7:       "max_abs": 2.9802322387695313e-08,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/microbatch=1",
+7:       "status": "pass",
+7:       "elements": 1318912,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/microbatch=4",
+7:       "status": "pass",
+7:       "elements": 1318912,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/microbatch=16",
+7:       "status": "pass",
+7:       "elements": 1318912,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/rollback-accepted=0",
+7:       "status": "pass",
+7:       "elements": 139264,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/rollback-accepted=1",
+7:       "status": "pass",
+7:       "elements": 138240,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/rollback-accepted=2",
+7:       "status": "pass",
+7:       "elements": 137216,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/rollback-accepted=3",
+7:       "status": "pass",
+7:       "elements": 136192,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "kda/rollback-accepted=4",
+7:       "status": "pass",
+7:       "elements": 135168,
+7:       "finite": true,
+7:       "nmse": 0.0,
+7:       "max_abs": 0.0,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=1",
+7:       "status": "pass",
+7:       "elements": 20496,
+7:       "finite": true,
+7:       "nmse": 5.327565010884206e-15,
+7:       "max_abs": 7.152557373046875e-07,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=4",
+7:       "status": "pass",
+7:       "elements": 81984,
+7:       "finite": true,
+7:       "nmse": 4.2260149310443155e-15,
+7:       "max_abs": 1.430511474609375e-06,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=17",
+7:       "status": "pass",
+7:       "elements": 348432,
+7:       "finite": true,
+7:       "nmse": 4.9987263086011285e-15,
+7:       "max_abs": 9.5367431640625e-07,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=256",
+7:       "status": "pass",
+7:       "elements": 5246976,
+7:       "finite": true,
+7:       "nmse": 4.8286655277815445e-15,
+7:       "max_abs": 1.430511474609375e-06,
+7:       "nmse_limit": 1e-07,
+7:       "max_abs_limit": 0.0005
+7:     },
+7:     {
+7:       "name": "indexer/integer-pool-cell-gather",
+7:       "status": "pass",
+7:       "elements": 2048,
+7:       "comparison": "exact I32; includes -1, odd values >2^24, INT32_MAX"
+7:     }
+7:   ],
+7:   "device": "NVIDIA GeForce RTX 5090",
+7:   "NVIDIA_TF32_OVERRIDE": "0"
+7: }
+7/9 Test #7: glm5next_candidate_ops ..............   Passed    0.73 sec
+test 8
+    Start 8: glm5next_candidate_state
+
+8: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\bin\strata-glm5next-state-check.exe "C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda/state-fixture"
+8: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+8: Environment variables: 
+8:  NVIDIA_TF32_OVERRIDE=0
+8: Environment variable modifications: 
+8:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/x64
+8:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin
+8: Test timeout computed to be: 120
+8: ggml_cuda_init: found 1 CUDA devices (Total VRAM: 32606 MiB):
+8:   Device 0: NVIDIA GeForce RTX 5090, compute capability 12.0, VMM: yes, VRAM: 32606 MiB
+8: llama_model_loader: loaded meta data with 43 key-value pairs and 60 tensors from C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda/state-fixture\synthetic-glm-sparse.gguf (version GGUF V3 (latest))
+8: llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+8: llama_model_loader: - kv   0:                       general.architecture str              = glm5next
+8: llama_model_loader: - kv   1:                               general.name str              = Strata synthetic hybrid validation fi...
+8: llama_model_loader: - kv   2:                       tokenizer.ggml.model str              = none
+8: llama_model_loader: - kv   3:                       glm5next.block_count u32              = 2
+8: llama_model_loader: - kv   4:                    glm5next.context_length u32              = 512
+8: llama_model_loader: - kv   5:                  glm5next.embedding_length u32              = 256
+8: llama_model_loader: - kv   6:               glm5next.feed_forward_length u32              = 512
+8: llama_model_loader: - kv   7:                        glm5next.vocab_size u32              = 64
+8: llama_model_loader: - kv   8:              glm5next.attention.head_count u32              = 2
+8: llama_model_loader: - kv   9:           glm5next.attention.head_count_kv arr[u32,2]       = [0, 1]
+8: llama_model_loader: - kv  10:             glm5next.attention.q_lora_rank u32              = 128
+8: llama_model_loader: - kv  11:            glm5next.attention.kv_lora_rank u32              = 128
+8: llama_model_loader: - kv  12:              glm5next.attention.key_length u32              = 128
+8: llama_model_loader: - kv  13:            glm5next.attention.value_length u32              = 128
+8: llama_model_loader: - kv  14:          glm5next.attention.key_length_mla u32              = 128
+8: llama_model_loader: - kv  15:        glm5next.attention.value_length_mla u32              = 128
+8: llama_model_loader: - kv  16:              glm5next.rope.dimension_count u32              = 0
+8: llama_model_loader: - kv  17:                   glm5next.ssm.conv_kernel u32              = 4
+8: llama_model_loader: - kv  18:                      glm5next.kda.head_dim u32              = 128
+8: llama_model_loader: - kv  19:              glm5next.kda.gate_lower_bound f32              = -5.000000
+8: llama_model_loader: - kv  20:  glm5next.attention.layer_norm_rms_epsilon f32              = 0.000010
+8: llama_model_loader: - kv  21:      glm5next.attention.layer_norm_epsilon f32              = 0.000001
+8: llama_model_loader: - kv  22:      glm5next.attention.indexer.head_count u32              = 32
+8: llama_model_loader: - kv  23:      glm5next.attention.indexer.key_length u32              = 128
+8: llama_model_loader: - kv  24:           glm5next.attention.indexer.top_k u32              = 8
+8: llama_model_loader: - kv  25:           glm5next.attention.indexer.kpool u32              = 4
+8: llama_model_loader: - kv  26:            glm5next.hyper_connection.count u32              = 4
+8: llama_model_loader: - kv  27: glm5next.hyper_connection.sinkhorn_iterations u32              = 20
+8: llama_model_loader: - kv  28:          glm5next.hyper_connection.epsilon f32              = 0.000001
+8: llama_model_loader: - kv  29:                      glm5next.expert_count u32              = 4
+8: llama_model_loader: - kv  30:                 glm5next.expert_used_count u32              = 2
+8: llama_model_loader: - kv  31:               glm5next.expert_shared_count u32              = 1
+8: llama_model_loader: - kv  32:        glm5next.expert_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  33: glm5next.expert_shared_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  34:                glm5next.expert_group_count u32              = 1
+8: llama_model_loader: - kv  35:           glm5next.expert_group_used_count u32              = 1
+8: llama_model_loader: - kv  36:                glm5next.expert_gating_func u32              = 2
+8: llama_model_loader: - kv  37:         glm5next.leading_dense_block_count u32              = 1
+8: llama_model_loader: - kv  38:              glm5next.nextn_predict_layers u32              = 0
+8: llama_model_loader: - kv  39:              glm5next.expert_weights_scale f32              = 2.500000
+8: llama_model_loader: - kv  40:               glm5next.expert_weights_norm bool             = true
+8: llama_model_loader: - kv  41:                  glm5next.swiglu_clamp_exp f32              = 10.000000
+8: llama_model_loader: - kv  42:                glm5next.swiglu_clamp_shexp f32              = 10.000000
+8: llama_model_loader: - type  f32:   60 tensors
+8: print_info: file format = GGUF V3 (latest)
+8: print_info: file type   = (guessed) all F32
+8: print_info: file size   = 10.43 MiB (32.00 BPW) 
+8: llama_prepare_model_devices: using device CUDA0 (NVIDIA GeForce RTX 5090) (0000:01:00.0) - 30840 MiB free
+8: load_arch_hparams: indexer selection width = 11 cells (2 pools of 4, plus a 3-wide tail)
+8: load: adding 64 dummy tokens
+8: print_info: arch                  = glm5next
+8: print_info: vocab_only            = 0
+8: print_info: no_alloc              = 0
+8: print_info: n_ctx_train           = 512
+8: print_info: n_embd_inp            = 256
+8: print_info: n_embd                = 256
+8: print_info: n_embd_out            = 256
+8: print_info: n_layer               = 2
+8: print_info: n_layer_all           = 2
+8: print_info: n_head                = 2
+8: print_info: n_head_kv             = [0, 1]
+8: print_info: n_rot                 = 0
+8: print_info: n_swa                 = 0
+8: print_info: is_swa_any            = 0
+8: print_info: non_causal_type       = 0
+8: print_info: n_embd_head_k         = 128
+8: print_info: n_embd_head_v         = 128
+8: print_info: n_gqa                 = [0, 2]
+8: print_info: n_embd_k_gqa          = [0, 128]
+8: print_info: n_embd_v_gqa          = [0, 128]
+8: print_info: f_norm_eps            = 1.0e-06
+8: print_info: f_norm_rms_eps        = 1.0e-05
+8: print_info: f_clamp_kqv           = 0.0e+00
+8: print_info: f_max_alibi_bias      = 0.0e+00
+8: print_info: f_logit_scale         = 0.0e+00
+8: print_info: f_attn_scale          = 0.0e+00
+8: print_info: f_attn_value_scale    = 0.0000
+8: print_info: n_ff                  = 512
+8: print_info: n_expert              = 4
+8: print_info: n_expert_used         = 2
+8: print_info: n_expert_groups       = 1
+8: print_info: n_group_used          = 1
+8: print_info: causal attn           = 1
+8: print_info: pooling type          = -1
+8: print_info: rope type             = -1
+8: print_info: rope scaling          = linear
+8: print_info: freq_base_train       = 10000.0
+8: print_info: freq_scale_train      = 1
+8: print_info: n_ctx_orig_yarn       = 512
+8: print_info: rope_yarn_log_mul     = 0.0000
+8: print_info: rope_finetuned        = unknown
+8: print_info: model type            = ?B
+8: print_info: model params          = 2.74 M
+8: print_info: general.name          = Strata synthetic hybrid validation fixture
+8: print_info: vocab type            = no vocab
+8: print_info: n_vocab               = 64
+8: print_info: n_merges              = 0
+8: print_info: max token length      = 0
+8: load_tensors: loading model tensors, this can take a while... (load_mode = none)
+8: load_tensors: layer   0 assigned to device CUDA0, is_swa = 0
+8: load_tensors: layer   1 assigned to device CUDA0, is_swa = 0
+8: load_tensors: layer   2 assigned to device CUDA0, is_swa = 0
+8: create_tensor: loading tensor token_embd.weight
+8: tensor token_embd.weight (0 MiB f32) buffer type overridden to CUDA0
+8: create_tensor: loading tensor output_norm.weight
+8: create_tensor: loading tensor output.weight
+8: create_tensor: loading tensor blk.0.attn_norm.weight
+8: create_tensor: loading tensor blk.0.ffn_norm.weight
+8: create_tensor: loading tensor blk.0.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_attn_base.weight
+8: create_tensor: loading tensor blk.0.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.0.attn_qkv.weight
+8: create_tensor: loading tensor blk.0.attn_q.weight
+8: create_tensor: loading tensor blk.0.attn_k.weight
+8: create_tensor: loading tensor blk.0.attn_v.weight
+8: create_tensor: loading tensor blk.0.attn_q.bias
+8: create_tensor: loading tensor blk.0.attn_k.bias
+8: create_tensor: loading tensor blk.0.attn_v.bias
+8: create_tensor: loading tensor blk.0.ssm_conv1d_q.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_k.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_v.weight
+8: create_tensor: loading tensor blk.0.ssm_f_a.weight
+8: create_tensor: loading tensor blk.0.ssm_f_b.weight
+8: create_tensor: loading tensor blk.0.ssm_g_a.weight
+8: create_tensor: loading tensor blk.0.ssm_g_b.weight
+8: create_tensor: loading tensor blk.0.ssm_beta.weight
+8: create_tensor: loading tensor blk.0.ssm_a
+8: create_tensor: loading tensor blk.0.ssm_dt.bias
+8: create_tensor: loading tensor blk.0.ssm_norm.weight
+8: create_tensor: loading tensor blk.0.attn_output.weight
+8: create_tensor: loading tensor blk.0.ffn_gate.weight
+8: create_tensor: loading tensor blk.0.ffn_up.weight
+8: create_tensor: loading tensor blk.0.ffn_down.weight
+8: create_tensor: loading tensor blk.1.attn_norm.weight
+8: create_tensor: loading tensor blk.1.ffn_norm.weight
+8: create_tensor: loading tensor blk.1.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_attn_base.weight
+8: create_tensor: loading tensor blk.1.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.1.attn_q_a.weight
+8: create_tensor: loading tensor blk.1.attn_q_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_mqa.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_k_b.weight
+8: create_tensor: loading tensor blk.1.attn_v_b.weight
+8: create_tensor: loading tensor blk.1.attn_output.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.bias
+8: create_tensor: loading tensor blk.1.indexer.proj.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_k.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_gate.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_ape.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_inp.weight
+8: create_tensor: loading tensor blk.1.exp_probs_b.bias
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_up_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_down_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.weight
+8: create_tensor: loading tensor blk.0.attn_q.scale
+8: create_tensor: loading tensor blk.0.attn_k.scale
+8: create_tensor: loading tensor blk.0.attn_v.scale
+8: create_tensor: loading tensor blk.0.attn_output.scale
+8: create_tensor: loading tensor blk.0.ffn_gate.scale
+8: create_tensor: loading tensor blk.0.ffn_down.scale
+8: create_tensor: loading tensor blk.0.ffn_up.scale
+8: create_tensor: loading tensor blk.0.ssm_beta.scale
+8: create_tensor: loading tensor blk.0.attn_q.input_scale
+8: create_tensor: loading tensor blk.0.attn_k.input_scale
+8: create_tensor: loading tensor blk.0.attn_v.input_scale
+8: create_tensor: loading tensor blk.0.attn_output.input_scale
+8: create_tensor: loading tensor blk.0.ffn_gate.input_scale
+8: create_tensor: loading tensor blk.0.ffn_down.input_scale
+8: create_tensor: loading tensor blk.0.ffn_up.input_scale
+8: create_tensor: loading tensor blk.0.ssm_beta.input_scale
+8: create_tensor: loading tensor blk.1.attn_output.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.scale
+8: create_tensor: loading tensor blk.1.attn_output.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.input_scale
+8: done_getting_tensors: tensor 'token_embd.weight' (f32) (and 1 others) cannot be used with preferred buffer type CUDA_Host, using CUDA0 instead
+8: load_tensors: offloading output layer to GPU
+8: load_tensors: offloading 1 repeating layers to GPU
+8: load_tensors: offloaded 3/3 layers to GPU
+8: load_tensors:          CPU model buffer size =     0.00 MiB
+8: load_tensors:        CUDA0 model buffer size =    10.44 MiB
+8: load_all_data: using async uploads for device CUDA0, buffer type CUDA0, backend CUDA0
+8: ...............................load_all_data: no device found for buffer type CPU for async uploads
+8: .
+8: llama_model_loader: loaded meta data with 43 key-value pairs and 60 tensors from C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda/state-fixture\synthetic-glm-dense.gguf (version GGUF V3 (latest))
+8: llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+8: llama_model_loader: - kv   0:                       general.architecture str              = glm5next
+8: llama_model_loader: - kv   1:                               general.name str              = Strata synthetic hybrid validation fi...
+8: llama_model_loader: - kv   2:                       tokenizer.ggml.model str              = none
+8: llama_model_loader: - kv   3:                       glm5next.block_count u32              = 2
+8: llama_model_loader: - kv   4:                    glm5next.context_length u32              = 512
+8: llama_model_loader: - kv   5:                  glm5next.embedding_length u32              = 256
+8: llama_model_loader: - kv   6:               glm5next.feed_forward_length u32              = 512
+8: llama_model_loader: - kv   7:                        glm5next.vocab_size u32              = 64
+8: llama_model_loader: - kv   8:              glm5next.attention.head_count u32              = 2
+8: llama_model_loader: - kv   9:           glm5next.attention.head_count_kv arr[u32,2]       = [0, 1]
+8: llama_model_loader: - kv  10:             glm5next.attention.q_lora_rank u32              = 128
+8: llama_model_loader: - kv  11:            glm5next.attention.kv_lora_rank u32              = 128
+8: llama_model_loader: - kv  12:              glm5next.attention.key_length u32              = 128
+8: llama_model_loader: - kv  13:            glm5next.attention.value_length u32              = 128
+8: llama_model_loader: - kv  14:          glm5next.attention.key_length_mla u32              = 128
+8: llama_model_loader: - kv  15:        glm5next.attention.value_length_mla u32              = 128
+8: llama_model_loader: - kv  16:              glm5next.rope.dimension_count u32              = 0
+8: llama_model_loader: - kv  17:                   glm5next.ssm.conv_kernel u32              = 4
+8: llama_model_loader: - kv  18:                      glm5next.kda.head_dim u32              = 128
+8: llama_model_loader: - kv  19:              glm5next.kda.gate_lower_bound f32              = -5.000000
+8: llama_model_loader: - kv  20:  glm5next.attention.layer_norm_rms_epsilon f32              = 0.000010
+8: llama_model_loader: - kv  21:      glm5next.attention.layer_norm_epsilon f32              = 0.000001
+8: llama_model_loader: - kv  22:      glm5next.attention.indexer.head_count u32              = 32
+8: llama_model_loader: - kv  23:      glm5next.attention.indexer.key_length u32              = 128
+8: llama_model_loader: - kv  24:           glm5next.attention.indexer.top_k u32              = 512
+8: llama_model_loader: - kv  25:           glm5next.attention.indexer.kpool u32              = 4
+8: llama_model_loader: - kv  26:            glm5next.hyper_connection.count u32              = 4
+8: llama_model_loader: - kv  27: glm5next.hyper_connection.sinkhorn_iterations u32              = 20
+8: llama_model_loader: - kv  28:          glm5next.hyper_connection.epsilon f32              = 0.000001
+8: llama_model_loader: - kv  29:                      glm5next.expert_count u32              = 4
+8: llama_model_loader: - kv  30:                 glm5next.expert_used_count u32              = 2
+8: llama_model_loader: - kv  31:               glm5next.expert_shared_count u32              = 1
+8: llama_model_loader: - kv  32:        glm5next.expert_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  33: glm5next.expert_shared_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  34:                glm5next.expert_group_count u32              = 1
+8: llama_model_loader: - kv  35:           glm5next.expert_group_used_count u32              = 1
+8: llama_model_loader: - kv  36:                glm5next.expert_gating_func u32              = 2
+8: llama_model_loader: - kv  37:         glm5next.leading_dense_block_count u32              = 1
+8: llama_model_loader: - kv  38:              glm5next.nextn_predict_layers u32              = 0
+8: llama_model_loader: - kv  39:              glm5next.expert_weights_scale f32              = 2.500000
+8: llama_model_loader: - kv  40:               glm5next.expert_weights_norm bool             = true
+8: llama_model_loader: - kv  41:                  glm5next.swiglu_clamp_exp f32              = 10.000000
+8: llama_model_loader: - kv  42:                glm5next.swiglu_clamp_shexp f32              = 10.000000
+8: llama_model_loader: - type  f32:   60 tensors
+8: print_info: file format = GGUF V3 (latest)
+8: print_info: file type   = (guessed) all F32
+8: print_info: file size   = 10.43 MiB (32.00 BPW) 
+8: llama_prepare_model_devices: using device CUDA0 (NVIDIA GeForce RTX 5090) (0000:01:00.0) - 30828 MiB free
+8: load_arch_hparams: indexer selection width = 515 cells (128 pools of 4, plus a 3-wide tail)
+8: load: adding 64 dummy tokens
+8: print_info: arch                  = glm5next
+8: print_info: vocab_only            = 0
+8: print_info: no_alloc              = 0
+8: print_info: n_ctx_train           = 512
+8: print_info: n_embd_inp            = 256
+8: print_info: n_embd                = 256
+8: print_info: n_embd_out            = 256
+8: print_info: n_layer               = 2
+8: print_info: n_layer_all           = 2
+8: print_info: n_head                = 2
+8: print_info: n_head_kv             = [0, 1]
+8: print_info: n_rot                 = 0
+8: print_info: n_swa                 = 0
+8: print_info: is_swa_any            = 0
+8: print_info: non_causal_type       = 0
+8: print_info: n_embd_head_k         = 128
+8: print_info: n_embd_head_v         = 128
+8: print_info: n_gqa                 = [0, 2]
+8: print_info: n_embd_k_gqa          = [0, 128]
+8: print_info: n_embd_v_gqa          = [0, 128]
+8: print_info: f_norm_eps            = 1.0e-06
+8: print_info: f_norm_rms_eps        = 1.0e-05
+8: print_info: f_clamp_kqv           = 0.0e+00
+8: print_info: f_max_alibi_bias      = 0.0e+00
+8: print_info: f_logit_scale         = 0.0e+00
+8: print_info: f_attn_scale          = 0.0e+00
+8: print_info: f_attn_value_scale    = 0.0000
+8: print_info: n_ff                  = 512
+8: print_info: n_expert              = 4
+8: print_info: n_expert_used         = 2
+8: print_info: n_expert_groups       = 1
+8: print_info: n_group_used          = 1
+8: print_info: causal attn           = 1
+8: print_info: pooling type          = -1
+8: print_info: rope type             = -1
+8: print_info: rope scaling          = linear
+8: print_info: freq_base_train       = 10000.0
+8: print_info: freq_scale_train      = 1
+8: print_info: n_ctx_orig_yarn       = 512
+8: print_info: rope_yarn_log_mul     = 0.0000
+8: print_info: rope_finetuned        = unknown
+8: print_info: model type            = ?B
+8: print_info: model params          = 2.74 M
+8: print_info: general.name          = Strata synthetic hybrid validation fixture
+8: print_info: vocab type            = no vocab
+8: print_info: n_vocab               = 64
+8: print_info: n_merges              = 0
+8: print_info: max token length      = 0
+8: load_tensors: loading model tensors, this can take a while... (load_mode = none)
+8: load_tensors: layer   0 assigned to device CUDA0, is_swa = 0
+8: load_tensors: layer   1 assigned to device CUDA0, is_swa = 0
+8: load_tensors: layer   2 assigned to device CUDA0, is_swa = 0
+8: create_tensor: loading tensor token_embd.weight
+8: tensor token_embd.weight (0 MiB f32) buffer type overridden to CUDA0
+8: create_tensor: loading tensor output_norm.weight
+8: create_tensor: loading tensor output.weight
+8: create_tensor: loading tensor blk.0.attn_norm.weight
+8: create_tensor: loading tensor blk.0.ffn_norm.weight
+8: create_tensor: loading tensor blk.0.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_attn_base.weight
+8: create_tensor: loading tensor blk.0.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.0.attn_qkv.weight
+8: create_tensor: loading tensor blk.0.attn_q.weight
+8: create_tensor: loading tensor blk.0.attn_k.weight
+8: create_tensor: loading tensor blk.0.attn_v.weight
+8: create_tensor: loading tensor blk.0.attn_q.bias
+8: create_tensor: loading tensor blk.0.attn_k.bias
+8: create_tensor: loading tensor blk.0.attn_v.bias
+8: create_tensor: loading tensor blk.0.ssm_conv1d_q.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_k.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_v.weight
+8: create_tensor: loading tensor blk.0.ssm_f_a.weight
+8: create_tensor: loading tensor blk.0.ssm_f_b.weight
+8: create_tensor: loading tensor blk.0.ssm_g_a.weight
+8: create_tensor: loading tensor blk.0.ssm_g_b.weight
+8: create_tensor: loading tensor blk.0.ssm_beta.weight
+8: create_tensor: loading tensor blk.0.ssm_a
+8: create_tensor: loading tensor blk.0.ssm_dt.bias
+8: create_tensor: loading tensor blk.0.ssm_norm.weight
+8: create_tensor: loading tensor blk.0.attn_output.weight
+8: create_tensor: loading tensor blk.0.ffn_gate.weight
+8: create_tensor: loading tensor blk.0.ffn_up.weight
+8: create_tensor: loading tensor blk.0.ffn_down.weight
+8: create_tensor: loading tensor blk.1.attn_norm.weight
+8: create_tensor: loading tensor blk.1.ffn_norm.weight
+8: create_tensor: loading tensor blk.1.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_attn_base.weight
+8: create_tensor: loading tensor blk.1.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.1.attn_q_a.weight
+8: create_tensor: loading tensor blk.1.attn_q_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_mqa.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_k_b.weight
+8: create_tensor: loading tensor blk.1.attn_v_b.weight
+8: create_tensor: loading tensor blk.1.attn_output.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.bias
+8: create_tensor: loading tensor blk.1.indexer.proj.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_k.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_gate.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_ape.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_inp.weight
+8: create_tensor: loading tensor blk.1.exp_probs_b.bias
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_up_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_down_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.weight
+8: create_tensor: loading tensor blk.0.attn_q.scale
+8: create_tensor: loading tensor blk.0.attn_k.scale
+8: create_tensor: loading tensor blk.0.attn_v.scale
+8: create_tensor: loading tensor blk.0.attn_output.scale
+8: create_tensor: loading tensor blk.0.ffn_gate.scale
+8: create_tensor: loading tensor blk.0.ffn_down.scale
+8: create_tensor: loading tensor blk.0.ffn_up.scale
+8: create_tensor: loading tensor blk.0.ssm_beta.scale
+8: create_tensor: loading tensor blk.0.attn_q.input_scale
+8: create_tensor: loading tensor blk.0.attn_k.input_scale
+8: create_tensor: loading tensor blk.0.attn_v.input_scale
+8: create_tensor: loading tensor blk.0.attn_output.input_scale
+8: create_tensor: loading tensor blk.0.ffn_gate.input_scale
+8: create_tensor: loading tensor blk.0.ffn_down.input_scale
+8: create_tensor: loading tensor blk.0.ffn_up.input_scale
+8: create_tensor: loading tensor blk.0.ssm_beta.input_scale
+8: create_tensor: loading tensor blk.1.attn_output.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.scale
+8: create_tensor: loading tensor blk.1.attn_output.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.input_scale
+8: done_getting_tensors: tensor 'token_embd.weight' (f32) (and 1 others) cannot be used with preferred buffer type CUDA_Host, using CUDA0 instead
+8: load_tensors: offloading output layer to GPU
+8: load_tensors: offloading 1 repeating layers to GPU
+8: load_tensors: offloaded 3/3 layers to GPU
+8: load_tensors:          CPU model buffer size =     0.00 MiB
+8: load_tensors:        CUDA0 model buffer size =    10.44 MiB
+8: load_all_data: using async uploads for device CUDA0, buffer type CUDA0, backend CUDA0
+8: ...............................load_all_data: no device found for buffer type CPU for async uploads
+8: .
+8: llama_model_loader: loaded meta data with 43 key-value pairs and 60 tensors from C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda/state-fixture\synthetic-glm-sparse.gguf (version GGUF V3 (latest))
+8: llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+8: llama_model_loader: - kv   0:                       general.architecture str              = glm5next
+8: llama_model_loader: - kv   1:                               general.name str              = Strata synthetic hybrid validation fi...
+8: llama_model_loader: - kv   2:                       tokenizer.ggml.model str              = none
+8: llama_model_loader: - kv   3:                       glm5next.block_count u32              = 2
+8: llama_model_loader: - kv   4:                    glm5next.context_length u32              = 512
+8: llama_model_loader: - kv   5:                  glm5next.embedding_length u32              = 256
+8: llama_model_loader: - kv   6:               glm5next.feed_forward_length u32              = 512
+8: llama_model_loader: - kv   7:                        glm5next.vocab_size u32              = 64
+8: llama_model_loader: - kv   8:              glm5next.attention.head_count u32              = 2
+8: llama_model_loader: - kv   9:           glm5next.attention.head_count_kv arr[u32,2]       = [0, 1]
+8: llama_model_loader: - kv  10:             glm5next.attention.q_lora_rank u32              = 128
+8: llama_model_loader: - kv  11:            glm5next.attention.kv_lora_rank u32              = 128
+8: llama_model_loader: - kv  12:              glm5next.attention.key_length u32              = 128
+8: llama_model_loader: - kv  13:            glm5next.attention.value_length u32              = 128
+8: llama_model_loader: - kv  14:          glm5next.attention.key_length_mla u32              = 128
+8: llama_model_loader: - kv  15:        glm5next.attention.value_length_mla u32              = 128
+8: llama_model_loader: - kv  16:              glm5next.rope.dimension_count u32              = 0
+8: llama_model_loader: - kv  17:                   glm5next.ssm.conv_kernel u32              = 4
+8: llama_model_loader: - kv  18:                      glm5next.kda.head_dim u32              = 128
+8: llama_model_loader: - kv  19:              glm5next.kda.gate_lower_bound f32              = -5.000000
+8: llama_model_loader: - kv  20:  glm5next.attention.layer_norm_rms_epsilon f32              = 0.000010
+8: llama_model_loader: - kv  21:      glm5next.attention.layer_norm_epsilon f32              = 0.000001
+8: llama_model_loader: - kv  22:      glm5next.attention.indexer.head_count u32              = 32
+8: llama_model_loader: - kv  23:      glm5next.attention.indexer.key_length u32              = 128
+8: llama_model_loader: - kv  24:           glm5next.attention.indexer.top_k u32              = 8
+8: llama_model_loader: - kv  25:           glm5next.attention.indexer.kpool u32              = 4
+8: llama_model_loader: - kv  26:            glm5next.hyper_connection.count u32              = 4
+8: llama_model_loader: - kv  27: glm5next.hyper_connection.sinkhorn_iterations u32              = 20
+8: llama_model_loader: - kv  28:          glm5next.hyper_connection.epsilon f32              = 0.000001
+8: llama_model_loader: - kv  29:                      glm5next.expert_count u32              = 4
+8: llama_model_loader: - kv  30:                 glm5next.expert_used_count u32              = 2
+8: llama_model_loader: - kv  31:               glm5next.expert_shared_count u32              = 1
+8: llama_model_loader: - kv  32:        glm5next.expert_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  33: glm5next.expert_shared_feed_forward_length u32              = 256
+8: llama_model_loader: - kv  34:                glm5next.expert_group_count u32              = 1
+8: llama_model_loader: - kv  35:           glm5next.expert_group_used_count u32              = 1
+8: llama_model_loader: - kv  36:                glm5next.expert_gating_func u32              = 2
+8: llama_model_loader: - kv  37:         glm5next.leading_dense_block_count u32              = 1
+8: llama_model_loader: - kv  38:              glm5next.nextn_predict_layers u32              = 0
+8: llama_model_loader: - kv  39:              glm5next.expert_weights_scale f32              = 2.500000
+8: llama_model_loader: - kv  40:               glm5next.expert_weights_norm bool             = true
+8: llama_model_loader: - kv  41:                  glm5next.swiglu_clamp_exp f32              = 10.000000
+8: llama_model_loader: - kv  42:                glm5next.swiglu_clamp_shexp f32              = 10.000000
+8: llama_model_loader: - type  f32:   60 tensors
+8: print_info: file format = GGUF V3 (latest)
+8: print_info: file type   = (guessed) all F32
+8: print_info: file size   = 10.43 MiB (32.00 BPW) 
+8: llama_prepare_model_devices: using device CPU (AMD Ryzen 9 9950X 16-Core Processor            ) (unknown id) - 104193 MiB free
+8: load_arch_hparams: indexer selection width = 11 cells (2 pools of 4, plus a 3-wide tail)
+8: load: adding 64 dummy tokens
+8: print_info: arch                  = glm5next
+8: print_info: vocab_only            = 0
+8: print_info: no_alloc              = 0
+8: print_info: n_ctx_train           = 512
+8: print_info: n_embd_inp            = 256
+8: print_info: n_embd                = 256
+8: print_info: n_embd_out            = 256
+8: print_info: n_layer               = 2
+8: print_info: n_layer_all           = 2
+8: print_info: n_head                = 2
+8: print_info: n_head_kv             = [0, 1]
+8: print_info: n_rot                 = 0
+8: print_info: n_swa                 = 0
+8: print_info: is_swa_any            = 0
+8: print_info: non_causal_type       = 0
+8: print_info: n_embd_head_k         = 128
+8: print_info: n_embd_head_v         = 128
+8: print_info: n_gqa                 = [0, 2]
+8: print_info: n_embd_k_gqa          = [0, 128]
+8: print_info: n_embd_v_gqa          = [0, 128]
+8: print_info: f_norm_eps            = 1.0e-06
+8: print_info: f_norm_rms_eps        = 1.0e-05
+8: print_info: f_clamp_kqv           = 0.0e+00
+8: print_info: f_max_alibi_bias      = 0.0e+00
+8: print_info: f_logit_scale         = 0.0e+00
+8: print_info: f_attn_scale          = 0.0e+00
+8: print_info: f_attn_value_scale    = 0.0000
+8: print_info: n_ff                  = 512
+8: print_info: n_expert              = 4
+8: print_info: n_expert_used         = 2
+8: print_info: n_expert_groups       = 1
+8: print_info: n_group_used          = 1
+8: print_info: causal attn           = 1
+8: print_info: pooling type          = -1
+8: print_info: rope type             = -1
+8: print_info: rope scaling          = linear
+8: print_info: freq_base_train       = 10000.0
+8: print_info: freq_scale_train      = 1
+8: print_info: n_ctx_orig_yarn       = 512
+8: print_info: rope_yarn_log_mul     = 0.0000
+8: print_info: rope_finetuned        = unknown
+8: print_info: model type            = ?B
+8: print_info: model params          = 2.74 M
+8: print_info: general.name          = Strata synthetic hybrid validation fixture
+8: print_info: vocab type            = no vocab
+8: print_info: n_vocab               = 64
+8: print_info: n_merges              = 0
+8: print_info: max token length      = 0
+8: load_tensors: loading model tensors, this can take a while... (load_mode = none)
+8: load_tensors: layer   0 assigned to device CPU, is_swa = 0
+8: load_tensors: layer   1 assigned to device CPU, is_swa = 0
+8: load_tensors: layer   2 assigned to device CPU, is_swa = 0
+8: create_tensor: loading tensor token_embd.weight
+8: tensor token_embd.weight (0 MiB f32) buffer type overridden to CPU
+8: create_tensor: loading tensor output_norm.weight
+8: create_tensor: loading tensor output.weight
+8: create_tensor: loading tensor blk.0.attn_norm.weight
+8: create_tensor: loading tensor blk.0.ffn_norm.weight
+8: create_tensor: loading tensor blk.0.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_attn_base.weight
+8: create_tensor: loading tensor blk.0.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.0.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.0.attn_qkv.weight
+8: create_tensor: loading tensor blk.0.attn_q.weight
+8: create_tensor: loading tensor blk.0.attn_k.weight
+8: create_tensor: loading tensor blk.0.attn_v.weight
+8: create_tensor: loading tensor blk.0.attn_q.bias
+8: create_tensor: loading tensor blk.0.attn_k.bias
+8: create_tensor: loading tensor blk.0.attn_v.bias
+8: create_tensor: loading tensor blk.0.ssm_conv1d_q.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_k.weight
+8: create_tensor: loading tensor blk.0.ssm_conv1d_v.weight
+8: create_tensor: loading tensor blk.0.ssm_f_a.weight
+8: create_tensor: loading tensor blk.0.ssm_f_b.weight
+8: create_tensor: loading tensor blk.0.ssm_g_a.weight
+8: create_tensor: loading tensor blk.0.ssm_g_b.weight
+8: create_tensor: loading tensor blk.0.ssm_beta.weight
+8: create_tensor: loading tensor blk.0.ssm_a
+8: create_tensor: loading tensor blk.0.ssm_dt.bias
+8: create_tensor: loading tensor blk.0.ssm_norm.weight
+8: create_tensor: loading tensor blk.0.attn_output.weight
+8: create_tensor: loading tensor blk.0.ffn_gate.weight
+8: create_tensor: loading tensor blk.0.ffn_up.weight
+8: create_tensor: loading tensor blk.0.ffn_down.weight
+8: create_tensor: loading tensor blk.1.attn_norm.weight
+8: create_tensor: loading tensor blk.1.ffn_norm.weight
+8: create_tensor: loading tensor blk.1.hc_attn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_attn_base.weight
+8: create_tensor: loading tensor blk.1.hc_attn_scale.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_fn.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_base.weight
+8: create_tensor: loading tensor blk.1.hc_ffn_scale.weight
+8: create_tensor: loading tensor blk.1.attn_q_a.weight
+8: create_tensor: loading tensor blk.1.attn_q_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_mqa.weight
+8: create_tensor: loading tensor blk.1.attn_kv_a_norm.weight
+8: create_tensor: loading tensor blk.1.attn_k_b.weight
+8: create_tensor: loading tensor blk.1.attn_v_b.weight
+8: create_tensor: loading tensor blk.1.attn_output.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.weight
+8: create_tensor: loading tensor blk.1.indexer.k_norm.bias
+8: create_tensor: loading tensor blk.1.indexer.proj.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_k.weight
+8: create_tensor: loading tensor blk.1.indexer.attn_q_b.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_gate.weight
+8: create_tensor: loading tensor blk.1.indexer_compressor_ape.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_inp.weight
+8: create_tensor: loading tensor blk.1.exp_probs_b.bias
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_up_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_down_exps.weight
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.weight
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.weight
+8: create_tensor: loading tensor blk.0.attn_q.scale
+8: create_tensor: loading tensor blk.0.attn_k.scale
+8: create_tensor: loading tensor blk.0.attn_v.scale
+8: create_tensor: loading tensor blk.0.attn_output.scale
+8: create_tensor: loading tensor blk.0.ffn_gate.scale
+8: create_tensor: loading tensor blk.0.ffn_down.scale
+8: create_tensor: loading tensor blk.0.ffn_up.scale
+8: create_tensor: loading tensor blk.0.ssm_beta.scale
+8: create_tensor: loading tensor blk.0.attn_q.input_scale
+8: create_tensor: loading tensor blk.0.attn_k.input_scale
+8: create_tensor: loading tensor blk.0.attn_v.input_scale
+8: create_tensor: loading tensor blk.0.attn_output.input_scale
+8: create_tensor: loading tensor blk.0.ffn_gate.input_scale
+8: create_tensor: loading tensor blk.0.ffn_down.input_scale
+8: create_tensor: loading tensor blk.0.ffn_up.input_scale
+8: create_tensor: loading tensor blk.0.ssm_beta.input_scale
+8: create_tensor: loading tensor blk.1.attn_output.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.scale
+8: create_tensor: loading tensor blk.1.attn_output.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_exps.input_scale
+8: create_tensor: loading tensor blk.1.ffn_gate_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_down_shexp.input_scale
+8: create_tensor: loading tensor blk.1.ffn_up_shexp.input_scale
+8: load_tensors: offloading 0 repeating layers to GPU
+8: load_tensors: offloaded 0/3 layers to GPU
+8: load_tensors:          CPU model buffer size =    10.43 MiB
+8: load_all_data: no device found for buffer type CPU for async uploads
+8: ...............................
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     1.85 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.18 MiB
+8: sched_reserve: graph nodes  = 320
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.64 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     1.85 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.18 MiB
+8: sched_reserve: graph nodes  = 320
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.36 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     1.85 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.18 MiB
+8: sched_reserve: graph nodes  = 320
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.33 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     1.85 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.18 MiB
+8: sched_reserve: graph nodes  = 320
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.30 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 16
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 3840
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 16, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   16, n_seqs =  1, n_outputs =   16
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   16, n_seqs =  1, n_outputs =   16
+8: sched_reserve:      CUDA0 compute buffer size =     1.55 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.09 MiB
+8: sched_reserve: graph nodes  = 320
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 2.25 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     2.29 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.18 MiB
+8: sched_reserve: graph nodes  = 326
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.57 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:        CPU  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CPU
+8: llama_kv_cache:        CPU KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CPU
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:        CPU RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CPU
+8: llama_kv_cache:        CPU KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:        CPU compute buffer size =     2.32 MiB
+8: sched_reserve: graph nodes  = 326
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.27 ms, sched copies = 1
+8: llama_context: constructing llama_context
+8: llama_context: n_seq_max             = 1
+8: llama_context: n_ctx                 = 512
+8: llama_context: n_ctx_seq             = 512
+8: llama_context: n_batch               = 128
+8: llama_context: n_ubatch              = 32
+8: llama_context: causal_attn           = 1
+8: llama_context: flash_attn            = disabled
+8: llama_context: kv_unified            = false
+8: llama_context: freq_base             = 10000.0
+8: llama_context: freq_scale            = 1
+8: llama_context: n_rs_seq              = 8
+8: llama_context: n_outputs_max         = 128
+8: llama_context: n_outputs_max_per_seq = 1
+8: set_abort_callback: call
+8: llama_context:  CUDA_Host  output buffer size =     0.00 MiB
+8: llama_kv_cache: the V embeddings have different sizes across layers and FA is not enabled - padding V cache to 128
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.25 MiB
+8: llama_kv_cache: size =    0.25 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.25 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_memory_recurrent, layer   0: dev = CUDA0
+8: llama_memory_recurrent: layer   1: skipped
+8: llama_memory_recurrent:      CUDA0 RS buffer size =     1.20 MiB
+8: llama_memory_recurrent: size =    1.20 MiB (     1 cells,   2 layers,  1 seqs  8 rs_seq), R (f32):    0.08 MiB, S (f32):    1.12 MiB, P (f32):    0.00 MiB
+8: operator (): creating indexer KV cache, size = 512 cells, 3 x 128 per cell, type = f32
+8: llama_kv_cache: layer   0: filtered
+8: llama_kv_cache: layer   1: dev = CUDA0
+8: llama_kv_cache:      CUDA0 KV buffer size =     0.75 MiB
+8: llama_kv_cache: size =    0.75 MiB (   512 cells,   1 layers,  1/1 seqs), K (f32):    0.75 MiB, V (f32):    0.00 MiB
+8: llama_kv_cache: attn_rot_k = 0, n_embd_head_k_all = 128
+8: llama_kv_cache: attn_rot_v = 0, n_embd_head_k_all = 0
+8: llama_context: enumerating backends
+8: llama_context: backend_ptrs.size() = 2
+8: sched_reserve: reserving ...
+8: sched_reserve: max_nodes = 5120
+8: sched_reserve: reserving full memory module
+8: sched_reserve: worst-case: n_tokens = 32, n_seqs = 1, n_outputs = 1
+8: resolve_fused_ops: resolving fused DeepSeek V4 HC support:
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC pre enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC comb enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: resolve_fused_ops: fused DeepSeek V4 HC post enabled
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: graph_reserve: reserving a graph for ubatch with n_tokens =    1, n_seqs =  1, n_outputs =    1
+8: graph_reserve: reserving a graph for ubatch with n_tokens =   32, n_seqs =  1, n_outputs =   32
+8: sched_reserve:      CUDA0 compute buffer size =     1.77 MiB
+8: sched_reserve:  CUDA_Host compute buffer size =     0.09 MiB
+8: sched_reserve: graph nodes  = 271
+8: sched_reserve: graph splits = 1
+8: sched_reserve: reserve took 1.43 ms, sched copies = 1
+8: state_read_meta: cell_count = 7, dest_seq_id = 0
+8: state_read_meta: cell_count = 7, dest_seq_id = 0
+8: state_read_meta: cell_count = 8, dest_seq_id = 0
+8: state_read_meta: cell_count = 8, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 8, dest_seq_id = 0
+8: state_read_meta: cell_count = 8, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 12, dest_seq_id = 0
+8: state_read_meta: cell_count = 12, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 9, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 10, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 11, dest_seq_id = 0
+8: state_read_meta: cell_count = 12, dest_seq_id = 0
+8: state_read_meta: cell_count = 12, dest_seq_id = 0
+8: state_read_meta: cell_count = 13, dest_seq_id = 0
+8: state_read_meta: cell_count = 13, dest_seq_id = 0
+8: state_read_meta: cell_count = 15, dest_seq_id = 0
+8: state_read_meta: cell_count = 15, dest_seq_id = 0
+8: state_read_meta: cell_count = 16, dest_seq_id = 0
+8: state_read_meta: cell_count = 16, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 16, dest_seq_id = 0
+8: state_read_meta: cell_count = 16, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 20, dest_seq_id = 0
+8: state_read_meta: cell_count = 20, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 17, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 18, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 19, dest_seq_id = 0
+8: state_read_meta: cell_count = 20, dest_seq_id = 0
+8: state_read_meta: cell_count = 20, dest_seq_id = 0
+8: state_read_meta: cell_count = 21, dest_seq_id = 0
+8: state_read_meta: cell_count = 21, dest_seq_id = 0
+8: ~llama_context:      CUDA0 compute buffer size is   1.7686 MiB, matches expectation of   1.7686 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.0945 MiB, matches expectation of   0.0945 MiB
+8: ~llama_context:        CPU compute buffer size is   2.3202 MiB, matches expectation of   2.3202 MiB
+8: ~llama_context:        CPU compute buffer size is   0.0000 MiB, matches expectation of   0.0000 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   2.2894 MiB, matches expectation of   2.2894 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.1756 MiB, matches expectation of   0.1756 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   1.5453 MiB, matches expectation of   1.5453 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.0891 MiB, matches expectation of   0.0891 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   1.8510 MiB, matches expectation of   1.8510 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.1756 MiB, matches expectation of   0.1756 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   1.8510 MiB, matches expectation of   1.8510 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.1756 MiB, matches expectation of   0.1756 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   1.8510 MiB, matches expectation of   1.8510 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.1756 MiB, matches expectation of   0.1756 MiB
+8: ~llama_context:      CUDA0 compute buffer size is   1.8510 MiB, matches expectation of   1.8510 MiB
+8: ~llama_context:  CUDA_Host compute buffer size is   0.1756 MiB, matches expectation of   0.1756 MiB
+8: {
+8:   "schema_version": 1,
+8:   "status": "pass",
+8:   "scope": "synthetic two-layer GLM forward/state validation; not the 112 GiB model or throughput",
+8:   "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+8:   "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+8:   "patch_set": "cuda-f32-mmf-respect-tf32-override",
+8:   "fixture_seed": 5488641,
+8:   "configuration": {
+8:     "n_ctx": 512,
+8:     "n_batch": 128,
+8:     "n_ubatch": 32,
+8:     "split_n_ubatch": 16,
+8:     "n_seq_max": 1,
+8:     "n_rs_seq": 8,
+8:     "kv_type": "F32",
+8:     "flash_attention": "off",
+8:     "NVIDIA_TF32_OVERRIDE": "0",
+8:     "max_abs_limit": 0.0005,
+8:     "nmse_limit": 1e-07
+8:   },
+8:   "synthetic_model": {
+8:     "layers": 2,
+8:     "kda_layers": 1,
+8:     "dsa_layers": 1,
+8:     "embedding": 256,
+8:     "heads": 2,
+8:     "kda_head_width": 128,
+8:     "mla_width": 128,
+8:     "indexer_heads": 32,
+8:     "indexer_width": 128,
+8:     "kpool": 4,
+8:     "top_k_sparse": 8,
+8:     "top_k_dense": 512,
+8:     "experts": 4,
+8:     "experts_used": 2,
+8:     "vocabulary": 64,
+8:     "weight_type": "F32"
+8:   },
+8:   "results": [
+8:     {
+8:       "name": "hybrid/prefill-vs-tokenwise",
+8:       "status": "pass",
+8:       "elements": 3136,
+8:       "finite": true,
+8:       "max_abs": 2.5331974029541016e-07,
+8:       "nmse": 1.386937607275436e-13
+8:     },
+8:     {
+8:       "name": "hybrid/ubatch16-vs32",
+8:       "status": "pass",
+8:       "elements": 3136,
+8:       "finite": true,
+8:       "max_abs": 2.980232238769531e-07,
+8:       "nmse": 1.5561749925947246e-13
+8:     },
+8:     {
+8:       "name": "indexer/fused-vs-unfused",
+8:       "status": "pass",
+8:       "elements": 3136,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/cuda-vs-cpu",
+8:       "status": "pass",
+8:       "elements": 3136,
+8:       "finite": true,
+8:       "max_abs": 2.682209014892578e-07,
+8:       "nmse": 1.5315588208052455e-13
+8:     },
+8:     {
+8:       "name": "attention/sparse-vs-dense-prefix11",
+8:       "status": "pass",
+8:       "elements": 704,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 1.6071131714486772e-13
+8:     },
+8:     {
+8:       "name": "kpool/prefill-scalar",
+8:       "status": "pass",
+8:       "elements": 1536,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 5.8348250219862274e-15
+8:     },
+8:     {
+8:       "name": "kpool/tokenwise-scalar",
+8:       "status": "pass",
+8:       "elements": 1536,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 5.686307579890573e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=7/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=7/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=7/accepted=0",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 4.74584411623928e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=7/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=7/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=7/accepted=1",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.765732650736465e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=7/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=7/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=7/accepted=2",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 5.504587341690524e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=7/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=7/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=7/accepted=3",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.835084400543861e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=7/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=7/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=7/accepted=4",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.652864802803705e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=8/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=8/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=8/accepted=0",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.765732650736465e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=8/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=8/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=8/accepted=1",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 5.504587341690524e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=8/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=8/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=8/accepted=2",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.835084400543861e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=8/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=8/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=8/accepted=3",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.652864802803705e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=8/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=8/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=8/accepted=4",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.968086343237736e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=9/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=9/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=9/accepted=0",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 5.504587341690524e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=9/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=9/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=9/accepted=1",
+8:       "status": "pass",
+8:       "elements": 512,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.835084400543861e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=9/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=9/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=9/accepted=2",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.652864802803705e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=9/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=9/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=9/accepted=3",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.968086343237736e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=9/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=9/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=9/accepted=4",
+8:       "status": "pass",
+8:       "elements": 640,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.124777406650761e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=15/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.248624946832939e-14
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=15/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.248624946832939e-14
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=15/accepted=0",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.224350118480641e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=15/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.741073073447022e-14
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=15/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.741073073447022e-14
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=15/accepted=1",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.3723698653844875e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=15/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=15/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=15/accepted=2",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.780812012997753e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=15/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=15/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=15/accepted=3",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.186970076672471e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=15/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=15/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=15/accepted=4",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.196929185364847e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=16/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.741073073447022e-14
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=16/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 2.086162567138672e-07,
+8:       "nmse": 8.741073073447022e-14
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=16/accepted=0",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.3723698653844875e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=16/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=16/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=16/accepted=1",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.780812012997753e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=16/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=16/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=16/accepted=2",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.186970076672471e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=16/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=16/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=16/accepted=3",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.196929185364847e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=16/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=16/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=16/accepted=4",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.0036795382751326e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=17/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=17/accepted=0",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=17/accepted=0",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 5.780812012997753e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=17/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=17/accepted=1",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=17/accepted=1",
+8:       "status": "pass",
+8:       "elements": 768,
+8:       "finite": true,
+8:       "max_abs": 2.384185791015625e-07,
+8:       "nmse": 6.186970076672471e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=17/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=17/accepted=2",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=17/accepted=2",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.196929185364847e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=17/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=17/accepted=3",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=17/accepted=3",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.0036795382751326e-15
+8:     },
+8:     {
+8:       "name": "hybrid/rollback/prefix=17/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "hybrid/pending-save-restore/prefix=17/accepted=4",
+8:       "status": "pass",
+8:       "elements": 576,
+8:       "finite": true,
+8:       "max_abs": 0.0,
+8:       "nmse": 0.0
+8:     },
+8:     {
+8:       "name": "kpool/rollback/prefix=17/accepted=4",
+8:       "status": "pass",
+8:       "elements": 896,
+8:       "finite": true,
+8:       "max_abs": 1.1920928955078125e-07,
+8:       "nmse": 6.2209679244740256e-15
+8:     },
+8:     {
+8:       "name": "hybrid/out-of-window-removal-atomic",
+8:       "status": "pass"
+8:     }
+8:   ],
+8:   "device": "NVIDIA GeForce RTX 5090",
+8:   "gpu_compute_ops": {
+8:     "ADD": 1197,
+8:     "ARGSORT": 63,
+8:     "CLAMP": 63,
+8:     "CONCAT": 378,
+8:     "CONT": 567,
+8:     "CPY": 819,
+8:     "DIV": 63,
+8:     "DSV4_HC_COMB": 252,
+8:     "DSV4_HC_POST": 252,
+8:     "DSV4_HC_PRE": 252,
+8:     "DUP": 63,
+8:     "FILL": 63,
+8:     "GATED_DELTA_NET": 63,
+8:     "GET_ROWS": 630,
+8:     "L2_NORM": 126,
+8:     "LIGHTNING_INDEXER": 63,
+8:     "MUL": 1323,
+8:     "MUL_MAT": 2079,
+8:     "MUL_MAT_ID": 189,
+8:     "NORM": 63,
+8:     "REPEAT": 63,
+8:     "RMS_NORM": 756,
+8:     "SCALE": 945,
+8:     "SET_ROWS": 252,
+8:     "SIGMOID": 756,
+8:     "SILU": 63,
+8:     "SOFT_MAX": 126,
+8:     "SSM_CONV": 63,
+8:     "SUM_ROWS": 126,
+8:     "SWIGLU_CLAMP": 189,
+8:     "TOP_K": 63
+8:   },
+8:   "cpu_compute_nodes": [],
+8:   "indexer_fused": {
+8:     "cuda": true,
+8:     "cuda_unfused_reference": false,
+8:     "cpu_reference": false
+8:   }
+8: }
+8/9 Test #8: glm5next_candidate_state ............   Passed    1.15 sec
+test 9
+    Start 9: glm5next_candidate_quant
+
+9: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-candidate-cuda\bin\strata-glm5next-quant-check.exe
+9: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda
+9: Environment variables: 
+9:  NVIDIA_TF32_OVERRIDE=0
+9: Environment variable modifications: 
+9:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/x64
+9:  PATH=path_list_prepend:C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin
+9: Test timeout computed to be: 120
+9: ggml_cuda_init: found 1 CUDA devices (Total VRAM: 32606 MiB):
+9:   Device 0: NVIDIA GeForce RTX 5090, compute capability 12.0, VMM: yes, VRAM: 32606 MiB
+9: {
+9:   "schema_version": 1,
+9:   "status": "pass",
+9:   "scope": "synthetic packed matrix kernels; no GGUF weights or streamed dispatch",
+9:   "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+9:   "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+9:   "patch_set": "cuda-f32-mmf-respect-tf32-override",
+9:   "NVIDIA_TF32_OVERRIDE": "0",
+9:   "shape": {
+9:     "input": 512,
+9:     "output": 64,
+9:     "experts": 16,
+9:     "selected": 8
+9:   },
+9:   "nmse_limit": 0.0001,
+9:   "weight_seed": 5480449,
+9:   "input_seed": 5484545,
+9:   "results": [
+9:     {
+9:       "type": "f32",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.443841986239326e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 6.414384171856214e-15,
+9:         "max_abs": 5.960464477539063e-08,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.5301092997483294e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 8.057900664987733e-15,
+9:         "max_abs": 7.450580596923828e-08,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.562537547017234e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 8.357581392281228e-15,
+9:         "max_abs": 7.450580596923828e-08,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.689104759223511e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.143398723770792e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.445702364879275e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 7.282212159327805e-15,
+9:         "max_abs": 7.450580596923828e-08,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.308758725585304e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 7.153667655604588e-15,
+9:         "max_abs": 7.450580596923828e-08,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.8102699626366043e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.6865453360159302e-14,
+9:         "max_abs": 1.4901161193847656e-07,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9747833109307e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2994327523025757e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f32",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.8864183292196685e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 1e-10
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2778528581307023e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 1e-10
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.8187758656953893e-08,
+9:         "max_abs": 0.0001231059432029724,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 8.252519777094565e-08,
+9:         "max_abs": 0.00018672272562980652,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.936376470293874e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.521846673583913e-08,
+9:         "max_abs": 0.0001245439052581787,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.25099537015749e-14,
+9:         "max_abs": 1.4901161193847656e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.264804576600371e-08,
+9:         "max_abs": 0.000138893723487854,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.947412871903163e-14,
+9:         "max_abs": 2.384185791015625e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.258605653846783e-08,
+9:         "max_abs": 0.00011906027793884277,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.1942053072467765e-14,
+9:         "max_abs": 2.384185791015625e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.4059271337481416e-08,
+9:         "max_abs": 0.00014601647853851318,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.076875368292673e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.199832367476741e-08,
+9:         "max_abs": 0.00014039874076843262,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.154242553337243e-07,
+9:         "max_abs": 0.0005719959735870361,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.497602245202939e-07,
+9:         "max_abs": 0.0005675256252288818,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.15516932833647e-14,
+9:         "max_abs": 2.384185791015625e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.428502493123523e-08,
+9:         "max_abs": 0.000149458646774292,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "f16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 4.191906824011818e-14,
+9:         "max_abs": 2.980232238769531e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.344543869205152e-08,
+9:         "max_abs": 0.00016424059867858887,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.495336739736835e-06,
+9:         "max_abs": 0.0009449869394302368,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 5.239489987212178e-15,
+9:         "max_abs": 5.960464477539063e-08,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3530226641143006e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.2417553510335724e-06,
+9:         "max_abs": 0.0009449422359466553,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3238250110060585e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.105093947539155e-06,
+9:         "max_abs": 0.0011832714080810547,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.181750205493079e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.5070603928126144e-06,
+9:         "max_abs": 0.0010370612144470215,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2706821427736371e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.1430021944623586e-06,
+9:         "max_abs": 0.0011022388935089111,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3040071977417093e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9921991831354154e-06,
+9:         "max_abs": 0.0011832714080810547,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 8.890674281886424e-15,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.1339296109113054e-06,
+9:         "max_abs": 0.0010370612144470215,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.436177619841679e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.219688503457891e-06,
+9:         "max_abs": 0.0013295244425535202,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "bf16",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4507943966121495e-14,
+9:         "max_abs": 1.7881393432617188e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.1344680960236093e-06,
+9:         "max_abs": 0.001184999942779541,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.286523148594398e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0569199037535866e-05,
+9:         "max_abs": 0.002576008439064026,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3929220052776158e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2627280077001948e-05,
+9:         "max_abs": 0.0028994008898735046,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2645540837342116e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3519061723198102e-05,
+9:         "max_abs": 0.002576008439064026,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3340840901760704e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.1866837896318778e-05,
+9:         "max_abs": 0.002576008439064026,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2263430266179983e-14,
+9:         "max_abs": 8.940696716308594e-08,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.342242989558428e-05,
+9:         "max_abs": 0.0029646586626768112,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.1001111957352208e-14,
+9:         "max_abs": 1.1920928955078125e-07,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2875099313401323e-05,
+9:         "max_abs": 0.002995520830154419,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.205789736056958e-08,
+9:         "max_abs": 0.00014889240264892578,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3500280708110918e-05,
+9:         "max_abs": 0.0026618093252182007,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.398503597277385e-08,
+9:         "max_abs": 0.0001801513135433197,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4030831402284394e-05,
+9:         "max_abs": 0.0030165445059537888,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q8_0",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.4168300046764194e-08,
+9:         "max_abs": 0.00015795230865478516,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4130271682039686e-05,
+9:         "max_abs": 0.0035094022750854492,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.6485830782438878e-05,
+9:         "max_abs": 0.002483449876308441,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0505978994159403e-05,
+9:         "max_abs": 0.002579808235168457,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.999814098933456e-05,
+9:         "max_abs": 0.003049001097679138,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2602696898355386e-05,
+9:         "max_abs": 0.0029079467058181763,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.355088505905559e-05,
+9:         "max_abs": 0.003579944372177124,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.354253673044729e-05,
+9:         "max_abs": 0.002579808235168457,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.911649073126842e-05,
+9:         "max_abs": 0.0028858482837677,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.1846183105906507e-05,
+9:         "max_abs": 0.002579808235168457,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3583868636593045e-05,
+9:         "max_abs": 0.003947317600250244,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3413182401001997e-05,
+9:         "max_abs": 0.0029477886855602264,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.262062224594012e-05,
+9:         "max_abs": 0.004163697361946106,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2875099522964391e-05,
+9:         "max_abs": 0.0029945969581604004,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4224308994624315e-05,
+9:         "max_abs": 0.004099652171134949,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3489545040573463e-05,
+9:         "max_abs": 0.0026545971632003784,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.5241667586722303e-05,
+9:         "max_abs": 0.004429250955581665,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.402744217544686e-05,
+9:         "max_abs": 0.003008320927619934,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q6_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3698029581595544e-05,
+9:         "max_abs": 0.004170313477516174,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4128648758387661e-05,
+9:         "max_abs": 0.0034934282302856445,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.6838087770277995e-05,
+9:         "max_abs": 0.0024256631731987,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 9.811720908673755e-06,
+9:         "max_abs": 0.002320811152458191,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.0287747312349045e-05,
+9:         "max_abs": 0.003330707550048828,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2033068584944191e-05,
+9:         "max_abs": 0.00267840176820755,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.322364036751489e-05,
+9:         "max_abs": 0.0034936368465423584,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.295396868527003e-05,
+9:         "max_abs": 0.002429872751235962,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.0855645494598754e-05,
+9:         "max_abs": 0.002961486577987671,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2476933425551936e-05,
+9:         "max_abs": 0.00248631089925766,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.371585288303948e-05,
+9:         "max_abs": 0.0038785338401794434,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.321364409945301e-05,
+9:         "max_abs": 0.0030917301774024963,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.2568957112565457e-05,
+9:         "max_abs": 0.004375427961349487,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2830541989020542e-05,
+9:         "max_abs": 0.0033465921878814697,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4840823292110578e-05,
+9:         "max_abs": 0.003857329487800598,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3731322880353033e-05,
+9:         "max_abs": 0.0031060613691806793,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4880796944646843e-05,
+9:         "max_abs": 0.0044303834438323975,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.38000498460289e-05,
+9:         "max_abs": 0.0034321248531341553,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq2_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3739278798747768e-05,
+9:         "max_abs": 0.004466318525373936,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4134817740042066e-05,
+9:         "max_abs": 0.0032859444618225098,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.7025907247218524e-05,
+9:         "max_abs": 0.0027355626225471497,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0727957792887667e-05,
+9:         "max_abs": 0.0025273114442825317,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.990329100675614e-05,
+9:         "max_abs": 0.0030975341796875,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2501869177964124e-05,
+9:         "max_abs": 0.002858884632587433,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3567321761114487e-05,
+9:         "max_abs": 0.0037744641304016113,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3452967729766981e-05,
+9:         "max_abs": 0.0026458799839019775,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9804928621074214e-05,
+9:         "max_abs": 0.0030982494354248047,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2048445050859144e-05,
+9:         "max_abs": 0.0026099681854248047,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3574593936667634e-05,
+9:         "max_abs": 0.004097878932952881,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3384707359822464e-05,
+9:         "max_abs": 0.0029265061020851135,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.2681652765289157e-05,
+9:         "max_abs": 0.004335135221481323,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2889821780450524e-05,
+9:         "max_abs": 0.0029812604188919067,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.469623260445862e-05,
+9:         "max_abs": 0.004210904240608215,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3733732323931884e-05,
+9:         "max_abs": 0.0029765665531158447,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.518636734063701e-05,
+9:         "max_abs": 0.00438961386680603,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.404199058220772e-05,
+9:         "max_abs": 0.0033846795558929443,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_s",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3757333358999543e-05,
+9:         "max_abs": 0.004307381808757782,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4106643029334043e-05,
+9:         "max_abs": 0.003537207841873169,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.8394014101333206e-05,
+9:         "max_abs": 0.002490296959877014,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0832316197615428e-05,
+9:         "max_abs": 0.0022605061531066895,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.0496634672301454e-05,
+9:         "max_abs": 0.0035014599561691284,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2968606363036627e-05,
+9:         "max_abs": 0.0028143227100372314,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3989818940027788e-05,
+9:         "max_abs": 0.003375440835952759,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3582867598080253e-05,
+9:         "max_abs": 0.00270901620388031,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.0363927100685282e-05,
+9:         "max_abs": 0.003348797559738159,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2293426270956759e-05,
+9:         "max_abs": 0.002933397889137268,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.39314612129042e-05,
+9:         "max_abs": 0.0041536688804626465,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3677597539656135e-05,
+9:         "max_abs": 0.0030302926898002625,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.242169337055851e-05,
+9:         "max_abs": 0.0040473490953445435,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2889798351619463e-05,
+9:         "max_abs": 0.00308305025100708,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4256857094905394e-05,
+9:         "max_abs": 0.0039634257555007935,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3239782461183347e-05,
+9:         "max_abs": 0.0029275119304656982,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.5161748744623033e-05,
+9:         "max_abs": 0.004653304815292358,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4085948452098443e-05,
+9:         "max_abs": 0.003155738115310669,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq3_xxs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3540720721067582e-05,
+9:         "max_abs": 0.004067912697792053,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4148343676037208e-05,
+9:         "max_abs": 0.003850489854812622,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.6186692335731013e-05,
+9:         "max_abs": 0.0024929046630859375,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0518039582377128e-05,
+9:         "max_abs": 0.0025435537099838257,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9867468435882136e-05,
+9:         "max_abs": 0.0031147897243499756,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2483619007525983e-05,
+9:         "max_abs": 0.00289250910282135,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3126001554176172e-05,
+9:         "max_abs": 0.0036269575357437134,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3521410449459065e-05,
+9:         "max_abs": 0.0025435537099838257,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.915628444148646e-05,
+9:         "max_abs": 0.0029172897338867188,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.1819015925463813e-05,
+9:         "max_abs": 0.0025435537099838257,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3443538494453383e-05,
+9:         "max_abs": 0.003974199295043945,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3285659260871011e-05,
+9:         "max_abs": 0.0029998905956745148,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.2346605272820897e-05,
+9:         "max_abs": 0.004060894250869751,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.274852166601862e-05,
+9:         "max_abs": 0.00296175479888916,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4190896523370713e-05,
+9:         "max_abs": 0.004142597317695618,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3418608493295465e-05,
+9:         "max_abs": 0.0027050375938415527,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.5244255958628662e-05,
+9:         "max_abs": 0.004457950592041016,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4020805436048717e-05,
+9:         "max_abs": 0.003051120787858963,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "iq4_xs",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3598667882733368e-05,
+9:         "max_abs": 0.004216574132442474,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4059026815700302e-05,
+9:         "max_abs": 0.0035324692726135254,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.732282893245022e-05,
+9:         "max_abs": 0.002684667706489563,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.0741645121915313e-05,
+9:         "max_abs": 0.00272233784198761,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9982892593607184e-05,
+9:         "max_abs": 0.003186851739883423,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2344468153078695e-05,
+9:         "max_abs": 0.002821311354637146,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4363976433419566e-05,
+9:         "max_abs": 0.0032983794808387756,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.369203535208684e-05,
+9:         "max_abs": 0.00272233784198761,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.0015124829171706e-05,
+9:         "max_abs": 0.002920106053352356,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2051613730085858e-05,
+9:         "max_abs": 0.00272233784198761,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3355844849255973e-05,
+9:         "max_abs": 0.003620341420173645,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3291362962107952e-05,
+9:         "max_abs": 0.0031559597700834274,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.2889645457836776e-05,
+9:         "max_abs": 0.003903791308403015,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3026922067882312e-05,
+9:         "max_abs": 0.0028994083404541016,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.6893754562123146e-05,
+9:         "max_abs": 0.0050944983959198,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.119271477682333e-05,
+9:         "max_abs": 0.004511058330535889,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.8820280700850284e-05,
+9:         "max_abs": 0.005231991410255432,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.1596861691268226e-05,
+9:         "max_abs": 0.004158154129981995,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q2_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.804344829329212e-05,
+9:         "max_abs": 0.006002575159072876,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 3.322377186486507e-05,
+9:         "max_abs": 0.005016449373215437,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.56953260472348e-05,
+9:         "max_abs": 0.002426452934741974,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.020979208464376e-05,
+9:         "max_abs": 0.002533853054046631,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9763609944895424e-05,
+9:         "max_abs": 0.0031852275133132935,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2377882369513581e-05,
+9:         "max_abs": 0.002857699990272522,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3490007756122263e-05,
+9:         "max_abs": 0.003537781536579132,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3584629789008834e-05,
+9:         "max_abs": 0.002533853054046631,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.8924090198219682e-05,
+9:         "max_abs": 0.003078244626522064,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.174381655548391e-05,
+9:         "max_abs": 0.002533853054046631,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3521737854042765e-05,
+9:         "max_abs": 0.0039778947830200195,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3414925858882238e-05,
+9:         "max_abs": 0.0031092315912246704,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.284422281696679e-05,
+9:         "max_abs": 0.003957927227020264,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2919084149746991e-05,
+9:         "max_abs": 0.002850845456123352,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.4051596812398493e-05,
+9:         "max_abs": 0.003883570432662964,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3484668802276765e-05,
+9:         "max_abs": 0.0025753825902938843,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.5308230667677137e-05,
+9:         "max_abs": 0.004595771431922913,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.4061996379709365e-05,
+9:         "max_abs": 0.0031708404421806335,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q3_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3829206949436386e-05,
+9:         "max_abs": 0.0041821300983428955,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.416841240835699e-05,
+9:         "max_abs": 0.0034395158290863037,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 64,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.7056572012617198e-05,
+9:         "max_abs": 0.0024810731410980225,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.064483812269586e-05,
+9:         "max_abs": 0.002485722303390503,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.00257464987198e-05,
+9:         "max_abs": 0.0030461326241493225,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2653669771080664e-05,
+9:         "max_abs": 0.00295180082321167,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 1,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 512,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3498131101603058e-05,
+9:         "max_abs": 0.003627181053161621,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.3486304004401899e-05,
+9:         "max_abs": 0.002485722303390503,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 256,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.9374052272393717e-05,
+9:         "max_abs": 0.002965569496154785,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.1923423224595748e-05,
+9:         "max_abs": 0.002580419182777405,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.3594275237371402e-05,
+9:         "max_abs": 0.0038633346557617188,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.34315145973122e-05,
+9:         "max_abs": 0.002996351569890976,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 4,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 2048,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 2.261816738109944e-05,
+9:         "max_abs": 0.004169359803199768,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 1.2872911530431053e-05,
+9:         "max_abs": 0.002950221300125122,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT",
+9:       "status": "pass",
+9:       "elements": 1088,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 6.110936306707134e-05,
+9:         "max_abs": 0.0057808756828308105,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 5.299513269652051e-05,
+9:         "max_abs": 0.005317285656929016,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID broadcast",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 6.586060349843735e-05,
+9:         "max_abs": 0.006476849317550659,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 5.436200211477851e-05,
+9:         "max_abs": 0.005619965493679047,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     },
+9:     {
+9:       "type": "q4_K",
+9:       "tokens": 17,
+9:       "op": "MUL_MAT_ID per-route",
+9:       "status": "pass",
+9:       "elements": 8704,
+9:       "cuda_vs_cpu": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 6.001571922881414e-05,
+9:         "max_abs": 0.006366550922393799,
+9:         "nmse_limit": 0.0001
+9:       },
+9:       "cuda_vs_scalar": {
+9:         "pass": true,
+9:         "finite": true,
+9:         "nmse": 5.038177634756025e-05,
+9:         "max_abs": 0.00640028715133667,
+9:         "nmse_limit": 0.0001
+9:       }
+9:     }
+9:   ],
+9:   "device": "NVIDIA GeForce RTX 5090"
+9: }
+9/9 Test #9: glm5next_candidate_quant ............   Passed    1.57 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =   3.61 sec
+
+State command, exit 0:
+$env:PATH = "$PWD\build-local\cuda-13.0\bin;$PWD\build-local\cuda-13.0\bin\x64;$env:PATH"
+$env:NVIDIA_TF32_OVERRIDE = '0'
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-state-check.exe build-local\glm5next-candidate-cuda\state-fixture > docs\GLM53\GLM53_FLASH_STATE_CHECK.json 2> build-local\glm5next-state-final.log
+
+Quant command, exit 0:
+$env:PATH = "$PWD\build-local\cuda-13.0\bin;$PWD\build-local\cuda-13.0\bin\x64;$env:PATH"
+$env:NVIDIA_TF32_OVERRIDE = '0'
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-quant-check.exe > docs\GLM53\GLM53_FLASH_QUANT_CHECK.json 2> build-local\glm5next-quant-final.log
+
+Initial findings:
+- Synthetic LID geometry must retain 32 x 128 heads/width; unsupported 2-head fixture correctly triggered GPU audit.
+- Localized MSVC include scanning missed a changed fixture header; an explicit OBJECT_DEPENDS now makes regeneration reliable.
+- Initial ordered_json results reference was invalidated by later object insertion, causing incorrect aggregate status. Aggregation moved before insertion; JSON rows independently checked.
+- Corrected unpatched checker exited 1: 10 numerical comparisons failed, despite NVIDIA_TF32_OVERRIDE=0.
+- Candidate F32 MMF uses explicit TF32 MMA; generated GLM-only patch respects the override in the shared selection predicate.
+- Patched checker: 98/98 state and 108/108 matrix comparisons; original tolerance unchanged.

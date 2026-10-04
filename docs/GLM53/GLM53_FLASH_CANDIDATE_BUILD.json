@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "date": "2026-10-04",
+  "timezone": "Asia/Yekaterinburg",
+  "scope": "P0.3b.1 candidate compilation and P2.1b.2 exact token IDs; no model execution",
+  "base_revision": "7a721e712340d0d7901226bad56290ffe6494ca0",
+  "working_tree_code_changes": [
+    "backends/glm5next/CMakeLists.txt",
+    "tools/strata_tokenizer.py",
+    "tools/glm5next_tokenizer_corpus.py",
+    "tools/test_glm5next_tokenizer.py",
+    "tools/test_glm5next_oracle_check.py"
+  ],
+  "archive_url": "https://codeload.github.com/unslothai/llama.cpp/tar.gz/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_path": "C:\\work\\git\\my-repos\\Strata\\build-local\\llama-glm-86ebfef2.tar.gz",
+  "archive_size_bytes": 37493950,
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "provenance_limit": "Downloaded from exact HTTPS commit URL; locally recorded hash, not an independently published checksum or production pin",
+  "archive_root": "llama.cpp-86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "source_audit": {
+    "archive_files_compared": 3599,
+    "missing_files": [],
+    "changed_files": [],
+    "scope": "All archived regular files compared; generated extra files are not included"
+  },
+  "source_build_record": {
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches_applied_by_harness": "none",
+    "cxx": "MSVC 19.44.35222.0",
+    "cuda_enabled": "ON",
+    "cuda_compiler": "C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe",
+    "cuda_version": "13.0.48",
+    "cuda_architectures_requested": "120",
+    "cuda_architectures": "120a",
+    "scope": "vocab-only oracle; no GLM inference engine"
+  },
+  "binary_path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-tokenizer.exe",
+  "binary_sha256": "b873f33b6e8aeac8468dbf6fb750a6d2d3d1dd65b1485034651ff087fdfa6af5",
+  "harness_files_sha256": {
+    "backends/glm5next/CMakeLists.txt": "85e901e9490f8a5dda13c2c29c65d2273d663dad8a471ffdb7fd77d9755fdcaf",
+    "backends/glm5next/SourceArchive.cmake": "af214168bdc58e755070ac9712a44f4721299b60f2368e225df4606a968d5c64",
+    "backends/glm5next/tokenizer_oracle.cpp": "ca9f90d30808e63327b3942955900e89400e7b5178599783c83886ccd97047c4",
+    "backends/glm5next/tokenizer_protocol.hpp": "50eb22cd218c528a7b75d7c40c9ef61a72df7c875472df6c6e117559fe6114b3",
+    "tools/strata_tokenizer.py": "bf4ebd73c3f0521fc48c6174d67281716579bd419c135215450cf913b4c8b567",
+    "tools/check_glm5next_tokenizer.py": "0d7b456d234ddcb3351b2ff7b4495f1753ea51d81d9c4f4a0a6ba78ffc30d9c5",
+    "tools/glm5next_tokenizer_corpus.py": "92c0ea56506c4523f047581fd64f41d93a8de565969a62560c4cb345fa01f597",
+    "tools/test_glm5next_tokenizer.py": "3897f5832f3b3e6ba1961e28533fae8e68f6169cbc525a808f64363f7cf309d1",
+    "tools/test_glm5next_oracle_check.py": "00045bbceb09825301493bbfc3d2d81494d285fe792a653ec2cde66902276283"
+  },
+  "environment": {
+    "os": "Windows",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_total_mib": 32607,
+    "cpu": "Ryzen 9 9950X",
+    "ram_gib": 128,
+    "windows_sdk": "10.0.26100.0"
+  },
+  "build_exit_code": 0,
+  "ctest_passed": 6,
+  "python_unit_tests_passed": 21,
+  "python_regression_tests_passed": 39,
+  "tokenizer_commands": [
+    {
+      "command": "python -m tools.check_glm5next_tokenizer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --oracle build-local/glm5next-candidate-cuda/bin/strata-glm5next-tokenizer.exe --archive-sha256 f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 --output docs/GLM53/GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json --timeout 60",
+      "exit_code": 0,
+      "case_count": 80,
+      "mismatch_count": 0,
+      "report": "GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json",
+      "report_sha256": "2020fddf487c09e0909d5f58b26aff92cb63ae294a1c26cc92ef383308ea0bec"
+    },
+    {
+      "command": "python -m tools.check_glm5next_tokenizer --gguf H:/GLM-5.3-Flash-GGUF/UD-Q3_K_XL/GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf --oracle build-local/glm5next-candidate-cuda/bin/strata-glm5next-tokenizer.exe --archive-sha256 f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 --output docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_TOKENIZER_PARITY.json --timeout 60",
+      "exit_code": 0,
+      "case_count": 80,
+      "mismatch_count": 0,
+      "report": "GLM53_FLASH_UD_Q3_K_XL_TOKENIZER_PARITY.json",
+      "report_sha256": "59e3e7f01ab23b24840f4ceb19e93689a8af3592c3fc8c7a7f13e9613a03c0ee"
+    }
+  ],
+  "log": "GLM53_FLASH_CANDIDATE_BUILD_TESTS.txt",
+  "log_sha256": "d37072b6013bc53270587d131ae8fa0ec0bbf041ff9b5e8cbbd45908361ae78f",
+  "unverified": [
+    "GLM graph trace and MTP-off layer boundary",
+    "numerical GPU kernels/logits",
+    "KDA rollback and kpool/sparse attention state",
+    "independent template rendering",
+    "full-model inference, sessions and MTP",
+    "Linux/HIP and full-model Qwen/DeepSeek regression"
+  ]
+}

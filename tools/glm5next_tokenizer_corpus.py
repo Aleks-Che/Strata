@@ -9,6 +9,8 @@ CORPUS = [
     '</think><tool_call>echo<arg_key>text</arg_key><arg_value>A</arg_value></tool_call>',
     '<|observation|><tool_response>A</tool_response><|endoftext|>',
     '<tool_call><tool_call> <|assis [gMASK', '中' * 90, 'a\u0301' * 90,
+    # Whole glm4 vocab pieces not reachable through greedy merges (ignore_merges).
+    ' 参考', ' 参考资料', ' 根据 演员 游戏', 'English 和中文 mixed 水',
 ]
 
 

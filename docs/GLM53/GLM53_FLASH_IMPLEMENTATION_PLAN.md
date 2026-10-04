@@ -201,7 +201,8 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
   `block_count=46`, отсутствие обычного прохода через MTP при MTP off.
   Статическая проверка P0.2: [отчёт](GLM53_FLASH_LOADER_COMPATIBILITY.md).
   Обе проверки повторены для Uncensored-IQ3_XXS; [новый JSON](GLM53_FLASH_IQ3_XXS_INSPECTION.json).
-  Trace собранного backend ещё не проверен; это входит в последующую проверку графов.
+  Trace собранного кандидата проверен в P0.3b.2a без выделения памяти под веса;
+  исполнения полного графа ещё нет.
 - [ ] Собрать изолированную зависимость; записать полный SHA, CUDA/compiler, patch set.
   Проверить исправления KDA rollback, kpool state, sparse attention и больших индексов.
   - [x] P0.3a: отдельный `backends/glm5next/` CMake scaffold, обязательная проверка
@@ -209,6 +210,32 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
     fixtures прошли. Исходник oracle проверен синтаксически с локальными headers.
   - [ ] P0.3b: получить архив кандидата, записать проверенный hash, собрать реальные
     llama/oracle/CUDA targets и проверить графы. P0.3a не подтверждает такую сборку.
+    - [x] P0.3b.1: архив `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9` получен,
+      SHA-256 записан; 3599 исходных файлов совпали с архивом. Изолированная сборка
+      llama/oracle/CUDA прошла на MSVC 19.44 / CUDA 13.0.48, target `120a`, без
+      патчей зависимости. 6/6 CTest; [build record](GLM53_FLASH_CANDIDATE_BUILD.json).
+    - [ ] P0.3b.2: trace обычного графа без блока 45, KDA rollback, kpool,
+      sparse attention и большие индексы. Сборка не доказывает численную корректность.
+      - [x] P0.3b.2a: no_alloc trace двух GGUF, контексты 2048/4096 × batches
+        1/4/16/256, MTP off, блоки 0–44, GPU-only scheduler audit. 16/16 графов;
+        negative case с CPU embedding отклонён. Без загрузки/вычисления весов.
+      - [x] P0.3b.2b: 22 численных CUDA fixtures KDA/mHC/I32 gather, включая
+        scalar KDA reference, microbatch и snapshots с принятием 0–4 токенов.
+        [Отчёты и параметры](GLM53_FLASH_GRAPH_VALIDATION.json), 7/7 CTest.
+        Полный hybrid rollback и kpool пока не проверены.
+      - [ ] P0.3b.2c: неполный kpool, hybrid seq_rm/rollback, численная sparse DSA
+        и mixed-quant MoE; затем baseline logits при реальном исполнении.
+        - [x] P0.3b.2c.1: настоящий граф synthetic GLM (KDA + DSA + mHC + MoE),
+          98 проверок logits/state/kpool; 30 rollback-вариантов, pending save/restore,
+          scalar pool reference, CPU/GPU и dense/sparse сравнения. Исправлено
+          игнорирование TF32-off в F32 MMF кандидата локальным CUDA-патчем;
+          10 прежних расхождений устранены без изменения порогов.
+        - [x] P0.3b.2c.2: 108 CUDA matrix fixtures для всех типов обоих GGUF + F16,
+          обычный/routed matmul, 8 выбранных экспертов, tokens 1/4/17;
+          CPU и scalar references. [Отчёты](GLM53_FLASH_STATE_VALIDATION.json).
+        - [ ] P0.3b.2c.3: реальная 45-layer модель, F16 KV и mixed-quant streamed
+          outputs/logits/state; требует P1 demand-loading. Synthetic coverage
+          выше не закрывает этот пункт и не является замером скорости.
 - [ ] Подготовить GPU fixtures для KDA/DSA/mHC/MoE и сравнения logits, включая разбивку
   prefill на микробатчи и переход от полного к разреженному attention.
 - [ ] Зафиксировать корректный tokenizer/template oracle из той же зависимости.
@@ -240,18 +267,24 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
 
 ### P2. Токенизация, диалоги, tools и API
 
-- [ ] Добавить `glm4` в `tools/strata_tokenizer.py` и сравнить IDs с oracle
+- [x] Добавить `glm4` в `tools/strata_tokenizer.py` и сравнить IDs с oracle
   на русском, английском, китайском,
   коде, числах, emoji и специальных токенах. Одного encode/decode round-trip мало.
   - [x] P2.1a: Python glm4 regex и экспорт pre_pattern; 7 fixture-тестов и
     round-trip на локальном GGUF. Qwen/JOYAI режимы сохранены.
-  - [ ] P2.1b: сравнить точные IDs с oracle выбранной Unsloth-зависимости;
-    P2.1a не подтверждает parity и не разрешает запуск GLM-профиля.
+  - [x] P2.1b: точные IDs совпали с собранной Unsloth-зависимостью на обоих
+    GGUF после добавления `ignore_merges`. Это не разрешает запуск GLM-профиля
+    без проверки графов и интеграции engine.
     - [x] P2.1b.1: runner `tools/check_glm5next_tokenizer.py`, проверки provenance,
       72 сравнения plain/rendered inputs, JSON с IDs и расхождениями; проверено
       на scripted subprocess, без численного oracle.
-    - [ ] P2.1b.2: запустить runner с собранным кандидатом и сохранить реальный
-      parity report. Проверку template rendering с независимым oracle выполнить отдельно.
+    - [x] P2.1b.2: по 80 сравнений plain/rendered text, parse_special off/on,
+      на каждом GGUF; все совпали. Старый Python дал 8 расхождений на расширенном
+      корпусе; GLM принимает целый vocab piece перед greedy merges. Экспортируется
+      `ignore_merges`, добавлена регрессия Qwen/JOYAI. Отчёты:
+      [IQ3_XXS](GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json),
+      [UD-Q3_K_XL](GLM53_FLASH_UD_Q3_K_XL_TOKENIZER_PARITY.json).
+      Проверку template rendering с независимым oracle выполнить отдельно.
 - [x] Использовать встроенный Jinja template с нужными extensions, включая `break`.
   Проверить `[gMASK]<sop>`, сериализацию нескольких сообщений и tool results.
   P2.2: отдельный `GLMTemplate` и 10 fixture-тестов готовы; подключение к API

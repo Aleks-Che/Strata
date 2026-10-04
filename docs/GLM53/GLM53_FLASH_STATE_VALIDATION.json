@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "recorded_at": "2026-10-04T15:49:02.441974+05:00",
+  "scope": "Synthetic hybrid forward/state and matrix kernels; no real GGUF weight execution or tokens/s",
+  "base_revision": "7a721e712340d0d7901226bad56290ffe6494ca0",
+  "cwd": "C:\\work\\git\\my-repos\\Strata",
+  "previous_uncommitted_work_preserved": "P0.3b.1/.2a/.2b and P2.1b.2",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "original_extracted_tree_audit": {
+    "regular_files_compared": 3599,
+    "missing": [],
+    "changed": []
+  },
+  "source_build_record": {
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches_applied_by_harness": "cuda-f32-mmf-respect-tf32-override",
+    "mmf_original_sha256": "08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1",
+    "mmf_generated_sha256": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc",
+    "cxx": "MSVC 19.44.35222.0",
+    "cuda_enabled": "ON",
+    "cuda_compiler": "C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe",
+    "cuda_version": "13.0.48",
+    "cuda_architectures_requested": "120",
+    "cuda_architectures": "120a",
+    "graph_validation_enabled": "ON",
+    "scope": "vocab-only oracle and optional graph/kernel validation; no GLM inference engine"
+  },
+  "harness_sha256": {
+    "backends/glm5next/CMakeLists.txt": "6cf2d629ec7a4a1c2febfed0b441881bd570b179490ed8d90896ab980f45309c",
+    "backends/glm5next/CandidatePatches.cmake": "44af8b33ea34bdb89dbe8bd35a511876e6045a5f60881d749594868981a40b77",
+    "backends/glm5next/check_state.cpp": "565b465bcd0b9a29b17599bf854bda2b89c5ad0c5d1a7f64d187944d651348bb",
+    "backends/glm5next/synthetic_glm.hpp": "537d4d7c936f90c78696009971c1caf93ae86ff987886f2f70c4c91ed8f333b9",
+    "backends/glm5next/check_quant.cpp": "4254f86ab8492e0f457c2401a4a681f4f12234f153c37ad34c9741a97d52ec71"
+  },
+  "generated_patch_sha256": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc",
+  "binary_sha256": {
+    "strata-glm5next-state-check.exe": "d88d506fd006f8694b2452358677e73badbf3a8568c33cd5c5a9c61e88da038d",
+    "strata-glm5next-quant-check.exe": "be48e0c476339ca1b7a034ce6de969a3b0e95bcb6c9fbcf7825a4bd7859327f5"
+  },
+  "synthetic_fixtures": {
+    "synthetic-glm-dense.gguf": {
+      "bytes": 10947232,
+      "sha256": "9b6997fc80f83da101adb825d94b2d677c5da03701f82d668b2bd4479b4ca58e"
+    },
+    "synthetic-glm-sparse.gguf": {
+      "bytes": 10947232,
+      "sha256": "7af18a99636b0c37c1fa90686dddcdce4f8b7ce6e32dcbe5abfebf855456bd41"
+    }
+  },
+  "commands": {
+    "build": {
+      "command": "cmd /c \"build-local\\build-glm-graph.cmd > build-local\\glm5next-state-quant-verified-build.log 2>&1\"",
+      "exit_code": 0
+    },
+    "state": {
+      "command": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-state-check.exe build-local\\glm5next-candidate-cuda\\state-fixture > docs\\GLM53\\GLM53_FLASH_STATE_CHECK.json 2> build-local\\glm5next-state-final.log",
+      "exit_code": 0
+    },
+    "quant": {
+      "command": "$env:PATH = \"$PWD\\build-local\\cuda-13.0\\bin;$PWD\\build-local\\cuda-13.0\\bin\\x64;$env:PATH\"\n$env:NVIDIA_TF32_OVERRIDE = '0'\n& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-quant-check.exe > docs\\GLM53\\GLM53_FLASH_QUANT_CHECK.json 2> build-local\\glm5next-quant-final.log",
+      "exit_code": 0
+    }
+  },
+  "validation": {
+    "ctest_passed": 9,
+    "state_cases": 98,
+    "matrix_cases": 108,
+    "state_max_abs": 2.980232238769531e-07,
+    "state_max_nmse": 1.6071131714486772e-13,
+    "matrix_cuda_cpu_max_nmse": 6.586060349843735e-05,
+    "matrix_cuda_scalar_max_nmse": 5.436200211477851e-05,
+    "f32_cuda_scalar_max_nmse": 1.6865453360159302e-14,
+    "unpatched_state_failed_cases": 10,
+    "unpatched_state_max_abs": 0.0013841986656188965
+  },
+  "report_sha256": {
+    "GLM53_FLASH_STATE_CHECK.json": "19f5ef645c82e49785688c57fd896c3b318f43a43011d23ad8086a02fdc49a5d",
+    "GLM53_FLASH_QUANT_CHECK.json": "0efe18686bda4200f7c0ae43f1345a7b1006d70651a782bfc474bf7f4a21de0d",
+    "GLM53_FLASH_STATE_BEFORE_TF32_FIX.json": "583e57119e574fc77834f956ba3bf10ece2f227775e45ea98d232d67896eb498"
+  },
+  "build_log_sha256": "03f24a16237da7985369334e0d0b67bce22b41e179c894d5f272c1057042dd88",
+  "omitted_msvc_include_lines": 701,
+  "limitations": [
+    "Synthetic F32 two-layer GLM, reduced dimensions and sparse top-k=8",
+    "F32 KV state; no actual 45-layer mixed-quant model forward or F16 KV baseline",
+    "Matrix fixtures use quantized synthetic weights, not on-disk GGUF payloads",
+    "No integrated expert streaming, native MTP, concurrent sessions, long-context stress, or Linux/HIP",
+    "No throughput or peak memory measurement; patch may add synchronization for F32 routed matmuls"
+  ]
+}

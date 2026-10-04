@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "scope": "synthetic KDA/mHC/integer-gather kernels; not full GLM inference or hybrid-state rollback",
+  "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "seed": 5501349,
+  "results": [
+    {
+      "name": "kda/cpu/tokens=1/snapshots=1",
+      "status": "pass",
+      "elements": 1056768,
+      "finite": true,
+      "nmse": 1.5881051688918302e-16,
+      "max_abs": 1.4901161193847656e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=4/snapshots=4",
+      "status": "pass",
+      "elements": 4227072,
+      "finite": true,
+      "nmse": 4.985406787946393e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=15/snapshots=4",
+      "status": "pass",
+      "elements": 4317184,
+      "finite": true,
+      "nmse": 6.880802030294764e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=16/snapshots=4",
+      "status": "pass",
+      "elements": 4325376,
+      "finite": true,
+      "nmse": 6.502819186881438e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=17/snapshots=4",
+      "status": "pass",
+      "elements": 4333568,
+      "finite": true,
+      "nmse": 6.723153814087904e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=33/snapshots=4",
+      "status": "pass",
+      "elements": 4464640,
+      "finite": true,
+      "nmse": 6.496419983269294e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu/tokens=64/snapshots=4",
+      "status": "pass",
+      "elements": 4718592,
+      "finite": true,
+      "nmse": 6.291373753301121e-16,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cuda-vs-scalar",
+      "status": "pass",
+      "elements": 135424,
+      "finite": true,
+      "nmse": 3.1074425545017872e-15,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/cpu-vs-scalar",
+      "status": "pass",
+      "elements": 135424,
+      "finite": true,
+      "nmse": 2.9547130439439342e-15,
+      "max_abs": 2.9802322387695313e-08,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/microbatch=1",
+      "status": "pass",
+      "elements": 1318912,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/microbatch=4",
+      "status": "pass",
+      "elements": 1318912,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/microbatch=16",
+      "status": "pass",
+      "elements": 1318912,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/rollback-accepted=0",
+      "status": "pass",
+      "elements": 139264,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/rollback-accepted=1",
+      "status": "pass",
+      "elements": 138240,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/rollback-accepted=2",
+      "status": "pass",
+      "elements": 137216,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/rollback-accepted=3",
+      "status": "pass",
+      "elements": 136192,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "kda/rollback-accepted=4",
+      "status": "pass",
+      "elements": 135168,
+      "finite": true,
+      "nmse": 0.0,
+      "max_abs": 0.0,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=1",
+      "status": "pass",
+      "elements": 20496,
+      "finite": true,
+      "nmse": 5.327565010884206e-15,
+      "max_abs": 7.152557373046875e-07,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=4",
+      "status": "pass",
+      "elements": 81984,
+      "finite": true,
+      "nmse": 4.2260149310443155e-15,
+      "max_abs": 1.430511474609375e-06,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=17",
+      "status": "pass",
+      "elements": 348432,
+      "finite": true,
+      "nmse": 4.9987263086011285e-15,
+      "max_abs": 9.5367431640625e-07,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "mhc/width=4096/streams=4/sinkhorn=20/tokens=256",
+      "status": "pass",
+      "elements": 5246976,
+      "finite": true,
+      "nmse": 4.8286655277815445e-15,
+      "max_abs": 1.430511474609375e-06,
+      "nmse_limit": 1e-07,
+      "max_abs_limit": 0.0005
+    },
+    {
+      "name": "indexer/integer-pool-cell-gather",
+      "status": "pass",
+      "elements": 2048,
+      "comparison": "exact I32; includes -1, odd values >2^24, INT32_MAX"
+    }
+  ],
+  "device": "NVIDIA GeForce RTX 5090",
+  "NVIDIA_TF32_OVERRIDE": "0"
+}

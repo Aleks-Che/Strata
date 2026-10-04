@@ -5,6 +5,10 @@ endif()
 option(STRATA_GLM_PROTOCOL_TESTS_ONLY "Skip candidate dependency; build protocol/reader tests and optional CUDA transport tests" OFF)
 option(STRATA_GLM_CUDA "Compile candidate CUDA kernels (oracle still loads vocabulary only)" OFF)
 option(STRATA_GLM_TRANSPORT_TESTS_CUDA "Test shared GPU transport without llama.cpp (requires a CUDA device)" OFF)
+option(STRATA_GLM_GRAPH_CHECK "Build graph audit and numerical kernel checks against the candidate (requires CUDA)" OFF)
+if(STRATA_GLM_GRAPH_CHECK AND (STRATA_GLM_PROTOCOL_TESTS_ONLY OR NOT STRATA_GLM_CUDA))
+  message(FATAL_ERROR "STRATA_GLM_GRAPH_CHECK requires the candidate and STRATA_GLM_CUDA=ON")
+endif()
 set(STRATA_GLM_ARCHIVE "" CACHE FILEPATH "Local archive of the audited Unsloth candidate")
 set(STRATA_GLM_ARCHIVE_SHA256 "" CACHE STRING "Reviewed archive SHA-256; required, no default")
 if(NOT STRATA_GLM_PROTOCOL_TESTS_ONLY)
@@ -112,6 +116,10 @@ if(STRATA_GLM_CUDA)
   enable_language(CUDA) # keep compiler/version visible in the provenance record
 endif()
 add_subdirectory("${glm_source}" llama EXCLUDE_FROM_ALL)
+set(glm_candidate_patches "none")
+if(STRATA_GLM_CUDA)
+  include(CandidatePatches.cmake)
+endif()
 add_executable(strata-glm5next-tokenizer tokenizer_oracle.cpp)
 target_compile_features(strata-glm5next-tokenizer PRIVATE cxx_std_17)
 target_link_libraries(strata-glm5next-tokenizer PRIVATE llama)
@@ -119,9 +127,47 @@ target_compile_definitions(strata-glm5next-tokenizer PRIVATE
   STRATA_GLM_SOURCE_SHA="${STRATA_GLM_SOURCE_SHA}"
   STRATA_GLM_ARCHIVE_SHA256="${STRATA_GLM_ARCHIVE_SHA256}")
 set_target_properties(strata-glm5next-tokenizer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+if(STRATA_GLM_GRAPH_CHECK)
+  foreach(check_kind graph ops state quant)
+    set(check_target strata-glm5next-${check_kind}-check)
+    add_executable(${check_target} check_${check_kind}.cpp)
+    target_compile_features(${check_target} PRIVATE cxx_std_17)
+    target_include_directories(${check_target} PRIVATE "${glm_source}/src" "${glm_source}/vendor")
+    target_link_libraries(${check_target} PRIVATE llama)
+    target_compile_definitions(${check_target} PRIVATE
+      STRATA_GLM_SOURCE_SHA="${STRATA_GLM_SOURCE_SHA}"
+      STRATA_GLM_ARCHIVE_SHA256="${STRATA_GLM_ARCHIVE_SHA256}"
+      STRATA_GLM_PATCH_SET="${glm_candidate_patches}")
+    set_target_properties(${check_target} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  endforeach()
+  # Keep fixture regeneration reliable on MSVC/Ninja hosts where localized
+  # /showIncludes output is not recognized by Ninja's dependency scanner.
+  set_property(SOURCE check_state.cpp APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/synthetic_glm.hpp")
+  add_test(NAME glm5next_candidate_ops COMMAND strata-glm5next-ops-check)
+  add_test(NAME glm5next_candidate_state COMMAND strata-glm5next-state-check "${CMAKE_BINARY_DIR}/state-fixture")
+  add_test(NAME glm5next_candidate_quant COMMAND strata-glm5next-quant-check)
+  set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant PROPERTIES TIMEOUT 120 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0")
+  if(WIN32)
+    # CTest rebuilds the environment when applying NVIDIA_TF32_OVERRIDE. Hosts
+    # with both Path and PATH can otherwise lose the caller's CUDA DLL prefix.
+    get_filename_component(glm_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+    set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${glm_cuda_bin}/x64;PATH=path_list_prepend:${glm_cuda_bin}")
+  endif()
+endif()
+# The candidate can rewrite the requested architecture inside its subdirectory
+# (for example 120 -> 120a). Record the target actually compiled, not just the
+# parent scope's request. Disabled CUDA has no ggml-cuda target.
+set(glm_cuda_architectures "")
+if(STRATA_GLM_CUDA)
+  get_target_property(glm_cuda_architectures ggml-cuda CUDA_ARCHITECTURES)
+endif()
 file(WRITE "${CMAKE_BINARY_DIR}/glm-source-build.txt"
-  "requested_revision=${STRATA_GLM_SOURCE_SHA}\narchive_sha256=${STRATA_GLM_ARCHIVE_SHA256}\npatches_applied_by_harness=none\n"
+  "requested_revision=${STRATA_GLM_SOURCE_SHA}\narchive_sha256=${STRATA_GLM_ARCHIVE_SHA256}\npatches_applied_by_harness=${glm_candidate_patches}\n"
+  "mmf_original_sha256=${glm_mmf_original_sha256}\nmmf_generated_sha256=${glm_mmf_generated_sha256}\n"
   "cxx=${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\n"
   "cuda_enabled=${STRATA_GLM_CUDA}\ncuda_compiler=${CMAKE_CUDA_COMPILER}\n"
-  "cuda_version=${CMAKE_CUDA_COMPILER_VERSION}\ncuda_architectures=${CMAKE_CUDA_ARCHITECTURES}\n"
-  "scope=vocab-only oracle; no GLM inference engine\n")
+  "cuda_version=${CMAKE_CUDA_COMPILER_VERSION}\ncuda_architectures_requested=${CMAKE_CUDA_ARCHITECTURES}\n"
+  "cuda_architectures=${glm_cuda_architectures}\n"
+  "graph_validation_enabled=${STRATA_GLM_GRAPH_CHECK}\n"
+  "scope=vocab-only oracle and optional graph/kernel validation; no GLM inference engine\n")
