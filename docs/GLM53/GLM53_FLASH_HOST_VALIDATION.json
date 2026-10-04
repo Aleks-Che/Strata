@@ -1,0 +1,2089 @@
+{
+  "date": "2026-10-05T00:31:51.935906",
+  "timezone": "Asia/Yekaterinburg",
+  "status": "pass_for_P3.3g",
+  "base_revision": "b0b1bba933e449fec2a7e8218330fe3cde4c14fd",
+  "working_tree_changes": true,
+  "prior_stage": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_WARM_VALIDATION.json",
+    "sha256": "3686a789d97a3123ce9e2df2e31dbed022df58e7a72d0094b65ed06cb98b21f0"
+  },
+  "hardware": "Windows / Ryzen 9 9950X / 128 GiB RAM / RTX 5090 32 GiB",
+  "model": {
+    "path": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+    "file_bytes": 120591950656,
+    "full_hash": "not computed"
+  },
+  "build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages\nmmf_original_sha256=08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1\nmmf_generated_sha256=e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_compiler=C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe\ncuda_version=13.0.48\ncuda_architectures_requested=120\ncuda_architectures=120a\ngraph_validation_enabled=ON\nsync_baseline_enabled=ON\nscope=isolated GLM validation and Strata pipe engine; optional expert cache, router lookahead pipeline and native NextN MTP\n",
+  "final_source_and_binary_hashes": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\host_pages.hpp",
+      "sha256": "13f431a3fefb455cc42c1855bd7e999404695cec2b28d5119a4f6ed873802650"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\test_host_pages.cpp",
+      "sha256": "6258751f823d3e5f44e8fd4bc11661647183201df6637aa6606394a769ccded3"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\runtime_memory.cpp",
+      "sha256": "27b5c2f15b77026e76d27d2eaa3a5d14d9dd147babc3b1a25c2337c827541e1d"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\main.cpp",
+      "sha256": "7d1055b483551563a3475a11ec7c89ef337b81cee557277c93e8de0d06ecd00b"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\CMakeLists.txt",
+      "sha256": "da1121990f3a8bf260dd2ee54902ed8d5448ce8c687d6d12628973d761d49f18"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\RuntimePatches.cmake",
+      "sha256": "441415c9cddd88a625bd04d86b2d4756d711da833467571391f432e9ec687eaa"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\tools\\benchmark_glm5next_host.py",
+      "sha256": "5f60461e491896e751bb52149e9a8da0b08faed1653ca38699d5df10754679b6"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe",
+      "sha256": "47546317b8500e20bd761f75450807d2ea6619fc55c4d111743a683e7da2aecf"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+      "sha256": "3127124df45657bf58bc86e8a378c773fc43777fb7224b82eb686cbe51d58033"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-ops-check.exe",
+      "sha256": "f1e6b2b94d02829eb2bd794f401fe149aebd880c665be1f9ae11a20f177f5b64"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-quant-check.exe",
+      "sha256": "bdbd1dcfaf7c50e6af7fe623ca1a10c9e45ea25f01280233f827e0bb03b30af2"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe",
+      "sha256": "1e53cbc5b13997664c5eeef811c086a7ffad226ac4582c9e0accec49ce7e4f22"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-state-check.exe",
+      "sha256": "2f4928fc155a7c1ae23dc7016ac9c4b6c7e92f6389f4f52a9c0a799fe036e333"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-tokenizer.exe",
+      "sha256": "cf5b60f6accae4c8c4610701ba5855028a3fd5f5e3e95a70cc5668c9cb6c223e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+      "sha256": "bce766669711b675b41468e91b1d602704a9c1e7e735617773d89930961f25b7"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\glm5next_host_pages_test.exe",
+      "sha256": "23a749982d3c2a586d9c9bc8f3f2c65e0446d3e46d1512f872ca704dbcaa28bb"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\runtime_memory.hpp",
+      "sha256": "ffac8fa76722ea4e7917ff2f8705d1672d898627377d263457f28cb090ca69fd"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\tools\\benchmark_glm5next_host.py",
+      "sha256": "5f60461e491896e751bb52149e9a8da0b08faed1653ca38699d5df10754679b6"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\CMakeLists.txt",
+      "sha256": "da1121990f3a8bf260dd2ee54902ed8d5448ce8c687d6d12628973d761d49f18"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\RuntimePatches.cmake",
+      "sha256": "441415c9cddd88a625bd04d86b2d4756d711da833467571391f432e9ec687eaa"
+    }
+  ],
+  "generated_units": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-backend.cpp",
+      "sha256": "e2dfe013f927f8821e506e8f6426fa809cfaba7e6858a80797d925b86dcb856c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-loader.cpp",
+      "sha256": "2397f9040e92af49a4b44f61edd291be8e83d05f7e455657bd45d51d3033bf93"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-mmf.cu",
+      "sha256": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-cuda.cu",
+      "sha256": "a071c0a0d28663bc6df784e73e30c251b3da10570b06881eb07846b12404f2b8"
+    }
+  ],
+  "generated_units_match_prior_stage": true,
+  "selected_local_profile": {
+    "architecture": "glm5next",
+    "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+    "cwd": "C:\\work\\git\\my-repos\\Strata",
+    "args": [
+      "--native",
+      "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "--max-context",
+      "2048",
+      "--batch-size",
+      "16",
+      "--threads",
+      "4",
+      "--ram-target-percent",
+      "95",
+      "--vram-target-percent",
+      "95",
+      "--expert-pipeline",
+      "1",
+      "--expert-chunk-mib",
+      "4",
+      "--mtp",
+      "0",
+      "--mtp-cache-mib",
+      "512"
+    ],
+    "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+    "model_name": "glm-5.3-flash",
+    "log": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.log",
+    "host": "127.0.0.1",
+    "port": 8081,
+    "gpu": 0,
+    "sampling": {
+      "temperature": 0
+    },
+    "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+    "backend_identity": {
+      "architecture": "glm5next",
+      "engine": "glm5next-native",
+      "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages",
+      "protocol_version": 1,
+      "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+    },
+    "lib_dirs": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+    ],
+    "env": {
+      "STRATA_GLM_COPY_EVENTS": "2",
+      "STRATA_GLM_DECODE_READERS": "1",
+      "STRATA_GLM_WRITE_COMBINED": "0",
+      "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+      "STRATA_GLM_POOL_RECLAIM": "0",
+      "STRATA_GLM_MEMORY_POOL": "0",
+      "STRATA_GLM_CACHE_SLAB_MIB": "16"
+    }
+  },
+  "profile_file": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.json",
+    "sha256": "79cc3b11895b0167b4211166b030056255f08aabe044ecec0a178a3d9df61f9f"
+  },
+  "selected_host_mode": 0,
+  "local_default_decision": "Keep RAM warmup mode 0: mode 1 gained only 1.7% warm decode in one pair, increased startup and first-request time in both final pairs, and did not establish an overall speedup.",
+  "benchmark_summary": {
+    "0": {
+      "warm": {
+        "median_tokens_per_second": 11.243896170650219,
+        "range": [
+          11.041764158433542,
+          11.321670215920424
+        ],
+        "median_request_wall_seconds": 7.840761800005566
+      },
+      "first_request_wall_seconds": [
+        21.503301500022644,
+        18.927604399999836
+      ],
+      "first_ttft_seconds": [
+        10.05389420001302,
+        7.947448399994755
+      ],
+      "startup_seconds": [
+        69.24351699999534,
+        67.25632030001725
+      ],
+      "launch_to_first_token_seconds": [
+        79.29741120000836,
+        75.203768700012
+      ],
+      "B_runs": [
+        {
+          "request_wall_seconds": 18.625580699997954,
+          "first_token_seconds": 5.301145699981134,
+          "tokens_per_second": 4.7270326240283325
+        },
+        {
+          "request_wall_seconds": 12.56517950000125,
+          "first_token_seconds": 4.9739256000029854,
+          "tokens_per_second": 8.29560806807139
+        }
+      ],
+      "median_first_request_wall_seconds": 20.21545295001124,
+      "median_first_ttft_seconds": 9.000671300003887,
+      "median_startup_seconds": 68.2499186500063,
+      "median_launch_to_first_token_seconds": 77.25058995001018
+    },
+    "1": {
+      "warm": {
+        "median_tokens_per_second": 11.435666209240019,
+        "range": [
+          11.288056877472622,
+          11.614401858304296
+        ],
+        "median_request_wall_seconds": 7.769801799993729
+      },
+      "first_request_wall_seconds": [
+        25.770704199996544,
+        19.829009599983692
+      ],
+      "first_ttft_seconds": [
+        7.875389799999539,
+        5.922999200003687
+      ],
+      "startup_seconds": [
+        89.74529150000308,
+        102.04521569999633
+      ],
+      "launch_to_first_token_seconds": [
+        97.62068130000262,
+        107.96821490000002
+      ],
+      "B_runs": [
+        {
+          "request_wall_seconds": 16.796655200014357,
+          "first_token_seconds": 5.203880499990191,
+          "tokens_per_second": 5.43304845761791
+        },
+        {
+          "request_wall_seconds": 9.52413110001362,
+          "first_token_seconds": 2.8130478000093717,
+          "tokens_per_second": 9.383378016085791
+        }
+      ],
+      "median_first_request_wall_seconds": 22.799856899990118,
+      "median_first_ttft_seconds": 6.899194500001613,
+      "median_startup_seconds": 95.8952535999997,
+      "median_launch_to_first_token_seconds": 102.79444810000132
+    }
+  },
+  "correctness": {
+    "candidate_ctest": {
+      "passed": 20,
+      "total": 20,
+      "log": "build-local/glm-host-selected-build.log"
+    },
+    "python_tests": {
+      "passed": 83,
+      "log": "build-local/glm-host-python.log"
+    },
+    "shared_transport_ctest": "not rerun in this stage; shared transport code unchanged",
+    "full_model_f32": {
+      "bit_exact": true,
+      "elements": 9912320,
+      "baseline": "build-local/glm-sync-iq3-repeat.f32",
+      "sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550"
+    },
+    "pipe_cases": 9,
+    "http_cases": 8,
+    "initial_failure": {
+      "test": "glm5next_tokenwise_quant",
+      "type": "BF16 tokens=2 per-route MUL_MAT_ID (quant mode=2, unrelated to RAM mode)",
+      "result": {
+        "schema_version": 1,
+        "status": "fail",
+        "scope": "synthetic packed matrix kernels; no GGUF weights or streamed dispatch",
+        "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "shape": {
+          "input": 512,
+          "output": 64,
+          "experts": 16,
+          "selected": 8
+        },
+        "nmse_limit": 0.0001,
+        "weight_seed": 5480449,
+        "input_seed": 5484545,
+        "results": [
+          {
+            "type": "f32",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f32",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 1e-10
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "f16",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "upstream non-quantized numerical",
+            "status": "fail",
+            "batch_vs_single": {
+              "pass": false,
+              "finite": true,
+              "nmse": 0.9480701317023355,
+              "max_abs": 29.569067537784576,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "bf16",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "upstream non-quantized numerical",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0001
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q8_0",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q6_K",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq2_s",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_s",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq3_xxs",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "iq4_xs",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q2_K",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q3_K",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 2,
+            "mode": 0,
+            "elements": 128,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 2,
+            "mode": 1,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 2,
+            "mode": 2,
+            "elements": 1024,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 3,
+            "mode": 0,
+            "elements": 192,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 3,
+            "mode": 1,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 3,
+            "mode": 2,
+            "elements": 1536,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 4,
+            "mode": 0,
+            "elements": 256,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 4,
+            "mode": 1,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          },
+          {
+            "type": "q4_K",
+            "tokens": 4,
+            "mode": 2,
+            "elements": 2048,
+            "comparison": "bit_exact",
+            "status": "pass",
+            "batch_vs_single": {
+              "pass": true,
+              "finite": true,
+              "nmse": 0.0,
+              "max_abs": 0.0,
+              "nmse_limit": 0.0
+            }
+          }
+        ],
+        "tokenwise_small_batch": true,
+        "device": "NVIDIA GeForce RTX 5090"
+      },
+      "followup": "Five unchanged repeats passed, then three full 20/20 suites passed. Root cause not established; no arithmetic source changes or tolerance changes."
+    }
+  },
+  "commands": [
+    "cmd /c build-local/build-glm-graph.cmd",
+    "python tools/benchmark_glm5next_host.py --profile build-local/glm-host-profile.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --second-reference docs/GLM53/GLM53_FLASH_WARM_BENCHMARK.json --output build-local/glm-host-final-benchmark.json --modes 1,0 --warmups 4 --repeats 5 --second-repeats 2 --cold-repeats 2 --diagnostics 0",
+    "python build-local/check-glm-host-selected.py",
+    "python -m unittest tools.test_glm5next_profile tools.test_setup_glm5next tools.test_glm5next_build serve.test_glm5next serve.test_glm5next_info serve.test_glm5next_requests serve.test_glm5next_handlers serve.test_glm5next_http serve.test_glm5next_service",
+    "ctest --test-dir build-local/glm5next-candidate-cuda -C Release -R '^glm5next_tokenwise_quant$' -V --repeat until-fail:5 --no-tests=error"
+  ],
+  "test_logs": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-api.log",
+      "sha256": "2592dbc07a98503f1a20570ec4bb9849b99b9284c02596f3ef83468dfe58cd37"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-api.server.log",
+      "sha256": "f6767e242d28e193e95e7a41ec7aa4828c81345d70d60d5fe4141d2c049249e8"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-build.log",
+      "sha256": "a3556c57173cfcea5ba76cd4da4bc46c3d776c7dc551800c5b1d168bae997a6e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-benchmark.log",
+      "sha256": "3d87c349c71b477690e1a7e71b32e3445dad2bef614354e05ab4c9e7f68db3e4"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-build.log",
+      "sha256": "84d5a38e9d60af454176a5bebf567a10b65e3340ef3297ba4ed2c28ce28c86f0"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-pipe.log",
+      "sha256": "4586674cb5e994be85b0e6bdc9286c248de1f479cce6fa91becef469bd3d8560"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-python.log",
+      "sha256": "7335cf3bf9a976ad8f82d85bd4bc99a4c670bd134e02f007f2288472d40748f3"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-quant-repeat.log",
+      "sha256": "5f8a4594257df908e1913f2ce9e0c12bcf328c3ea14cfbb08e54567f400334ea"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-real.log",
+      "sha256": "2dce58099c331995e399648e7ad1b33efb4f43da56504bd8e96bd6b2011790e1"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-scan-build.log",
+      "sha256": "a4c8c1ea1cae37281308234340668d61c1027c69268b15f9bdfb04ba0ccd1f1b"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-scan-search.log",
+      "sha256": "942a3754e59a3ac0203ea47907e2420c622e35641f19de59c8d81ea4d9e1ddc5"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-search.log",
+      "sha256": "1dca27196d423ce0b1caef18721bdde7a3ce7d3f1d7169b6ebe173326780069e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-selected-build.log",
+      "sha256": "05d9556bca9d2d40e95752806564b305c12a7339035d86dc535c27c595043f95"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-selected-checks.log",
+      "sha256": "1989e201ff3553c231d2abe6852fd19d7813fa1f63cd1e9b6c283ca466542cbe"
+    }
+  ],
+  "engine_logs": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-api.engine.log",
+      "sha256": "54ae11f6a162912017a8ce9b1545c03e490d639be9a71b5e0bdf49a5af4eabe5"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-benchmark-r0-mode0.engine.log",
+      "sha256": "43c9f8fee1a43e5347ec180301dbc54003d27b9eefcf88059292904cb073be55"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-benchmark-r0-mode1.engine.log",
+      "sha256": "6b66543aa669b5cbcd3e466d045f96e6618f09d30e6baf00673edb3dbb6fbee2"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-benchmark-r1-mode0.engine.log",
+      "sha256": "99a3b02ee714ddedf8183f450314eeb4d37d428f12fdb4e0049089b83f1d124c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-final-benchmark-r1-mode1.engine.log",
+      "sha256": "92890061ee38cec6586305336cab70e31ca11400fe87e8d682d067c0ab3e8bc4"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-pipe.engine.log",
+      "sha256": "35005b34e729d9d9c1e5398c595f1341026301e1e498f57b89edc3c3bcb1a271"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-scan-search-r0-mode0.engine.log",
+      "sha256": "18de1ae6471d9fcc7cb3c844e5fca2454dcf6a87f10d474892e65fd71fd46042"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-scan-search-r0-mode1.engine.log",
+      "sha256": "7840ebc32212d5d7d2b205956fd5a5c2cfd8f83acd4c572c200bdd84c05dcbb7"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-scan-search-r0-mode2.engine.log",
+      "sha256": "c75a57972a55bee788edb984402ec1d9e979983f9e5b94079703a6944516cdf4"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-search-r0-mode0.engine.log",
+      "sha256": "9c9f56d2f56ceb23de2254b8beadc845310b9deac623394d222e7618a14216f4"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-host-search-r0-mode1.engine.log",
+      "sha256": "780706e4e3cde72c866cf72c846b57ac935fa6f76c7fd59838dbf90532fff71e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_HOST_BENCHMARK.json",
+      "sha256": "118b9a8f8381b187490bd7ab7542e5fae9db6095ef671cf59143d7f5b00a6b3b"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_HOST_CHECK.json",
+      "sha256": "999abc2595b2c6ca9e8a00f6bc9b308e9e58058c34f7a68f4b66bfa1582e144a"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_HOST_PIPE.json",
+      "sha256": "40b2cc10c200d829ed9fc6c8e92b54f4171757a20d00df5b513c8ca427d78b2c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_HOST_API.json",
+      "sha256": "a987237507ba8dc0c4f894e6b7432bd10b259c7189253222cbfd44ef864ee94c"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\check-glm-host-selected.py",
+      "sha256": "d2d90bd361d6664307682c19b2b93f79cd54d543546d0f387e4bdffa71457712"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\finalize-glm-host.py",
+      "sha256": "12443859d3b8a50008f98677ee5e042c52fc74469815cb205c15d14d84735d93"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\build-glm-graph.cmd",
+      "sha256": "984a29a2e45fb64769b7619a92c71a5055300fa8c08c6eb42273645af7c3d193"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\document-glm-host.py",
+      "sha256": "f4ded73ad10c59f12bbcbcf53ce76182788927386934be09d631faf08564eff6"
+    }
+  ],
+  "limits": [
+    "Two short prompts, 39/49 input tokens, 64 generated; no long-context benchmark.",
+    "No MTP, Linux/HIP, full Qwen or DeepSeek rerun.",
+    "CPU-required residency sampled at one probe per <=1 MiB; misses can be physical standby pages.",
+    "Target95 is adaptive global usage, not a reservation against other applications. Observed peaks are recorded in benchmark snapshots.",
+    "VirtualUnlock prototype aborted before READY; request-boundary scanning was removed; neither is shipped."
+  ]
+}

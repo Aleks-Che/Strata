@@ -1,0 +1,180 @@
+{
+  "date": "2026-10-05",
+  "status": "research_only_no_new_inference_runs",
+  "scope": "Primary-source review and analysis of prior local benchmark; not a new performance measurement.",
+  "local_source": {
+    "benchmark": "docs/GLM53/GLM53_FLASH_STAGING_CACHE_MTP_BENCHMARK.json",
+    "benchmark_sha256": "aef392ddc976ff3bed874250527e8cafcd954b681a05655f770862569318700c",
+    "engine_log": "build-local/glm-staging-cache-final-mtp-mtp1.engine.log",
+    "engine_log_sha256": "2ce7434861386ea639835a03ad63a7b45994897cca2bdd4f43a9c7210a84176c",
+    "binary_sha256": "395523c10468d9832006e8fc90073a820a7bb39ed94de3dc577eca117715a6fb",
+    "configuration": {
+      "architecture": "glm5next",
+      "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+      "cwd": "C:\\work\\git\\my-repos\\Strata",
+      "args": [
+        "--native",
+        "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+        "--max-context",
+        "2048",
+        "--batch-size",
+        "16",
+        "--threads",
+        "4",
+        "--ram-target-percent",
+        "95",
+        "--vram-target-percent",
+        "95",
+        "--expert-pipeline",
+        "1",
+        "--expert-chunk-mib",
+        "4",
+        "--mtp",
+        "1",
+        "--mtp-cache-mib",
+        "512"
+      ],
+      "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+      "model_name": "glm-5.3-flash",
+      "log": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-staging-cache-final-mtp-mtp1.engine.log",
+      "host": "127.0.0.1",
+      "port": 8081,
+      "gpu": 0,
+      "sampling": {
+        "temperature": 0
+      },
+      "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+      "backend_identity": {
+        "architecture": "glm5next",
+        "engine": "glm5next-native",
+        "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup",
+        "protocol_version": 1,
+        "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+      },
+      "lib_dirs": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+      ],
+      "env": {
+        "STRATA_GLM_COPY_EVENTS": "2",
+        "STRATA_GLM_DECODE_READERS": "1",
+        "STRATA_GLM_WRITE_COMBINED": "0",
+        "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+        "STRATA_GLM_POOL_RECLAIM": "0",
+        "STRATA_GLM_MEMORY_POOL": "0"
+      }
+    },
+    "warmup_requests": 4,
+    "timed_requests": 5
+  },
+  "local_mtp1_timed_counters": [
+    {
+      "request_index_zero_based": 4,
+      "decode_ms": 6656.55,
+      "accept_all": 31,
+      "accepted": 31,
+      "draft_ms": 263.01250000000005,
+      "proposed": 32,
+      "reject_first": 1,
+      "reject_middle": 0,
+      "repair_ms": 166.263,
+      "rounds": 32,
+      "verify_ms": 5990.715200000001
+    },
+    {
+      "request_index_zero_based": 5,
+      "decode_ms": 6400.3,
+      "accept_all": 31,
+      "accepted": 31,
+      "draft_ms": 267.33570000000003,
+      "proposed": 32,
+      "reject_first": 1,
+      "reject_middle": 0,
+      "repair_ms": 152.7371,
+      "rounds": 32,
+      "verify_ms": 5736.8171
+    },
+    {
+      "request_index_zero_based": 6,
+      "decode_ms": 6298.43,
+      "accept_all": 31,
+      "accepted": 31,
+      "draft_ms": 232.85709999999995,
+      "proposed": 32,
+      "reject_first": 1,
+      "reject_middle": 0,
+      "repair_ms": 156.5906,
+      "rounds": 32,
+      "verify_ms": 5672.964
+    },
+    {
+      "request_index_zero_based": 7,
+      "decode_ms": 6317.46,
+      "accept_all": 31,
+      "accepted": 31,
+      "draft_ms": 267.6295,
+      "proposed": 32,
+      "reject_first": 1,
+      "reject_middle": 0,
+      "repair_ms": 174.37760000000006,
+      "rounds": 32,
+      "verify_ms": 5640.5213
+    },
+    {
+      "request_index_zero_based": 8,
+      "decode_ms": 6473.02,
+      "accept_all": 31,
+      "accepted": 31,
+      "draft_ms": 237.58710000000002,
+      "proposed": 32,
+      "reject_first": 1,
+      "reject_middle": 0,
+      "repair_ms": 152.3204,
+      "rounds": 32,
+      "verify_ms": 5846.2871000000005
+    }
+  ],
+  "derived": {
+    "median_ms": {
+      "draft_ms": 263.01250000000005,
+      "verify_ms": 5736.8171,
+      "repair_ms": 156.5906,
+      "decode_ms": 6400.3
+    },
+    "median_verify_share_of_draft_verify_repair_percent": 93.31345604597216,
+    "median_repair_share_of_decode_percent": 2.4861846523657483,
+    "median_direct_speedup_ceiling_if_repair_zero_other_costs_fixed_percent": 2.54957171299528
+  },
+  "limits": [
+    "CPU wall timers include waits, not CUDA-kernel attribution.",
+    "Timings exclude some work outside the three instrumented sections.",
+    "Measured before slabs16; do not compare directly with later MTP-off scores.",
+    "Eliminating repair can also affect cache traffic; the ceiling only models removal of timed repair at fixed other costs."
+  ],
+  "public_downloads": [
+    {
+      "url": "https://github.com/ggml-org/llama.cpp/pull/29928.diff",
+      "local_ignored_path": "build-local/glm-mtp-research/llama-pr29928.diff",
+      "sha256": "a753e4c18e3a08276386960d8c669b224f98bc9ff7105b390320bb5bd1bfce32",
+      "bytes": 17162
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sixteen-miles-labs/sparklab/main/benchmarks/gb10/results/GB10-GLM53-MTP-004.json",
+      "local_ignored_path": "build-local/glm-mtp-research/sparklab-GB10-GLM53-MTP-004.json",
+      "sha256": "8d83de79908acc15efaf465e1ba9a078651eb032bf91387f8162e47d72206d9d",
+      "bytes": 6666
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sixteen-miles-labs/sparklab/main/benchmarks/gb10/results/GB10-GLM53-OPT-005.json",
+      "local_ignored_path": "build-local/glm-mtp-research/sparklab-GB10-GLM53-OPT-005.json",
+      "sha256": "2afe97b63a305b7ef893cf4e83356bbe1ac01ef49b10ecc98c31df78557a0b3b",
+      "bytes": 6502
+    },
+    {
+      "url": "https://raw.githubusercontent.com/sixteen-miles-labs/sparklab/main/benchmarks/gb10/results/GB10-GLM53-OPT-006.json",
+      "local_ignored_path": "build-local/glm-mtp-research/sparklab-GB10-GLM53-OPT-006.json",
+      "sha256": "dfd75f4a661ad5bda1e45cbbf262ee5c64b44d9871d1e600a0b82b4f7e168153",
+      "bytes": 7257
+    }
+  ]
+}

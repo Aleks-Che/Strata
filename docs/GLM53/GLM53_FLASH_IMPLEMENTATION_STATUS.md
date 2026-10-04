@@ -1,6 +1,6 @@
 # Статус внедрения GLM-5.3-Flash
 
-Обновлено: **2026-10-04**, часовой пояс `Asia/Yekaterinburg`.
+Обновлено: **2026-10-05**, часовой пояс `Asia/Yekaterinburg`.
 План: [GLM53_FLASH_IMPLEMENTATION_PLAN.md](GLM53_FLASH_IMPLEMENTATION_PLAN.md).
 Исходные данные: [GLM53_FLASH_GGUF_INVENTORY.json](GLM53_FLASH_GGUF_INVENTORY.json).
 Основная тестовая модель: [инспекция Uncensored-IQ3_XXS](GLM53_FLASH_IQ3_XXS_INSPECTION.json).
@@ -14,18 +14,25 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `b2567acf668ca7a98ac514f060bd27434ee3fd22` + P3.3d/e/f в рабочем дереве; source/binary hashes и команды в WARM_VALIDATION |
-| Последняя выполненная работа | P3.3f: сохранение частых expert IDs и восстановление VRAM cache; 37 benchmark requests, 9 912 320 F32 logits bit-exact, native pipe и HTTP API проверены. Первый запрос A стал медленнее по медиане: 68,68 → 97,85 с; новый прогрев оставлен opt-in и выключен локально |
-| Следующая задача | Измерить page faults и размещение CPU-страниц весов; проверить прогрев RAM с учётом уже резидентных в VRAM матриц. Сокращение H2D само по себе не устранило паузы CPU read. Длинные контексты, P4 session snapshots/restore и совместные MTP verify kernels остаются открыты |
-| Активная задача / исполнитель | Нет; P3.3f завершён как проверенный опциональный режим. Настройки скорости P3.3e сохранены |
+| Последняя проверенная ревизия Strata | `b0b1bba933e449fec2a7e8218330fe3cde4c14fd` + P3.3g в рабочем дереве; source/binary hashes и команды в HOST_VALIDATION |
+| Последняя выполненная работа | P3.3g: опциональный разовый RAM warmup с учётом GPU cache и диагностика резидентности; 21 поисковый + 24 финальных запроса, полные logits bit-exact, pipe/API. Повторный прогрев между запросами удалён; новый разовый режим оставлен выключенным |
+| Следующая задача | По запросу пользователя вернуться к MTP: повторить off/1/2/3 на slabs16, затем отдельно проверить draft cache-only catch-up и стоимость short-batch verify; внешний разбор ниже. Размещение CPU/GPU-копий, hard faults/I/O, P4, длинный контекст и причина единичного BF16 fixture failure остаются открыты |
+| Активная задача / исполнитель | Исследование внешних MTP-реализаций завершено / Codex; новые inference-тесты и перенос кода в этом исследовании не выполнялись |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели. Локальный профиль: pipeline on, events2, MTP off, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned warmup off; обновлён только backend patch identity. MTP cache ceiling 512 МиБ действует только при включении MTP |
+| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели. Локальный профиль: pipeline on, events2, MTP off, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned warmup и новый RAM warmup off; обновлён только backend patch identity. MTP cache ceiling 512 МиБ действует только при включении MTP |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | P3.3f: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off, greedy; pipeline + slabs16, global targets95. Полные MTP 1/2/3 проверены ранее, в этом этапе не запускались |
-| Измеренная скорость GLM / память | P3.3e: ранее получены 11,764 ток/с с slabs16 против 9,865 у прежнего allocator. P3.3f на одной новой сборке: обычный/learned warmup — 8,034/10,907 ток/с после четырёх warmup, но большой разброс 7,038–10,568 / 1,752–11,173. Медиана первого запроса 68,68/97,85 с, source 126,99/98,60 ГиБ. Устойчивый прирост не заявляется; новый режим по умолчанию выключен |
+| Последняя проверенная конфигурация запуска GLM | P3.3g: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off, greedy; pipeline + slabs16, global targets95. RAM warm0/1; native/API/logits отдельно с warm1 |
+| Измеренная скорость GLM / память | P3.3g на одной итоговой сборке: RAM warm0/1 — 11,244/11,436 ток/с после четырёх warmup; пять повторов, разница 1,71%. Полный warm-ответ 7,84/7,77 с. Медиана старта до READY 68,25/95,90 с. Общий выигрыш не подтверждён; новый режим локально выключен. Ранее P3.3e: 9,865 → 11,764 ток/с после slab allocator |
+
+**Исследование MTP, 2026-10-05:** найдены опубликованные ускорения Unsloth,
+SparkLab и SGLang; прочитан новый llama.cpp PR #29928 и сопоставлен с локальным
+кодом. Наш старый MTP1 принимает 96,875% предложений, но verify занимает 93,31%
+суммы draft/verify/repair timers. Это разбор прежних логов до slabs16, не новый
+замер. Рабочий профиль MTP off сохранён. [Источники и порядок экспериментов](GLM53_FLASH_MTP_EXTERNAL_RESEARCH.md),
+[таймеры и SHA-256](GLM53_FLASH_MTP_EXTERNAL_RESEARCH.json).
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -3134,6 +3141,42 @@ P4 reuse, длинный контекст, Linux/HIP и полные Qwen/DeepSe
 [замороженные hints](GLM53_FLASH_WARM_HINTS.json),
 [точность](GLM53_FLASH_WARM_CHECK.json), [pipe](GLM53_FLASH_WARM_PIPE.json),
 [HTTP](GLM53_FLASH_WARM_API.json), [manifest](GLM53_FLASH_WARM_VALIDATION.json).
+
+### P3.3g — 2026-10-05 — RAM warmup с учётом GPU cache
+
+**Статус:** DONE для опционального механизма; общий прирост не подтверждён.
+Исполнитель: Codex. Ревизия `b0b1bba933e449fec2a7e8218330fe3cde4c14fd` + рабочие изменения.
+
+Добавлены Windows residency sampling и общий page-fault counter, оценка бюджета
+CPU-весов, разовый bounded scan с пропуском GPU cache и отдельный benchmark.
+В поиске обычный/новый/повторный прогрев дали 9,800/11,182/6,748 ток/с;
+последний режим ухудшал полное время и удалён. Прототип с VirtualUnlock остановлен
+до READY из-за длительности и удалён.
+
+Финальная пара на одной сборке, четыре warmup + пять повторов, дала
+**11,244 → 11,436 ток/с** (1,71%). Два запуска на режим:
+медиана READY **68,25 → 95,90 с**,
+первого запроса **20,22 → 22,80 с**.
+Общий выигрыш не подтверждён. Все 45 ответов поисковой/финальной серий совпали
+с references. Ещё семь завершённых ответов отклонённого прототипа сохранены отдельно.
+Стенд: Windows, Ryzen 9950X, RTX5090/32 ГиБ, RAM128 ГиБ, IQ3_XXS, MTP off,
+ctx2048, batch16, targets95. Файловый кэш ОС не очищался.
+
+**Проверки:** итоговые 20/20 candidate CTest, 83 Python, реальные 9 912 320 F32
+logits bit-exact, 9 native pipe и 8 HTTP cases, cancel/recovery/unload, exit0.
+Первоначальный BF16 tokens2/per-route MUL_MAT_ID fixture failure не повторился в пяти неизменённых
+перезапусках и трёх полных наборах; причина не установлена, порог не ослаблялся.
+Четыре generated units совпадают с P3.3f. Shared transport не менялся и отдельно
+не перезапускался. Длинный контекст, Linux/HIP, полные Qwen/DeepSeek не проверялись.
+
+**Решение:** рабочие MTP off / slabs16 / targets95 сохранены; новый RAM mode1 и
+диагностика выключены. Обновлён backend patch identity под итоговый бинарник.
+Следующее направление — явное владение CPU/GPU-копиями и разделение hard faults/I/O.
+
+**Артефакты:** [описание](GLM53_FLASH_PIPELINE_MTP.md),
+[benchmark](GLM53_FLASH_HOST_BENCHMARK.json), [точность](GLM53_FLASH_HOST_CHECK.json),
+[pipe](GLM53_FLASH_HOST_PIPE.json), [HTTP](GLM53_FLASH_HOST_API.json),
+[manifest](GLM53_FLASH_HOST_VALIDATION.json).
 
 ## Шаблон следующей записи
 

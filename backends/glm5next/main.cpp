@@ -187,6 +187,8 @@ int main(int argc,char ** argv) {
                 <<" expert_memory_pool="<<int(usage["cuda_memory_pool"].get<bool>())
                 <<" expert_cache_slab_mib="<<usage["expert_cache_slab_mib"].get<size_t>()
                 <<" expert_warm_entries="<<usage["expert_warm_profile"]["loaded"].get<size_t>()
+                <<" expert_ram_warm_mode="<<usage["ram_warm_mode"].get<int>()
+                <<" expert_ram_diagnostics="<<int(usage["ram_diagnostics"].get<bool>())
                 <<" expert_read_mode=mmap kv=fp16 flash_attention=0 tf32=0 tokenwise_small_batch=1 conversation_cache=0\n"
                 <<"READY "<<llama_n_ctx(ctx.get())<<" stop session-id\n"<<std::flush;
             serve(ctx.get(),vocab,o,memory,mtp.get());

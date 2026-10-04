@@ -3,6 +3,7 @@
 #include "expert_dispatch.hpp"
 #include "expert_slab.hpp"
 #include "expert_warm_profile.hpp"
+#include "host_pages.hpp"
 #include "gpu_trace.hpp"
 #include "llama-model.h"
 #include <atomic>
@@ -21,7 +22,7 @@ using Clock=std::chrono::steady_clock;
 constexpr size_t MiB=1ULL<<20, staging_size=16*MiB;
 double milliseconds(Clock::time_point start) {return std::chrono::duration<double,std::milli>(Clock::now()-start).count();}
 void cuda_check(cudaError_t e) {require(e==cudaSuccess,cudaGetErrorString(e));}
-struct Ram {uint64_t total=0,available=0,working_set=0;};
+struct Ram {uint64_t total=0,available=0,working_set=0,page_faults=0;};
 Ram ram() {
     Ram r;
 #ifdef _WIN32
@@ -29,7 +30,7 @@ Ram ram() {
     require(GlobalMemoryStatusEx(&s)!=0,"global RAM query failed");
     PROCESS_MEMORY_COUNTERS p{}; p.cb=sizeof(p);
     require(GetProcessMemoryInfo(GetCurrentProcess(),&p,sizeof(p))!=0,"working set query failed");
-    r={s.ullTotalPhys,s.ullAvailPhys,p.WorkingSetSize};
+    r={s.ullTotalPhys,s.ullAvailPhys,p.WorkingSetSize,p.PageFaultCount};
 #else
     std::ifstream in("/proc/meminfo"); std::string line;
     while (std::getline(in,line)) {
@@ -78,6 +79,12 @@ struct RuntimeMemory::Impl {
     size_t profile_loaded=0,profile_saved=0;
     double profile_save_ms=0;
     std::map<std::string,size_t> profile_tensor_index;
+    int ram_warm_mode=0; // 1: bounded startup scan of CPU-required experts.
+    bool ram_diagnostics=false;
+    uint64_t ram_skipped_gpu_bytes=0,ram_rotation_checks=0,essential_ws_estimate=0;
+    bool ram_rotation_allowed=false;
+    double residency_ms=0;
+    nlohmann::json residency_before=nullptr,residency_after=nullptr;
     void * staging=nullptr;
     uint64_t ram_touched=0,working_set_limit=0,d2d_bytes=0;
     std::string ram_warm_stop="off";
@@ -168,6 +175,17 @@ struct RuntimeMemory::Impl {
             require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_EXPERT_PROFILE_READ_ONLY must be 0 or 1");
             profile_read_only=*value=='1';
         }
+        if(const auto *value=std::getenv("STRATA_GLM_RAM_WARM_MODE")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_RAM_WARM_MODE must be 0 or 1");
+            ram_warm_mode=*value-'0';
+        }
+        if(const auto *value=std::getenv("STRATA_GLM_RAM_DIAGNOSTICS")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_RAM_DIAGNOSTICS must be 0 or 1");
+            ram_diagnostics=*value=='1';
+        }
+#ifndef _WIN32
+        require(!ram_warm_mode && !ram_diagnostics,"GLM bounded host scan/diagnostics currently require Windows");
+#endif
         ram_limit();
         if (!vram_percent && !pipeline_enabled) return;
         require(chunk_mib>=1 && chunk_mib<=16,"expert chunk must be 1..16 MiB");
@@ -381,6 +399,25 @@ struct RuntimeMemory::Impl {
         cuda_check(cudaStreamSynchronize(stream));
     }
     std::filesystem::path path_from_identity() const {return std::filesystem::u8path(identity);}
+    nlohmann::json sample_residency() {
+        const auto started=Clock::now();HostResidency groups[2];
+        for(const auto &item:tensors) {
+            const auto *t=item.first;
+            for(int expert=0;expert<t->ne[2];++expert) {
+                const auto k=key(t,expert);const bool gpu=cache && cache->resident(k);
+                const auto sample=sample_host_residency(static_cast<const uint8_t *>(t->data)+k.offset,t->nb[2]);
+                auto &g=groups[gpu?1:0];g.bytes+=sample.bytes;g.samples+=sample.samples;
+                g.valid_samples+=sample.valid_samples;g.estimated_resident_bytes+=sample.estimated_resident_bytes;g.valid=g.valid && sample.valid;
+            }
+        }
+        nlohmann::json result;
+        for(int i=0;i<2;++i) {
+            const auto &g=groups[i];result[i?"gpu_cached":"cpu_required"]={{"valid",g.valid},{"bytes",g.bytes},
+                {"samples",g.samples},{"valid_samples",g.valid_samples},{"estimated_resident_bytes",g.estimated_resident_bytes}};
+        }
+        result["probe_stride_bytes"]=1<<20;result["sample_ms"]=milliseconds(started);residency_ms+=milliseconds(started);
+        return result;
+    }
     void checkpoint() {
         if(profile_path.empty() || profile_read_only || !warm_profile.writable || !cache)return;
         auto start=Clock::now();
@@ -396,6 +433,54 @@ struct RuntimeMemory::Impl {
             std::cerr<<"STRATA_GLM expert profile save disabled: "<<e.what()<<"\n";
         }
         profile_save_ms+=milliseconds(start);
+    }
+    void warm_ram() {
+        if(!ram_percent)return;
+        require(!dispatch && (!transport || !transport->in_progress()),"host warmup requires an idle expert transport");
+        ram_limit();auto last_limit=Clock::now();
+        const auto initial=ram();
+        const auto before=(ram_diagnostics || ram_warm_mode)?sample_residency():nlohmann::json(nullptr);
+        if(ram_warm_mode) {
+            HostResidency cpu,gpu;
+            cpu.bytes=before["cpu_required"]["bytes"].get<uint64_t>();
+            cpu.estimated_resident_bytes=before["cpu_required"]["estimated_resident_bytes"].get<uint64_t>();
+            gpu.estimated_resident_bytes=before["gpu_cached"]["estimated_resident_bytes"].get<uint64_t>();
+            essential_ws_estimate=required_host_working_set(initial.working_set,cpu,gpu);
+            ram_rotation_allowed=before["cpu_required"]["valid"].get<bool>() && before["gpu_cached"]["valid"].get<bool>() && host_scan_fits(essential_ws_estimate,working_set_limit);
+        }
+        if(ram_diagnostics)residency_before=before;
+        ram_warm_stop="all_experts";volatile uint8_t sink=0;bool full=false;size_t until_check=0;
+        for(const auto &item:tensors) {
+            const auto *t=item.first;auto *source=static_cast<const volatile uint8_t *>(t->data);
+            for(size_t offset=0;offset<ggml_nbytes(t);) {
+                const size_t expert_end=ram_warm_mode?offset+(t->nb[2]-offset%t->nb[2]):ggml_nbytes(t);
+                if(ram_warm_mode && cache && cache->resident(key(t,int(offset/t->nb[2])))) {
+                    ram_skipped_gpu_bytes+=expert_end-offset;offset=expert_end;continue;
+                }
+                if(!ram_warm_mode || !until_check) {
+                    auto r=ram();const auto target=r.total/100*ram_percent;
+                    if(ram_rotation_allowed && r.total-r.available>=target && Clock::now()-last_limit>=std::chrono::milliseconds(500)) {
+                        // Recalibrate the existing HARDWS maximum to account for
+                        // other processes. No page discard/unlock and no raised cap.
+                        ram_limit();last_limit=Clock::now();r=ram();
+                        ram_rotation_allowed=host_scan_fits(essential_ws_estimate,working_set_limit);
+                    }
+                    if(r.total-r.available>=target && !ram_rotation_allowed) {ram_warm_stop="global_target";full=true;break;}
+                    if(working_set_limit && r.working_set>=working_set_limit-std::min<uint64_t>(working_set_limit,32*MiB)) {
+                        if(!ram_rotation_allowed) {ram_warm_stop="working_set_limit";full=true;break;}
+                        ++ram_rotation_checks;
+                    }
+                    until_check=32*MiB;
+                }
+                const auto end=std::min(offset+until_check,expert_end);
+                for(size_t p=offset;p<end;p+=4096)sink=uint8_t(sink^source[p]);
+                if(ram_warm_mode)sink=uint8_t(sink^source[end-1]);
+                until_check-=end-offset;ram_touched+=end-offset;offset=end;
+            }
+            if(full)break;
+        }
+        (void)sink;
+        if(ram_diagnostics)residency_after=sample_residency();
     }
     void warm() {
         if (!ram_percent && !vram_percent && !pipeline_enabled) return;
@@ -435,30 +520,7 @@ struct RuntimeMemory::Impl {
             }
             std::cerr<<"STRATA_GLM cache warm MiB="<<cache->resident_bytes()/MiB<<"\n";
         }
-        if (ram_percent) {
-            ram_limit();
-            ram_warm_stop="all_experts";
-            volatile uint8_t sink=0;
-            bool full=false;
-            for (const auto & item:tensors) {
-                const auto * t=item.first; auto * source=static_cast<const volatile uint8_t *>(t->data);
-                for (size_t offset=0;offset<ggml_nbytes(t);) {
-                    const auto r=ram();
-                    if (r.total-r.available>=r.total/100*ram_percent) {ram_warm_stop="global_target";full=true;break;}
-                    // A hard Windows working-set cap can be reached before the
-                    // global target. Further touches then evict earlier pages
-                    // instead of warming more RAM. Leave one scan chunk free.
-                    if (working_set_limit && r.working_set>=working_set_limit-std::min<uint64_t>(working_set_limit,32*MiB)) {
-                        ram_warm_stop="working_set_limit";full=true;break;
-                    }
-                    const auto end=std::min(offset+32*MiB,ggml_nbytes(t));
-                    for (size_t p=offset;p<end;p+=4096) sink=uint8_t(sink^source[p]);
-                    ram_touched+=end-offset; offset=end;
-                }
-                if (full) break;
-            }
-            (void)sink;
-        }
+        warm_ram();
         if (pipeline_enabled && staging) {cuda_check(cudaFreeHost(staging));staging=nullptr;}
         warm_ms=milliseconds(start);
     }
@@ -468,10 +530,16 @@ struct RuntimeMemory::Impl {
             {"ram_total_bytes",r.total},{"ram_used_bytes",r.total-r.available},{"working_set_bytes",r.working_set},
             {"working_set_limit_bytes",working_set_limit},{"ram_warm_touched_bytes",ram_touched},{"warm_ms",warm_ms},
             {"ram_warm_stop",ram_warm_stop},
+            {"process_page_faults",r.page_faults},
             {"global_vram_valid",valid},{"global_vram_total_bytes",total},{"global_vram_used_bytes",total-free},
             {"cache_resident_bytes",cache?cache->resident_bytes():0},{"cache_budget_bytes",cache?cache->byte_budget():0},
             {"cache_d2d_bytes",d2d_bytes},{"cuda_memory_pool",pool!=nullptr}};
         result["expert_cache_slab_mib"]=slab_mib;
+        result["ram_warm_mode"]=ram_warm_mode;result["ram_diagnostics"]=ram_diagnostics;
+        result["ram_warm_skipped_gpu_bytes"]=ram_skipped_gpu_bytes;
+        result["ram_host_scan"]={{"rotation_allowed",ram_rotation_allowed},{"rotation_checks",ram_rotation_checks},
+            {"essential_ws_estimate_bytes",essential_ws_estimate}};
+        result["ram_residency"]={{"before_warm",residency_before},{"after_warm",residency_after},{"ms",residency_ms}};
         result["expert_warm_profile"]={{"status",profile_path.empty()?"off":warm_profile.status},
             {"read_only",profile_read_only},{"writable",!profile_path.empty() && warm_profile.writable && !profile_read_only},
             {"candidates",warm_profile.entries.size()},{"loaded",profile_loaded},{"saved",profile_saved},
@@ -527,7 +595,10 @@ RuntimeMemory::RuntimeMemory(Model model,const std::string & path,int ram_percen
     :impl(std::make_unique<Impl>(std::move(model),path,ram_percent,vram_percent,pipeline,chunk_mib,mtp_cache_mib)) {impl->initialize();}
 RuntimeMemory::~RuntimeMemory()=default;
 void RuntimeMemory::warm() {impl->warm();}
-void RuntimeMemory::refresh() {impl->ram_limit(); if (impl->controller) impl->controller->refresh();}
+void RuntimeMemory::refresh() {
+    impl->ram_limit();
+    if (impl->controller) impl->controller->refresh();
+}
 void RuntimeMemory::checkpoint() {impl->checkpoint();}
 nlohmann::json RuntimeMemory::snapshot() const {return impl->snapshot();}
 }
