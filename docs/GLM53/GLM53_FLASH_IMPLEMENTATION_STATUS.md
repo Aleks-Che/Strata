@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d и cache policies/controller/probe/pressure P3.5a/b/c/d/e DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `ab6a0f2e94a35aa0fa6e89c1f89410e5d8c309e9`, ветка `dev`; P3.5d уже в HEAD, P3.5e — в рабочем дереве |
-| Последняя выполненная работа | P3.5e: реальный CUDA holder → NVML/controller trim/recovery, LRU/frequency прошли на RTX 5090; 12/12 CTest и 7 Python tests |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure P3.5a/b/c/d/e и pipeline telemetry P3.6a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `d83283ea2dc9e52257cfa8a690ab803559101bd7`, ветка `dev`; P3.5e уже в HEAD, P3.6a — в рабочем дереве |
+| Последняя выполненная работа | P3.6a: CPU wait breakdown и staging telemetry общего pipeline; 12/12 CTest и отдельная DeepSeek CUDA pipeline regression прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.5e завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; компонент P3.6a завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: запрос архива из Python получил `WinError 10013` в цикле 12 (P3.5c-01); в цикле 13 сеть не перепроверялась. CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -1986,6 +1986,66 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
   candidate/oracle/CUDA и записать tokenizer parity; затем подключить controller
   к безопасным границам реального GLM graph и проверить численные outputs.
+
+### P3.6a-01 — 2026-10-04, Asia/Yekaterinburg — Ожидания CPU и staging telemetry
+
+- **Статус:** DONE для P3.6a; общий пункт counters/timeline и P3 остаются
+  IN_PROGRESS. Codex, цикл 15. Ветка `dev`, база
+  `d83283ea2dc9e52257cfa8a690ab803559101bd7`, исходное дерево чистое; изменения
+  не закоммичены. P0.3b/архив/сеть в этом цикле не перепроверялись.
+- **Реализация:** `backends/common/expert_pipeline.hpp` разделяет прежний CPU
+  `wait_us` на `slot_wait_us` (reader ждёт CUDA event предыдущего consumer слота)
+  и `consumer_wait_us` (consumer ждёт публикацию следующей передачи). Старое
+  значение сохранено как точная сумма новых полей для совместимости DeepSeek.
+  Эти поля не измеряют GPU duration: события остаются без timing, дополнительных
+  CUDA synchronizations не добавлено.
+- **Память/очередь:** `pinned_bytes` и `device_ring_bytes` показывают fixed capacity
+  четырёх выделенных слотов. `reader_owned_bytes`/`reader_owned_peak` — payload
+  jobs, назначенных readers, включая ожидание освобождения слота. `queued_bytes`/
+  `queued_peak` — опубликованные H2D payloads до consumption, включая ещё
+  выполняющиеся copies. `unused_bytes` считает опубликованный отменённый остаток
+  вместе с прежним счётчиком unused chunks. Current bytes очищаются при finish,
+  peaks/totals сохраняются между планами. Арифметический overflow capacity
+  отклоняется до CUDA allocation. `ExpertTransport::counters()` уже возвращает
+  расширенный snapshot; schema backend INFO не менялась.
+- **Проверки:** cwd `C:\work\git\my-repos\Strata`.
+
+  ```text
+  cmd /c build-local\check-glm-native-plan.cmd
+  cmd /c build-local\check-deepseek-reader.cmd
+  ```
+
+  Обе команды — exit 0. Первая сделала clean rebuild всех targets и
+  `ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error`:
+  **12/12 CTest**, без skips, RTX 5090, CUDA runtime/driver **13000/13000**.
+  [CTest log](GLM53_FLASH_TELEMETRY_TESTS.txt); полный локальный build log
+  `build-local/glm5next-telemetry-build.log`. Подтверждено:
+  - Fixture с chunk 65553 bytes и payload 65570 bytes: fixed pinned/ring по
+    **262212 bytes**, reader peak **65553**, queue peak **65570**, отменённый
+    остаток **65570 bytes / 2 chunks**. После finish current bytes равны нулю.
+  - Restart доставляет исходные bytes, повторно использует pipeline и не сбрасывает
+    cumulative peak/unused totals. Empty plan не меняет peak. Переполнение
+    staging capacity отклонено. Legacy wait равен сумме новых компонентов.
+  - Все 432 прежних GPU matrix comparisons дополнительно проверяют capacity,
+    reader/queue peak bounds и нулевые current/unused bytes после полного consumption.
+  Вторая команда напрямую пересобрала `backends/deepseek4/test_expert_pipeline.cpp`
+  через x64 MSVC (`/std:c++17 /O2 /MD`, cudart.lib, psapi.lib; environment из
+  P3.1a-01) и запустила `build-local/glm5next-reader/deepseek-pipeline.exe`.
+  Полное кольцо подтверждено как 4×chunk queued bytes; прошли blocked-consumer
+  fixture, byte parity, native/auto queue, reuse/cancel/restart и wait-sum checks.
+  [DeepSeek log](GLM53_FLASH_TELEMETRY_DEEPSEEK_TESTS.txt), локальный оригинал
+  `build-local/glm5next-telemetry-deepseek.log`. `git diff --check` — exit 0.
+- **Ограничения:** CPU timers включают call/lock/condition-variable overhead и
+  суммируются по потокам, поэтому не равны времени запроса. Occupancy peaks не
+  являются дополнительными allocations сверх fixed staging; из fixed capacities
+  исключены CUDA allocator/events overhead, cache, destinations и source mappings.
+  Новые поля не измеряют GPU H2D/compute duration и не подтверждают overlap
+  timeline или скорость GLM. Реальные GGUF/внешнее pressure, Python, полный
+  Qwen/DeepSeek inference, GLM graph, Unsloth build, Linux/HIP/multi-GPU в этом
+  цикле не запускались. Планирование, reader policies и порядок CUDA work не менялись.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
+  candidate/oracle/CUDA и сохранить tokenizer parity. После интеграции графа
+  вывести эти counters в INFO/monitor и измерить H2D/compute по CUDA timeline.
 
 ## Шаблон следующей записи
 

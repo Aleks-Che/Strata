@@ -23,6 +23,29 @@ drains abandoned H2D work, but consumed D2D work can still be in flight: retain
 destinations until their consumer streams complete. This module does not own
 expert cache entries or supply GLM router/graph hooks.
 
+`counters()` returns a locked snapshot. Byte counters, high-water marks and CPU
+wall-time sums accumulate for the pipeline's lifetime, across start/finish/restart:
+
+| Field | Meaning |
+|---|---|
+| `slot_wait_us` | Reader CPU time waiting for a slot's previous CUDA consumer event; includes call overhead |
+| `consumer_wait_us` | Consumer CPU time waiting for the next H2D submission to be published; includes condition-variable overhead |
+| `wait_us` | Legacy sum of those two waits, preserved for DeepSeek |
+| `read_us` / `submit_us` | Existing CPU read/copy-attempt time / H2D enqueue time, including copy-stream lock contention |
+| `pinned_bytes` / `device_ring_bytes` | Fixed four-slot host/device allocations, each `slots * chunk_bytes` |
+| `reader_owned_bytes` / `reader_owned_peak` | Current/peak logical payload bytes assigned to readers, including slot waits and H2D submission |
+| `queued_bytes` / `queued_peak` | Current/peak published H2D payload bytes awaiting consumption, including copies not yet complete |
+| `unused_bytes` | Cumulative published payload bytes abandoned at finish/cancel, complementing `unused` chunks |
+
+After successful finish, current reader-owned and queued bytes are zero. Peaks
+and fixed capacities remain. Slot/event and allocator overhead, source mappings,
+cache and destination allocations are excluded. The fixed capacities describe
+allocated staging, while logical payload peaks describe queue occupancy; they
+must not be added as independent allocations. `reader_owned_bytes` can describe a
+new job waiting for a still-running consumer of that slot. CPU wait sums may
+overlap across threads and are not elapsed wall time, H2D/compute execution times,
+or proof of GPU overlap. CUDA timeline measurement remains a separate task.
+
 `expert_file.hpp` is the native file-reading layer used by DeepSeek and prepared
 for GLM's byte-range planner. It has no llama, ggml or CUDA dependency. The old
 DeepSeek include forwards here, so its loader hook and pipeline use this code.

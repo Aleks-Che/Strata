@@ -151,6 +151,11 @@ static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
     check(counters.file_bytes+counters.mmap_bytes==source_bytes,"source byte counters");
     check(counters.chunks==chunks && counters.unused==0 && counters.groups==1,"chunk counters");
     check(counters.read_peak>=1 && counters.read_peak<=4,"reader bound");
+    check(counters.pinned_bytes==4*chunk && counters.device_ring_bytes==4*chunk,"allocated staging counters");
+    check(counters.queued_bytes==0 && counters.reader_owned_bytes==0 && counters.unused_bytes==0,"completed plan telemetry not drained");
+    check(counters.queued_peak>0 && counters.queued_peak<=4*chunk &&
+          counters.reader_owned_peak>0 && counters.reader_owned_peak<=4*chunk,"payload high-water bounds");
+    check(counters.wait_us==counters.slot_wait_us+counters.consumer_wait_us,"wait breakdown changed legacy total");
     if(decode && mode!=1)check(counters.read_peak==1,"decode must use one reader");
     if(mode==0 || (mode==2 && decode))check(counters.mmap_bytes==source_bytes,"mmap mode not exercised");
 #ifdef _WIN32
@@ -165,6 +170,48 @@ static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
                 (unsigned long long)counters.file_bytes,(unsigned long long)counters.mmap_bytes);
 }
 
+static void test_telemetry() {
+    constexpr size_t chunk=65553,n=chunk+17;
+    std::vector<uint8_t> source(n,0x31),actual(n);
+    DeviceBuffer dest(n);Stream stream;
+    StrataExpertPipeline pipeline(0,chunk,false,1);
+    const auto empty=pipeline.counters();
+    check(empty.pinned_bytes==4*chunk && empty.device_ring_bytes==4*chunk &&
+          !empty.queued_peak && !empty.reader_owned_peak && !empty.wait_us,"initial telemetry");
+    auto fill=[&](size_t chunks) {
+        const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+        while(pipeline.ready_chunks()<chunks && std::chrono::steady_clock::now()<deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        check(pipeline.ready_chunks()==chunks,"telemetry fixture did not fill queue");
+    };
+    pipeline.start({{source.data(),n,false}});fill(2);
+    auto queued=pipeline.counters();
+    check(queued.queued_bytes==n && queued.queued_peak==n && queued.reader_owned_bytes==0 &&
+          queued.reader_owned_peak==chunk,"partial-tail queue/reader byte peak");
+    pipeline.finish();auto cancelled=pipeline.counters();
+    check(cancelled.queued_bytes==0 && cancelled.reader_owned_bytes==0 &&
+          cancelled.unused==2 && cancelled.unused_bytes==n,"cancellation payload accounting");
+    pipeline.start({{source.data(),n,true}});
+    check(pipeline.transfer(dest.data,source.data(),n,stream.value),"telemetry restart transfer");
+    pipeline.finish();cuda_ok(cudaStreamSynchronize(stream.value));
+    cuda_ok(cudaMemcpy(actual.data(),dest.data,n,cudaMemcpyDeviceToHost));check(actual==source,"telemetry changed bytes");
+    auto done=pipeline.counters();
+    check(done.unused_bytes==n && done.h2d_bytes==2*n && done.d2d_bytes==n && done.queued_peak==n &&
+          done.reader_owned_bytes==0 && done.queued_bytes==0 &&
+          done.wait_us==done.slot_wait_us+done.consumer_wait_us,"restart/legacy counters changed");
+    pipeline.start({});pipeline.finish();
+    check(pipeline.counters().queued_peak==n,"empty plan reset cumulative high-water mark");
+    bool rejected=false;
+    try {StrataExpertPipeline overflow(0,std::numeric_limits<size_t>::max(),false);}
+    catch(const std::runtime_error &) {rejected=true;}
+    check(rejected,"staging byte multiplication overflow accepted");
+    std::printf("PASS telemetry: pinned=%llu ring=%llu reader_peak=%llu queued_peak=%llu unused_bytes=%llu; CPU waits slot=%llu consumer=%llu total=%llu\n",
+                (unsigned long long)done.pinned_bytes,(unsigned long long)done.device_ring_bytes,
+                (unsigned long long)done.reader_owned_peak,(unsigned long long)done.queued_peak,
+                (unsigned long long)done.unused_bytes,(unsigned long long)done.slot_wait_us,
+                (unsigned long long)done.consumer_wait_us,(unsigned long long)done.wait_us);
+}
+
 int main() {
     try {
         int devices=0;
@@ -175,6 +222,7 @@ int main() {
         int runtime=0,driver=0;
         cuda_ok(cudaRuntimeGetVersion(&runtime));cuda_ok(cudaDriverGetVersion(&driver));
         std::printf("GPU=%s CUDA_runtime=%d CUDA_driver=%d\n",props.name,runtime,driver);
+        test_telemetry();
     std::puts("Native router plan -> synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference");
         size_t cases=0;
         for(size_t group=0;group<3;++group) {

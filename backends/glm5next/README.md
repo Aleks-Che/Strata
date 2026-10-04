@@ -64,6 +64,17 @@ registry entry after planning; queued reads must retain their file handles.
 Source/H2D/D2D/chunk counters must match the consumed plan. Auto-mode counters
 report the actual native/mmap choice, not physical SSD reads.
 
+P3.6a adds shared wait/staging telemetry, also available through
+`ExpertTransport::counters()`: split reader slot waits and consumer publication
+waits, fixed pinned/ring capacities, current/peak reader-owned and queued payload
+bytes, and abandoned bytes. See [field definitions](../common/README.md).
+The CUDA fixtures validate allocation bounds, empty plans, full ring, short tail,
+cancel/restart and the preserved legacy wait total. Allocation-size overflow is
+rejected before allocation. These are CPU timers and byte accounting; no new
+CUDA timing events or graph synchronization were added. GLM INFO/monitor and GPU
+execution timelines still require runtime integration. Passing these checks does
+not establish an inference throughput change.
+
 `expert_plan.hpp` provides the native route-to-range planner (P3.1b), without CUDA,
 llama.cpp or payload reads. The loader supplies the full model identity and load
 generation, main/total/leading-dense block counts, one layer's three routed tensor

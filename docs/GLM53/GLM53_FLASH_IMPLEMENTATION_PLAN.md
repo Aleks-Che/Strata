@@ -382,6 +382,10 @@ result работают через оба API; токены и шаблон со
 - [ ] Добавить счётчики source bytes, H2D bytes, GPU hits, admission/bypass,
   ожидания read/H2D/compute, evictions и пик staging. Подтвердить перекрытие работ
   CUDA timeline, а не только наличием `Async` в имени вызова.
+  - [x] P3.6a: общий pipeline разделяет CPU slot/consumer waits, сохраняет legacy
+    wait total и считает fixed pinned/ring bytes, reader/queue high-water marks,
+    текущие payload bytes и abandoned bytes. GPU fixtures и отдельная DeepSeek
+    CUDA-регрессия прошли. GPU durations/timeline, INFO и GLM graph ещё не готовы.
 
 **Готово:** результаты совпадают с последовательной базой P1 при одинаковых
 вычислительных настройках; forced misses, вытеснение, mixed quants и отмена безопасны.

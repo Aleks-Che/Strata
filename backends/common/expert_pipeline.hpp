@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -25,6 +26,7 @@ class StrataExpertPipeline {
         cudaEvent_t ready=nullptr,used=nullptr;
         bool available=true,submitted=false,has_use=false;
         size_t job=0;
+        size_t bytes=0;
     };
 public:
     static constexpr size_t slots=4;
@@ -32,6 +34,15 @@ public:
         uint64_t groups=0,chunks=0,unused=0,h2d_bytes=0,d2d_bytes=0;
         uint64_t read_us=0,wait_us=0,submit_us=0;
         uint64_t file_bytes=0,mmap_bytes=0,read_peak=0;
+        // CPU wall-time sums, not CUDA execution durations. wait_us retains
+        // its existing meaning and equals these two components added together.
+        uint64_t slot_wait_us=0,consumer_wait_us=0;
+        // Fixed allocated capacities; exclude CUDA events/allocator overhead.
+        uint64_t pinned_bytes=0,device_ring_bytes=0;
+        // Logical payload bytes owned by readers (including slot/event waits)
+        // or published for consumers, not physical resident-memory estimates.
+        uint64_t reader_owned_bytes=0,reader_owned_peak=0;
+        uint64_t queued_bytes=0,queued_peak=0,unused_bytes=0;
     };
 private:
     int device;
@@ -58,6 +69,7 @@ private:
     }
     void produce(int reader) noexcept {
         bool claimed=false;
+        size_t claimed_bytes=0;
         try {
             check(cudaSetDevice(device));
             strata_expert_file::Request request;
@@ -71,6 +83,8 @@ private:
                 Chunk job=jobs[index];
                 bool has_use=slot.has_use;
                 ++busy;claimed=true;totals.read_peak=std::max<uint64_t>(totals.read_peak,busy);
+                claimed_bytes=job.bytes;totals.reader_owned_bytes+=job.bytes;
+                totals.reader_owned_peak=std::max(totals.reader_owned_peak,totals.reader_owned_bytes);
                 cv.notify_all();lock.unlock();
                 uint64_t started=now_us();
                 // The consumer event also implies completion of the previous
@@ -85,10 +99,11 @@ private:
                 }
                 uint64_t read=now_us()-started;
                 lock.lock();
-                totals.read_us+=read;totals.wait_us+=waited;
+                totals.read_us+=read;totals.wait_us+=waited;totals.slot_wait_us+=waited;
                 if(read_ok) (file_read?totals.file_bytes:totals.mmap_bytes)+=job.bytes;
                 if(!active || !read_ok) {
-                    slot.available=true;--busy;claimed=false;cv.notify_all();continue;
+                    slot.available=true;--busy;claimed=false;totals.reader_owned_bytes-=claimed_bytes;
+                    cv.notify_all();continue;
                 }
                 lock.unlock();started=now_us();
                 {
@@ -99,13 +114,14 @@ private:
                     check(cudaEventRecord(slot.ready,copy));
                 }
                 uint64_t submitted=now_us()-started;
-                lock.lock();slot.job=index;slot.submitted=true;
+                lock.lock();slot.job=index;slot.bytes=job.bytes;slot.submitted=true;
+                totals.queued_bytes+=job.bytes;totals.queued_peak=std::max(totals.queued_peak,totals.queued_bytes);
                 ++totals.chunks;totals.h2d_bytes+=job.bytes;totals.submit_us+=submitted;
-                --busy;claimed=false;cv.notify_all();
+                --busy;claimed=false;totals.reader_owned_bytes-=claimed_bytes;cv.notify_all();
             }
         } catch(...) {
             std::lock_guard<std::mutex> lock(mutex);
-            if(claimed)--busy;
+            if(claimed) {--busy;totals.reader_owned_bytes-=claimed_bytes;}
             error=std::current_exception();active=false;cancel_reads.store(true);cv.notify_all();
         }
     }
@@ -124,6 +140,7 @@ private:
 public:
     StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0):device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers) {
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
+        if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
         if(readers<1 || readers>int(slots) || mode<0 || mode>2)throw std::runtime_error("invalid expert reader configuration");
         try {
             check(cudaSetDevice(device));
@@ -134,6 +151,7 @@ public:
                 check(cudaEventCreateWithFlags(&slot.ready,cudaEventDisableTiming));
                 check(cudaEventCreateWithFlags(&slot.used,cudaEventDisableTiming|cudaEventBlockingSync));
             }
+            totals.pinned_bytes=totals.device_ring_bytes=bytes*slots;
             for(int i=0;i<readers;++i)producers.emplace_back([this,i]{produce(i);});
         } catch(...) {
             {std::lock_guard<std::mutex> lock(mutex);quit=true;cv.notify_all();}
@@ -163,7 +181,10 @@ public:
         for(auto &slot:ring)abandoned|=slot.submitted;
         lock.unlock();auto status=abandoned?cudaStreamSynchronize(copy):cudaSuccess;lock.lock();
         for(auto &slot:ring) {
-            if(slot.submitted)++totals.unused;
+            if(slot.submitted) {
+                ++totals.unused;totals.unused_bytes+=slot.bytes;totals.queued_bytes-=slot.bytes;
+            }
+            slot.bytes=0;
             slot.available=true;slot.submitted=false;
         }
         jobs.clear();consumed=next_job=0;
@@ -205,7 +226,7 @@ public:
             uint64_t started=now_us();
             cv.wait(lock,[&]{return error || (slot.submitted && slot.job==consumed);});
             if(error)std::rethrow_exception(error);
-            totals.wait_us+=now_us()-started;
+            const auto waited=now_us()-started;totals.wait_us+=waited;totals.consumer_wait_us+=waited;
             size_t n=jobs[consumed].bytes;
             lock.unlock();
             // ready is recorded before publication; waiting on an unrecorded
@@ -215,6 +236,7 @@ public:
             check(cudaEventRecord(slot.used,consumer));
             lock.lock();
             if(destination)totals.d2d_bytes+=n;
+            totals.queued_bytes-=n;slot.bytes=0;
             slot.has_use=true;slot.submitted=false;slot.available=true;
             ++consumed;off+=n;cv.notify_all();
         }

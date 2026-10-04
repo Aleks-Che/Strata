@@ -119,6 +119,9 @@ int main() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             bool overlapped=pipeline.ready_chunks()==StrataExpertPipeline::slots && !gate.expired.load();
             bool blocked_compute=cudaStreamQuery(compute)==cudaErrorNotReady;
+            const auto full=pipeline.counters();
+            check(full.pinned_bytes==4*chunk && full.device_ring_bytes==4*chunk &&
+                  full.queued_bytes==4*chunk && full.queued_peak==4*chunk && full.reader_owned_bytes==0);
             gate.release.store(true);
             check(overlapped && blocked_compute);
             check(pipeline.transfer(dest,source.data(),size,compute));
@@ -135,6 +138,9 @@ int main() {
                 pipeline.finish();cuda_ok(cudaStreamSynchronize(compute));
                 cuda_ok(cudaMemcpy(actual.data(),dest,size,cudaMemcpyDeviceToHost));check(actual==source);
             }
+            const auto stats=pipeline.counters();
+            check(stats.queued_bytes==0 && stats.reader_owned_bytes==0 && stats.queued_peak==4*chunk &&
+                  stats.wait_us==stats.slot_wait_us+stats.consumer_wait_us && stats.unused_bytes<=stats.h2d_bytes);
         }
         test_reuse(compute,dest,size);
 #ifdef _WIN32
