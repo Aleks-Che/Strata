@@ -1,0 +1,52 @@
+# Private generated copies; upstream source and other model backends stay intact.
+function(glm_runtime_source target relative expected_hash output_name)
+  set(original "${glm_source}/${relative}")
+  file(SHA256 "${original}" actual_hash)
+  if(NOT actual_hash STREQUAL expected_hash)
+    message(FATAL_ERROR "Review GLM runtime patch for changed ${relative}")
+  endif()
+  file(READ "${original}" source_text)
+  if(target STREQUAL "ggml-base")
+    # The implementation needs backend types and APIs, so put it after includes.
+    string(REPLACE "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {"
+      "#include \"sync_runtime.inc\"\nstatic enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {\n#include \"gpu_only_audit.inc\""
+      source_text "${source_text}")
+    string(REPLACE "                        ggml_backend_tensor_set_async(split_backend,"
+      "                        if (strata_glm_sync_active && !strata_glm_candidate_copy) {\n                            strata_glm_copy_range(split_backend, input_cpy, input, expert_offset, expert_size_copy + padding_end);\n                            return;\n                        }\n                        ggml_backend_tensor_set_async(split_backend,"
+      source_text "${source_text}")
+    string(REPLACE "                    // try async copy, but if not possible,"
+      "                    if (strata_glm_sync_active && ggml_backend_buffer_is_host(input->buffer) &&\n                        ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&\n                        strstr(input->name, \"_exps.weight\")) {\n                        GGML_LOG_ERROR(\"STRATA_GLM refusing full expert tensor copy: %s\\n\", input->name);\n                        return GGML_STATUS_FAILED;\n                    }\n                    // try async copy, but if not possible,"
+      source_text "${source_text}")
+  else()
+    string(REPLACE "const size_t prefetch_size = prefetch && use_mmap ? -1 : 0;"
+      "const size_t prefetch_size = 0; // Strata: fault expert ranges only on demand."
+      source_text "${source_text}")
+  endif()
+  set(generated "${CMAKE_BINARY_DIR}/${output_name}")
+  set(old "")
+  if(EXISTS "${generated}")
+    file(READ "${generated}" old)
+  endif()
+  if(NOT old STREQUAL source_text)
+    file(WRITE "${generated}" "${source_text}")
+  endif()
+  get_target_property(sources ${target} SOURCES)
+  get_filename_component(basename "${relative}" NAME)
+  set(matches "${sources}")
+  list(FILTER matches INCLUDE REGEX "(^|/)${basename}$")
+  list(LENGTH matches count)
+  if(NOT count EQUAL 1)
+    message(FATAL_ERROR "Expected one ${basename} in ${target}")
+  endif()
+  list(REMOVE_ITEM sources ${matches})
+  set_property(TARGET ${target} PROPERTY SOURCES "${sources};${generated}")
+  get_filename_component(original_dir "${original}" DIRECTORY)
+  set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
+    INCLUDE_DIRECTORIES "${original_dir};${CMAKE_CURRENT_SOURCE_DIR}"
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc")
+endfunction()
+glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
+  a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)
+glm_runtime_source(llama src/llama-model-loader.cpp
+  5ef07476310d4678df18a61a6ec0a1ebcbb58c7534ac3c624b9fe0f315a4ab01 strata-glm-loader.cpp)
+string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch")

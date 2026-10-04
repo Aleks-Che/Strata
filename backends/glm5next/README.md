@@ -1,10 +1,12 @@
-# GLM candidate build and tokenizer oracle
+# GLM candidate validation and synchronous inference baseline
 
-This is preparation for P0.3/P2.1b/P3, not a Strata inference backend or launcher.
+This contains P0.3/P2.1b/P3 checks and the opt-in P1 synchronous CLI baseline.
+The Strata server protocol and launcher integration are still pending.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive. Candidate llama/oracle/CUDA compilation
 and 80 token-ID comparisons on each local GGUF passed on 2026-10-04 (P0.3b.1/P2.1b.2).
-Numerical GPU graphs, independent template rendering and inference remain unverified.
+Numerical GPU checks and a 64-token IQ3_XXS inference baseline are recorded below.
+Independent template rendering remains unverified.
 Qwen and DeepSeek dependencies/build files are unchanged.
 
 The GLM frontend also has a real loopback HTTP integration check (P2.5g):
@@ -855,4 +857,75 @@ success nor the earlier unpatched binaries should be used as current evidence.
 [matrix results](../../docs/GLM53/GLM53_FLASH_QUANT_CHECK.json).
 These checks do not cover the real 45-layer weights, F16 KV accuracy, streamed
 dispatch numerics, long contexts, concurrent sessions, native MTP or tokens/s.
-Next is the P1 synchronous demand-loading engine and its real-model logits baseline.
+The P1 checks below extend this coverage to streamed inference on the real IQ3_XXS.
+
+## Synchronous real-model baseline (P1.1a)
+
+Add `-DSTRATA_GLM_SYNC_BASELINE=ON` to the isolated CUDA configuration above.
+This builds `strata-glm5next-smoke`, an explicit diagnostic CLI, and adds a CTest.
+It does not implement the Strata server protocol. It accepts an already rendered
+UTF-8 prompt, or comma-separated `--input-ids`, and saves JSON telemetry and
+optional F32 logits. Architecture dimensions come from the GGUF loader.
+
+`RuntimePatches.cmake` verifies hashes of two upstream translation units and
+compiles private generated copies. The loader disables eager mmap prefetch.
+The scheduler copies only router-selected expert ranges, through one 16 MiB
+CUDA pinned buffer, synchronizing before scratch/staging reuse. Attention, KDA,
+mHC, router, dense/shared FFN and embeddings stay on CUDA. The complete scheduled
+graph is audited before execution; a CPU compute node or a full expert-tensor
+copy fallback causes failure. Host allocations falling back to pageable storage
+are rejected. Neither MTP nor the shared asynchronous transport/cache is enabled.
+
+```powershell
+$env:PATH = "$PWD\build-local\cuda-13.0\bin;$PWD\build-local\cuda-13.0\bin\x64;$env:PATH"
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-smoke.exe `
+  --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf `
+  --prompt-file docs\GLM53\GLM53_FLASH_SYNC_PROMPT.txt `
+  --n-predict 64 --ctx 2048 --batch 16 `
+  --report build-local\glm-sync.json --logits build-local\glm-sync.f32
+```
+
+The runner sets TF32 off and `GGML_OP_OFFLOAD_MIN_BATCH=1` before CUDA backend
+initialization, uses F16 KV and disables flash attention. `--candidate-copy`
+selects the candidate's original selected-range transfer as a numerical reference;
+its source/H2D counters are not instrumented. `--resident-experts` is for tiny
+fixtures and requires enough VRAM for all weights. Neither option enables MTP.
+
+On Windows / Ryzen 9 9950X / 128 GiB / RTX 5090 32 GiB, CUDA 13.0.48, driver
+581.80, the IQ3_XXS prompt has 39 tokens and generation returns 64 tokens:
+
+| Run | Prefill tok/s | Decode tok/s | Decode source / H2D seconds |
+|---|---:|---:|---:|
+| First measured run | 0.642 | 1.288 | 42.107 / 4.893 |
+| Repeated synchronous run | 3.046 | 3.333 | 12.289 / 4.943 |
+| Candidate selected-copy reference | 2.948 | 3.274 | Not instrumented |
+
+Decode speed counts 63 single-token forward steps; the first generated token
+comes from prefill. Timing includes `llama_decode` and synchronization, excluding
+sampling, output I/O and memory queries. The OS file cache was not flushed;
+the first run must not be treated as a controlled cold-cache measurement.
+Every sampled vocabulary row (154880 logits) is finite. All 64 token IDs and all
+9,912,320 saved F32 logits match bit for bit across the three runs. This reference
+checks the transfer change against the same candidate graph/kernels; it is not
+an independent implementation of GLM or a general quality evaluation.
+
+The synchronous runs have 378 prefill and 7938 decode expert matmuls, all on GPU.
+Decode transfers 192,299,904,000 bytes including MMQ padding; no expert cache is
+used. Peak process working set is 70.437 GiB, including mapped expert pages;
+the maximum CUDA-reported device usage sampled at phase/step boundaries is
+10.588 GiB (includes usage visible to CUDA from other processes). It is not an
+NVML physical-VRAM peak: `nvidia-smi` reported about 13.3 GiB during execution.
+Resident model tensors are 7541.55 MiB; the scheduled compute buffer is 1228.88 MiB.
+
+The final build passes 10/10 CTest. The added fixture compares streamed versus
+resident F16-KV logits for dense/sparse synthetic models, compares the original
+candidate copy path, and verifies CPU-embedding rejection before computation.
+Real model state rollback, long-context sparse attention, additional prompts,
+UD-Q3_K_XL generation, native MTP and full-model Qwen/DeepSeek regression remain.
+
+[Manifest, hashes and comparisons](../../docs/GLM53/GLM53_FLASH_SYNC_VALIDATION.json),
+[commands and CTest](../../docs/GLM53/GLM53_FLASH_SYNC_VALIDATION_TESTS.txt),
+[synthetic checks](../../docs/GLM53/GLM53_FLASH_SYNC_FIXTURE_CHECK.json),
+[first run](../../docs/GLM53/GLM53_FLASH_SYNC_FIRST_RUN.json),
+[repeat](../../docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json),
+[candidate copy reference](../../docs/GLM53/GLM53_FLASH_SYNC_CANDIDATE_REFERENCE.json).

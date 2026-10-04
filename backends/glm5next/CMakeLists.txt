@@ -6,6 +6,10 @@ option(STRATA_GLM_PROTOCOL_TESTS_ONLY "Skip candidate dependency; build protocol
 option(STRATA_GLM_CUDA "Compile candidate CUDA kernels (oracle still loads vocabulary only)" OFF)
 option(STRATA_GLM_TRANSPORT_TESTS_CUDA "Test shared GPU transport without llama.cpp (requires a CUDA device)" OFF)
 option(STRATA_GLM_GRAPH_CHECK "Build graph audit and numerical kernel checks against the candidate (requires CUDA)" OFF)
+option(STRATA_GLM_SYNC_BASELINE "Build explicit synchronous GLM inference baseline (requires CUDA)" OFF)
+if(STRATA_GLM_SYNC_BASELINE AND (STRATA_GLM_PROTOCOL_TESTS_ONLY OR NOT STRATA_GLM_CUDA))
+  message(FATAL_ERROR "STRATA_GLM_SYNC_BASELINE requires the candidate and STRATA_GLM_CUDA=ON")
+endif()
 if(STRATA_GLM_GRAPH_CHECK AND (STRATA_GLM_PROTOCOL_TESTS_ONLY OR NOT STRATA_GLM_CUDA))
   message(FATAL_ERROR "STRATA_GLM_GRAPH_CHECK requires the candidate and STRATA_GLM_CUDA=ON")
 endif()
@@ -120,6 +124,30 @@ set(glm_candidate_patches "none")
 if(STRATA_GLM_CUDA)
   include(CandidatePatches.cmake)
 endif()
+if(STRATA_GLM_SYNC_BASELINE)
+  include(RuntimePatches.cmake)
+  add_executable(strata-glm5next-smoke smoke.cpp)
+  target_compile_features(strata-glm5next-smoke PRIVATE cxx_std_17)
+  target_include_directories(strata-glm5next-smoke PRIVATE "${glm_source}/vendor")
+  target_link_libraries(strata-glm5next-smoke PRIVATE llama)
+  if(WIN32)
+    target_link_libraries(strata-glm5next-smoke PRIVATE psapi)
+  endif()
+  target_compile_definitions(strata-glm5next-smoke PRIVATE
+    STRATA_GLM_SOURCE_SHA="${STRATA_GLM_SOURCE_SHA}"
+    STRATA_GLM_ARCHIVE_SHA256="${STRATA_GLM_ARCHIVE_SHA256}"
+    STRATA_GLM_PATCH_SET="${glm_candidate_patches}")
+  set_target_properties(strata-glm5next-smoke PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  set_property(SOURCE smoke.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/synthetic_glm.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h")
+  add_test(NAME glm5next_sync_baseline COMMAND strata-glm5next-smoke --self-test "${CMAKE_BINARY_DIR}/stream-fixture")
+  set_tests_properties(glm5next_sync_baseline PROPERTIES TIMEOUT 120)
+  if(WIN32)
+    get_filename_component(glm_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+    set_tests_properties(glm5next_sync_baseline PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${glm_cuda_bin}/x64;PATH=path_list_prepend:${glm_cuda_bin}")
+  endif()
+endif()
 add_executable(strata-glm5next-tokenizer tokenizer_oracle.cpp)
 target_compile_features(strata-glm5next-tokenizer PRIVATE cxx_std_17)
 target_link_libraries(strata-glm5next-tokenizer PRIVATE llama)
@@ -170,4 +198,5 @@ file(WRITE "${CMAKE_BINARY_DIR}/glm-source-build.txt"
   "cuda_version=${CMAKE_CUDA_COMPILER_VERSION}\ncuda_architectures_requested=${CMAKE_CUDA_ARCHITECTURES}\n"
   "cuda_architectures=${glm_cuda_architectures}\n"
   "graph_validation_enabled=${STRATA_GLM_GRAPH_CHECK}\n"
-  "scope=vocab-only oracle and optional graph/kernel validation; no GLM inference engine\n")
+  "sync_baseline_enabled=${STRATA_GLM_SYNC_BASELINE}\n"
+  "scope=isolated GLM validation and optional synchronous CLI baseline; no server/MTP engine\n")

@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "recorded_at": "2026-10-04T16:49:24.473090+05:00",
+  "scope": "P1.1a real 45-layer IQ3_XXS synchronous CLI baseline; Strata protocol/cache/async/MTP pending",
+  "cwd": "C:\\work\\git\\my-repos\\Strata",
+  "base_revision": "3f7289dbb2c09de7a53386db5595396226fcbe5a",
+  "initial_revision": "7a721e712340d0d7901226bad56290ffe6494ca0",
+  "revision_note": "Previous staged graph/state/quant/tokenizer work was committed externally during this turn; agent did not change index/commits. P1.1a is in the working tree.",
+  "hardware": {
+    "cpu": "AMD Ryzen 9 9950X",
+    "system_ram_GiB": 128,
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_MiB": 32607,
+    "driver": "581.80",
+    "os": "Windows"
+  },
+  "source_build_record": {
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches_applied_by_harness": "cuda-f32-mmf-respect-tf32-override,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch",
+    "mmf_original_sha256": "08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1",
+    "mmf_generated_sha256": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc",
+    "cxx": "MSVC 19.44.35222.0",
+    "cuda_enabled": "ON",
+    "cuda_compiler": "C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe",
+    "cuda_version": "13.0.48",
+    "cuda_architectures_requested": "120",
+    "cuda_architectures": "120a",
+    "graph_validation_enabled": "ON",
+    "sync_baseline_enabled": "ON",
+    "scope": "isolated GLM validation and optional synchronous CLI baseline; no server/MTP engine"
+  },
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "original_extracted_tree_audit": {
+    "regular_files_compared": 3599,
+    "missing": [],
+    "changed": []
+  },
+  "harness_sha256": {
+    "CMakeLists.txt": "853838a24376ae50e6550482b03aaeab96e0a7a6c4a4bbb8295843da4589a0ab",
+    "CandidatePatches.cmake": "44af8b33ea34bdb89dbe8bd35a511876e6045a5f60881d749594868981a40b77",
+    "RuntimePatches.cmake": "a2084a78c7e87b4d3f411bc8e7e1f89c0b631020c5afdef817ffa0f3162636a6",
+    "smoke.cpp": "aecdcbfab934062fd435b85eab19be54cc1f01ac02930ab0dab36fff823613b7",
+    "sync_runtime.h": "d8b2b660945e124d0cd2258ab7249951ab62f786e600c14975d8e3a149be0ffd",
+    "sync_runtime.inc": "b8d51e3982dd18d7fd07a29c1ed4d98cd01a0d0f3b9555bfc38ae646aecd114f",
+    "gpu_only_audit.inc": "8cbf92c6810ee09e4f61b76c2b2a2aaf82c84d31084ad67f33e5445c1571f91b",
+    "synthetic_glm.hpp": "537d4d7c936f90c78696009971c1caf93ae86ff987886f2f70c4c91ed8f333b9"
+  },
+  "generated_sha256": {
+    "strata-glm-mmf.cu": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc",
+    "strata-glm-backend.cpp": "d80d8f949c7bde156482d68e5199a35c5209b89c5f7c591d612c4c225ef9cb0d",
+    "strata-glm-loader.cpp": "2397f9040e92af49a4b44f61edd291be8e83d05f7e455657bd45d51d3033bf93"
+  },
+  "final_binary_sha256": "5cf9125beea387ea079238340ae510d58388fcd302afc16c291e8af276674573",
+  "model": {
+    "path": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+    "file_bytes": 120591950656,
+    "header_bytes": 9518775,
+    "header_sha256": "024c9a19151d7fe3effa7d95a1602edd5d4c701648818380cdf4ea12c5a5d4a1",
+    "full_payload_sha256": "not computed"
+  },
+  "prompt": {
+    "path": "docs/GLM53/GLM53_FLASH_SYNC_PROMPT.txt",
+    "sha256": "3dccb3ded246702bb40ca1af02733807379f7a7b6d8e44f32b9246c6a3f91fb6",
+    "rendering": "GLMTemplate using embedded tokenizer.chat_template; one user message; reasoning_effort=low; clear_thinking=false; no tools"
+  },
+  "commands": {
+    "build": {
+      "command": "cmd /c \"build-local\\build-glm-graph.cmd > build-local\\glm-sync-build-final.log 2>&1\"",
+      "exit_code": 0
+    },
+    "cold": {
+      "command": "& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe --model H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file build-local/glm-sync-prompt.txt --n-predict 64 --ctx 2048 --batch 16 --report build-local/glm-sync-iq3-cold.json --logits build-local/glm-sync-iq3-cold.f32 *> build-local/glm-sync-iq3-cold.log",
+      "exit_code": 0
+    },
+    "repeat": {
+      "command": "& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe --model H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file build-local/glm-sync-prompt.txt --n-predict 64 --ctx 2048 --batch 16 --report build-local/glm-sync-iq3-repeat.json --logits build-local/glm-sync-iq3-repeat.f32 *> build-local/glm-sync-iq3-repeat.log",
+      "exit_code": 0
+    },
+    "reference": {
+      "command": "& build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe --model H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file build-local/glm-sync-prompt.txt --n-predict 64 --ctx 2048 --batch 16 --candidate-copy --report build-local/glm-sync-iq3-reference.json --logits build-local/glm-sync-iq3-reference.f32 *> build-local/glm-sync-iq3-reference.log",
+      "exit_code": 0
+    }
+  },
+  "ctest_passed": 10,
+  "ctest_seconds": 3.84,
+  "added_fixture_checks": 5,
+  "real_logit_comparison": {
+    "rows": 64,
+    "vocabulary": 154880,
+    "elements": 9912320,
+    "all_finite": true,
+    "tokens_identical": true,
+    "float32_bytes_identical": true,
+    "max_abs": 0,
+    "nmse": 0,
+    "sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+    "reference": "same candidate graph/kernels, original selected-range transfer with strict GPU audit and TF32 patch"
+  },
+  "runs": {
+    "cold": {
+      "load_seconds": 5.5306016,
+      "prefill_seconds": 60.7090411,
+      "prefill_tokens_per_second": 0.6424084336262066,
+      "decode_seconds": 48.918117199999976,
+      "decode_tokens_per_second": 1.2878664103613544,
+      "memory_summary_GiB": {
+        "peak_working_set_bytes": 70.43672180175781,
+        "private_commit_bytes": 12.280277252197266,
+        "device_used_bytes_including_other_processes": 10.58843994140625
+      }
+    },
+    "repeat": {
+      "load_seconds": 2.3579824,
+      "prefill_seconds": 12.8021826,
+      "prefill_tokens_per_second": 3.0463555487796277,
+      "decode_seconds": 18.904136100000002,
+      "decode_tokens_per_second": 3.3326040220372724,
+      "memory_summary_GiB": {
+        "peak_working_set_bytes": 70.43671798706055,
+        "private_commit_bytes": 12.280933380126953,
+        "device_used_bytes_including_other_processes": 10.58843994140625
+      }
+    },
+    "reference": {
+      "load_seconds": 2.3977383,
+      "prefill_seconds": 13.229055,
+      "prefill_tokens_per_second": 2.948056380444408,
+      "decode_seconds": 19.243594099999996,
+      "decode_tokens_per_second": 3.2738167138954575,
+      "memory_summary_GiB": {
+        "peak_working_set_bytes": 70.42084503173828,
+        "private_commit_bytes": 12.26613998413086,
+        "device_used_bytes_including_other_processes": 10.58843994140625
+      }
+    }
+  },
+  "build_log_sha256": "a13b9b5929a3f968ffd231363ce3c590a3ebe7b9e4f7d604abec6a2b07364c8e",
+  "omitted_msvc_include_lines": 791,
+  "report_sha256": {
+    "GLM53_FLASH_SYNC_CANDIDATE_REFERENCE.json": "05efcde55861d90a20e189bc315fa48ef4bdea8ba5b8184c70494f1c08f28ed1",
+    "GLM53_FLASH_SYNC_FIRST_RUN.json": "56c858c66281f944ce2a05b42121e73c496f45e5b49ca7d44fb23f85e82b430e",
+    "GLM53_FLASH_SYNC_FIXTURE_CHECK.json": "7f20dcee7fd57f4073e1d648a2333e7daeb81b7a84eab5d120d818273d1b6b28",
+    "GLM53_FLASH_SYNC_PROMPT.txt": "3dccb3ded246702bb40ca1af02733807379f7a7b6d8e44f32b9246c6a3f91fb6",
+    "GLM53_FLASH_SYNC_REPEAT.json": "e67b788095ca88b88e62670ca956c21e5f1b4b3ab2331de5a730ed3bac98b180",
+    "GLM53_FLASH_SYNC_VALIDATION_TESTS.txt": "6b1753ffd3bf82d89feb68d9ef8de08964ce9857f89e4ac14cc8705618a40152"
+  },
+  "limitations": [
+    "Diagnostic CLI only; no production backend protocol/setup/API launch",
+    "No async pipeline, VRAM expert cache, native MTP, concurrent sessions or cancellation",
+    "One IQ3_XXS prompt and ctx2048 only; no real long-context sparse DSA or hybrid rollback verification",
+    "No UD-Q3_K_XL generation, Linux/HIP or full-model Qwen/DeepSeek regression",
+    "Candidate-copy parity validates transfer integration, not an independent GLM implementation",
+    "OS cache uncontrolled; memory samples are not an NVML peak or isolated-device measurement"
+  ]
+}

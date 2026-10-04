@@ -234,8 +234,10 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
           обычный/routed matmul, 8 выбранных экспертов, tokens 1/4/17;
           CPU и scalar references. [Отчёты](GLM53_FLASH_STATE_VALIDATION.json).
         - [ ] P0.3b.2c.3: реальная 45-layer модель, F16 KV и mixed-quant streamed
-          outputs/logits/state; требует P1 demand-loading. Synthetic coverage
-          выше не закрывает этот пункт и не является замером скорости.
+          outputs/logits/state. P1.1a: реальный forward и F16 KV проверены,
+          64 токена и 9 912 320 logits бит-в-бит совпали с candidate selected-copy
+          reference. Остались real-state rollback и длинный sparse-контекст;
+          [отчёт](GLM53_FLASH_SYNC_VALIDATION.json).
 - [ ] Подготовить GPU fixtures для KDA/DSA/mHC/MoE и сравнения logits, включая разбивку
   prefill на микробатчи и переход от полного к разреженному attention.
 - [ ] Зафиксировать корректный tokenizer/template oracle из той же зависимости.
@@ -248,18 +250,26 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
 
 - [ ] Создать `strata-glm5next` с существующим протоколом Strata и отдельным профилем.
   Архитектурные параметры читать из GGUF, а не из констант DeepSeek на 43 слоя.
-- [ ] Разместить attention, KDA, mHC, dense/shared FFN и router на GPU.
+  P1.1a: отдельный диагностический `strata-glm5next-smoke` уже исполняет модель;
+  production executable/protocol/profile остаются P1.1b.
+- [x] Разместить attention, KDA, mHC, dense/shared FFN и router на GPU.
   Routed matrices держать в отображениях файлов и доставлять по фактическим IDs.
-- [ ] Сначала реализовать простой последовательный режим копирования как базу
+- [x] Сначала реализовать простой последовательный режим копирования как базу
   проверки. Все матричные операции, включая streamed experts, выполняются на GPU.
-- [ ] Отключить полное чтение/фиксацию всех экспертов при загрузке модели;
+- [x] Отключить полное чтение/фиксацию всех экспертов при загрузке модели;
   ограничить pinned RAM staging и не создавать вторую полную копию mmap в RAM.
-- [ ] Добавить GPU-аудит и отказ с именем неподдержанного op, а не скрытый fallback.
+- [x] Добавить GPU-аудит и отказ с именем неподдержанного op, а не скрытый fallback.
   CPU обслуживает файлы, токенизацию, sampling и диспетчеризацию; его загрузка сама
   по себе не доказывает CPU-вычисление слоёв.
-- [ ] Снять фактические VRAM/RAM после загрузки, после prefill и во время decode.
+- [x] Снять фактические VRAM/RAM после загрузки, после prefill и во время decode.
   Использовать исходные настройки точности P0; не копировать принудительный FA on
   из `backends/deepseek4/main.cpp`.
+
+P1.1a: IQ3_XXS, 39 prompt + 64 generated, ctx2048/batch16, F16 KV,
+TF32/FA/MTP off: **1,288 ток/с** первый замер и **3,333 ток/с** повторный.
+Это синхронный режим без VRAM expert cache; файловый кэш ОС не очищался.
+Все logits конечны, CPU compute отсутствует; 10/10 CTest. Команды, память и
+baseline: [manifest](GLM53_FLASH_SYNC_VALIDATION.json).
 
 **Готово:** воспроизводимая генерация 64–128 токенов, без NaN/Inf, без CPU compute
 узлов модели и без обязательной предзагрузки всех экспертов в RAM. Есть baseline logits/token IDs
