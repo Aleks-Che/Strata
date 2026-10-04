@@ -249,6 +249,45 @@ static void test_dispatch(int mode,bool frequency,bool decode) {
     std::printf("PASS dispatch mode=%d frequency=%d decode=%d: mixed miss/hit/bypass, all-hit no I/O, paused admission, cancellation, zero budget, injected OOM bytes/guards and fatal-error restart\n",mode,int(frequency),int(decode));
 }
 
+static void test_dispatch_branch_budgets(int mode,bool frequency,bool decode) {
+    auto source=std::make_shared<Source>();auto plan=source->plan();
+    auto main=plan[0],mtp=plan[1],other=plan[2];mtp.branch=other.branch=Branch::mtp;
+    ExpertCache cache(size_t(main.bytes+mtp.bytes),{frequency,100000,32,true});
+    cache.set_branch_budgets(size_t(main.bytes),0);
+    ExpertTransport transport(0,4093,false,4,mode);
+    if(mode==1) {
+        DWORD old=0;require(VirtualProtect(source->view,source->bytes.size(),PAGE_NOACCESS,&old)!=0,"branch native protection");
+    }
+    auto run=[&](const std::vector<ExpertKey> &keys) {
+        constexpr size_t guard=37;size_t total=guard;std::vector<size_t> offsets;
+        for(const auto &key:keys) {offsets.push_back(total);total+=size_t(key.bytes)+guard;}
+        Device dest(total);std::vector<uint8_t> expected(total,0xA5),actual(total);
+        for(size_t i=0;i<keys.size();++i)
+            std::copy_n(source->bytes.data()+keys[i].offset,size_t(keys[i].bytes),expected.data()+offsets[i]);
+        ExpertDispatch dispatch(cache,transport,keys,views(source),decode);
+        for(size_t i=0;i<keys.size();++i)dispatch.copy(i,dest.data+offsets[i],dest.stream);
+        dispatch.finish();cuda_ok(cudaStreamSynchronize(dest.stream));
+        cuda_ok(cudaMemcpy(actual.data(),dest.data,total,cudaMemcpyDeviceToHost));
+        require(actual==expected,"branch dispatch payload/guards differ");
+    };
+    run({main});const auto before=transport.counters();const auto counts=cache.counters();
+    run({mtp,main,other});
+    const auto after=transport.counters();
+    require(cache.resident(main) && !cache.resident(mtp) && !cache.resident(other) &&
+            cache.resident_bytes(Branch::main)==main.bytes && cache.resident_bytes(Branch::mtp)==0 &&
+            cache.counters().hits==counts.hits+1 && cache.counters().bypasses==counts.bypasses+2 &&
+            after.h2d_bytes-before.h2d_bytes==mtp.bytes+other.bytes &&
+            after.file_bytes-before.file_bytes+after.mmap_bytes-before.mmap_bytes==mtp.bytes+other.bytes,
+            "disabled MTP quota lost bytes, hit or accounting");
+    cache.set_branch_budgets(size_t(main.bytes),size_t(mtp.bytes));run({mtp});
+    require(cache.resident_bytes()==main.bytes+mtp.bytes && cache.resident_bytes(Branch::mtp)==mtp.bytes,
+            "MTP quota recovery/global cap mismatch");
+    const auto loaded=transport.counters();run({mtp,main});
+    require(transport.counters().h2d_bytes==loaded.h2d_bytes && cache.set_budget(0),"branch hits uploaded or retained pins");
+    std::printf("PASS branch dispatch mode=%d frequency=%d decode=%d: disabled MTP full bypass/guards, main hit, quota recovery and shared budget\n",
+                mode,int(frequency),int(decode));
+}
+
 static void test_dispatch_errors() {
     auto source=std::make_shared<Source>();auto plan=source->plan();
     ExpertCache cache(1<<20);ExpertTransport transport(0,4093,false,4,0);
@@ -300,6 +339,7 @@ int main() {
         for(int mode:{0,1,2})for(bool decode:{false,true})test_cancel_restart(mode,decode);
         test_destructor();test_validation_and_finish();
         for(int mode:{0,1,2})for(bool frequency:{false,true})for(bool decode:{false,true})test_dispatch(mode,frequency,decode);
+        for(int mode:{0,1,2})for(bool frequency:{false,true})for(bool decode:{false,true})test_dispatch_branch_budgets(mode,frequency,decode);
         test_dispatch_errors();return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }

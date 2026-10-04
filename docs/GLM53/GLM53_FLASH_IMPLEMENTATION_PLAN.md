@@ -445,6 +445,11 @@ Upstream MTP PR на дату исследования имеет статус D
   основных весов. Проверить `index_share_for_mtp_iteration` по официальному config.
 - [ ] Передавать expert weights MTP через тот же конвейер; задать отдельный лимит
   кэша и историю частот под общим бюджетом VRAM.
+  - [x] P5.2a: optional main/MTP byte ceilings и независимые frequency history
+    под общим ExpertCache budget; учёт retired leases, pins/events, deferred trim
+    и invalidation. CUDA fixtures и 84 synthetic matrix comparisons через dispatch
+    проверили MTP bypass при нулевом лимите и восстановление admission, сохраняя
+    main hits. Default policy не менялась. Native MTP graph/draft ещё не подключены.
 - [ ] Начать с одного draft token, затем 2 и 3. Проверять кандидатов основной
   моделью, поддержать частичное принятие и корректную обработку стоп-токенов/tools.
 - [ ] Реализовать откат всех ветвей состояния на точное число принятых токенов,

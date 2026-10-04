@@ -13,12 +13,12 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a и warm transport/chunk benchmark P3.7a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `2a7503be11b8311c380fcf127a8d6d3a8e1a8594`, ветка `dev`; P2.5g уже в HEAD, P3.7b — в рабочем дереве |
-| Последняя выполненная работа | P3.7b: controlled chunk/staging sweep 256 КиБ/1/4/16 МиБ, 96 конфигураций / 48384 byte comparisons на двух GGUF; 26 Python tests прошли |
+| Общий статус | P0, P2, P3 и подготовка P5 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a, warm transport/chunk benchmark P3.7a/b и branch cache policy P5.2a DONE в пределах проверок журнала; P1, P4 и P6 не начаты |
+| Последняя проверенная ревизия Strata | База `ddb3424f3c913f1d93949b70ea495c7cde99eb7e`, ветка `dev`; P3.7b уже в HEAD, P5.2a — в рабочем дереве |
+| Последняя выполненная работа | P5.2a: main/MTP byte ceilings и independent frequency history под общим cap; чистая сборка и 12/12 CTest, включая 84 новых dispatch byte comparisons |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.7b завершён, требуется продолжение P0.3b |
-| Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 16 (P3.5f-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
+| Активная задача / исполнитель | Нет; cache-компонент P5.2a завершён, требуется продолжение P0.3b |
+| Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 20 (P5.2a-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
@@ -75,7 +75,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; 72 локальные проверки нового GGUF; P2.5g — 30 реальных HTTP-сценариев с mock engine, смежный прогон 48 tests | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
 | P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
-| P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
+| P5. Native MTP | IN_PROGRESS | Подготовка P5.2a: отдельные main/MTP ceilings и frequency history в общем cache, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
 
 ## Правила заполнения для агента
@@ -2283,6 +2283,68 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив и собрать
   candidate/oracle/CUDA. После подключения compute сравнить 4/16 МиБ с учётом
   доступной VRAM и фактической скорости генерации.
+
+### P5.2a-01 — 2026-10-04, Asia/Yekaterinburg — Main/MTP cache policy
+
+- **Статус:** DONE для независимого cache-компонента; P5 IN_PROGRESS только
+  в части подготовки памяти. Native MTP execution не реализован.
+- **Исполнитель:** Codex, автоматический цикл 20.
+- **Ревизия:** `ddb3424f3c913f1d93949b70ea495c7cde99eb7e`, ветка `dev`;
+  до начала дерево чистое, изменения P5.2a оставлены в рабочем дереве.
+- **Изменение:** `ExpertCache::set_branch_budgets(main, mtp)` задаёт отдельные
+  byte ceilings под общим global budget. Accounting Entry хранит ветку и
+  удерживает её bytes после invalidation, пока остаются leases/pins/CUDA consumers.
+  `resident_bytes(Branch)`/`byte_budget(Branch)` показывают состояние по веткам.
+  Избыточная ветка освобождает свои idle LRU entries; global pressure может
+  освобождать обе ветки. Нулевой ceiling отключает admission этой ветки;
+  uncached dispatch переносит матрицы полностью. Protected hits остаются доступны.
+  При deferred excess новые misses могут временно bypass в обеих ветках.
+  Четвёртое поле `Admission.separate_branches=true` создаёт независимую MTP
+  frequency history: отдельные decay clock и max_keys bound. Общее число history
+  keys ограничено 2×max_keys, `history_size()` показывает сумму. Cross-branch
+  eviction при этом использует LRU, поскольку frequency clocks независимы;
+  same-history admission сравнивает scores и планирует victims атомарно.
+  Invalidation чистит обе истории. Старые defaults сохраняют shared history
+  и отсутствие branch ceilings; DeepSeek/common pipeline исходники не менялись.
+- **Файлы:** `backends/glm5next/expert_cache.hpp`, `test_expert_cache.cpp`,
+  `test_expert_transport.cpp`, `README.md`; план, статус и
+  [CTest log](GLM53_FLASH_BRANCH_CACHE_TESTS.txt).
+- **Проверки:** cwd `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\check-glm-native-plan.cmd > build-local/glm5next-branch-cache-build.log 2>&1`
+  — **exit 0**, clean MSVC/CUDA build и **12/12 CTest, 3,71 с**, без skip/failure.
+  Helper использует `cmake --build build-local/glm5next-transport --config Release --clean-first`
+  и `ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error`.
+  Стенд — Windows / RTX 5090 / CUDA runtime/driver 13000/13000.
+  - LRU/frequency: MTP ceiling при свободном global budget не вытесняет main,
+    zero/oversized MTP miss не вызывает upload, pinned hit сохраняется,
+    trim завершается после release; retired MTP lease блокирует over-budget reload.
+    Глобальный cap остаётся главным и может уменьшиться ниже branch ceilings.
+  - Independent frequency: 32 MTP обращения не старят main history; проверены
+    cross-branch global LRU, очистка обеих histories и отсутствие частичного
+    eviction при отказе mixed-size frequency admission.
+  - Pending CUDA fixture: branch trim не блокируется и не освобождает allocation
+    до завершения upload/consumer events; после завершения bytes освобождены,
+    main продолжает работать при нулевом MTP ceiling.
+  - 12 dispatch сочетаний mmap/native/auto × LRU/frequency × prefill/decode:
+    warm main → MTP bypass/main hit/MTP bypass → включение MTP admission →
+    all-hit → global trim. **84 full matrix comparisons** и guards прошли;
+    source/H2D bytes включают только misses, MTP quota не теряет весов.
+  - Прежние key/budget/frequency/OOM/reload/memory-controller, NVML compatibility,
+    byte transport и parser tests прошли. `git diff --check` — exit 0.
+- **Блокер P0.3b перепроверен:** Python запрос
+  `urllib.request.urlopen('https://codeload.github.com/unslothai/llama.cpp/tar.gz/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9', timeout=20)`
+  снова завершился `URLError` / `PermissionError [WinError 10013]` на sock.connect.
+  Архив не получен; exit code Python отдельно не сохранялся, поскольку та же
+  shell-команда затем читала исходники. Hash/build/oracle остаются невыполненными.
+- **Ограничения:** branch limits — ceilings, не reserved shares; configuration
+  менять только между dispatch scopes. Memory controller управляет общим cap;
+  callers отдельно читают branch accounting. Реальные GLM/MTP графы, model outputs,
+  draft/verify/rollback, sampling и ускорение не проверялись. Payloads синтетические,
+  реальные GGUF, внешнее pressure, Linux/HIP/multi-GPU и полный Qwen/DeepSeek
+  inference в этом цикле не запускались. Нет основания включать MTP в профиле.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
+  candidate/oracle/CUDA и сохранить tokenizer parity; после graph integration
+  подключить branch ceilings к native MTP и измерить фактический cache hit rate.
 
 ## Шаблон следующей записи
 

@@ -434,6 +434,46 @@ clears the metadata history; residency is unchanged. The limit counts keys, not
 host bytes (GLM identities contain strings). One clock covers both main and MTP,
 whose counts are separate. These defaults are not tuned on GLM inference.
 
+P5.2a adds optional branch ceilings under that single global byte budget:
+
+```cpp
+ExpertCache cache(total_bytes, {true, 4096, 131072, true});
+cache.set_branch_budgets(main_bytes, mtp_bytes);
+```
+
+The fourth `Admission` field enables independent main/MTP frequency histories,
+including separate decay clocks and key bounds. Each history can hold up to
+`max_keys`; `history_size()` returns their sum. MTP accesses therefore do not
+age or clear main history. The original defaults retain one shared history and
+unlimited branch ceilings. Model/generation invalidation clears both histories.
+
+`set_branch_budgets` accepts byte ceilings, not reserved shares, and trims idle
+entries. `resident_bytes(Branch)` and `byte_budget(Branch)` expose each branch's
+accounting/ceiling; global `resident_bytes()` still includes both. Retired leases,
+pins and pending CUDA work remain charged to the originating branch. A false
+trim result means completion is deferred; call again at a dispatch boundary.
+Zero disables admission for that branch, while protected existing hits remain
+usable until they can be trimmed. Misses bypass with full uncached delivery.
+Admissions require both branch ceilings and the global cap to be satisfied;
+deferred excess in either branch can temporarily force new misses to bypass.
+
+Branch excess first selects idle LRU victims from the over-limit branch. Global
+pressure can select either branch. Frequency admission plans all victims before
+eviction and compares scores within the same history. With independent histories,
+cross-branch eviction uses LRU because the clocks differ. Explicit trimming ignores
+frequency scores. The existing memory controller still sets the combined cap;
+branch ceilings can never override a smaller global reserve limit. Change ceilings
+only between dispatch scopes on the cache's host owner. Source/model identities,
+pins, consumer leases and events keep their existing contracts.
+
+Windows RTX 5090 CUDA fixtures cover quota eviction, deferred pins/events, disabled
+and oversized admission, reload with retired branch allocations, global trimming,
+independent decay and atomic frequency rejection. Twelve dispatch combinations
+(mmap/native/auto × LRU/frequency × prefill/decode) verify 84 complete synthetic
+matrices plus guards: disabled MTP bypass preserves a main hit, then increasing
+the MTP ceiling restores cache admission. This is preparatory cache support;
+native MTP execution, draft/verify/rollback and a measured speedup are still absent.
+
 With free capacity a miss is admitted. Under pressure, its score must be at least
 that of every idle LRU victim needed for its byte size; ties admit. All victims
 are planned before any eviction, so a frequency rejection or insufficient idle

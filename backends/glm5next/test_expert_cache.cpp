@@ -219,6 +219,88 @@ static void test_allocation_failure(bool frequency) {
                 frequency?"frequency":"lru");
 }
 
+static void test_branch_budgets(bool frequency) {
+    Stream stream;ExpertCache cache(256,{frequency,100000,32,true});
+    require(cache.set_branch_budgets(128,64),"initial branch limits");
+    auto main=key(),mtp=main,next=mtp,large=mtp;
+    mtp.branch=next.branch=large.branch=Branch::mtp;next.expert++;large.expert+=2;large.bytes=128;
+    {auto lease=load(cache,main,0x12,stream.value);}stream.sync();
+    {auto lease=load(cache,mtp,0x34,stream.value);}stream.sync();
+    // Global budget has room: only the MTP ceiling requires eviction.
+    {auto lease=load(cache,next,0x56,stream.value);bytes_equal(lease,64,0x56,stream);}stream.sync();
+    require(cache.resident(main) && !cache.resident(mtp) && cache.resident(next) &&
+            cache.resident_bytes(Branch::main)==64 && cache.resident_bytes(Branch::mtp)==64 &&
+            cache.resident_bytes()==128 && cache.counters().evictions==1,"MTP quota evicted main or exceeded cap");
+    auto pins=cache.protect_plan({next});
+    require(!cache.set_branch_budgets(128,0) && cache.resident_bytes(Branch::mtp)==64,"quota trim freed pinned MTP");
+    int uploads=0;
+    auto bypass=load(cache,mtp,0,stream.value,&uploads);
+    require(!bypass && uploads==0 && cache.resident(main),"disabled MTP cache uploaded/evicted main");
+    {auto hit=load(cache,next,0,stream.value);bytes_equal(hit,64,0x56,stream);}stream.sync();
+    pins.release();
+    require(cache.set_branch_budgets(128,0) && cache.resident_bytes(Branch::mtp)==0 &&
+            cache.resident_bytes()==64,"released MTP pin did not trim");
+    cache.set_branch_budgets(128,64);
+    auto oversized=load(cache,large,0,stream.value,&uploads);
+    require(!oversized && uploads==0 && cache.resident(main),"oversized branch candidate changed cache");
+    auto held=load(cache,next,0x78,stream.value);bytes_equal(held,64,0x78,stream);
+    require(cache.invalidate(main.model,main.generation)==2 && cache.resident_bytes()==64 &&
+            cache.resident_bytes(Branch::mtp)==64 && cache.resident_bytes(Branch::main)==0,
+            "retired MTP lease lost branch/global accounting");
+    auto reloaded=next;++reloaded.generation;
+    auto blocked=load(cache,reloaded,0,stream.value);
+    require(!blocked,"reload exceeded MTP cap with a retired lease");
+    held.release();stream.sync();
+    require(cache.resident_bytes()==0 && cache.resident_bytes(Branch::mtp)==0,"retired MTP bytes leaked");
+    {auto lease=load(cache,reloaded,0x9A,stream.value);bytes_equal(lease,64,0x9A,stream);}stream.sync();
+    require(cache.set_budget(32) && cache.resident_bytes()==0 && cache.byte_budget(Branch::mtp)==64,
+            "global reserve trim ignored branch cache");
+    require(!load(cache,main,0,stream.value),"branch cap bypassed smaller global budget");
+    bool rejected=false;
+    try {cache.resident_bytes(Branch(7));}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected,"invalid branch accepted");
+    std::printf("PASS: main/MTP caps, branch-local eviction, pins, disabled/oversized bypass, retired reload and global reserve (%s)\n",
+                frequency?"frequency":"lru");
+}
+
+static void test_branch_frequency() {
+    Stream stream;ExpertCache cache(128,{true,8,32,true});cache.set_branch_budgets(64,0);
+    auto hot=key(),cold=hot,mtp=hot;++cold.expert;mtp.branch=Branch::mtp;
+    for(int i=0;i<4;++i) {auto lease=load(cache,hot,0x25,stream.value);}stream.sync();
+    for(int i=0;i<32;++i)require(!load(cache,mtp,0,stream.value),"disabled MTP cache admitted");
+    require(!load(cache,cold,0,stream.value) && cache.resident(hot),"MTP accesses aged main frequency history");
+    require(cache.counters().admission_rejects==1 && cache.history_size()==3,"separate branch history counters");
+    cache.set_branch_budgets(64,64);cache.set_budget(64);
+    // Under global pressure, independently aged histories use cross-branch LRU.
+    {auto lease=load(cache,mtp,0x67,stream.value);bytes_equal(lease,64,0x67,stream);}stream.sync();
+    require(!cache.resident(hot) && cache.resident(mtp) && cache.resident_bytes()==64,"cross-branch global LRU failed");
+    require(cache.invalidate(hot.model,hot.generation)==1 && cache.history_size()==0,"branch history invalidation leaked");
+
+    ExpertCache atomic(192,{true,100000,32,true});atomic.set_branch_budgets(128,64);
+    auto a=key(),b=a,large=a;large.bytes=128;b.expert++;large.expert+=2;
+    {auto lease=load(atomic,a,1,stream.value);}stream.sync();
+    for(int i=0;i<4;++i) {auto lease=load(atomic,b,2,stream.value);}stream.sync();
+    {auto lease=load(atomic,mtp,3,stream.value);}stream.sync();
+    require(!load(atomic,large,4,stream.value) && atomic.size()==3 && atomic.counters().evictions==0,
+            "quota frequency rejection partially evicted selected victims");
+    std::puts("PASS: independent main/MTP decay, combined global LRU, history invalidation and atomic quota admission");
+}
+
+static void test_branch_pending() {
+    Stream stream;ExpertCache cache(128);cache.set_branch_budgets(128,64);
+    auto mtp=key();mtp.branch=Branch::mtp;Gate gate(stream.value);
+    auto lease=cache.get(mtp,std::make_shared<int>(1),stream.value,[&](void *dest,size_t n,cudaStream_t s) {
+        cuda_ok(cudaLaunchHostFunc(s,block,&gate));cuda_ok(cudaMemsetAsync(dest,0x64,n,s));
+    });
+    lease.release(); // No host lease/pin remains, only pending CUDA work.
+    require(!cache.set_branch_budgets(128,0) && cache.resident_bytes(Branch::mtp)==64 && !gate.expired.load(),
+            "branch trim freed or blocked on pending CUDA entry");
+    gate.release.store(true);stream.sync();
+    require(cache.set_branch_budgets(128,0) && cache.resident_bytes()==0,"completed branch entry did not trim");
+    {auto main=load(cache,key(),0x42,stream.value);bytes_equal(main,64,0x42,stream);}
+    std::puts("PASS: branch trim defers pending CUDA work, then releases bytes without disabling main");
+}
+
 static void test_pipeline_upload() {
     Stream stream;constexpr size_t n=(1<<20)+17;
     ExpertCache cache(n);auto k=key();k.bytes=n;
@@ -516,6 +598,7 @@ int main() {
         std::printf("GPU=%s; synthetic cache fixtures, no GLM inference\n",p.name);
         test_keys();test_lru_budget();test_pending_events();test_reload_and_failure();test_pipeline_upload();
         test_allocation_failure(false);test_allocation_failure(true);
+        test_branch_budgets(false);test_branch_budgets(true);test_branch_frequency();test_branch_pending();
         test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
         test_pending_events(true);
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();
