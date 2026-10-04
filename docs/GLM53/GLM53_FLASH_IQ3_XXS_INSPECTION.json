@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "architecture": "glm5next",
+  "first_shard": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+  "validation_scope": "headers, split metadata, tensor geometry/ranges and core GLM/NextN shapes; no payload hashes or loader/GPU validation",
+  "shards": 1,
+  "tensors": 1412,
+  "block_count": 46,
+  "main_blocks": 45,
+  "mtp_blocks": 1,
+  "file_bytes": 120591950656,
+  "weight_bytes": 120582430072,
+  "groups": {
+    "main": {
+      "tensors": 1383,
+      "weight_bytes": 117775576312,
+      "expert_bytes": 109867696128,
+      "dense_bytes": 7907880184
+    },
+    "mtp": {
+      "tensors": 29,
+      "weight_bytes": 2806853760,
+      "expert_bytes": 2623537152,
+      "dense_bytes": 183316608
+    }
+  },
+  "tensor_type_counts": {
+    "BF16": 296,
+    "F32": 638,
+    "IQ2_S": 82,
+    "IQ3_S": 41,
+    "IQ4_XS": 3,
+    "Q2_K": 2,
+    "Q3_K": 1,
+    "Q6_K": 295,
+    "Q8_0": 54
+  },
+  "shard_details": [
+    {
+      "name": "GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "split_no": 0,
+      "tensors": 1412,
+      "file_bytes": 120591950656,
+      "header_end": 9518775,
+      "data_start": 9518784,
+      "required_end": 120591950656,
+      "metadata_only": false
+    }
+  ],
+  "loader_contract": {
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "sources": [
+      "https://github.com/unslothai/llama.cpp/blob/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9/src/models/glm5next.cpp",
+      "https://github.com/unslothai/llama.cpp/blob/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9/src/llama-arch.cpp",
+      "https://github.com/unslothai/llama.cpp/blob/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9/src/llama-model-loader.cpp"
+    ],
+    "scope": "static full-model separate-QKV tensor names/shapes and metadata; not compiled loader, GPU types or inference",
+    "validated_tensors": 1412,
+    "main_tensors": 1383,
+    "mtp_tensors": 29,
+    "main_graph_blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44
+    ],
+    "mtp_weight_blocks": [
+      45
+    ],
+    "kda_main_blocks": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      20,
+      21,
+      22,
+      24,
+      25,
+      26,
+      28,
+      29,
+      30,
+      32,
+      33,
+      34,
+      36,
+      37,
+      38,
+      40,
+      41,
+      42,
+      44
+    ],
+    "dsa_main_blocks": [
+      3,
+      7,
+      11,
+      15,
+      19,
+      23,
+      27,
+      31,
+      35,
+      39,
+      43
+    ],
+    "optional_tensors_absent": [
+      "blk.45.nextn.embed_tokens.weight",
+      "blk.45.nextn.shared_head_head.weight"
+    ],
+    "metadata": {
+      "glm5next.block_count": 46,
+      "glm5next.nextn_predict_layers": 1,
+      "glm5next.embedding_length": 4096,
+      "glm5next.vocab_size": 154880,
+      "glm5next.context_length": 1048576,
+      "glm5next.attention.head_count": 64,
+      "glm5next.attention.head_count_kv": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      "glm5next.leading_dense_block_count": 3,
+      "glm5next.feed_forward_length": 12288,
+      "glm5next.expert_feed_forward_length": 2048,
+      "glm5next.expert_count": 288,
+      "glm5next.expert_used_count": 8,
+      "glm5next.expert_shared_count": 1,
+      "glm5next.expert_shared_feed_forward_length": 2048,
+      "glm5next.expert_weights_scale": 2.5,
+      "glm5next.expert_weights_norm": true,
+      "glm5next.expert_gating_func": 2,
+      "glm5next.attention.layer_norm_rms_epsilon": 9.999999747378752e-06,
+      "glm5next.attention.layer_norm_epsilon": 9.999999974752427e-07,
+      "glm5next.attention.q_lora_rank": 1536,
+      "glm5next.attention.kv_lora_rank": 512,
+      "glm5next.attention.key_length_mla": 256,
+      "glm5next.attention.value_length_mla": 256,
+      "glm5next.rope.dimension_count": 0,
+      "glm5next.kda.head_dim": 128,
+      "glm5next.ssm.conv_kernel": 4,
+      "glm5next.kda.gate_lower_bound": -5.0,
+      "glm5next.attention.indexer.head_count": 32,
+      "glm5next.attention.indexer.key_length": 128,
+      "glm5next.attention.indexer.top_k": 2048,
+      "glm5next.attention.indexer.kpool": 4,
+      "glm5next.hyper_connection.count": 4,
+      "glm5next.hyper_connection.sinkhorn_iterations": 20,
+      "glm5next.hyper_connection.epsilon": 9.999999974752427e-07,
+      "glm5next.swiglu_clamp_exp": [
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ],
+      "glm5next.swiglu_clamp_shexp": [
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ]
+    },
+    "families": {
+      "main.dense_ffn": {
+        "tensors": 9,
+        "types": {
+          "Q6_K": 9
+        }
+      },
+      "main.dsa_mla": {
+        "tensors": 88,
+        "types": {
+          "Q8_0": 46,
+          "F32": 22,
+          "Q6_K": 20
+        }
+      },
+      "main.global": {
+        "tensors": 3,
+        "types": {
+          "Q6_K": 2,
+          "F32": 1
+        }
+      },
+      "main.indexer": {
+        "tensors": 77,
+        "types": {
+          "BF16": 33,
+          "F32": 44
+        }
+      },
+      "main.kda": {
+        "tensors": 510,
+        "types": {
+          "Q6_K": 136,
+          "F32": 204,
+          "BF16": 170
+        }
+      },
+      "main.mhc": {
+        "tensors": 270,
+        "types": {
+          "F32": 180,
+          "BF16": 90
+        }
+      },
+      "main.norm": {
+        "tensors": 90,
+        "types": {
+          "F32": 90
+        }
+      },
+      "main.routed_experts": {
+        "tensors": 126,
+        "types": {
+          "IQ3_S": 41,
+          "IQ2_S": 82,
+          "IQ4_XS": 3
+        }
+      },
+      "main.router": {
+        "tensors": 84,
+        "types": {
+          "F32": 84
+        }
+      },
+      "main.shared_experts": {
+        "tensors": 126,
+        "types": {
+          "Q6_K": 123,
+          "Q8_0": 3
+        }
+      },
+      "mtp.dsa_mla": {
+        "tensors": 8,
+        "types": {
+          "Q8_0": 4,
+          "F32": 2,
+          "Q6_K": 2
+        }
+      },
+      "mtp.indexer": {
+        "tensors": 7,
+        "types": {
+          "BF16": 3,
+          "F32": 4
+        }
+      },
+      "mtp.nextn": {
+        "tensors": 4,
+        "types": {
+          "Q8_0": 1,
+          "F32": 3
+        }
+      },
+      "mtp.norm": {
+        "tensors": 2,
+        "types": {
+          "F32": 2
+        }
+      },
+      "mtp.routed_experts": {
+        "tensors": 3,
+        "types": {
+          "Q3_K": 1,
+          "Q2_K": 2
+        }
+      },
+      "mtp.router": {
+        "tensors": 2,
+        "types": {
+          "F32": 2
+        }
+      },
+      "mtp.shared_experts": {
+        "tensors": 3,
+        "types": {
+          "Q6_K": 3
+        }
+      }
+    }
+  }
+}

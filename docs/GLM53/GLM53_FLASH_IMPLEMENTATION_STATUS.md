@@ -3,6 +3,7 @@
 Обновлено: **2026-10-04**, часовой пояс `Asia/Yekaterinburg`.
 План: [GLM53_FLASH_IMPLEMENTATION_PLAN.md](GLM53_FLASH_IMPLEMENTATION_PLAN.md).
 Исходные данные: [GLM53_FLASH_GGUF_INVENTORY.json](GLM53_FLASH_GGUF_INVENTORY.json).
+Основная тестовая модель: [инспекция Uncensored-IQ3_XXS](GLM53_FLASH_IQ3_XXS_INSPECTION.json).
 
 Этот файл хранит фактический прогресс и точку продолжения для следующего агента.
 План определяет объём работ и критерии готовности; статус фиксирует, что уже сделано,
@@ -13,24 +14,36 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6 и reference P3.2a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `24dd8802b54b65f7fa5e515655d9956a672511bb` + изменения P0/P2/P3.2a из журнала |
-| Последняя выполненная работа | P2.5f: исправлена отмена до generation, проверен disconnect lifecycle; 144 Python-теста + 7 серверных регрессий прошли |
+| Последняя проверенная ревизия Strata | `444f442`: реализация из журнала уже закоммичена; последующий аудит и смена тестовой модели — в документации |
+| Последняя выполненная работа | AUDIT-01: проверен текущий код и новый GGUF; 151 Python-тест, 3 Node-проверки, 1 protocol CTest прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
 | Активная задача / исполнитель | Нет; требуется продолжение P0.3b |
-| Блокеры | P0.1/P0.2 проверены; коммит заблокирован доступом на запись в `.git/index.lock`; shell HTTP запрещён (подробности в журнале) |
-| Модель | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL` |
+| Блокеры | Старый блокер коммита снят фактом наличия `444f442`. Для P0.3b ещё нужно подтвердить архив/хеш и реальную сборку; прежняя ошибка HTTP сохранена в истории, в этом аудите сеть не проверялась |
+| Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
+| Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
 | GLM backend / setup | `--check-only` готов; `backends/glm5next/` содержит CMake/tokenizer scaffold, inference backend и создание профиля отсутствуют |
 | Закреплённая зависимость GLM | Для аудита выбран Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`; сборка/хеш архива/production pin ещё не выполнены |
 | Последняя проверенная конфигурация запуска GLM | Нет, модель не запускалась |
 | Измеренная скорость GLM / пиковая RAM / VRAM | Не измерены |
 
-Исходный GGUF проверен по заголовкам и длинам: 4 части, 1412 тензоров,
-137,404 ГиБ на диске; 45 основных блоков и 1 MTP. Первая часть содержит только
-метаданные. SHA-256 первой части проверен; хеши трёх больших частей не проверялись.
-Структура и длины повторно проверены инспектором 2026-10-04; отчёт:
-[GLM53_FLASH_INSPECTION.json](GLM53_FLASH_INSPECTION.json). Хеш первой части относится
-к инвентаризации 2026-10-03; новая проверка хеши не вычисляла и inference не запускала.
+Новый основной GGUF проверен 2026-10-04: **1 файл, 1412 тензоров, 112,310 ГиБ**,
+45 основных блоков и 1 MTP; имена/формы прошли существующий loader contract.
+Основная модель: 109,687 ГиБ весов, из них 102,322 ГиБ экспертов; MTP: 2,614 ГиБ,
+из них 2,443 ГиБ экспертов. Полный хеш и содержимое весовых payloads не проверялись.
+
+Вопреки имени `IQ3_XXS`, фактические routed types — IQ2_S/IQ3_S/IQ4_XS и
+Q2_K/Q3_K для MTP. Среди остальных весов есть BF16. Проверка CUDA должна учитывать
+новый набор типов. Шаблон отличается четырьмя заменами `[0]` → `.0`; 18 rendered
+prompts и 72 проверки IDs/round-trip совпали с прежним Python frontend.
+[Сравнение файлов](GLM53_FLASH_IQ3_XXS_COMPARISON.json),
+[локальные проверки](GLM53_FLASH_IQ3_XXS_LOCAL_CHECKS.json).
+Это не независимый tokenizer oracle и не запуск модели.
+
+Прежний UD-Q3_K_XL: 4 части, 1412 тензоров, 137,404 ГиБ; metadata-only первая
+часть и проверка её хеша описаны в исходной инвентаризации. Его
+[GLM53_FLASH_INSPECTION.json](GLM53_FLASH_INSPECTION.json) и старые планы чтения
+относятся только к UD-Q3_K_XL. Не использовать их offsets для нового одиночного файла.
 
 При каждом возобновлении сверять эту сводку с рабочим деревом: данные файла могут
 отставать от изменений, сделанных другим агентом или пользователем.
@@ -40,10 +53,10 @@
 | Этап | Статус | Подтверждённый результат | Что осталось для завершения |
 |---|---|---|---|
 | Подготовка | DONE | План и инвентаризация сохранены | — |
-| P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 и scaffold P0.3a DONE: инспектор, loader contract, CMake/archive gate, protocol CTest | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
+| P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
-| P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock: glm4/comparison runner/frontend/settings/MCP/INFO/handlers/cancellation, 89 GLM Python-тестов + Node; локальный GGUF round-trip | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | P3.2a DONE: reference byte-range/cache-key contract; 7 fixture-тестов и локальные main/MTP планы | Runtime-интеграция, асинхронная доставка, cache parity, отмена и измерение перекрытия |
+| P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
+| P3. Конвейер и кэш | IN_PROGRESS | P3.2a DONE: reference byte-range/cache-key contract; fixture-тесты и 1032 матрицы нового профиля проверены по заголовкам | Runtime-интеграция, асинхронная доставка, cache parity, отмена и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -104,9 +117,14 @@
 3. На собранном коде подтвердить исключение блока 45 из обычного графа при MTP off.
    P0.2 подтвердил разделение по исходникам/заголовкам, без runtime trace.
 4. Проверить KDA rollback, kpool, sparse attention и большие индексы; затем GPU
-   fixtures и tokenizer oracle. Прямой HTTP из shell в текущей среде получил
-   `WinError 10013`; для загрузки зависимости потребуется разрешённый сетевой доступ
-   либо заранее доступный локальный архив/checkout выбранной ревизии.
+   fixtures и tokenizer oracle. Ранее HTTP из shell получил `WinError 10013`;
+   это историческая ошибка, а не результат новой проверки доступности сети.
+   Сначала проверить наличие локального архива/исходников выбранной ревизии.
+5. Для oracle использовать основной файл
+   `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf`
+   и отдельный `GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json`; команда обновлена в README.
+   Далее проверить CUDA для новых IQ2_S/IQ3_S/Q2_K и BF16, помимо общих типов.
+   Повторная реализация уже готового инспектора или frontend не требуется.
 
 **Ожидаемый результат:** воспроизводимая изолированная сборка по полному SHA,
 хеш архива, точная команда и логи проверок. Весь P0 пока IN_PROGRESS.
@@ -919,6 +937,61 @@
 - **Следующий шаг:** P0.3b — получить проверенный архив и собрать реальный oracle,
   затем запустить P2.1b.2 runner. После реализации GPU backend повторить отмену
   с реальным socket watcher и подтвердить native STOP/drain/state cleanup.
+
+### AUDIT-01 — 2026-10-04, Asia/Yekaterinburg — Проверка реализованного и смена тестовой модели
+
+- **Статус:** DONE для аудита и статических проверок нового файла. Этапы P0/P2/P3
+  остаются IN_PROGRESS; P1/P4/P5/P6 не закрывались.
+- **Исполнитель:** Codex.
+- **Основание:** HEAD `444f442` (`feat(glm5next): add inspector, frontend template,
+  build scaffold, and oracle harness`), чистое рабочее дерево до этого аудита.
+  Предыдущие записи о невозможности коммита теперь исторические: соответствующая
+  реализация присутствует в этом коммите. Сетевой доступ заново не проверялся.
+- **Код проверен:** `tools/setup_glm5next.py`, loader contract, tokenizer/corpus/
+  oracle runner, `serve/glm5next.py`, API/UI-проверки, reference expert planner,
+  CMake/tokenizer scaffold. Полноценного inference target в GLM CMake ещё нет;
+  реальный oracle и CUDA-графы не собраны и не проверены этим аудитом.
+- **Изменение:** новый одиночный файл выбран для первых тестов в плане, статусе,
+  loader report и README сборки. История UD-Q3_K_XL и её JSON не перезаписывались.
+  Реализация engine/frontend не менялась.
+- **Инспекция:** из `C:\work\git\my-repos\Strata` выполнено:
+
+  ```powershell
+  .venv/Scripts/python.exe tools/setup_glm5next.py --model-dir H:/GLM-5.3-Flash-GGUF --check-only --loader-contract --output docs/GLM53/GLM53_FLASH_IQ3_XXS_INSPECTION.json
+  ```
+
+  Exit 0, один файл / 1412 тензоров; все имена/формы соответствуют статическому
+  контракту. Полный hash/payload и inference не проверялись. Отдельно посчитан
+  SHA-256 только заголовка, записан в [сравнение](GLM53_FLASH_IQ3_XXS_COMPARISON.json).
+- **Локальный Python frontend и адресация:** через `.venv/Scripts/python.exe -`
+  выполнен разовый stdin-скрипт с `GGUFFile`, `Tokenizer.from_gguf`,
+  `cases(GLMTemplate(...))`, `inspect_model(..., tensor_details=True)` и
+  `plan_expert_reads`. Exit 0. Полный stdin-скрипт отдельно не сохранён; результаты —
+  [GLM53_FLASH_IQ3_XXS_LOCAL_CHECKS.json](GLM53_FLASH_IQ3_XXS_LOCAL_CHECKS.json).
+  Сравнены 36 входов корпуса при parse_special off/on (72 пары IDs и round-trip);
+  среди них 18 prompts из фактических шаблонов обоих GGUF. Для слоёв 3–45 и IDs
+  0/1/2/3/4/5/6/287 проверены 1032 матрицы, размеры пяти новых expert quant types,
+  дедупликация ID 0 и границы chunks 1 МиБ. Payload не читался; это не GPU-тест
+  и не независимый tokenizer/template oracle.
+- **Регрессии:** рабочая директория та же.
+
+  ```powershell
+  .venv/Scripts/python.exe -m unittest serve.test_glm5next_handlers tools.test_glm5next_oracle_check tools.test_glm5next_build tools.test_glm5next_expert_plan tools.test_glm5next_tokenizer serve.test_glm5next_info serve.test_glm5next_mcp serve.test_glm5next_settings serve.test_glm5next_requests serve.test_glm5next serve.test_glm5next_service serve.test_deepseek tools.test_glm5next_loader_contract tools.test_setup_glm5next tools.test_deepseek4 tools.test_shards serve.test_server.StatusHandover serve.test_server.ToolCallTerminators serve.test_server.UnfinishedToolCall
+  node serve/test_glm5next_info_ui.cjs
+  node serve/test_glm5next_mcp_ui.cjs
+  node serve/test_glm5next_settings_ui.cjs
+  ctest --test-dir build-local/glm5next-protocol -C Release --output-on-failure --no-tests=error
+  ```
+
+  Все команды exit 0: 151 Python-тест без skips, три Node-проверки, 1/1 CTest.
+  CTest запущен на существующей сборке протокола с mock encoder; новой сборки
+  llama/CUDA не было. Известный ResourceWarning `strata_pack.py:351` сохранился.
+  Mock tok/s в stdout не являются измерением скорости модели. Полный лог тестов
+  отдельно не сохранён.
+- **Не проверено:** содержимое новых весов, независимая token-ID parity, CUDA types,
+  генерация, пиковая память, runtime cache/pipeline/sessions и native MTP.
+- **Следующий шаг:** P0.3b по обновлённой точке продолжения, затем P2.1b.2 с новым
+  одиночным GGUF. Сохранить новые runtime-результаты отдельно от UD-Q3_K_XL.
 
 ## Шаблон следующей записи
 

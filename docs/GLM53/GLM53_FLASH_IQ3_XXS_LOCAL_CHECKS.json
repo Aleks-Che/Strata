@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-04",
+  "strata_commit": "444f442",
+  "model": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+  "scope": "local Python template/tokenizer comparison with previous GGUF and header-based matrix planning; not independent tokenizer oracle, payload validation or GPU inference",
+  "status": "pass",
+  "corpus_inputs": 36,
+  "rendered_prompts_equal": 18,
+  "token_id_and_roundtrip_checks": 72,
+  "expert_layers_planned": 43,
+  "selected_experts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    287
+  ],
+  "planned_matrices": 1032,
+  "matrix_quant_types_checked": [
+    "IQ2_S",
+    "IQ3_S",
+    "IQ4_XS",
+    "Q2_K",
+    "Q3_K"
+  ],
+  "matrix_chunk_bytes": 1048576,
+  "weight_payloads_read": false,
+  "inference_run": false
+}

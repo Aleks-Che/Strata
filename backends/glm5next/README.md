@@ -34,7 +34,7 @@ local archive and its recorded hash in this command (not executed here):
 cmake -S backends/glm5next -B build-local/glm5next-oracle -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_ARCHIVE=/path/to/commit.tar.gz -DSTRATA_GLM_ARCHIVE_SHA256=<reviewed-64-digit-hash> -DSTRATA_GLM_CUDA=OFF
 cmake --build build-local/glm5next-oracle --target strata-glm5next-tokenizer
 build-local/glm5next-oracle/bin/strata-glm5next-tokenizer --version
-build-local/glm5next-oracle/bin/strata-glm5next-tokenizer --gguf /path/to/GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf
+build-local/glm5next-oracle/bin/strata-glm5next-tokenizer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf
 ```
 
 The executable has `.exe` on Windows; multi-config generators may add `Release/`.
@@ -66,8 +66,15 @@ and archive hash without loading a model.
 After building against the actual candidate archive, run from the Strata root:
 
 ```text
-python -m tools.check_glm5next_tokenizer --gguf /path/to/GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf --oracle /path/to/strata-glm5next-tokenizer --archive-sha256 <reviewed-64-digit-hash> --output docs/GLM53/GLM53_FLASH_TOKENIZER_PARITY.json --timeout 60
+python -m tools.check_glm5next_tokenizer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --oracle /path/to/strata-glm5next-tokenizer --archive-sha256 <reviewed-64-digit-hash> --output docs/GLM53/GLM53_FLASH_IQ3_XXS_TOKENIZER_PARITY.json --timeout 60
 ```
+
+The first test model is now the single-file Uncensored-IQ3_XXS GGUF above.
+Its actual routed tensor types are IQ2_S/IQ3_S/IQ4_XS and Q2_K/Q3_K for MTP;
+the filename is not a tensor encoding contract. The earlier four-part UD-Q3_K_XL
+model remains a separate comparison profile. Use its first shard and a separate
+output report when testing it. Never reuse token/state validation results solely
+because both files report the same architecture.
 
 The runner verifies the oracle's `--version` revision/hash against the candidate
 and the supplied archive hash before loading the GGUF. These fields are reported

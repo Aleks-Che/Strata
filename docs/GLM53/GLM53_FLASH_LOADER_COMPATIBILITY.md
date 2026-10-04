@@ -1,5 +1,24 @@
 # GLM-5.3-Flash: сопоставление GGUF с loader
 
+Обновление 2026-10-04 на Strata `444f442`: основной тестовый файл теперь
+`H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf`.
+Он также прошёл инспектор и тот же статический loader contract: 1 файл,
+1412 тензоров, 45 основных блоков + 1 MTP, без несовпадений имён/форм.
+[Новый отчёт](GLM53_FLASH_IQ3_XXS_INSPECTION.json).
+
+```powershell
+.venv/Scripts/python.exe tools/setup_glm5next.py --model-dir H:/GLM-5.3-Flash-GGUF --check-only --loader-contract --output docs/GLM53/GLM53_FLASH_IQ3_XXS_INSPECTION.json
+```
+
+Exit 0. Команда выбирает единственный GGUF в корне этой директории, не заходя
+в поддиректорию UD-Q3_K_XL. При добавлении других GGUF выбор нужно уточнить;
+не подменять модель молча. Типы весов отличаются: основным routed matrices нужны
+IQ2_S/IQ3_S/IQ4_XS, MTP — Q2_K/Q3_K; есть BF16 среди остальных весов.
+Эта проверка не доказывает поддержку этих операций на CUDA.
+
+Ниже сохранён исходный отчёт UD-Q3_K_XL. Его ссылки на JSON и команды относятся
+к прежнему профилю и не заменены результатами нового файла.
+
 Проверено 2026-10-04. Пункт P0.2: статическое сопоставление локального
 `UD-Q3_K_XL` с Unsloth llama.cpp
 `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`.

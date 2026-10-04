@@ -1,0 +1,75 @@
+{
+  "inspected_on": "2026-10-04",
+  "strata_commit": "444f442",
+  "file": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+  "header_sha256": "024c9a19151d7fe3effa7d95a1602edd5d4c701648818380cdf4ea12c5a5d4a1",
+  "header_bytes": 9518775,
+  "full_file_hash_checked": false,
+  "inference_run": false,
+  "comparison_model": "H:\\GLM-5.3-Flash-GGUF\\UD-Q3_K_XL\\GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf",
+  "architecture_or_tokenizer_metadata_differences": [
+    "tokenizer.chat_template"
+  ],
+  "chat_template_sha256": "34d5ee66b12fa6446cdae131c352b8f68cd85369e0e6fda115583805fada3891",
+  "expert_types": {
+    "main": {
+      "IQ3_S": {
+        "tensors": 41,
+        "bytes": 42561699840
+      },
+      "IQ2_S": {
+        "tensors": 82,
+        "bytes": 63455625216
+      },
+      "IQ4_XS": {
+        "tensors": 3,
+        "bytes": 3850371072
+      }
+    },
+    "mtp": {
+      "Q3_K": {
+        "tensors": 1,
+        "bytes": 1038090240
+      },
+      "Q2_K": {
+        "tensors": 2,
+        "bytes": 1585446912
+      }
+    }
+  },
+  "expert_matrix_bytes": {
+    "main": {
+      "IQ3_S": [
+        3604480
+      ],
+      "IQ2_S": [
+        2686976
+      ],
+      "IQ4_XS": [
+        4456448
+      ]
+    },
+    "mtp": {
+      "Q3_K": [
+        3604480
+      ],
+      "Q2_K": [
+        2752512
+      ]
+    }
+  },
+  "file_gib": 112.31000596284866,
+  "groups_gib": {
+    "main": {
+      "weight_bytes": 109.6870529577136,
+      "expert_bytes": 102.322265625,
+      "dense_bytes": 7.364787332713604
+    },
+    "mtp": {
+      "weight_bytes": 2.6140862703323364,
+      "expert_bytes": 2.443359375,
+      "dense_bytes": 0.17072689533233643
+    }
+  },
+  "main_decode_expert_bytes_without_cache": 3051880448
+}
