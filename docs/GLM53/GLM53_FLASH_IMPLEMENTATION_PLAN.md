@@ -450,6 +450,11 @@ Upstream MTP PR на дату исследования имеет статус D
     и invalidation. CUDA fixtures и 84 synthetic matrix comparisons через dispatch
     проверили MTP bypass при нулевом лимите и восстановление admission, сохраняя
     main hits. Default policy не менялась. Native MTP graph/draft ещё не подключены.
+  - [x] P5.2b: memory-controller status учитывает main/MTP ceilings, resident и
+    deferred bytes, включая retired leases и pending CUDA events. Совместное
+    превышение global/branch не считается дважды; исправлен нулевой deferred
+    при незавершённом branch trim. CUDA LRU/frequency и probe failure/recovery
+    checks прошли. Вывод в GLM INFO/monitor и MTP graph ещё не подключены.
 - [ ] Начать с одного draft token, затем 2 и 3. Проверять кандидатов основной
   моделью, поддержать частичное принятие и корректную обработку стоп-токенов/tools.
 - [ ] Реализовать откат всех ветвей состояния на точное число принятых токенов,

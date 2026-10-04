@@ -214,6 +214,26 @@ can defer trimming. `Status` reports the sampled free/total, target, resident an
 deferred bytes, sample validity, trim result and sample/failure counts. It is a
 snapshot at refresh, not a live memory measurement or an atomic reservation.
 
+P5.2b includes branch pressure in that snapshot. `Status.main` and `Status.mtp`
+each report `limit`, `resident` and `deferred` (bytes above the branch ceiling).
+`global_deferred` is the resident excess over the combined target. The aggregate
+`deferred` is `max(global_deferred, main.deferred + mtp.deferred)`: freeing branch
+excess also reduces global excess, so those bytes must not be counted twice.
+It is a byte lower bound; whole-matrix eviction can release more. Without branch
+ceilings the aggregate retains its previous global-only value. With ceilings,
+callers needing only the global excess should use `global_deferred`.
+
+For example, a protected 64-byte MTP entry above its 16-byte ceiling now reports
+48 deferred bytes even if the combined cache fits its global target. Previously
+it reported `trim_complete=false` with zero deferred bytes. Constructor snapshots,
+failed/throwing probes and refresh after trim all update branch accounting,
+including retired allocations. Invalid samples still pause admission; their
+branch/cache values describe known allocations and caps, not fresh global VRAM.
+The status stays unchanged between refreshes. Windows CUDA fixtures cover branch
+excess alone, both branches, overlapping/global-dominant pressure, retired leases,
+pending GPU events, failed/throwing probes and recovery under LRU/frequency.
+This does not yet export fields through GLM INFO or the web monitor.
+
 P3.5f handles memory lost between that sample and cache allocation: only
 `cudaErrorMemoryAllocation` returned by the cache matrix allocator produces an
 empty lease and increments both `bypasses` and `allocation_bypasses`. No upload

@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2, P3 и подготовка P5 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a, warm transport/chunk benchmark P3.7a/b и branch cache policy P5.2a DONE в пределах проверок журнала; P1, P4 и P6 не начаты |
-| Последняя проверенная ревизия Strata | База `ddb3424f3c913f1d93949b70ea495c7cde99eb7e`, ветка `dev`; P3.7b уже в HEAD, P5.2a — в рабочем дереве |
-| Последняя выполненная работа | P5.2a: main/MTP byte ceilings и independent frequency history под общим cap; чистая сборка и 12/12 CTest, включая 84 новых dispatch byte comparisons |
+| Общий статус | P0, P2, P3 и подготовка P5 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a, warm transport/chunk benchmark P3.7a/b и branch cache policy/status P5.2a/b DONE в пределах проверок журнала; P1, P4 и P6 не начаты |
+| Последняя проверенная ревизия Strata | База `56d3a88871ec3c2d1a0094c2b1565830ffdfcad1`, ветка `dev`; P5.2a уже в HEAD, P5.2b — в рабочем дереве |
+| Последняя выполненная работа | P5.2b: исправлен deferred при превышении branch ceiling, добавлены main/MTP snapshots и global excess без двойного учёта; clean build и 12/12 CTest прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; cache-компонент P5.2a завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; компонент P5.2b завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 20 (P5.2a-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -75,7 +75,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; 72 локальные проверки нового GGUF; P2.5g — 30 реальных HTTP-сценариев с mock engine, смежный прогон 48 tests | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
 | P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
-| P5. Native MTP | IN_PROGRESS | Подготовка P5.2a: отдельные main/MTP ceilings и frequency history в общем cache, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, draft/verify/rollback, sampling, сессии и A/B скорости |
+| P5. Native MTP | IN_PROGRESS | Подготовка P5.2a/b: main/MTP ceilings, независимая frequency history и branch pressure snapshots контроллера, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, INFO/monitor, draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
 
 ## Правила заполнения для агента
@@ -2345,6 +2345,63 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
   candidate/oracle/CUDA и сохранить tokenizer parity; после graph integration
   подключить branch ceilings к native MTP и измерить фактический cache hit rate.
+
+### P5.2b-01 — 2026-10-04, Asia/Yekaterinburg — Branch pressure в memory controller
+
+- **Статус:** DONE для controller accounting; общий P5 остаётся IN_PROGRESS,
+  native MTP execution отсутствует.
+- **Исполнитель:** Codex, автоматический цикл 21.
+- **Ревизия:** `56d3a88871ec3c2d1a0094c2b1565830ffdfcad1`, ветка `dev`;
+  дерево до начала чистое, P5.2b оставлен в рабочем дереве.
+- **Пункт плана:** P5.2, согласовать раздельные main/MTP limits с общим VRAM
+  controller и подготовить корректную статистику для последующего INFO/monitor.
+- **Воспроизведённая ошибка:** закреплённый MTP entry 64 байта при ceiling
+  16 байт требует освобождения 48 байт, но при соблюдённом global budget
+  контроллер раньше показывал `trim_complete=false`, `deferred=0`.
+  Новый regression test до исправления провалил `glm5next_expert_cache`:
+  `FAIL: controller omitted deferred MTP bytes when the global budget fits`.
+  Команда `cmd /c build-local\check-glm-native-plan.cmd > build-local/glm5next-branch-status-before.log 2>&1`
+  вернула shell exit 1; 11/12 CTest прошли, один упал ожидаемо.
+- **Изменение:** `Status.main`/`Status.mtp` содержат `limit/resident/deferred`,
+  `global_deferred` хранит прежнее превышение resident над global target.
+  Итоговый `deferred = max(global_deferred, main.deferred + mtp.deferred)`:
+  excess разных веток складывается, но освобождаемые branch bytes повторно
+  не прибавляются к global excess. Это нижняя граница необходимых bytes;
+  цельная матрица при eviction может освободить больше. При unlimited branch
+  ceilings прежнее значение deferred сохраняется. Snapshot обновляется при
+  создании, refresh, невалидном/throwing probe и после trim, включая exception
+  path. Отмена admissions при probe failure и политика освобождения не менялись.
+- **Файлы:** `backends/glm5next/expert_memory.hpp`, `test_expert_cache.cpp`,
+  `README.md`; план, этот статус и [CTest log](GLM53_FLASH_BRANCH_STATUS_TESTS.txt).
+- **Проверки:** cwd `C:\work\git\my-repos\Strata`, Windows, RTX 5090,
+  CUDA runtime/driver 13000/13000. Финальная команда:
+  `cmd /c "build-local\check-glm-native-plan.cmd > build-local\glm5next-branch-status-build.log 2>&1"`
+  — **exit 0**, clean MSVC/CUDA build и **12/12 CTest, 3,75 с**, без skip/failure.
+  Helper выполняет `cmake --build build-local/glm5next-transport --config Release --clean-first`
+  и `ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error`.
+  - LRU/frequency: branch-only excess 48, overlapping global excess 32
+    (итог 48, не 80), обе ветки 16+48 (итог 64), global-dominant excess 80.
+  - Failed/throwing probe сохраняет корректный snapshot и закрывает admission.
+    Invalidation с retained leases, release одной ветки и recovery отражены
+    в resident/deferred; snapshot не меняется без refresh. После release MTP
+    pressure обнуляется и новая main матрица загружается с правильными bytes.
+  - CUDA callback удерживает pending MTP upload/consumer без host lease;
+    controller показывает branch excess при свободном global cap, не блокирует
+    и не освобождает используемые bytes. После завершения событий trim и
+    snapshot очищаются. Main работает при нулевом MTP ceiling.
+  - Прежние dispatch (включая 84 branch matrix comparisons), byte transport,
+    cache, memory-policy, OOM, NVML/DeepSeek include compatibility tests прошли.
+    `git diff --check` — exit 0.
+- **Ограничения:** новые pressure snapshots проверены с injected memory samples
+  и реальными CUDA allocations/transfers. CUDA failure во время самого trim
+  не внедрялся. Live NVML smoke прошёл в общем CTest; внешнее pressure и реальные
+  GGUF в этом цикле не запускались. GLM INFO/monitor, полный GPU graph, native
+  MTP, скорость генерации, Linux/HIP/multi-GPU и full-model regressions не проверены.
+- **Блокер:** P0.3b сохраняется: последняя попытка загрузки архива Unsloth
+  в цикле 20 получила `WinError 10013`; в цикле 21 внешний доступ не перепроверялся.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив и собрать
+  candidate/oracle/CUDA. После интеграции backend передать branch snapshots
+  в INFO/monitor и проверить их при настоящих main/MTP переключениях.
 
 ## Шаблон следующей записи
 

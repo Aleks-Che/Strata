@@ -13,9 +13,14 @@ namespace strata_glm {
 class ExpertMemoryController {
 public:
     using Probe=std::function<bool(int,size_t &,size_t &)>;
+    struct BranchStatus {
+        size_t limit=0,resident=0,deferred=0;
+    };
     struct Status {
         bool sample_valid=false,trim_complete=false;
         size_t free=0,total=0,target=0,resident=0,deferred=0;
+        size_t global_deferred=0;
+        BranchStatus main,mtp;
         uint64_t samples=0,failed_samples=0;
     };
 private:
@@ -30,12 +35,23 @@ private:
         if(error!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(error));
         if(device!=cache.device())throw std::runtime_error("GLM memory controller used on another CUDA device");
     }
+    void snapshot_cache() {
+        state.target=cache.byte_budget();state.resident=cache.resident_bytes();
+        auto branch=[&](Branch b) {
+            const auto limit=cache.byte_budget(b),resident=cache.resident_bytes(b);
+            return BranchStatus{limit,resident,resident>limit?resident-limit:0};
+        };
+        state.main=branch(Branch::main);state.mtp=branch(Branch::mtp);
+        state.global_deferred=state.resident>state.target?state.resident-state.target:0;
+        // Branch excesses are disjoint, but releasing them also reduces global
+        // excess. Do not count those same bytes twice. Whole-matrix eviction can
+        // release more than this byte lower bound when pins/events permit it.
+        state.deferred=std::max(state.global_deferred,state.main.deferred+state.mtp.deferred);
+    }
     void unavailable() {
         ++state.failed_samples;
         state.sample_valid=false;state.trim_complete=false;
-        state.free=state.total=0;state.target=cache.byte_budget();
-        state.resident=cache.resident_bytes();
-        state.deferred=state.resident>state.target?state.resident-state.target:0;
+        state.free=state.total=0;snapshot_cache();
     }
 public:
     ExpertMemoryController(ExpertCache &c,size_t configured_cap,StrataVramPolicy p)
@@ -46,7 +62,7 @@ public:
         if(!policy.valid() || policy.mode==1 || !probe)
             throw std::invalid_argument("GLM memory controller requires a byte policy and a global probe");
         device_check();cache.set_admission_enabled(false);
-        state.target=cache.byte_budget();state.resident=cache.resident_bytes();
+        snapshot_cache();
     }
     ExpertMemoryController(const ExpertMemoryController&)=delete;
     ExpertMemoryController &operator=(const ExpertMemoryController&)=delete;
@@ -63,9 +79,9 @@ public:
         state.sample_valid=true;state.free=free;state.total=total;
         state.target=size_t(std::min<uint64_t>(cap,policy.byte_limit(free,total,resident)));
         state.trim_complete=false;
-        state.trim_complete=cache.set_budget(state.target);
-        state.resident=cache.resident_bytes();
-        state.deferred=state.resident>state.target?state.resident-state.target:0;
+        try {state.trim_complete=cache.set_budget(state.target);}
+        catch(...) {snapshot_cache();throw;}
+        snapshot_cache();
         cache.set_admission_enabled(true);
         return state;
     }

@@ -288,6 +288,11 @@ static void test_branch_frequency() {
 
 static void test_branch_pending() {
     Stream stream;ExpertCache cache(128);cache.set_branch_budgets(128,64);
+    StrataVramPolicy policy;policy.reserve_mib=128;
+    ExpertMemoryController control(cache,128,policy,[](int,size_t &f,size_t &t) {
+        f=256ULL<<20;t=1024ULL<<20;return true;
+    });
+    control.refresh();
     auto mtp=key();mtp.branch=Branch::mtp;Gate gate(stream.value);
     auto lease=cache.get(mtp,std::make_shared<int>(1),stream.value,[&](void *dest,size_t n,cudaStream_t s) {
         cuda_ok(cudaLaunchHostFunc(s,block,&gate));cuda_ok(cudaMemsetAsync(dest,0x64,n,s));
@@ -295,10 +300,16 @@ static void test_branch_pending() {
     lease.release(); // No host lease/pin remains, only pending CUDA work.
     require(!cache.set_branch_budgets(128,0) && cache.resident_bytes(Branch::mtp)==64 && !gate.expired.load(),
             "branch trim freed or blocked on pending CUDA entry");
+    auto pending=control.refresh();
+    require(!pending.trim_complete && pending.global_deferred==0 && pending.deferred==64 &&
+            pending.mtp.resident==64 && pending.mtp.deferred==64 && pending.main.resident==0 && !gate.expired.load(),
+            "controller omitted or waited for pending branch CUDA work");
     gate.release.store(true);stream.sync();
-    require(cache.set_branch_budgets(128,0) && cache.resident_bytes()==0,"completed branch entry did not trim");
+    auto completed=control.refresh();
+    require(completed.trim_complete && completed.deferred==0 && completed.mtp.resident==0 && cache.resident_bytes()==0,
+            "completed branch entry did not trim/update snapshot");
     {auto main=load(cache,key(),0x42,stream.value);bytes_equal(main,64,0x42,stream);}
-    std::puts("PASS: branch trim defers pending CUDA work, then releases bytes without disabling main");
+    std::puts("PASS: branch controller reports/defer-trims pending CUDA work, then clears pressure without disabling main");
 }
 
 static void test_pipeline_upload() {
@@ -563,6 +574,65 @@ static void test_memory_controller(bool frequency) {
                 frequency?"frequency":"lru");
 }
 
+static void test_memory_branch_pressure(bool frequency) {
+    constexpr size_t mib=1ULL<<20,reserve=128*mib;
+    Stream stream;ExpertCache cache(128,{frequency,100000,32,true});cache.set_branch_budgets(64,64);
+    auto main=key(),mtp=main;mtp.branch=Branch::mtp;mtp.layer=45;
+    StrataVramPolicy policy;policy.reserve_mib=128;
+    size_t free=reserve+1024;bool available=true,throws=false;
+    ExpertMemoryController control(cache,128,policy,[&](int,size_t &f,size_t &t) {
+        if(throws)throw std::runtime_error("branch sample failure");
+        f=free;t=1024*mib;return available;
+    });
+    auto initial=control.status();
+    require(!initial.sample_valid && initial.main.limit==64 && initial.mtp.limit==64 &&
+            initial.deferred==0 && initial.main.resident==0 && initial.mtp.resident==0,"initial branch snapshot");
+    control.refresh();
+    auto main_lease=load(cache,main,0x12,stream.value),mtp_lease=load(cache,mtp,0x34,stream.value);
+    stream.sync();
+    require(!cache.set_branch_budgets(64,16),"MTP quota trim released a lease");
+    auto state=control.refresh();
+    require(state.sample_valid && state.target==128 && state.resident==128 && !state.trim_complete && state.deferred==48,
+            "controller omitted deferred MTP bytes when the global budget fits");
+    require(state.global_deferred==0 && state.main.limit==64 && state.main.resident==64 && state.main.deferred==0 &&
+            state.mtp.limit==16 && state.mtp.resident==64 && state.mtp.deferred==48,"branch-only snapshot breakdown");
+    free=reserve-32;state=control.refresh();
+    require(state.target==96 && state.global_deferred==32 && state.deferred==48,"global/branch overlap counted twice");
+    require(!cache.set_branch_budgets(48,16),"protected branch bytes unexpectedly trimmed");
+    state=control.refresh();
+    require(state.main.deferred==16 && state.mtp.deferred==48 && state.global_deferred==32 && state.deferred==64,
+            "independent branch excess must add before comparison with global excess");
+    free=reserve-80;state=control.refresh();
+    require(state.target==48 && state.global_deferred==80 && state.deferred==80,"global pressure lower bound ignored");
+    available=false;state=control.refresh();
+    require(!state.sample_valid && !state.trim_complete && !state.free && !state.total && state.deferred==80 &&
+            state.failed_samples==1 && state.main.resident==64 && state.mtp.resident==64,"unavailable branch snapshot");
+    require(cache.invalidate(main.model,main.generation)==2,"retired branch fixture invalidation");
+    main_lease.release();stream.sync();
+    require(control.status().main.resident==64,"status must remain a snapshot until refresh");
+    state=control.refresh();
+    require(state.main.resident==0 && state.main.deferred==0 && state.mtp.resident==64 &&
+            state.global_deferred==16 && state.deferred==48,"failed probe lost retired MTP accounting");
+    throws=true;bool caught=false;
+    try {control.refresh();}catch(const std::runtime_error &) {caught=true;}
+    state=control.status();
+    require(caught && !state.sample_valid && state.failed_samples==3 && state.deferred==48,
+            "throwing probe left stale branch snapshot");
+    auto fresh=main;++fresh.generation;
+    require(!load(cache,fresh,0,stream.value),"throwing probe reopened admissions");
+    throws=false;available=true;free=reserve+1024;state=control.refresh();
+    require(state.sample_valid && state.global_deferred==0 && state.deferred==48 && !state.trim_complete,
+            "recovery ignored still-protected MTP ceiling");
+    bytes_equal(mtp_lease,64,0x34,stream);mtp_lease.release();stream.sync();state=control.refresh();
+    require(state.trim_complete && state.deferred==0 && state.global_deferred==0 && state.resident==0 &&
+            state.main.resident==0 && state.mtp.resident==0,"released retired allocation did not clear pressure snapshot");
+    cache.set_branch_budgets(64,64);
+    {auto lease=load(cache,fresh,0x56,stream.value);bytes_equal(lease,64,0x56,stream);}stream.sync();
+    state=control.refresh();require(state.main.resident==64 && state.mtp.resident==0 && state.trim_complete,"branch recovery upload");
+    std::printf("PASS: controller branch snapshots, overlapping/disjoint/global pressure, retired leases, probe failure/throw and recovery (%s)\n",
+                frequency?"frequency":"lru");
+}
+
 static void test_memory_policy_and_pending() {
     constexpr size_t mib=1ULL<<20;
     Stream stream;ExpertCache cache(64);auto a=key();
@@ -604,6 +674,7 @@ int main() {
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();
         test_pin_validation_and_lru();test_pins_do_not_wait_for_upload();
         test_memory_controller(false);test_memory_controller(true);test_memory_policy_and_pending();
+        test_memory_branch_pressure(false);test_memory_branch_pressure(true);
         return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }
