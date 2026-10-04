@@ -633,6 +633,87 @@ static void test_memory_branch_pressure(bool frequency) {
                 frequency?"frequency":"lru");
 }
 
+static void test_memory_refresh_cadence(bool frequency) {
+    using namespace std::chrono;
+    using Clock=ExpertMemoryController::Clock;
+    constexpr size_t mib=1ULL<<20,reserve=128*mib;
+    const auto start=Clock::time_point{}+seconds(1);
+    const auto interval=milliseconds(100);
+    Stream stream;ExpertCache cache(128,{frequency,100000,32});
+    auto a=key(),b=a;b.branch=Branch::mtp;b.layer=45;
+    StrataVramPolicy policy;policy.reserve_mib=128;
+    size_t free=reserve+128;int probes=0;bool available=true,throws=false;
+    ExpertMemoryController control(cache,128,policy,[&](int,size_t &f,size_t &t) {
+        ++probes;
+        if(throws)throw std::runtime_error("fixture probe failure");
+        f=free;t=1024*mib;return available;
+    });
+    bool rejected=false;
+    try {control.refresh_if_due(-interval,start);}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected && probes==0 && !load(cache,a,0,stream.value),
+            "negative interval sampled or enabled admissions");
+    auto state=control.refresh_if_due(interval,start);
+    require(probes==1 && state.sample_valid && state.samples==1,"first periodic call did not sample");
+    auto held=load(cache,a,0x81,stream.value);bytes_equal(held,64,0x81,stream);
+    // A changed global sample must not silently affect a skipped snapshot.
+    free=reserve-64;
+    for(int i=0;i<100;++i)state=control.refresh_if_due(interval,start+milliseconds(i));
+    require(probes==1 && state.skipped_refreshes==100 && state.target==128 && state.resident==0,
+            "periodic calls polled the probe or modified the previous snapshot");
+    state=control.refresh_if_due(interval,start+interval);
+    require(probes==2 && state.target==0 && state.deferred==64 && !state.trim_complete,
+            "exact deadline failed to sample pressure or protect a lease");
+    held.release();stream.sync();
+    state=control.refresh_if_due(interval,start+interval+milliseconds(1));
+    require(probes==2 && state.deferred==64 && cache.resident_bytes()==64,
+            "skipped refresh trimmed or changed deferred snapshot");
+    state=control.refresh_if_due(interval,start+2*interval);
+    require(probes==3 && state.trim_complete && state.resident==0,"due refresh failed deferred trim");
+    // Explicit refresh bypasses the interval and resets its deadline.
+    free=reserve+128;
+    const auto forced=start+2*interval+milliseconds(1);
+    state=control.refresh(forced);
+    require(probes==4 && state.target==128,"forced refresh did not restore capacity immediately");
+    {auto lease=load(cache,a,0x82,stream.value);bytes_equal(lease,64,0x82,stream);}
+    state=control.refresh_if_due(interval,forced+interval-milliseconds(1));
+    require(probes==4,"forced refresh did not reset the periodic deadline");
+    available=false;
+    const auto failed=forced+interval;
+    state=control.refresh_if_due(interval,failed);
+    require(probes==5 && !state.sample_valid && state.failed_samples==1,"failed sample status missing");
+    available=true;
+    for(int i=0;i<100;++i)state=control.refresh_if_due(interval,failed+milliseconds(i));
+    require(probes==5 && !state.sample_valid && !load(cache,b,0,stream.value),
+            "failed sample retry storm or premature readmission");
+    {auto hit=load(cache,a,0,stream.value);bytes_equal(hit,64,0x82,stream);}
+    state=control.refresh_if_due(interval,failed+interval);
+    require(probes==6 && state.sample_valid,"scheduled sample did not recover");
+    {auto lease=load(cache,b,0x83,stream.value);bytes_equal(lease,64,0x83,stream);}
+    throws=true;bool caught=false;
+    const auto thrown=failed+2*interval;
+    try {control.refresh_if_due(interval,thrown);}catch(const std::runtime_error &) {caught=true;}
+    require(caught && probes==7 && control.status().failed_samples==2,"throwing sample not recorded");
+    throws=false;
+    auto miss=a;++miss.expert;
+    state=control.refresh_if_due(interval,thrown+milliseconds(1));
+    require(probes==7 && !state.sample_valid && !load(cache,miss,0,stream.value),
+            "throwing probe retried early or reopened admission");
+    // Caller can force recovery before the deadline after a known change.
+    state=control.refresh(thrown+milliseconds(2));
+    require(probes==8 && state.sample_valid,"forced recovery failed");
+    state=control.refresh_if_due(Clock::duration::zero(),thrown+milliseconds(2));
+    require(probes==9 && state.sample_valid,"zero interval did not sample");
+    // Rejecting a later invalid interval must preserve a valid admission state.
+    rejected=false;
+    try {control.refresh_if_due(-interval,thrown);}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected && probes==9 && control.status().sample_valid,"invalid interval mutated controller");
+    state=control.refresh_if_due(interval,start); // Conservative reset if caller time moves backwards.
+    require(probes==10 && state.samples==10 && state.failed_samples==2 && state.skipped_refreshes==203,
+            "clock regression or periodic accounting failed");
+    std::printf("PASS: periodic VRAM samples, 203 skipped probes, exact/forced deadlines, deferred trim, failure/throw pause and recovery (%s)\n",
+                frequency?"frequency":"lru");
+}
+
 static void test_memory_policy_and_pending() {
     constexpr size_t mib=1ULL<<20;
     Stream stream;ExpertCache cache(64);auto a=key();
@@ -675,6 +756,7 @@ int main() {
         test_pin_validation_and_lru();test_pins_do_not_wait_for_upload();
         test_memory_controller(false);test_memory_controller(true);test_memory_policy_and_pending();
         test_memory_branch_pressure(false);test_memory_branch_pressure(true);
+        test_memory_refresh_cadence(false);test_memory_refresh_cadence(true);
         return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }

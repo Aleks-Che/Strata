@@ -214,6 +214,27 @@ can defer trimming. `Status` reports the sampled free/total, target, resident an
 deferred bytes, sample validity, trim result and sample/failure counts. It is a
 snapshot at refresh, not a live memory measurement or an atomic reservation.
 
+P3.5g adds `refresh_if_due(interval)` for callers visiting many dispatch boundaries.
+It samples on the first call and when the steady-clock interval expires (including
+the exact deadline). `refresh()` always samples and resets that deadline: use it
+after known fixed-weight/state/workspace allocations or changes in memory policy.
+There is no default interval or background thread. Select an interval with the
+integrated runtime; a skipped call neither probes memory nor trims the cache nor
+changes admission. All sample/cache fields remain from the last refresh; only
+`skipped_refreshes` increments. Deferred trims therefore wait for the next actual
+refresh unless the caller forces one.
+
+Failed and throwing probes also reset the deadline. Admissions remain paused
+through skipped calls, existing hits remain available, and recovery needs a valid
+sample. Zero interval samples every time; negative intervals are rejected without
+changing state. An optional steady-clock timestamp supports deterministic tests;
+backwards timestamps trigger a fresh sample. Production callers should omit it.
+Between samples, unobserved external pressure can still cause an allocation OOM;
+the existing uncached bypass handles that case. Sampling is not a VRAM reservation.
+LRU/frequency CUDA fixtures test deadlines, forced updates, deferred leases,
+failure/throw recovery and 203 skipped probes each, with synthetic memory samples
+and real cached GPU bytes. This is a component check, not a token-rate measurement.
+
 P5.2b includes branch pressure in that snapshot. `Status.main` and `Status.mtp`
 each report `limit`, `resident` and `deferred` (bytes above the branch ceiling).
 `global_deferred` is the resident excess over the combined target. The aggregate
@@ -229,7 +250,7 @@ it reported `trim_complete=false` with zero deferred bytes. Constructor snapshot
 failed/throwing probes and refresh after trim all update branch accounting,
 including retired allocations. Invalid samples still pause admission; their
 branch/cache values describe known allocations and caps, not fresh global VRAM.
-The status stays unchanged between refreshes. Windows CUDA fixtures cover branch
+The memory snapshot stays unchanged between refreshes. Windows CUDA fixtures cover branch
 excess alone, both branches, overlapping/global-dominant pressure, retired leases,
 pending GPU events, failed/throwing probes and recovery under LRU/frequency.
 This does not yet export fields through GLM INFO or the web monitor.
@@ -271,7 +292,7 @@ been tested here. Tests inject memory snapshots while allocating/checking real C
 main/MTP pressure, pins, retired leases, pending events, invalid samples, recovery,
 total-device targets, and dispatch bypass payloads. These are synthetic component
 checks, not pressure from another application, a full GLM run or a speed result.
-Sampling frequency and pre-allocation workspace reservations remain runtime work.
+Choosing the sampling interval and pre-allocation workspace reservations remain runtime work.
 Windows reader tests also check missing symbols, failed initialization, PCI/handle
 errors, invalid NVML values, recovery after read failure, two simulated devices,
 400 serialized concurrent samples and balanced shutdown. Both the direct and

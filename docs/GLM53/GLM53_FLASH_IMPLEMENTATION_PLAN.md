@@ -387,6 +387,11 @@ result работают через оба API; токены и шаблон со
     Иные ошибки остаются видимыми. Injected OOM, lifetime/accounting, pins,
     recovery и dispatch byte parity проверены на RTX 5090 для LRU/frequency,
     mmap/native/auto, prefill/decode. Физическое исчерпание VRAM и GLM graph не проверены.
+  - [x] P3.5g: opt-in `refresh_if_due` ограничивает частоту global-memory probe;
+    явный refresh обходит интервал. Первый вызов, граница периода, deferred trim,
+    failed/throwing probe и recovery проверены для LRU/frequency на CUDA fixtures.
+    Между samples сохраняются snapshot и admission; ошибки тоже ограничены по частоте.
+    Выбор интервала, вызовы из GLM graph и влияние на скорость остаются для runtime.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

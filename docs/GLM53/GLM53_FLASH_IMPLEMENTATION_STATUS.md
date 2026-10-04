@@ -13,12 +13,12 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2, P3 и подготовка P5 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a, warm transport/chunk benchmark P3.7a/b и branch cache policy/status P5.2a/b DONE в пределах проверок журнала; P1, P4 и P6 не начаты |
-| Последняя проверенная ревизия Strata | База `56d3a88871ec3c2d1a0094c2b1565830ffdfcad1`, ветка `dev`; P5.2a уже в HEAD, P5.2b — в рабочем дереве |
-| Последняя выполненная работа | P5.2b: исправлен deferred при превышении branch ceiling, добавлены main/MTP snapshots и global excess без двойного учёта; clean build и 12/12 CTest прошли |
+| Общий статус | P0, P2, P3 и подготовка P5 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass/periodic refresh P3.5a/b/c/d/e/f/g, pipeline telemetry P3.6a, warm transport/chunk benchmark P3.7a/b и branch cache policy/status P5.2a/b DONE в пределах проверок журнала; P1, P4 и P6 не начаты |
+| Последняя проверенная ревизия Strata | База `f23352b8c91c07dba3621a2c64f78a3e1301ee9a`, ветка `dev`; P5.2b уже в HEAD, P3.5g — в рабочем дереве |
+| Последняя выполненная работа | P3.5g: opt-in периодический refresh VRAM controller, принудительный опрос и ограничение повторов при ошибках; clean build и 12/12 CTest прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P5.2b завершён, требуется продолжение P0.3b |
-| Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 20 (P5.2a-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
+| Активная задача / исполнитель | Нет; компонент P3.5g завершён, требуется продолжение P0.3b |
+| Блокеры | P0.3b: повторный запрос архива из Python снова получил `WinError 10013` в P3.5g-01. CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
@@ -73,7 +73,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; 72 локальные проверки нового GGUF; P2.5g — 30 реальных HTTP-сценариев с mock engine, смежный прогон 48 tests | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass/periodic refresh P3.5a/b/c/d/e/f/g; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, подбор периода refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | IN_PROGRESS | Подготовка P5.2a/b: main/MTP ceilings, независимая frequency history и branch pressure snapshots контроллера, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, INFO/monitor, draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -2402,6 +2402,59 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив и собрать
   candidate/oracle/CUDA. После интеграции backend передать branch snapshots
   в INFO/monitor и проверить их при настоящих main/MTP переключениях.
+
+### P3.5g-01 — 2026-10-04, Asia/Yekaterinburg — Периодический опрос VRAM
+
+- **Статус:** DONE для API периодического refresh; общий P3 остаётся IN_PROGRESS.
+- **Исполнитель:** Codex. База `f23352b8c91c07dba3621a2c64f78a3e1301ee9a`,
+  ветка `dev`, дерево до начала чистое; изменения оставлены в рабочем дереве.
+- **Пункт плана:** P3.5, ограничить частоту global-memory probe на границах
+  dispatch, сохранив общий VRAM reserve и поведение при ошибках.
+- **Изменение:** `ExpertMemoryController::refresh_if_due(interval)` использует
+  steady clock, опрашивает память при первом вызове и на границе периода.
+  `refresh()` всегда выполняет опрос и сдвигает следующий срок; вызывать после
+  известных выделений fixed/state/workspace. Интервал выбирает caller, default
+  не введён. Фоновых потоков нет. При пропуске меняется только счётчик
+  `skipped_refreshes`, snapshot, admission и deferred trim не меняются.
+  Failed/throwing probe также сдвигает срок: нет повторов на каждом слое,
+  новые allocations остаются запрещены до успешного sample, hits доступны.
+  Нулевой интервал опрашивает каждый раз, отрицательный отклоняется без изменений.
+  Необязательный timestamp позволяет детерминированные тесты без sleep;
+  обратный ход переданного времени вызывает свежий sample.
+- **Файлы:** `backends/glm5next/expert_memory.hpp`, `test_expert_cache.cpp`,
+  `README.md`, план, статус и [лог сборки/CTest](GLM53_FLASH_REFRESH_TESTS.txt).
+- **Проверки:** cwd `C:\work\git\my-repos\Strata`, Windows / RTX 5090,
+  CUDA runtime/driver 13000/13000. Команда
+  `cmd /c "build-local\check-glm-native-plan.cmd > build-local\glm5next-refresh-build.log 2>&1"`
+  — **exit 0**, clean MSVC build, **12/12 CTest, 3,83 с**.
+  Helper запускает `cmake --build build-local/glm5next-transport --config Release --clean-first`
+  и `ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error`.
+  - Новые LRU/frequency fixtures: по 10 probe attempts и 203 пропущенных опроса;
+    проверены первая выборка, точная граница периода, forced reset, zero/negative
+    intervals, rollback времени, failed/throwing probe и восстановление admission.
+  - С реальными CUDA allocations проверены bytes main/MTP, защита held lease,
+    deferred trim после release и сохранение hits во время паузы admission.
+    Время и memory samples в этих fixtures синтетические.
+  - Прежние cache/dispatch/transport, OOM, branch snapshots и DeepSeek include
+    compatibility tests прошли. Live NVML probe/controller smoke вернул valid=1.
+  - `git -c safe.directory=C:/work/git/my-repos/Strata -c core.safecrlf=false diff --check`
+    — exit 0.
+- **P0.3b перепроверен:** в проверенных build-local каталогах и именах Downloads
+  подходящего закреплённого архива не найдено. Команда
+  `python -c "import urllib.request; u='https://codeload.github.com/unslothai/llama.cpp/tar.gz/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9'; r=urllib.request.urlopen(u, timeout=20); print(r.status); r.close()"`
+  — exit 1, `URLError` / `PermissionError [WinError 10013]` на socket connect.
+  Архив не загружен, hash/candidate build/tokenizer oracle не выполнены.
+  Отдельный файл лога сетевой попытки не сохранялся.
+- **Ограничения:** периодическая выборка подключена только как API контроллера,
+  вызовов из GLM graph ещё нет. Между samples внешнее pressure может измениться;
+  остаётся прежний allocation-OOM bypass. Deferred trim выполняется при следующем
+  фактическом refresh или принудительно. Интервал требует подбора с настоящим
+  inference. Полный GGUF, скорость генерации, внешнее pressure, Linux/HIP и
+  full-model регрессии Qwen/DeepSeek в этом цикле не проверялись.
+- **Следующий шаг:** P0.3b → P2.1b.2 по `backends/glm5next/README.md`: получить
+  закреплённый архив, собрать candidate/oracle/CUDA и сохранить tokenizer parity.
+  При интеграции GPU graph использовать periodic refresh между dispatch scopes
+  и forced refresh после известных крупных allocations; затем измерить интервал.
 
 ## Шаблон следующей записи
 

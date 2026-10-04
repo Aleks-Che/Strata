@@ -2,7 +2,9 @@
 #include "expert_cache.hpp"
 #include "global_memory.hpp"
 #include "../common/vram_policy.hpp"
+#include <chrono>
 #include <functional>
+#include <optional>
 
 namespace strata_glm {
 // One combined main/MTP cache per device. Invoke at graph/dispatch boundaries,
@@ -12,6 +14,7 @@ namespace strata_glm {
 // This computes a target, not an atomic reservation against other processes.
 class ExpertMemoryController {
 public:
+    using Clock=std::chrono::steady_clock;
     using Probe=std::function<bool(int,size_t &,size_t &)>;
     struct BranchStatus {
         size_t limit=0,resident=0,deferred=0;
@@ -22,6 +25,7 @@ public:
         size_t global_deferred=0;
         BranchStatus main,mtp;
         uint64_t samples=0,failed_samples=0;
+        uint64_t skipped_refreshes=0;
     };
 private:
     ExpertCache &cache;
@@ -29,6 +33,7 @@ private:
     StrataVramPolicy policy;
     Probe probe;
     Status state;
+    std::optional<Clock::time_point> last_attempt;
     void device_check() const {
         int device=-1;
         auto error=cudaGetDevice(&device);
@@ -67,8 +72,11 @@ public:
     ExpertMemoryController(const ExpertMemoryController&)=delete;
     ExpertMemoryController &operator=(const ExpertMemoryController&)=delete;
     Status status() const {return state;} // Snapshot from last refresh, not live usage.
-    Status refresh() {
+    // Force a new sample after fixed/state/workspace allocations or other known
+    // pressure changes. Explicit timestamps allow deterministic scheduler tests.
+    Status refresh(Clock::time_point now=Clock::now()) {
         device_check();++state.samples;
+        last_attempt=now; // Rate-limit failures too; do not retry on every layer.
         cache.set_admission_enabled(false); // Also stays closed on probe/trim exceptions.
         size_t free=0,total=0;
         bool valid=false;
@@ -83,6 +91,18 @@ public:
         catch(...) {snapshot_cache();throw;}
         snapshot_cache();
         cache.set_admission_enabled(true);
+        return state;
+    }
+    // Call only at safe dispatch boundaries, as with refresh(). No background
+    // thread: a skipped call returns the previous snapshot and does not trim or
+    // change admission. The caller chooses the interval; zero always samples.
+    Status refresh_if_due(Clock::duration interval,Clock::time_point now=Clock::now()) {
+        if(interval<Clock::duration::zero())
+            throw std::invalid_argument("GLM memory refresh interval must be nonnegative");
+        if(!last_attempt || now<*last_attempt || now-*last_attempt>=interval)
+            return refresh(now);
+        device_check();
+        ++state.skipped_refreshes;
         return state;
     }
     // Destruction deliberately does not enable admissions after an invalid sample.
