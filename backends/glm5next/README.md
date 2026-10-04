@@ -52,7 +52,7 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains eight tests, including the native route planner, range parser, GPU cache
+On Windows the suite contains nine tests, including the native route planner, transport lifetime, range parser, GPU cache
 and the unchanged DeepSeek frequency-history regression through its compatibility include.
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
@@ -91,6 +91,43 @@ checks 384 keys from independent fixture geometry plus malformed layouts/routes.
 The GPU byte test now gets its 24-matrix plans from this native planner, with
 duplicate router IDs and independent expected offsets; its 432 comparisons remain
 synthetic packed bytes, not model logits or a measured speedup.
+
+`expert_transport.hpp` adds an owning transport adapter (P3.3a). Construct one
+`ExpertTransport` per host owner/device, then `begin(plan, sources, decode)` with
+native `ExpertKey` ranges and full offset-zero `ExpertSourceView` mappings. Each
+view carries model/generation/shard identity and a shared owner of its mapping
+and native registration; a file handle alone does not preserve mmap memory.
+All keys, source identities, ranges and duplicates validate before submission.
+Plans are bounded to 12288 matrices and 1048576 staging chunks. Source mappings
+referenced by the plan are retained internally, so the caller can drop its own
+references after `begin`. No payload copies occur during validation.
+
+Call `transfer(index, destination, stream)` in increasing index order. Bad order,
+null destinations and nested `begin` calls fail without consuming more jobs.
+`finish()` requires that every planned matrix was consumed; if not, it first drains
+and cancels the remainder, then reports the incomplete plan. `cancel()` explicitly
+discards that remainder and is idempotent. Both retire source owners after the
+common pipeline finishes reading. Destruction (including exception unwinding)
+joins pipeline workers and drains its GPU ring before destroying source owners.
+A pipeline failure destroys that pipeline before releasing mappings; recreate the
+adapter after such an error. Validation mistakes do not poison an idle adapter.
+
+The adapter reuses the shared pipeline's CUDA slot events. `finish`/`cancel` do
+not promise completed destination consumers: callers retain destination memory
+and streams until their work finishes, and retain any associated cache leases.
+Calls, including cancellation, must be serialized on one host owner; a server
+cancellation signal must be handled there between transfers. Native read cleanup
+may wait for in-flight reads, so cancellation is not a bounded-latency guarantee.
+This adapter does not integrate the model graph, filter cache hits or implement
+cache admission. The graph adapter must construct the ordered miss/bypass plan.
+
+Windows CUDA fixtures use native planned triples and real temporary mappings:
+cancel after 0/1/7 matrices, complete all 24, restart with another source generation,
+check 192 delivered matrices plus untouched suffixes/guards across six modes, and
+unwind an exception with a prefetched ring. External mapping owners are dropped
+before transfers; weak ownership checks verify retirement. Native mode protects
+the mapped pages with PAGE_NOACCESS. These are synthetic byte/lifetime checks;
+actual I/O/CUDA failure injection and real GLM request cancellation remain untested.
 
 On non-Windows the GPU test has only the six host-memory cases (144 matrix
 comparisons); native file transport is not implemented there. Only Windows was

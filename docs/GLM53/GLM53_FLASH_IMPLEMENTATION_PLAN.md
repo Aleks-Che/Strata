@@ -320,6 +320,11 @@ result работают через оба API; токены и шаблон со
       GLM loader/router/graph и реальные cached outputs пока не подключены.
 - [ ] Слот освобождать по CUDA event после последнего потребителя. Отмена графа
   должна завершать или отменять чтения и не оставлять обращения к закрытым mmap.
+  - [x] P3.3a: отдельный native transport adapter удерживает source mappings,
+    связывает полные ключи с ordered pipeline, дренирует отменённый остаток и
+    освобождает источники после чтений. Проверены partial cancel/restart и
+    exception teardown на Windows CUDA fixtures; graph/cache integration и
+    отмена реального GLM inference ещё не подключены.
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить
