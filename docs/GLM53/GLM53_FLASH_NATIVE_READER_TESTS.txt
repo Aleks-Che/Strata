@@ -1,0 +1,57 @@
+Start testing: Oct 04 08:43 RTZ 4 (зима)
+----------------------------------------------------------
+1/3 Testing: glm5next_tokenizer_protocol
+1/3 Test: glm5next_tokenizer_protocol
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-reader/glm5next_protocol_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-reader
+"glm5next_tokenizer_protocol" start time: Oct 04 08:43 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+GLM tokenizer protocol checks passed (mock encoder, no llama.cpp)
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_tokenizer_protocol" end time: Oct 04 08:43 RTZ 4 (зима)
+"glm5next_tokenizer_protocol" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: glm5next_expert_file_test
+2/3 Test: glm5next_expert_file_test
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-reader/glm5next_expert_file_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-reader
+"glm5next_expert_file_test" start time: Oct 04 08:43 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_expert_file_test" end time: Oct 04 08:43 RTZ 4 (зима)
+"glm5next_expert_file_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/3 Testing: deepseek4_expert_file_compat_test
+3/3 Test: deepseek4_expert_file_compat_test
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-reader/deepseek4_expert_file_compat_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-reader
+"deepseek4_expert_file_compat_test" start time: Oct 04 08:43 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"deepseek4_expert_file_compat_test" end time: Oct 04 08:43 RTZ 4 (зима)
+"deepseek4_expert_file_compat_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 04 08:43 RTZ 4 (зима)

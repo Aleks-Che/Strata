@@ -13,12 +13,12 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6 и reference P3.2a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | `444f442`: реализация из журнала уже закоммичена; последующий аудит и смена тестовой модели — в документации |
-| Последняя выполненная работа | AUDIT-01: проверен текущий код и новый GGUF; 151 Python-тест, 3 Node-проверки, 1 protocol CTest прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a и reference P3.2a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `2f05974e4b41ed7555182fdad2e111bc11fcc46e`, ветка `dev`; изменения P3.1a — в рабочем дереве |
+| Последняя выполненная работа | P3.1a: общий native reader, 3/3 CTest, 48 Python-тестов и пересобранный CUDA pipeline test DeepSeek прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; требуется продолжение P0.3b |
-| Блокеры | Старый блокер коммита снят фактом наличия `444f442`. Для P0.3b ещё нужно подтвердить архив/хеш и реальную сборку; прежняя ошибка HTTP сохранена в истории, в этом аудите сеть не проверялась |
+| Активная задача / исполнитель | Нет; P3.1a завершён, требуется продолжение P0.3b |
+| Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
@@ -56,7 +56,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | P3.2a DONE: reference byte-range/cache-key contract; fixture-тесты и 1032 матрицы нового профиля проверены по заголовкам | Runtime-интеграция, асинхронная доставка, cache parity, отмена и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | P3.1a DONE: общий native reader, реальные файловые fixtures и CUDA-регрессия DeepSeek; P3.2a DONE: reference byte-range/cache-key contract | GLM runtime-интеграция, H2D для его матриц, cache parity, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -118,7 +118,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
    P0.2 подтвердил разделение по исходникам/заголовкам, без runtime trace.
 4. Проверить KDA rollback, kpool, sparse attention и большие индексы; затем GPU
    fixtures и tokenizer oracle. Ранее HTTP из shell получил `WinError 10013`;
-   это историческая ошибка, а не результат новой проверки доступности сети.
+   повторная попытка P3.1a-01 тоже получила эту ошибку.
    Сначала проверить наличие локального архива/исходников выбранной ревизии.
 5. Для oracle использовать основной файл
    `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf`
@@ -992,6 +992,90 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   генерация, пиковая память, runtime cache/pipeline/sessions и native MTP.
 - **Следующий шаг:** P0.3b по обновлённой точке продолжения, затем P2.1b.2 с новым
   одиночным GGUF. Сохранить новые runtime-результаты отдельно от UD-Q3_K_XL.
+
+### P3.1a-01 — 2026-10-04, Asia/Yekaterinburg — Общий native reader экспертных матриц
+
+- **Статус:** DONE для P3.1a, исполнитель Codex. Весь P3 остаётся IN_PROGRESS.
+  Работа выполнена в `dev`, база `2f05974e4b41ed7555182fdad2e111bc11fcc46e`;
+  изменения не закоммичены. Рабочее дерево перед началом было чистым.
+- **Выбор задачи:** P0.3b пока недоступен: локальный архив кандидата не найден
+  в просмотренных `build-local/glm5next*` и `third_party`. Команда ниже из корня
+  репозитория завершилась exit 1 с `urllib.error.URLError: <urlopen error
+  [WinError 10013] ...>`; загрузка не началась:
+
+  ```powershell
+  .venv/Scripts/python.exe -c "import urllib.request; r=urllib.request.urlopen('https://github.com/unslothai/llama.cpp/archive/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9.tar.gz',timeout=15); print(r.status); print(r.headers.get('Content-Length')); r.close()"
+  ```
+
+- **Изменение:** существующий reader выделен в `backends/common/expert_file.hpp`;
+  `backends/deepseek4/expert_file.hpp` перенаправляет на него прежние loader hooks
+  и pipeline. Добавлен `Request::read_at` с явным 64-битным offset для GLM range
+  planner. Он не разыменовывает mmap и удерживается вызывающим кодом вместе с
+  `Source`. Проверяются границы, переполнение, размер native chunk, null destination,
+  повторные/перекрывающиеся регистрации. При неожиданной ошибке ожидания I/O
+  отменяется и дожидается завершения до освобождения буфера/OVERLAPPED.
+  Сигнал отмены, замеченный после завершения чтения, возвращает false.
+- **Файлы:** общий reader, `backends/common/test_expert_file.cpp` и README;
+  compatibility include DeepSeek; `backends/glm5next/CMakeLists.txt`, его README;
+  план/статус и [сохранённый CTest log](GLM53_FLASH_NATIVE_READER_TESTS.txt).
+  Зависимость, графы и настройки DeepSeek/Qwen не менялись.
+- **Сборка и проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  В `cmd` сначала выполнен
+  `call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"`.
+  MSVC **19.44.35222.0**, SDK **10.0.26100.0**, x64 Release.
+
+  ```text
+  cmake -S backends/glm5next -B build-local/glm5next-reader -G Ninja -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DCMAKE_BUILD_TYPE=Release "-DCMAKE_MAKE_PROGRAM=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/Scripts/ninja.exe"
+  cmake --build build-local/glm5next-reader --config Release
+  ctest --test-dir build-local/glm5next-reader -C Release -V --no-tests=error
+  ```
+
+  Все команды exit 0; **3/3 CTest**, без skips. Новый тест выполняется дважды:
+  через общий include и через compatibility include DeepSeek. Каждый проверяет
+  **384 чтения матриц**: восемь layout (`IQ2_S`, `IQ3_S`, `IQ4_XS`, `Q2_K`, `Q3_K`,
+  `IQ3_XXS`, `Q6_K`, `Q4_K`), восемь выбранных экспертов, смешанные gate/up/down,
+  chunks 997/65536 байт, последний неполный chunk, guards и padding между тензорами.
+  Это синтетические байты с соответствующей геометрией, а не валидные значения
+  деквантования или чтение весов локальной модели.
+  Дополнительно: **160 чтений четырьмя threads** после unmap/закрытия исходного fd;
+  независимость старого/new Source при повторной регистрации адреса и закрытие
+  последнего retained handle; sparse-file offset **2³² + 123**; short read после
+  усечения, pre-cancel, reuse после ошибок/отмены, отклонение неверных диапазонов.
+- **CUDA-регрессия общего кода:** после того же `vcvars64.bat` выполнено:
+
+  ```text
+  cl /nologo /EHsc /std:c++17 /O2 /MD /Ithird_party\llama.cpp\ggml\include /Ibuild-local\cuda-13.0\include /Ibuild-local\cuda-13.0\include\cccl backends\deepseek4\test_expert_pipeline.cpp /Fobuild-local\glm5next-reader\deepseek-pipeline.obj /Febuild-local\glm5next-reader\deepseek-pipeline.exe /link build-local\cuda-13.0\lib\x64\cudart.lib psapi.lib
+  set "PATH=%CD%\build-local\cuda-13.0\bin;%CD%\build-local\cuda-13.0\bin\x64;%PATH%"
+  build-local\glm5next-reader\deepseek-pipeline.exe
+  ```
+
+  Компиляция и запуск exit 0, вывод:
+  `Pipeline overlap, file queue, byte parity, ordered reuse and cancellation passed`.
+  Это новый executable из существующего `test_expert_pipeline.cpp`, использующий
+  изменённый общий reader; проверены прежние CUDA H2D/D2D/event/cancel fixtures.
+  Полный backend DeepSeek не пересобирался, генерация на модели не запускалась.
+  Отдельный log этого запуска не сохранён. `nvidia-smi --query-gpu=name,memory.total
+  --format=csv,noheader` ранее вывел `Failed to initialize NVML: Unknown Error`;
+  ошибка NVML не помешала фактическому CUDA-тесту.
+- **Python-регрессии:**
+
+  ```text
+  .venv/Scripts/python.exe -m unittest tools.test_glm5next_expert_plan tools.test_glm5next_build tools.test_glm5next_loader_contract tools.test_setup_glm5next tools.test_deepseek4 tools.test_shards
+  ```
+
+  Exit 0, **48 тестов**, без skips. Прежний `ResourceWarning` в
+  `strata_pack.py:351` сохраняется; отдельный log не сохранён.
+  `git -c safe.directory=C:/work/git/my-repos/Strata diff --check` — exit 0.
+- **Граница результата:** готов общий Windows native reader и проверена регрессия
+  транспорта DeepSeek. Native I/O для Linux не добавлялось; прежний mmap fallback
+  сохранён. Нет GLM graph integration, runtime cache-key/invalidation, GPU-проверки
+  восьми GLM layouts, реальной модели, logits или замера скорости. Отмена именно
+  незавершённого Windows ReadFile и ветка ошибки WaitForSingleObject не воспроизводились
+  детерминированно; native fixtures подтверждают pre-cancel и повторное использование.
+- **Следующий шаг:** P0.3b — получить проверенный архив кандидата и собрать oracle
+  по `backends/glm5next/README.md`, затем P2.1b.2. При подключении GLM транспорта
+  использовать общий `Source`/`read_at`, сохранив lifetime до завершения native I/O;
+  отдельно связать staging/cache lifetime с CUDA events и проверить восемь layouts на GPU.
 
 ## Шаблон следующей записи
 

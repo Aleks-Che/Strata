@@ -297,6 +297,10 @@ result работают через оба API; токены и шаблон со
 - [ ] Подключить SSD/mmap → ограниченный RAM staging → asynchronous H2D → GPU ring
   → compute. После готовности router IDs объединять запросы gate/up/down и удалять
   дубликаты. Сохранять все 8 выбранных экспертов и исходные квантованные байты.
+  - [x] P3.1a: общий Windows native reader в `backends/common/expert_file.hpp`,
+    явные 64-битные offsets, проверка диапазонов и удержание файлового источника.
+    Native fixtures восьми quant layouts и регрессия существующего CUDA pipeline
+    DeepSeek прошли. Подключение GLM graph, staging/H2D и cache keys ещё не выполнено.
 - [ ] Разделить ключи кэша по модели/поколению загрузки, основной/MTP ветке, слою,
   эксперту и матрице. Учитывать tensor layout, quant type, file offset и размер.
   - [x] P3.2a: reference-план адресации gate/up/down и cache-key contract в

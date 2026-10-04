@@ -1,7 +1,7 @@
 # GLM candidate build and tokenizer oracle
 
-This is preparation for P0.3/P2.1b, not a Strata inference backend or launcher.
-The stdlib protocol test builds without a model, CUDA or llama.cpp. The oracle
+This is preparation for P0.3/P2.1b/P3.1a, not a Strata inference backend or launcher.
+The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive; its full build and token-ID parity
 have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
 
@@ -24,8 +24,20 @@ python -m unittest tools.test_glm5next_build
 
 On Windows, use the x64 Native Tools environment, including Windows SDK headers,
 libraries and `rc.exe`/`mt.exe`. `cl.exe` on PATH alone is insufficient. The checks
-were built with MSVC 19.44.35222.0 and Windows SDK 10.0.26100.0. They use a mock
-encoder: passing them says nothing about GLM tokenization or CUDA kernels.
+were built with MSVC 19.44.35222.0 and Windows SDK 10.0.26100.0. The protocol uses a mock
+encoder: passing it says nothing about GLM tokenization or CUDA kernels.
+
+On Windows, this configuration also runs `glm5next_expert_file_test` and
+`deepseek4_expert_file_compat_test` against the same
+[shared native reader](../common/expert_file.hpp), through its direct and DeepSeek
+compatibility includes. Each run checks 384 matrix reads for eight quant layouts
+with mixed gate/up/down, guards and partial chunks; 160 concurrent reads after
+unmapping and closing the original file; reload identity; offsets above 4 GiB;
+short reads, invalid ranges and cancellation before submission. The large-offset
+fixture uses a sparse temporary file and requires a filesystem supporting sparse
+files. Payloads are synthetic packed bytes, not numerical quantization fixtures.
+These tests cover file-to-RAM delivery, not GLM graph integration, H2D or decoding.
+The existing DeepSeek CUDA pipeline test remains a separate regression.
 
 For the real oracle, use a **different** build directory. Substitute the verified
 local archive and its recorded hash in this command (not executed here):
