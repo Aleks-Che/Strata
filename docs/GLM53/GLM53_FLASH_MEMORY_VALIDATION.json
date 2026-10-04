@@ -1,0 +1,217 @@
+{
+  "status": "pass",
+  "stage": "P3.5h",
+  "recorded_at": "2026-10-04T17:43:59.581488+05:00",
+  "base_revision_at_start": "f76442cfb20045486a6620f57ebc577a3873c6be",
+  "code_revision_at_recording": "ebd0ca1b5262b2840058aff863ae6000e599e961",
+  "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "hardware": "Windows; Ryzen 9 9950X; installed RAM 128 GiB; RTX 5090 32 GiB; MSVC 19.44; CUDA 13.0.48; sm_120a",
+  "configuration": {
+    "model": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+    "prompt_tokens": 39,
+    "generated_tokens": 64,
+    "n_ctx": 2048,
+    "n_batch": 16,
+    "kv": "F16",
+    "TF32": false,
+    "flash_attention": false,
+    "MTP": false,
+    "sampling": "greedy",
+    "pinned_staging_mib": 16,
+    "cache": "frequency admission, explicit LRU order, private CUDA memory pool when supported",
+    "source": "mmap",
+    "copy_compute_overlap": false,
+    "controller_interval_ms": 500,
+    "targets_include_other_processes": true,
+    "os_file_cache_flushed": false
+  },
+  "runs": {
+    "90-first": {
+      "report": "GLM53_FLASH_MEMORY_90_FIRST.json",
+      "decode_tokens_per_second": 1.732162241354152,
+      "decode_steps": 63,
+      "prefill_seconds": 20.6151107,
+      "warm_seconds": 42.7548616,
+      "exact_logits_sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+      "exact_logit_elements": 9912320,
+      "memory": {
+        "ram": {
+          "sample_count": 63,
+          "used_bytes_min": 121231917056,
+          "used_bytes_max": 121745756160,
+          "percent_min": 89.92551719125838,
+          "percent_max": 90.30666473311362,
+          "total_bytes": 134813700096
+        },
+        "global_vram": {
+          "sample_count": 63,
+          "used_bytes_min": 30634577920,
+          "used_bytes_max": 30931652608,
+          "percent_min": 89.59858360551415,
+          "percent_max": 90.46745378676358,
+          "total_bytes": 34190917632
+        }
+      },
+      "all_main_expert_bytes_touched_in_warmup": false
+    },
+    "90-pool": {
+      "report": "GLM53_FLASH_MEMORY_90_POOL.json",
+      "decode_tokens_per_second": 4.312968372961846,
+      "decode_steps": 63,
+      "prefill_seconds": 7.834105,
+      "warm_seconds": 16.2859383,
+      "exact_logits_sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+      "exact_logit_elements": 9912320,
+      "memory": {
+        "ram": {
+          "sample_count": 63,
+          "used_bytes_min": 121609060352,
+          "used_bytes_max": 122225192960,
+          "percent_min": 90.20526865252043,
+          "percent_max": 90.66229387144199,
+          "total_bytes": 134813700096
+        },
+        "global_vram": {
+          "sample_count": 63,
+          "used_bytes_min": 30709026816,
+          "used_bytes_max": 30954459136,
+          "percent_min": 89.8163282615696,
+          "percent_max": 90.53415725534394,
+          "total_bytes": 34190917632
+        }
+      },
+      "all_main_expert_bytes_touched_in_warmup": false
+    },
+    "95-first": {
+      "report": "GLM53_FLASH_MEMORY_95_FIRST.json",
+      "decode_tokens_per_second": 3.781247214143608,
+      "decode_steps": 63,
+      "prefill_seconds": 14.0447615,
+      "warm_seconds": 46.6740564,
+      "exact_logits_sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+      "exact_logit_elements": 9912320,
+      "memory": {
+        "ram": {
+          "sample_count": 63,
+          "used_bytes_min": 128176267264,
+          "used_bytes_max": 128392867840,
+          "percent_min": 95.07658878342963,
+          "percent_max": 95.23725537432192,
+          "total_bytes": 134813700096
+        },
+        "global_vram": {
+          "sample_count": 63,
+          "used_bytes_min": 32340369408,
+          "used_bytes_max": 32541564928,
+          "percent_min": 94.58760293035238,
+          "percent_max": 95.17605019627688,
+          "total_bytes": 34190917632
+        }
+      },
+      "all_main_expert_bytes_touched_in_warmup": false
+    },
+    "95-repeat": {
+      "report": "GLM53_FLASH_MEMORY_95_REPEAT.json",
+      "decode_tokens_per_second": 4.0123284204176315,
+      "decode_steps": 63,
+      "prefill_seconds": 10.646961,
+      "warm_seconds": 64.4003421,
+      "exact_logits_sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+      "exact_logit_elements": 9912320,
+      "memory": {
+        "ram": {
+          "sample_count": 63,
+          "used_bytes_min": 123987906560,
+          "used_bytes_max": 124222054400,
+          "percent_min": 91.9698120233396,
+          "percent_max": 92.1434945495467,
+          "total_bytes": 134813700096
+        },
+        "global_vram": {
+          "sample_count": 63,
+          "used_bytes_min": 32448602112,
+          "used_bytes_max": 32549265408,
+          "percent_min": 94.90415689115834,
+          "percent_max": 95.19857220075444,
+          "total_bytes": 34190917632
+        }
+      },
+      "all_main_expert_bytes_touched_in_warmup": true
+    }
+  },
+  "decode_95_median": 3.89678781728062,
+  "persistent_engine_95_decode": [
+    {
+      "case": "baseline",
+      "timed_decode_steps": 63,
+      "seconds": 13.5746,
+      "tokens_per_second": 4.641020729892594,
+      "includes_sampling_and_pipe_output": true
+    },
+    {
+      "case": "clean second request",
+      "timed_decode_steps": 63,
+      "seconds": 9.99082,
+      "tokens_per_second": 6.305788714039489,
+      "includes_sampling_and_pipe_output": true
+    }
+  ],
+  "ctest_candidate": {
+    "passed": 12,
+    "seconds": 5.13
+  },
+  "ctest_transport": {
+    "passed": 13,
+    "seconds": 3.75
+  },
+  "python_checks": {
+    "existing": 54,
+    "final_profile": 4,
+    "unique_total": 58
+  },
+  "benchmark_binary_sha256": {
+    "strata-glm5next": "be4a79e4a50113a67e990147da0f129fe30e2a053071f7977ff14f0a40b31b1f",
+    "strata-glm5next-smoke": "eb8de060db0394a299b830633ead384f9b10f1c1e137d534a609e2a647be91c4"
+  },
+  "final_binary_sha256": {
+    "strata-glm5next": "55c4d43ef2b1d33a7854b29c1e932421c99c66c887da4894f284a1060ae3d2fa",
+    "strata-glm5next-smoke": "dd426ec97af1f3e5ca82a5109c71fa6618feef1fa0998d9a54a45b7a0675fee9"
+  },
+  "source_sha256": {
+    "backends/glm5next/CMakeLists.txt": "34dc81854a48b7c646789de831b5dc4db23e660664d783a507d5098aedb82180",
+    "backends/glm5next/main.cpp": "5ca68c70f476d7c733bfd204efdae2c04327795afa726838a041771eff0c850c",
+    "backends/glm5next/runtime.hpp": "2809729e8eae04860e1073741b6a6ae245732a6063bc1cb21aa26194951e24c7",
+    "backends/glm5next/runtime_memory.hpp": "08996aa130b6bfbc490e6fa2d3b6810b3fe9bb03b82496a45522f526ac23fb19",
+    "backends/glm5next/runtime_memory.cpp": "79ba4f8bba646983a7db4d0ffeb94475d88283993d476991c3ed96d1b87b7162",
+    "backends/glm5next/protocol.hpp": "183c58e0826c0e18a552f5c2c7187105c1ed882605b6ab0ec4a9740595a2c4b0",
+    "backends/glm5next/test_protocol.cpp": "960de7a8bf5408ba842029d78621e3e834f3d15cfc55a65a3258109a0a9b1278",
+    "backends/glm5next/smoke.cpp": "575b7b3c22c59ba30f92c3e481701aa1a244be2e4ac1d6d7ce08562a14cd0396",
+    "backends/glm5next/expert_cache.hpp": "5b4fe74db5ca9a645bd99de36f12889b2601dace03617523d615d7b019fc94bb",
+    "backends/glm5next/sync_runtime.h": "f3c0921067a8823a16b412c01da30cdf96892eea082e855c7348d36b2fa396c5",
+    "backends/glm5next/sync_runtime.inc": "3a6d98bffbcaebc3d62d6f72bd16dbc66cd7e507ced2c494d980b429602cde26",
+    "backends/glm5next/RuntimePatches.cmake": "adf6702c316e68f7468f71ca5edec98bc07ece6c70d479a140aa6f204d3ebb68",
+    "serve/server.py": "0c28c975060ef918fbfe5146382c5d7ccfbed0c9396db51add15472c8aee975c",
+    "serve/test_glm5next_profile.py": "ee5805af6af67263f48b46280b0cae506bb406b5ec12c97d69a5c079e434ad9f",
+    "tools/setup_glm5next.py": "d93e08530cc8f27c5f1384ebea0a6a963b32a0a1843cd78e0b56bd7c73a23da9",
+    "tools/check_glm5next_engine.py": "83f66175f867a7b6bf98c7faa00ba5c28665e8abbe8aa14ac847f9ed2d8a985d",
+    "tools/check_glm5next_api.py": "af6a3acffb56d488adcca0609d94eb3087726f7eadd394e8221b816eb61350ac"
+  },
+  "local_profile": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.json",
+  "notes": [
+    "95% is a global target, not a reserved amount; sampled usage varies with OS activity. RAM warmup ends when all 102.322 GiB of eligible expert mappings have been touched, even below the target.",
+    "90-first is the intermediate implementation before explicit LRU and CUDA pool; its binary hash was not captured.",
+    "90-pool has one measurement; 95 has two new-process measurements. Persistent engine retains expert cache across requests but clears all model sequence state. These are short-prompt measurements, not a general speed claim.",
+    "Benchmark binary preceded a comment-only expert_cache.hpp edit and CMake build-record wording update. Final rebuild and real HTTP check passed.",
+    "Raw logits are local build artifacts; all captured 9,912,320-element arrays match P1.1a bit-for-bit.",
+    "No async copy/compute overlap, MTP, session restore, long sparse-context validation, independent implementation logits oracle or full-model Qwen/DeepSeek regression in this stage."
+  ],
+  "report_sha256": {
+    "GLM53_FLASH_MEMORY95_API.json": "26f36a3b46b516f8de257d2eb675e17ee59018bf222be2cdcab488545ca85b8a",
+    "GLM53_FLASH_MEMORY95_PIPE.json": "4322d2c09902368a32363aaad023a3f27d423de2c0ec803883057a99db3b25e7",
+    "GLM53_FLASH_MEMORY_90_FIRST.json": "be2e30da7d7000ddc1f4dca8ff3282b445aa9f42e8e6a7128c9e5e5153600aed",
+    "GLM53_FLASH_MEMORY_90_POOL.json": "bb8b0f109eacff392f8d374c2aeece455411be9e4f92c322970cb678e4e6529b",
+    "GLM53_FLASH_MEMORY_95_FIRST.json": "e684fe58b57fb29aeb6384196e5f14ebe7d8181f540f242fdccd006eb93a4d92",
+    "GLM53_FLASH_MEMORY_95_REPEAT.json": "55e509dd5d79463d349c3fcd796f14064331201c780d09f8b9560b5da1e4c65c"
+  }
+}

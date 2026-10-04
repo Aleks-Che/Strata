@@ -1,0 +1,160 @@
+cwd: C:\work\git\my-repos\Strata
+PATH prefix: build-local/cuda-13.0/bin;build-local/cuda-13.0/bin/x64
+cmd /c "build-local\build-glm-graph.cmd > build-local\glm-memory-final-build.log 2>&1"  [exit 0]
+cmd /c "build-local\build-glm-transport-memory.cmd > build-local\glm-memory-transport-build.log 2>&1"  [exit 0]
+ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error  [exit 0]
+python -m unittest tools.test_setup_glm5next serve.test_glm5next_profile serve.test_glm5next_http serve.test_glm5next_handlers serve.test_glm5next_service serve.test_glm5next_info serve.test_glm5next_settings serve.test_deepseek -q  [57 at that revision; exit 0]
+python -m unittest serve.test_glm5next_profile -q  [final 4; exit 0]
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-smoke.exe --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file docs/GLM53/GLM53_FLASH_SYNC_PROMPT.txt --n-predict 64 --ctx 2048 --batch 16 --ram-target-percent 90 --vram-target-percent 90 --report build-local/glm-memory90-first.json --logits build-local/glm-memory90-first.f32 *> build-local/glm-memory90-first.log  [exit 0]
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-smoke.exe --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file docs/GLM53/GLM53_FLASH_SYNC_PROMPT.txt --n-predict 64 --ctx 2048 --batch 16 --ram-target-percent 90 --vram-target-percent 90 --report build-local/glm-memory90-pool.json --logits build-local/glm-memory90-pool.f32 *> build-local/glm-memory90-pool.log  [exit 0]
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-smoke.exe --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file docs/GLM53/GLM53_FLASH_SYNC_PROMPT.txt --n-predict 64 --ctx 2048 --batch 16 --ram-target-percent 95 --vram-target-percent 95 --report build-local/glm-memory95-first.json --logits build-local/glm-memory95-first.f32 *> build-local/glm-memory95-first.log  [exit 0]
+& build-local\glm5next-candidate-cuda\bin\strata-glm5next-smoke.exe --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --prompt-file docs/GLM53/GLM53_FLASH_SYNC_PROMPT.txt --n-predict 64 --ctx 2048 --batch 16 --ram-target-percent 95 --vram-target-percent 95 --report build-local/glm-memory95-repeat.json --logits build-local/glm-memory95-repeat.f32 *> build-local/glm-memory95-repeat.log  [exit 0]
+python tools/check_glm5next_engine.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-memory95-pipe.json [exit 0]
+python tools/check_glm5next_api.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-memory95-api.json --port 8081 [exit 0]
+Initial full-model attempt rejected SetProcessWorkingSetSizeEx with ERROR_PRIVILEGE_NOT_HELD (1314). Preserving the existing minimum resolved it without extra privileges; final runs above passed.
+Build helpers:
+build-glm-graph.cmd
+@echo off
+setlocal
+cd /d "%~dp0.."
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+set "CUDA_PATH=%CD%\build-local\cuda-13.0"
+set "PATH=%CUDA_PATH%\bin;%CUDA_PATH%\bin\x64;%PATH%"
+cmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release "-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DSTRATA_GLM_SYNC_BASELINE=ON "-DPython3_EXECUTABLE=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/python.exe" -DCMAKE_CUDA_ARCHITECTURES=120 "-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe" "-DCUDAToolkit_ROOT=%CUDA_PATH%"
+if errorlevel 1 exit /b 1
+cmake --build build-local/glm5next-candidate-cuda --config Release -j 4
+if errorlevel 1 exit /b 1
+ctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error
+exit /b %errorlevel%
+
+
+
+build-glm-transport-memory.cmd
+@echo off
+setlocal
+cd /d "%~dp0.."
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+set "CUDA_PATH=%CD%\build-local\cuda-13.0"
+set "PATH=%CUDA_PATH%\bin;%CUDA_PATH%\bin\x64;%PATH%"
+cmake -S backends/glm5next -B build-local/glm5next-transport -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DSTRATA_GLM_TRANSPORT_TESTS_CUDA=ON "-DCUDAToolkit_ROOT=%CUDA_PATH%"
+if errorlevel 1 exit /b 1
+cmake --build build-local/glm5next-transport --config Release -j 4
+exit /b %errorlevel%
+
+glm-memory-final-build.log
+1: Test timeout computed to be: 9999879
+2: Test timeout computed to be: 9999879
+2: GLM protocol: 2 valid and 28 invalid requests passed
+3: Test timeout computed to be: 9999879
+3: PASS: 384 native matrix keys, 8 quant types, main/MTP, dedup order, transposed down, split shards and >4 GiB/EOF ranges
+3: PASS: invalid routes, limits, duplicate projections/shards, shapes, overlap, quant, overflow and truncated payload rejected
+4: Test timeout computed to be: 9999879
+4: Frequency admission history, decay, saturation and bound passed
+5: Test timeout computed to be: 9999879
+6: Test timeout computed to be: 60
+6: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+6: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+6: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+6: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+7: Test timeout computed to be: 60
+7: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+7: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+7: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+7: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+8: Test timeout computed to be: 120
+9: Test timeout computed to be: 120
+10: Test timeout computed to be: 120
+10/12 Test #10: glm5next_candidate_ops ..............   Passed    0.78 sec
+11: Test timeout computed to be: 120
+11/12 Test #11: glm5next_candidate_state ............   Passed    0.99 sec
+12: Test timeout computed to be: 120
+12/12 Test #12: glm5next_candidate_quant ............   Passed    1.68 sec
+100% tests passed, 0 tests failed out of 12
+Total Test time (real) =   5.13 sec
+glm-memory-transport-tests.log
+1: Test timeout computed to be: 9999879
+2: Test timeout computed to be: 9999879
+2: GLM protocol: 2 valid and 28 invalid requests passed
+3: Test timeout computed to be: 9999879
+3: PASS: 384 native matrix keys, 8 quant types, main/MTP, dedup order, transposed down, split shards and >4 GiB/EOF ranges
+3: PASS: invalid routes, limits, duplicate projections/shards, shapes, overlap, quant, overflow and truncated payload rejected
+4: Test timeout computed to be: 9999879
+4: Frequency admission history, decay, saturation and bound passed
+5: Test timeout computed to be: 9999879
+6: Test timeout computed to be: 60
+6: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+6: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+6: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+6: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+7: Test timeout computed to be: 60
+7: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+7: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+7: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+7: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+8: Test timeout computed to be: 30
+8: PASS: all 12 key fields, hit byte parity, model/generation invalidation and malformed keys
+8: PASS: LRU, budget shrink, plan leases, bypass and deferred trim
+8: PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass (lru)
+8: PASS: reload generation, invalidated lease accounting, cache teardown and failed-upload recovery
+8: PASS: common pipeline upload, partial chunks, cache hit parity and no second H2D
+8: PASS: injected cache allocation OOM, pins/eviction, no upload/leak, recovery and fatal error propagation (lru)
+8: PASS: injected cache allocation OOM, pins/eviction, no upload/leak, recovery and fatal error propagation (frequency)
+8: PASS: main/MTP caps, branch-local eviction, pins, disabled/oversized bypass, retired reload and global reserve (lru)
+8: PASS: main/MTP caps, branch-local eviction, pins, disabled/oversized bypass, retired reload and global reserve (frequency)
+8: PASS: independent main/MTP decay, combined global LRU, history invalidation and atomic quota admission
+8: PASS: branch controller reports/defer-trims pending CUDA work, then clears pressure without disabling main
+8: PASS: frequency history separates all 12 key fields and invalidates only one model/generation
+8: PASS: hot protection, repeat-miss admission, ties, counters, decay, history bound and reload cleanup
+8: PASS: mixed-size admission is atomic, protects leases and replaces multiple idle victims
+8: PASS: admission bypass still delivers full matrix via pipeline; hot hit keeps original bytes
+8: PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass (frequency)
+8: PASS: plan-wide pins protect later hits, deduplicate, preserve counters and cooperate with miss leases/trim (lru)
+8: PASS: plan-wide pins protect later hits, deduplicate, preserve counters and cooperate with miss leases/trim (frequency)
+8: PASS: overlapping pins, invalidation accounting, generation reload, cache teardown and exception cancellation
+8: PASS: plan validation/limit/empty plan and protection without LRU changes
+8: PASS: plan pins do not wait for upload; consumer lease preserves ready-event byte parity
+8: PASS: reserve cap, main/MTP, pins/retired leases, unavailable/malformed/throwing samples, trim and recovery (lru)
+8: PASS: reserve cap, main/MTP, pins/retired leases, unavailable/malformed/throwing samples, trim and recovery (frequency)
+8: PASS: total-device usage target, pending events, invalid policies and missing probe
+8: PASS: controller branch snapshots, overlapping/disjoint/global pressure, retired leases, probe failure/throw and recovery (lru)
+8: PASS: controller branch snapshots, overlapping/disjoint/global pressure, retired leases, probe failure/throw and recovery (frequency)
+8: PASS: periodic VRAM samples, 203 skipped probes, exact/forced deadlines, deferred trim, failure/throw pause and recovery (lru)
+8: PASS: periodic VRAM samples, 203 skipped probes, exact/forced deadlines, deferred trim, failure/throw pause and recovery (frequency)
+9: Test timeout computed to be: 30
+9: PASS: PCI mapping, cached handles, rebind after failure, no stale bytes, 400 concurrent samples and shutdown
+9: PASS: missing symbols, init/PCI/handle/read failures, unsupported memory sentinels and recovery
+10: Test timeout computed to be: 30
+10: PASS: PCI mapping, cached handles, rebind after failure, no stale bytes, 400 concurrent samples and shutdown
+10: PASS: missing symbols, init/PCI/handle/read failures, unsupported memory sentinels and recovery
+10/13 Test #10: deepseek4_global_memory_compat_test ...   Passed    0.19 sec
+11: Test timeout computed to be: 60
+11: PASS: exception teardown joins workers and releases sole mapping owner
+11: PASS: binding validation before submission, matrix/chunk limits, model/generation isolation, ordered transfer, incomplete finish and empty restart
+11: PASS: dispatch validation, duplicate/nested/order rejection, incomplete finish, invalidation detection, exception cleanup and empty plan
+11/13 Test #11: glm5next_expert_transport .............   Passed    0.53 sec
+12: Test timeout computed to be: 9999878
+12: Range parser limits, paths, malformed records and 64-bit offsets passed
+12: Cache manifest full keys, identity, branch/projection, shard, overflow and missing fields passed
+12: Dispatch manifest selection, complete triples, duplicate keys and trailing fields passed
+12: Benchmark option bounds passed
+12/13 Test #12: glm5next_range_parser .................   Passed    0.01 sec
+13: Test timeout computed to be: 120
+13: PASS: 18 cases, 432 GPU matrix comparisons, guarded destinations, partial chunks, two consumer streams
+13/13 Test #13: glm5next_expert_bytes .................   Passed    2.48 sec
+100% tests passed, 0 tests failed out of 13
+Total Test time (real) =   3.75 sec
+glm-memory-python-tests.log
+Ran 57 tests in 18.314s
+OK
+glm-memory-profile-tests.log
+Ran 4 tests in 0.026s
+OK
+glm-memory95-api-check.log
+openai JSON passed
+openai SSE passed
+anthropic JSON passed
+anthropic SSE passed
+HTTP prefill disconnect/recovery passed
+HTTP decode disconnect/recovery passed

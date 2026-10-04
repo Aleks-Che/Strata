@@ -437,6 +437,14 @@ result работают через оба API; токены и шаблон со
     failed/throwing probe и recovery проверены для LRU/frequency на CUDA fixtures.
     Между samples сохраняются snapshot и admission; ошибки тоже ограничены по частоте.
     Выбор интервала, вызовы из GLM graph и влияние на скорость остаются для runtime.
+  - [x] P3.5h: runtime cache + global RAM/VRAM targets 90/95%, NVML/controller
+    каждые 500 мс, bounded mmap warmup/Windows working set maximum, retained
+    model owners, exact MMQ padding, явный LRU и private CUDA pool. На IQ3_XXS
+    все 9 912 320 logits совпали с baseline; 95%: 3,781/4,012 ток/с в новых
+    процессах, 6,306 ток/с один повтор в том же pipe engine. Native pipe и оба
+    HTTP API прошли с targets 95%. Это synchronous cache, overlap ещё нет.
+    [Manifest](GLM53_FLASH_MEMORY_VALIDATION.json),
+    [команды](GLM53_FLASH_MEMORY_TARGETS_TESTS.txt).
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

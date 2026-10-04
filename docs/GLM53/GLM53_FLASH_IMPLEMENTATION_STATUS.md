@@ -13,19 +13,19 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0/P1/P2/P3 и подготовка P5 IN_PROGRESS; прежние завершённые части сохранены в журнале. P1.1a DONE: реальная синхронная генерация IQ3_XXS и baseline. Production protocol/profile, async/cache integration, P4 и P6 ещё не готовы |
-| Последняя проверенная ревизия Strata | `3f7289dbb2c09de7a53386db5595396226fcbe5a`, ветка `dev`; прежние graph/state/quant/tokenizer изменения теперь в HEAD, P1.1a добавлена в рабочем дереве без commit |
-| Последняя выполненная работа | P1.1a: synchronous CLI, 16 МиБ pinned staging, strict GPU audit, три генерации по 64 токена; все 9 912 320 logits совпали бит-в-бит; 10/10 CTest |
-| Следующая задача | P1.1b: существующий протокол Strata и профиль поверх проверенного GLM runtime; затем shared async/cache integration |
-| Активная задача / исполнитель | P3 runtime memory IN_PROGRESS — Codex: по запросу пользователя целевые 95% общей RAM/VRAM (уточнение пользователя; 90% уже проверены); P1.1b pipe/profile/API проверены, отчёты сохранены |
-| Блокеры | Блокеров для продолжения нет. Архив, бинарник и real-model baseline доступны; запуск GLM через production server ещё не подключён |
+| Общий статус | P1 DONE; P0/P2/P3 и подготовка P5 IN_PROGRESS. Рабочий pipe/API/profile и runtime expert cache проверены; async overlap, P4 и MTP ещё не готовы |
+| Последняя проверенная ревизия Strata | `ebd0ca1b5262b2840058aff863ae6000e599e961`, ветка `dev`; код этой работы уже в HEAD, новые отчёты и итоговая сводка добавлены в рабочее дерево |
+| Последняя выполненная работа | P3.5h: глобальные RAM/VRAM targets 90/95%, expert cache в реальном графе, явный LRU и CUDA pool; exact logits, native pipe и оба HTTP API на 95% |
+| Следующая задача | P3.3b: shared asynchronous pipeline для cache misses в runtime_memory.cpp; измерить перекрытие и сохранить полную logits parity |
+| Активная задача / исполнитель | Нет; P1.1b/P2.5h/P3.5h завершены, требуется продолжение P3.3b |
+| Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next-smoke` исполняет реальную модель; protocol/profile/setup integration ещё отсутствует. Tokenizer и graph/ops/state/quant checkers сохранены |
+| GLM backend / setup | `strata-glm5next` + setup profile, OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный `strata-glm5next.json`: RAM/VRAM 95%, ctx2048/batch16 |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main layers, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA/MTP off, greedy, synchronous selected-expert copy, без VRAM expert cache |
-| Измеренная скорость GLM / память | Decode 1,288 ток/с первый замер, 3,333 повторный; OS cache не очищался. Peak process working set 70,437 ГиБ; CUDA device usage sampled max 10,588 ГиБ, не физический NVML peak; resident weights 7541,55 МиБ + compute scratch 1228,88 МиБ |
+| Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main layers, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA/MTP off, greedy; synchronous cache + 16 МиБ pinned staging, NVML global target 95% |
+| Измеренная скорость GLM / память | 95%: 3,781/4,012 ток/с в двух новых процессах; медиана 3,897. Повтор в том же pipe engine: 6,306 ток/с по 63 decode steps, с sampling/output. NVML 94,59–95,20%; RAM 91,97–95,24%, ниже цели после прогрева всех экспертов. Подробности в MEMORY_VALIDATION |
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -69,8 +69,9 @@ reference — **3,274 ток/с**; это не независимая реали
 **1,288 ток/с**, файловый кэш ОС не очищался. [Manifest](GLM53_FLASH_SYNC_VALIDATION.json),
 [repeat](GLM53_FLASH_SYNC_REPEAT.json), [reference](GLM53_FLASH_SYNC_CANDIDATE_REFERENCE.json),
 [команды/CTest](GLM53_FLASH_SYNC_VALIDATION_TESTS.txt).
-Production protocol, async/cache, native MTP, real-state rollback и длинный
-sparse-контекст остаются следующими частями работ.
+P1.1b/P2.5h затем подключили production pipe/profile и оба HTTP API; P3.5h —
+runtime cache и RAM/VRAM targets. Native MTP, async overlap, real-state rollback
+и длинный sparse-контекст остаются следующими частями работ.
 
 Новый основной GGUF проверен 2026-10-04: **1 файл, 1412 тензоров, 112,310 ГиБ**,
 45 основных блоков и 1 MTP; имена/формы прошли существующий loader contract.
@@ -123,9 +124,9 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 |---|---|---|---|
 | Подготовка | DONE | План и инвентаризация сохранены | — |
 | P0. Совместимость и эталон | IN_PROGRESS | Прежние graph/ops/state/quant/tokenizer checks и P1.1a real mixed-quant logits/F16 forward; 10/10 CTest | Real-state rollback, длинный sparse-контекст, независимый template oracle |
-| P1. Основной GPU engine | IN_PROGRESS | P1.1a DONE: реальный synchronous CLI, 64 токена, GPU audit, F16 KV, logits/reference, RAM/VRAM/tok/s; 10/10 CTest | P1.1b production protocol/profile, затем shared async/cache integration |
-| P2. Токенизация и API | IN_PROGRESS | P2.1a/b DONE: реальная tokenizer parity 80/80 на каждом GGUF после ignore_merges; P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 на fixtures/mock; P2.5g — 30 HTTP-сценариев с mock engine | Независимый template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass/periodic refresh P3.5a/b/c/d/e/f/g; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, подбор периода refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
+| P1. Основной GPU engine | DONE | P1.1a/b: baseline, pipe/profile/setup, 64 токена, GPU-only, F16 KV, exact logits и отмена реального графа; 12/12 CTest | Дальнейший async transport относится к P3 |
+| P2. Токенизация и API | IN_PROGRESS | P2.1a/b DONE: реальная tokenizer parity 80/80 на каждом GGUF после ignore_merges; P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 на fixtures/mock; P2.5g — 30 HTTP-сценариев с mock engine; P2.5h — native GLM JSON/SSE/disconnect/unload | Независимый template oracle, расширенные реальные tools/диалоги; runtime selection, INFO и HTTP с GPU engine уже проверены P2.5h |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass/periodic refresh P3.5a/b/c/d/e/f/g; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b; P3.5h — runtime cache, global 95% targets, exact real logits, LRU/pool и API | Shared async transport/compute overlap, подбор периода refresh (сейчас 500 мс), cold I/O и readers/chunks с compute |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | IN_PROGRESS | Подготовка P5.2a/b: main/MTP ceilings, независимая frequency history и branch pressure snapshots контроллера, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, INFO/monitor, draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -173,38 +174,28 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 
 ## Точка продолжения
 
-**Следующая задача — P1.1b: протокол Strata и GLM profile.** Начать с
-[инструкции сборки](../../backends/glm5next/README.md) и
-[нового manifest](GLM53_FLASH_SYNC_VALIDATION.json).
+**Следующая задача — P3.3b: shared pipeline в реальном GLM runtime.**
 
-1. Использовать уже полученный архив и `build-local/glm5next-candidate-cuda`.
-   Проверенные hash, компилятор, actual CUDA target и точные команды сохранены в
-   [validation record](GLM53_FLASH_STATE_VALIDATION.json) и README. Исходники —
-   `build-local/glm5next-candidate-cuda/_deps/glm5next_candidate-src`.
-   Не менять зависимость DeepSeek. Не повторять поиск архива как блокирующую задачу.
-2. Уже есть `check_graph.cpp`, `check_ops.cpp`, `check_state.cpp`, `check_quant.cpp`, включаются CMake option
-   `STRATA_GLM_GRAPH_CHECK=ON`. Сохранить `NVIDIA_TF32_OVERRIDE=0`, flash attention
-   off и CUDA embedding override. no_alloc audit требует `load_mode=NONE` и
-   `graph_reserve(..., split_only=true)`; он не доказывает размещение реальных весов.
-3. Сохранить `CandidatePatches.cmake`: F32 MMF на NVIDIA должен учитывать
-   TF32-off. Original source hash и generated patch hash уже записаны. Без
-   патча synthetic state checker воспроизводимо отклоняет 10 сравнений.
-4. `STRATA_GLM_SYNC_BASELINE=ON` уже собирает `strata-glm5next-smoke`.
-   `RuntimePatches.cmake`, `sync_runtime.inc` и `gpu_only_audit.inc` дают
-   последовательную selected-expert доставку с pinned staging и precompute audit.
-   В `smoke.cpp` уже есть load/decode/sampling/report. Выделить runtime для
-   `strata-glm5next` с существующим протоколом Strata; связать с frontend/capabilities.
-   Сохранить fixture и реальный baseline при этом рефакторинге.
-5. Сравнивать с `GLM53_FLASH_SYNC_REPEAT.json` и сохранёнными raw logits
-   `build-local/glm-sync-iq3-repeat.f32` (SHA в manifest). Команда и prompt в README.
-   На том же prompt 64 IDs и 9 912 320 logits совпали с candidate-copy reference.
-6. Затем подключить уже проверенные shared transport/cache к GPU runtime,
-   сохранив bounded memory, GPU-only, TF32/FA off и MTP off для первого сравнения.
-   P0.3b.2c.3 ещё требует real-state rollback и длинного sparse-контекста;
-   независимый template oracle также остаётся задачей P0/P2.
+1. Начать с `backends/glm5next/runtime_memory.cpp`: cache hits уже идут D2D в
+   scratch, misses — последовательно через pinned 16 МиБ. Подключить проверенный
+   shared transport/pipeline к misses; сохранять mapping owners, MMQ padding,
+   lease events и действующие global RAM/VRAM budgets. Сейчас copy/compute overlap нет.
+2. Сохранить strict GPU audit и TF32/FA/MTP off. Generated patches не изменяют
+   оригинальные файлы audited Unsloth `86ebfef2`; не менять зависимости DeepSeek.
+3. Артефакты текущей базы: [memory manifest](GLM53_FLASH_MEMORY_VALIDATION.json),
+   [команды](GLM53_FLASH_MEMORY_TARGETS_TESTS.txt), [README](../../backends/glm5next/README.md).
+   Бинарники/архив в `build-local/glm5next-candidate-cuda` и
+   `build-local/llama-glm-86ebfef2.tar.gz`; локальный профиль `strata-glm5next.json`.
+4. После изменения сравнить 64 IDs и все 9 912 320 F32 logits с
+   `build-local/glm-sync-iq3-repeat.f32`, затем pipe и HTTP cancellation/recovery.
+   Снимать раздельно warmup, prefill, decode, source/H2D, global NVML/RAM;
+   различать новый процесс и повтор запроса с уже обученным expert cache.
+5. P0.3b.2c.3 (real-state rollback и длинный sparse-контекст), независимый
+   template oracle, P4 sessions и native MTP остаются отдельными работами.
 
-**Ожидаемый результат:** GLM доступна через production protocol/API с теми же
-численными результатами; после этого отдельный замер async/cache ускорения.
+**Ожидаемый результат:** измеренное перекрытие этапов загрузки при сохранённой
+численной точности и ограниченном расходе памяти; сначала отдельный небольшой
+подпункт P3, затем полное copy/compute overlap.
 
 ## Подтверждённый журнал
 
@@ -2832,6 +2823,59 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   real-state rollback, длинный sparse-контекст и full-model Qwen/DeepSeek regressions.
 - **Следующий шаг:** P3.5h — подключить cache/controller к реальному графу,
   настроить запрошенные пользователем бюджеты памяти и проверить все logits.
+
+### P3.5h — 2026-10-04 — Runtime cache и глобальные бюджеты RAM/VRAM
+
+- **Статус:** DONE, только подпункт P3.5h; исполнитель Codex, работа завершена.
+- **Запрос:** сначала 90%, затем пользователь разрешил 95% RAM и VRAM.
+  Локальный профиль `strata-glm5next.json` сохранён с обоими targets 95.
+- **Ревизия:** работа начата от `f76442c`; код уже в `ebd0ca1`. Финальные
+  source/binary hashes и отдельные benchmark binary hashes записаны в manifest.
+- **Изменение:** `runtime_memory.hpp/.cpp`, copy hook `sync_runtime.h/.inc`,
+  `main.cpp`, `smoke.cpp`, `runtime.hpp`, `expert_cache.hpp`, setup и CMake.
+  Контроллер использует global PCI-matched NVML, включает чужую нагрузку,
+  fixed/state/scratch/allocator overhead; refresh 500 мс и перед запросом.
+  RAM warmup читает mmap pages до target или конца всех expert tensors.
+  Windows working set maximum учитывает другую занятую RAM; исходный limit
+  восстанавливается при выгрузке. Изменение minimum требовало privilege 1314;
+  исправлено сохранением прежнего minimum, дополнительная привилегия не нужна.
+- **Cache contract:** полные model/generation/layer/expert/projection/quant/shape
+  keys, `runtime-tensor:` namespace с tensor-relative offsets и точным MMQ
+  padding. Владелец model mapping удерживается shared ownership. Cache hits
+  копируются D2D; misses идут через один pinned buffer 16 МиБ; GPU audit сохранён.
+  Copy/compute overlap и MTP остаются выключенными.
+- **Измерение / исправление:** первая интеграция на 90% дала 1,732 ток/с,
+  хотя H2D уменьшился вдвое. Устранены полный поиск/опрос всех eviction events
+  на каждом miss и частые cudaMalloc/free: явный LRU и private CUDA memory pool
+  при наличии поддержки. Следующий 90% run — 4,313 ток/с. Это один sample.
+- **95%, новые процессы:** 3,781 и 4,012 ток/с; медиана **3,897** по 63 timed
+  decode steps для 64 output tokens. Warmup отдельно: 46,67 и 64,40 с.
+  39 prompt, ctx2048/batch16, greedy, F16 KV, TF32/FA/MTP off; OS cache не очищался.
+  Все 9 912 320 logits каждого capture совпали с P1.1a бит-в-бит, SHA-256
+  `1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550`.
+- **Память:** во время этих двух decode runs NVML **30,12–30,31 ГиБ**
+  (94,59–95,20% от видимых 31,84 ГиБ); global RAM **115,47–119,58 ГиБ**
+  (91,97–95,24% от доступных ОС 125,56 ГиБ). Во втором run прогреты все
+  **102,322 ГиБ** routed experts: дальнейших expert pages для заполнения RAM нет.
+  Target включает систему; это не резервирование и не точный постоянный процент.
+- **Повтор в одном pipe engine:** 4,641, затем **6,306 ток/с**, те же 64 IDs.
+  Вычислено как 63 / DONE.decode_seconds; включает sampling/pipe output,
+  в отличие от smoke timer вокруг llama_decode. Expert cache сохраняется между
+  запросами, hybrid sequence state полностью очищается. Один такой повтор.
+- **Проверки:** 12/12 candidate CTest, 13/13 cache/transport CTest, 54 existing
+  Python + 4 final profile tests. Native pipe 9 сценариев и реальные OpenAI/
+  Anthropic JSON/SSE, disconnect/recovery, unload/server exit 0 прошли с 95%.
+  После тестов server/engine остановлены, GPU memory освобождена.
+- **Артефакты / точные команды:** [manifest](GLM53_FLASH_MEMORY_VALIDATION.json),
+  [команды](GLM53_FLASH_MEMORY_TARGETS_TESTS.txt), [95 first](GLM53_FLASH_MEMORY_95_FIRST.json),
+  [95 repeat](GLM53_FLASH_MEMORY_95_REPEAT.json), [90 pool](GLM53_FLASH_MEMORY_90_POOL.json),
+  [pipe](GLM53_FLASH_MEMORY95_PIPE.json), [API](GLM53_FLASH_MEMORY95_API.json).
+  Raw F32 остались в `build-local/glm-memory{90-pool,95-first,95-repeat}.f32`.
+- **Не проверено:** async overlap, настройка периода controller, session restore,
+  native MTP, real-state rollback, длинный sparse-контекст, Linux/HIP runtime,
+  другие prompts, UD-Q3_K_XL generation и full-model Qwen/DeepSeek regression.
+- **Дальше:** P3.3b — shared async pipeline для misses, exact logits и
+  cancel/recovery на реальном GPU runtime; затем отдельный замер перекрытия compute.
 
 ## Шаблон следующей записи
 
