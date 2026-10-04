@@ -52,7 +52,8 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains six tests, including the range parser and GPU cache.
+On Windows the suite contains seven tests, including the range parser, GPU cache
+and the unchanged DeepSeek frequency-history regression through its compatibility include.
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
 first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
@@ -97,11 +98,34 @@ overhead or other model memory. A future VRAM controller must supply this limit.
 `invalidate(model, generation)` removes only that identity/generation. Released
 entries may require a blocking drain here; active leases remain valid, including
 after the cache object is destroyed. Counters report hits/misses, bypasses,
-evictions and invalidations. Frequency admission and allocation reuse are not
-implemented yet. The CUDA test covers key separation, byte parity, LRU/budgets,
+evictions and invalidations. Allocation reuse is not implemented yet.
+The CUDA test covers key separation, byte parity, LRU/budgets,
 pending uploads/consumers, source lifetime, reload, upload failure and an upload
 through the shared pipeline followed by a hit with no second H2D. Its payloads
 are synthetic; no GLM cache speedup or real model cache parity has been measured.
+
+P3.5a adds opt-in frequency admission: `ExpertCache(limit, {true, 4096, 131072})`.
+The original one-argument constructor keeps LRU behavior without a history table.
+The shared `backends/common/expert_frequency.hpp` retains DeepSeek's pointer-key
+API; GLM uses all twelve `ExpertKey` fields. Counts include hits and valid misses,
+even bypassed matrices. Values saturate at 255 and halve each decay period of
+accesses, including for untouched keys. At the configured key limit, an unseen key
+clears the metadata history; residency is unchanged. The limit counts keys, not
+host bytes (GLM identities contain strings). One clock covers both main and MTP,
+whose counts are separate. These defaults are not tuned on GLM inference.
+
+With free capacity a miss is admitted. Under pressure, its score must be at least
+that of every idle LRU victim needed for its byte size; ties admit. All victims
+are planned before any eviction, so a frequency rejection or insufficient idle
+space cannot partially empty the cache. Active leases and pending CUDA events
+remain protected. A rejection returns an empty lease without calling the uploader;
+the caller must still deliver that selected matrix through the uncached pipeline.
+Explicit budget trimming ignores admission scores. Model/generation invalidation
+also clears matching nonresident history, preserving other identities.
+`admissions` counts successful inserts; `admission_rejects` counts frequency
+rejections and is a subset of `bypasses`. Budget/event bypasses are not frequency
+rejections. CUDA fixtures check decay, repeated-miss promotion, bounded history,
+mixed-size atomic eviction, pending events and full uncached pipeline delivery.
 
 For read-only byte checks of actual GGUF ranges (P3.4b), the Windows CUDA-test
 configuration also builds `strata-glm5next-transfer-check.exe`. Run the inspector

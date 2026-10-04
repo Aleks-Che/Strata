@@ -1,5 +1,12 @@
 # Shared expert transport
 
+`expert_frequency.hpp` supplies bounded, saturating, lazily decayed admission
+history without CUDA or model dependencies. `StrataExpertFrequency` preserves
+DeepSeek's pointer-key behavior; `StrataExpertFrequencyHistory<Key, Hash>` supports
+GLM's full model/generation/matrix keys and selective history invalidation. The
+history neither owns weights nor chooses eviction victims. Cache callers record
+accesses and compare scores; see [GLM admission rules](../glm5next/README.md).
+
 `expert_pipeline.hpp` provides the existing bounded four-slot CUDA pipeline:
 mapped/native reads -> pinned staging -> independent H2D stream -> consumer D2D.
 It now depends on `expert_slice.hpp`, `expert_file.hpp` and the CUDA runtime,

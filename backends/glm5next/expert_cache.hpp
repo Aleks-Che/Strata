@@ -1,4 +1,5 @@
 #pragma once
+#include "../common/expert_frequency.hpp"
 #include <cuda_runtime.h>
 #include <cstdint>
 #include <limits>
@@ -7,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 namespace strata_glm {
@@ -38,6 +40,19 @@ struct ExpertKey {
            !columns || !rows || !bytes || bytes>std::numeric_limits<size_t>::max() ||
            offset>std::numeric_limits<uint64_t>::max()-bytes)
             throw std::invalid_argument("invalid GLM expert cache key");
+    }
+};
+
+struct ExpertKeyHash {
+    size_t operator()(const ExpertKey &key) const {
+        size_t seed=0;
+        std::apply([&](const auto &...fields) {
+            auto combine=[&](const auto &value) {
+                seed^=std::hash<std::decay_t<decltype(value)>>{}(value)+size_t(0x9e3779b9)+(seed<<6)+(seed>>2);
+            };
+            (combine(fields),...);
+        },key.fields());
+        return seed;
     }
 };
 
@@ -120,7 +135,15 @@ public:
             try {release();}catch(...) {cudaStreamSynchronize(stream);entry.reset();}
         }
     };
-    struct Counters {uint64_t hits=0,misses=0,bypasses=0,evictions=0,invalidations=0;};
+    struct Admission {
+        bool frequency=false;
+        uint64_t decay_period=4096;
+        size_t max_keys=131072;
+    };
+    struct Counters {
+        uint64_t hits=0,misses=0,bypasses=0,evictions=0,invalidations=0;
+        uint64_t admissions=0,admission_rejects=0;
+    };
 private:
     struct Cached {std::shared_ptr<Entry> entry;uint64_t used;};
     std::map<ExpertKey,Cached> entries;
@@ -128,11 +151,30 @@ private:
     size_t budget;
     uint64_t clock=0;
     Counters counts;
+    std::unique_ptr<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>> frequency;
     void device_check() const {
         int device=-1;check(cudaGetDevice(&device));
         if(device!=accounting->device)throw std::runtime_error("GLM cache used on another CUDA device");
     }
-    bool room(size_t wanted) {
+    bool room(size_t wanted,const ExpertKey *candidate=nullptr) {
+        if(candidate && frequency && (accounting->bytes>budget || wanted>budget-accounting->bytes)) {
+            // Plan all victims first. A mixed-size candidate must not evict a
+            // cold entry and then fail admission against the next, hotter one.
+            std::vector<decltype(entries.begin())> victims;
+            for(auto it=entries.begin();it!=entries.end();++it)
+                if(it->second.entry.use_count()==1 && it->second.entry->idle())victims.push_back(it);
+            std::sort(victims.begin(),victims.end(),[](auto a,auto b){return a->second.used<b->second.used;});
+            size_t remaining=accounting->bytes,take=0;
+            const auto score=frequency->score(*candidate);
+            while(remaining>budget || wanted>budget-remaining) {
+                if(take==victims.size())return false;
+                auto victim=victims[take++];
+                if(score<frequency->score(victim->first)) {++counts.admission_rejects;return false;}
+                remaining-=victim->second.entry->bytes;
+            }
+            for(size_t i=0;i<take;++i) {entries.erase(victims[i]);++counts.evictions;}
+            return true;
+        }
         while(accounting->bytes>budget || wanted>budget-accounting->bytes) {
             auto victim=entries.end();
             for(auto it=entries.begin();it!=entries.end();++it) {
@@ -145,14 +187,19 @@ private:
         return true;
     }
 public:
-    explicit ExpertCache(size_t limit):budget(limit) {
+    explicit ExpertCache(size_t limit):ExpertCache(limit,Admission{}) {}
+    ExpertCache(size_t limit,Admission admission):budget(limit) {
         int device=-1;check(cudaGetDevice(&device));accounting=std::make_shared<Accounting>(device);
+        if(admission.frequency)
+            frequency=std::make_unique<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>>(
+                admission.decay_period,admission.max_keys);
     }
     ExpertCache(const ExpertCache&)=delete;
     ExpertCache &operator=(const ExpertCache&)=delete;
     size_t resident_bytes() const {return accounting->bytes;}
     size_t size() const {return entries.size();}
     Counters counters() const {return counts;}
+    size_t history_size() const {return frequency?frequency->size():0;}
     bool set_budget(size_t limit) {device_check();budget=limit;return room(0);}
 
     // Upload must enqueue all writes to the supplied stream (for example using
@@ -163,19 +210,22 @@ public:
         device_check();key.validate();
         auto found=entries.find(key);
         if(found!=entries.end()) {
+            if(frequency)frequency->record(key);
             check(cudaStreamWaitEvent(stream,found->second.entry->ready,0));
             found->second.used=++clock;++counts.hits;
             return Lease(found->second.entry,stream);
         }
         ++counts.misses;
         if(!source)throw std::invalid_argument("GLM cache miss requires a retained source owner");
-        if(key.bytes>budget || !room(size_t(key.bytes))) {++counts.bypasses;return {};}
+        if(frequency)frequency->record(key);
+        if(key.bytes>budget || !room(size_t(key.bytes),&key)) {++counts.bypasses;return {};}
         auto entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source));
         try {
             upload(entry->data,size_t(key.bytes),stream);
             check(cudaEventRecord(entry->ready,stream));
         }catch(...) {cudaStreamSynchronize(stream);throw;}
         entries.emplace(key,Cached{entry,++clock});
+        ++counts.admissions;
         return Lease(std::move(entry),stream);
     }
     // Explicit reload invalidation can block to drain released consumers.
@@ -184,6 +234,9 @@ public:
     // generation on every reload, even if paths and addresses did not change.
     size_t invalidate(const std::string &model,uint64_t generation) {
         device_check();size_t removed=0;
+        if(frequency)frequency->erase_if([&](const ExpertKey &key) {
+            return key.model==model && key.generation==generation;
+        });
         for(auto it=entries.begin();it!=entries.end();) {
             if(it->first.model==model && it->first.generation==generation) {
                 it=entries.erase(it);++removed;

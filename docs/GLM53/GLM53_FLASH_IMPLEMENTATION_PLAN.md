@@ -332,6 +332,10 @@ result работают через оба API; токены и шаблон со
     JSON для каждого профиля сохранён; graph hooks, cache и MoE kernels не проверены.
 - [ ] Перенести bounded read queue, совместное планирование трёх матриц, защиту
   нужных текущему плану entries, LRU и frequency admission, общий VRAM reserve.
+  - [x] P3.5a: общий bounded frequency history с decay и opt-in допуск в отдельном
+    GLM GPU cache. Полные ключи, учёт bypass, атомарный выбор нескольких LRU victims,
+    invalidation и CUDA lifetime проверены на fixtures; DeepSeek history regression
+    прошла. Подключение к GLM graph, общий VRAM controller и замеры ещё не выполнены.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

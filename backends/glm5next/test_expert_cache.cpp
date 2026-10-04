@@ -103,8 +103,8 @@ static void CUDART_CB block(void *ptr) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
-static void test_pending_events() {
-    Stream upload,consumer;ExpertCache cache(64);auto a=key(),b=a;++b.expert;
+static void test_pending_events(bool frequency=false) {
+    Stream upload,consumer;ExpertCache cache(64,{frequency,100000,32});auto a=key(),b=a;++b.expert;
     void *result=nullptr;cuda_ok(cudaMalloc(&result,64));
     Gate gate(upload.value);
     auto owner=std::make_shared<int>(42);std::weak_ptr<int> weak=owner;
@@ -136,7 +136,8 @@ static void test_pending_events() {
     auto again=load(cache,a,1,upload.value);
     require(!again && !reading.expired.load(),"pending consumer was not protected");
     reading.release.store(true);consumer.sync();
-    std::puts("PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass");
+    std::printf("PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass (%s)\n",
+                frequency?"frequency":"lru");
 }
 
 static void test_reload_and_failure() {
@@ -184,11 +185,119 @@ static void test_pipeline_upload() {
     require(actual==*source && pipeline.counters().h2d_bytes==n && cache.counters().hits==1,"pipeline/cache byte parity");
     std::puts("PASS: common pipeline upload, partial chunks, cache hit parity and no second H2D");
 }
+
+static void test_frequency_history() {
+    StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash> history(100000,32);
+    auto base=key();
+    history.record(base);history.record(base);
+    for(auto mutate:std::vector<std::function<void(ExpertKey&)>>{
+        [](auto &k){k.model="other";},[](auto &k){++k.generation;},
+        [](auto &k){k.branch=Branch::mtp;},[](auto &k){++k.layer;},
+        [](auto &k){++k.expert;},[](auto &k){k.projection=Projection::up;},
+        [](auto &k){k.quant="Q3_K";},[](auto &k){++k.columns;},
+        [](auto &k){++k.rows;},[](auto &k){k.shard="other";},
+        [](auto &k){k.offset+=uint64_t(1)<<35;},[](auto &k){++k.bytes;}}) {
+        auto changed=base;mutate(changed);
+        require(history.score(changed)==0,"frequency history aliases a key field");
+        history.record(changed);
+        require(history.score(changed)==1 && history.score(base)==2,"frequency counts mixed");
+    }
+    require(history.size()==13,"full-key history size");
+    history.erase_if([&](const ExpertKey &k){return k.model==base.model && k.generation==base.generation;});
+    auto other=base;other.model="other";
+    auto next=base;++next.generation;
+    require(history.size()==2 && history.score(base)==0 && history.score(other)==1 && history.score(next)==1,
+            "history invalidation mixed identities");
+    std::puts("PASS: frequency history separates all 12 key fields and invalidates only one model/generation");
+}
+
+static void test_frequency_admission() {
+    Stream stream;auto hot=key(),cold=hot;++cold.expert;
+    ExpertCache cache(64,{true,100000,32});int uploads=0;
+    for(int i=0;i<4;++i) {
+        auto lease=load(cache,hot,0x31,stream.value,&uploads);
+        bytes_equal(lease,64,0x31,stream);
+    }
+    stream.sync();
+    for(int i=0;i<3;++i) {
+        auto rejected=load(cache,cold,0x72,stream.value,&uploads);
+        require(!rejected && uploads==1 && cache.resident_bytes()==64,"cold miss displaced hot entry");
+    }
+    // Rejected accesses still count. Ties admit and the old entry is LRU.
+    {auto admitted=load(cache,cold,0x72,stream.value,&uploads);bytes_equal(admitted,64,0x72,stream);}
+    stream.sync();
+    auto c=cache.counters();
+    require(uploads==2 && c.admissions==2 && c.admission_rejects==3 && c.bypasses==3 &&
+            c.hits==3 && c.misses==5 && c.evictions==1,"frequency admission counters");
+    require(cache.set_budget(0) && cache.resident_bytes()==0,"frequency blocked explicit budget trim");
+    require(cache.history_size()==2 && cache.invalidate(hot.model,hot.generation)==0 && cache.history_size()==0,
+            "invalidation failed to erase nonresident history");
+
+    ExpertCache decay(64,{true,8,32});
+    for(int i=0;i<7;++i) {auto lease=load(decay,hot,1,stream.value);stream.sync();}
+    stream.sync();
+    {auto rejected=load(decay,cold,2,stream.value);require(!rejected,"decay admitted too early");}
+    {auto rejected=load(decay,cold,2,stream.value);require(!rejected,"decay admitted too early");}
+    {auto admitted=load(decay,cold,2,stream.value);bytes_equal(admitted,64,2,stream);}
+    // At access 8 the untouched hot score halves from 7 to 3; cold needs only 3.
+    require(decay.counters().admission_rejects==2,"lazy decay did not age untouched resident");
+
+    ExpertCache bounded(0,{true,100000,2});
+    for(int i=0;i<5;++i) {auto k=hot;k.expert+=i;auto lease=load(bounded,k,0,stream.value);require(!lease,"zero budget");}
+    require(bounded.history_size()==1 && bounded.counters().bypasses==5,"history key bound");
+    std::puts("PASS: hot protection, repeat-miss admission, ties, counters, decay, history bound and reload cleanup");
+}
+
+static void test_frequency_mixed_sizes() {
+    Stream stream;auto cold=key(),hot=cold,large=cold;++hot.expert;large.expert+=2;large.bytes=128;
+    ExpertCache cache(128,{true,100000,32});
+    {auto lease=load(cache,cold,0x21,stream.value);}stream.sync();
+    for(int i=0;i<4;++i) {auto lease=load(cache,hot,0x63,stream.value);}stream.sync();
+    int uploads=0;
+    {auto rejected=load(cache,large,0x45,stream.value,&uploads);require(!rejected,"large cold candidate admitted");}
+    require(uploads==0 && cache.size()==2 && cache.resident_bytes()==128 && cache.counters().evictions==0,
+            "rejected mixed-size candidate partially evicted cache");
+    auto held=load(cache,hot,0,stream.value);
+    for(int i=0;i<5;++i) {auto rejected=load(cache,large,0x45,stream.value);require(!rejected,"leased victim evicted");}
+    require(cache.size()==2 && cache.counters().evictions==0,"insufficient idle bytes partially evicted cache");
+    bytes_equal(held,64,0x63,stream);held.release();stream.sync();
+    {auto admitted=load(cache,large,0x45,stream.value,&uploads);bytes_equal(admitted,128,0x45,stream);}
+    stream.sync();
+    require(uploads==1 && cache.size()==1 && cache.counters().evictions==2,"multi-victim admission failed");
+    std::puts("PASS: mixed-size admission is atomic, protects leases and replaces multiple idle victims");
+}
+
+static void test_frequency_pipeline_bypass() {
+    Stream stream;constexpr size_t n=(1<<20)+17;
+    auto hot=key(),cold=hot;hot.bytes=cold.bytes=n;++cold.expert;
+    ExpertCache cache(n,{true,100000,32});
+    for(int i=0;i<3;++i) {auto lease=load(cache,hot,0x18,stream.value);}stream.sync();
+    auto source=std::make_shared<std::vector<uint8_t>>(n,0xA7);
+    auto rejected=cache.get(cold,source,stream.value,[](void *,size_t,cudaStream_t) {
+        throw std::runtime_error("rejected candidate must use uncached fallback");
+    });
+    require(!rejected,"cold matrix unexpectedly cached");
+    void *dest=nullptr;cuda_ok(cudaMalloc(&dest,n));
+    StrataExpertPipeline pipeline(0,65553,false);
+    pipeline.start({{source->data(),n,false}});
+    require(pipeline.transfer(dest,source->data(),n,stream.value),"uncached pipeline fallback missing");
+    pipeline.finish();stream.sync();
+    std::vector<uint8_t> actual(n);cuda_ok(cudaMemcpy(actual.data(),dest,n,cudaMemcpyDeviceToHost));
+    cuda_ok(cudaFree(dest));
+    require(actual==*source && pipeline.counters().h2d_bytes==n,"bypass lost selected matrix bytes");
+    auto hit=cache.get(hot,nullptr,stream.value,[](void *,size_t,cudaStream_t) {
+        throw std::runtime_error("hot matrix reuploaded after cold bypass");
+    });
+    bytes_equal(hit,n,0x18,stream);
+    std::puts("PASS: admission bypass still delivers full matrix via pipeline; hot hit keeps original bytes");
+}
 int main() {
     try {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
         std::printf("GPU=%s; synthetic cache fixtures, no GLM inference\n",p.name);
         test_keys();test_lru_budget();test_pending_events();test_reload_and_failure();test_pipeline_upload();
+        test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
+        test_pending_events(true);
         return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }
