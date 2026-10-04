@@ -150,12 +150,19 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
 
 ### P0. Совместимость файлов, зависимость и эталон
 
-- [ ] Сделать GLM-инспектор на основе `tools/gguf_reader.py`: все четыре части,
+- [x] Сделать GLM-инспектор на основе `tools/gguf_reader.py`: все четыре части,
   уникальные имена, shapes, типы, диапазоны, NextN и metadata-only shard.
-- [ ] Сопоставить все обязательные тензоры с выбранным loader; отдельно проверить
+- [x] Сопоставить все обязательные тензоры с выбранным loader; отдельно проверить
   `block_count=46`, отсутствие обычного прохода через MTP при MTP off.
+  Статическая проверка P0.2: [отчёт](GLM53_FLASH_LOADER_COMPATIBILITY.md).
+  Trace собранного backend ещё не проверен; это входит в последующую проверку графов.
 - [ ] Собрать изолированную зависимость; записать полный SHA, CUDA/compiler, patch set.
   Проверить исправления KDA rollback, kpool state, sparse attention и больших индексов.
+  - [x] P0.3a: отдельный `backends/glm5next/` CMake scaffold, обязательная проверка
+    SHA-256 локального архива и vocab-only oracle harness; protocol CTest и archive
+    fixtures прошли. Исходник oracle проверен синтаксически с локальными headers.
+  - [ ] P0.3b: получить архив кандидата, записать проверенный hash, собрать реальные
+    llama/oracle/CUDA targets и проверить графы. P0.3a не подтверждает такую сборку.
 - [ ] Подготовить GPU fixtures для KDA/DSA/mHC/MoE и сравнения logits, включая разбивку
   prefill на микробатчи и переход от полного к разреженному attention.
 - [ ] Зафиксировать корректный tokenizer/template oracle из той же зависимости.
@@ -187,22 +194,56 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
 
 ### P2. Токенизация, диалоги, tools и API
 
-- [ ] Добавить `glm4` в `tools/strata_tokenizer.py`: сейчас принимаются только
-  `qwen35` и `joyai-llm`. Сравнить IDs с oracle на русском, английском, китайском,
+- [ ] Добавить `glm4` в `tools/strata_tokenizer.py` и сравнить IDs с oracle
+  на русском, английском, китайском,
   коде, числах, emoji и специальных токенах. Одного encode/decode round-trip мало.
-- [ ] Использовать встроенный Jinja template с нужными extensions, включая `break`.
+  - [x] P2.1a: Python glm4 regex и экспорт pre_pattern; 7 fixture-тестов и
+    round-trip на локальном GGUF. Qwen/JOYAI режимы сохранены.
+  - [ ] P2.1b: сравнить точные IDs с oracle выбранной Unsloth-зависимости;
+    P2.1a не подтверждает parity и не разрешает запуск GLM-профиля.
+    - [x] P2.1b.1: runner `tools/check_glm5next_tokenizer.py`, проверки provenance,
+      72 сравнения plain/rendered inputs, JSON с IDs и расхождениями; проверено
+      на scripted subprocess, без численного oracle.
+    - [ ] P2.1b.2: запустить runner с собранным кандидатом и сохранить реальный
+      parity report. Проверку template rendering с независимым oracle выполнить отдельно.
+- [x] Использовать встроенный Jinja template с нужными extensions, включая `break`.
   Проверить `[gMASK]<sop>`, сериализацию нескольких сообщений и tool results.
-- [ ] Создать GLM parser для `<think>`, `<tool_call>`, `<arg_key>`, `<arg_value>`
+  P2.2: отдельный `GLMTemplate` и 10 fixture-тестов готовы; подключение к API
+  и сравнение с inference oracle остаются отдельными задачами P2/P0.
+- [x] Создать GLM parser для `<think>`, `<tool_call>`, `<arg_key>`, `<arg_value>`
   и ответов инструментов; проверить маркеры, разорванные между streaming chunks.
   DeepSeek DSML parser этому формату не соответствует.
-- [ ] Развести завершения: EOS 154820, EOT 154827, EOM 154829; корректно сообщать
+  P2.3: parser и цикл call/result/continuation проверены на fixtures; вызовы
+  выдаются целиком после валидации. Оба API проверены на mock в P2.5;
+  runtime backend и полная модель ещё не проверены.
+- [x] Развести завершения: EOS 154820, EOT 154827, EOM 154829; корректно сообщать
   `stop` / `tool_calls`, не отдавать служебные границы как пользовательский текст.
+  P2.4: Service и сериализаторы обоих API проверены на mock; передача stop token
+  из будущего GLM backend и полная модель ещё требуют проверки.
 - [ ] Подключить выбор backend, settings, INFO/About/monitor, OpenAI и Anthropic
   endpoints. Возможности определять по backend capabilities, а не условию
   `architecture == deepseek4`.
-- [ ] Отобразить реальные настройки thinking: локальный template использует
+  - [x] P2.5a: отдельные нормализаторы GLM и выбор через template hooks в Service,
+    обоих generation handlers и Anthropic count handler; проверки на fixtures/mock.
+    Выбор GLM при запуске и полная HTTP-интеграция ещё не готовы.
+  - [x] P2.5b: сохранить call/result IDs в MCP continuation; проверить несколько
+    раундов, отмену, лимиты и восстановление истории web app на mock/Node.
+  - [x] P2.5c: восстановить reasoning_content web history по MCP-раундам для GLM;
+    проверить clear_thinking через цепочку Node history → normalizer → embedded template.
+  - [x] P2.5d: отображать reported INFO в About/Monitor без архитектурных условий
+    DeepSeek/Qwen; не выводить поддержку GPU/MTP из имени модели. Проверено на mock/Node.
+  - [x] P2.5e: проверить generation handlers OpenAI/Anthropic, JSON/SSE, ошибки options
+    и tool-result round trip на mock; сохранить приоритет client tools над MCP для
+    OpenAI schemas с обёрткой function. Проверка без HTTP listener и GPU.
+  - [x] P2.5f: отмена до generation и в очереди завершает API/MCP без двойного
+    учёта токенов; disconnect при prefill/reasoning/partial tool освобождает slot
+    для следующего запроса. Проверено на mock, in-memory writer и threads;
+    настоящий socket watcher и GLM GPU cleanup остаются для runtime-проверки.
+- [x] Отобразить реальные настройки thinking: локальный template использует
   `reasoning_effort` low/high/max и `clear_thinking`. В нём нет `enable_thinking`
   или вставки `/nothink`; обещать отключение reasoning через Qwen-переключатель нельзя.
+  P2.6: template capabilities, серверная валидация/сохранение и web controls
+  проверены на mock и Node DOM; запуск с полной GLM ещё не выполнен.
 
 **Готово:** чат, streaming, отмена, несколько tool calls и продолжение после tool
 result работают через оба API; токены и шаблон совпадают с oracle.
@@ -214,6 +255,11 @@ result работают через оба API; токены и шаблон со
   дубликаты. Сохранять все 8 выбранных экспертов и исходные квантованные байты.
 - [ ] Разделить ключи кэша по модели/поколению загрузки, основной/MTP ветке, слою,
   эксперту и матрице. Учитывать tensor layout, quant type, file offset и размер.
+  - [x] P3.2a: reference-план адресации gate/up/down и cache-key contract в
+    `tools/glm5next_expert_plan.py`; dedup IDs, bounded chunks и пять quant types
+    проверены на fixtures, планы main/MTP построены по локальным заголовкам.
+  - [ ] P3.2b: применить этот contract в runtime-кэше и транспорте, проверить
+    reload/invalidation, удержание источников и CUDA events. P3.2a не включает GPU.
 - [ ] Слот освобождать по CUDA event после последнего потребителя. Отмена графа
   должна завершать или отменять чтения и не оставлять обращения к закрытым mmap.
 - [ ] Проверить побайтовое равенство доставленных матриц для всех пяти экспертных

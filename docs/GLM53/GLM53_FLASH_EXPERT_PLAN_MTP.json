@@ -1,0 +1,774 @@
+{
+  "schema_version": 1,
+  "first_shard": "H:\\GLM-5.3-Flash-GGUF\\UD-Q3_K_XL\\GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf",
+  "validation_scope": "reference byte ranges from headers; no payload reads, runtime cache or GPU validation",
+  "layer": 45,
+  "requested_experts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    287,
+    0
+  ],
+  "chunk_bytes": 1048576,
+  "matrix_count": 24,
+  "total_bytes": 95420416,
+  "matrices": [
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 0,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46150994368,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46150994368,
+          1048576
+        ],
+        [
+          46152042944,
+          1048576
+        ],
+        [
+          46153091520,
+          1048576
+        ],
+        [
+          46154140096,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 0,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47202732480,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47202732480,
+          1048576
+        ],
+        [
+          47203781056,
+          1048576
+        ],
+        [
+          47204829632,
+          1048576
+        ],
+        [
+          47205878208,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 0,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44783126976,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44783126976,
+          1048576
+        ],
+        [
+          44784175552,
+          1048576
+        ],
+        [
+          44785224128,
+          1048576
+        ],
+        [
+          44786272704,
+          1048576
+        ],
+        [
+          44787321280,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 1,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46154598848,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46154598848,
+          1048576
+        ],
+        [
+          46155647424,
+          1048576
+        ],
+        [
+          46156696000,
+          1048576
+        ],
+        [
+          46157744576,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 1,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47206336960,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47206336960,
+          1048576
+        ],
+        [
+          47207385536,
+          1048576
+        ],
+        [
+          47208434112,
+          1048576
+        ],
+        [
+          47209482688,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 1,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44787845568,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44787845568,
+          1048576
+        ],
+        [
+          44788894144,
+          1048576
+        ],
+        [
+          44789942720,
+          1048576
+        ],
+        [
+          44790991296,
+          1048576
+        ],
+        [
+          44792039872,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 2,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46158203328,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46158203328,
+          1048576
+        ],
+        [
+          46159251904,
+          1048576
+        ],
+        [
+          46160300480,
+          1048576
+        ],
+        [
+          46161349056,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 2,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47209941440,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47209941440,
+          1048576
+        ],
+        [
+          47210990016,
+          1048576
+        ],
+        [
+          47212038592,
+          1048576
+        ],
+        [
+          47213087168,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 2,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44792564160,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44792564160,
+          1048576
+        ],
+        [
+          44793612736,
+          1048576
+        ],
+        [
+          44794661312,
+          1048576
+        ],
+        [
+          44795709888,
+          1048576
+        ],
+        [
+          44796758464,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 3,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46161807808,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46161807808,
+          1048576
+        ],
+        [
+          46162856384,
+          1048576
+        ],
+        [
+          46163904960,
+          1048576
+        ],
+        [
+          46164953536,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 3,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47213545920,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47213545920,
+          1048576
+        ],
+        [
+          47214594496,
+          1048576
+        ],
+        [
+          47215643072,
+          1048576
+        ],
+        [
+          47216691648,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 3,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44797282752,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44797282752,
+          1048576
+        ],
+        [
+          44798331328,
+          1048576
+        ],
+        [
+          44799379904,
+          1048576
+        ],
+        [
+          44800428480,
+          1048576
+        ],
+        [
+          44801477056,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 4,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46165412288,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46165412288,
+          1048576
+        ],
+        [
+          46166460864,
+          1048576
+        ],
+        [
+          46167509440,
+          1048576
+        ],
+        [
+          46168558016,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 4,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47217150400,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47217150400,
+          1048576
+        ],
+        [
+          47218198976,
+          1048576
+        ],
+        [
+          47219247552,
+          1048576
+        ],
+        [
+          47220296128,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 4,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44802001344,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44802001344,
+          1048576
+        ],
+        [
+          44803049920,
+          1048576
+        ],
+        [
+          44804098496,
+          1048576
+        ],
+        [
+          44805147072,
+          1048576
+        ],
+        [
+          44806195648,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 5,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46169016768,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46169016768,
+          1048576
+        ],
+        [
+          46170065344,
+          1048576
+        ],
+        [
+          46171113920,
+          1048576
+        ],
+        [
+          46172162496,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 5,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47220754880,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47220754880,
+          1048576
+        ],
+        [
+          47221803456,
+          1048576
+        ],
+        [
+          47222852032,
+          1048576
+        ],
+        [
+          47223900608,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 5,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44806719936,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44806719936,
+          1048576
+        ],
+        [
+          44807768512,
+          1048576
+        ],
+        [
+          44808817088,
+          1048576
+        ],
+        [
+          44809865664,
+          1048576
+        ],
+        [
+          44810914240,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 6,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46172621248,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          46172621248,
+          1048576
+        ],
+        [
+          46173669824,
+          1048576
+        ],
+        [
+          46174718400,
+          1048576
+        ],
+        [
+          46175766976,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 6,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47224359360,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47224359360,
+          1048576
+        ],
+        [
+          47225407936,
+          1048576
+        ],
+        [
+          47226456512,
+          1048576
+        ],
+        [
+          47227505088,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 6,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 44811438528,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          44811438528,
+          1048576
+        ],
+        [
+          44812487104,
+          1048576
+        ],
+        [
+          44813535680,
+          1048576
+        ],
+        [
+          44814584256,
+          1048576
+        ],
+        [
+          44815632832,
+          524288
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 287,
+      "projection": "gate",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 47185480128,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          47185480128,
+          1048576
+        ],
+        [
+          47186528704,
+          1048576
+        ],
+        [
+          47187577280,
+          1048576
+        ],
+        [
+          47188625856,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 287,
+      "projection": "up",
+      "quant": "Q3_K",
+      "columns": 4096,
+      "rows": 2048,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 48237218240,
+      "bytes": 3604480,
+      "chunks": [
+        [
+          48237218240,
+          1048576
+        ],
+        [
+          48238266816,
+          1048576
+        ],
+        [
+          48239315392,
+          1048576
+        ],
+        [
+          48240363968,
+          458752
+        ]
+      ]
+    },
+    {
+      "branch": "mtp",
+      "layer": 45,
+      "expert": 287,
+      "projection": "down",
+      "quant": "Q4_K",
+      "columns": 2048,
+      "rows": 4096,
+      "shard": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "file_offset": 46137362880,
+      "bytes": 4718592,
+      "chunks": [
+        [
+          46137362880,
+          1048576
+        ],
+        [
+          46138411456,
+          1048576
+        ],
+        [
+          46139460032,
+          1048576
+        ],
+        [
+          46140508608,
+          1048576
+        ],
+        [
+          46141557184,
+          524288
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+cmake_minimum_required(VERSION 3.24)
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR OR CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "Configure GLM as a standalone project in a separate build directory")
+endif()
+option(STRATA_GLM_PROTOCOL_TESTS_ONLY "Build stdlib protocol tests without llama.cpp or CUDA" OFF)
+option(STRATA_GLM_CUDA "Compile candidate CUDA kernels (oracle still loads vocabulary only)" OFF)
+set(STRATA_GLM_ARCHIVE "" CACHE FILEPATH "Local archive of the audited Unsloth candidate")
+set(STRATA_GLM_ARCHIVE_SHA256 "" CACHE STRING "Reviewed archive SHA-256; required, no default")
+if(NOT STRATA_GLM_PROTOCOL_TESTS_ONLY)
+  include(SourceArchive.cmake)
+endif()
+project(strata_glm5next LANGUAGES C CXX)
+enable_testing()
+add_executable(glm5next_protocol_test test_tokenizer_protocol.cpp)
+target_compile_features(glm5next_protocol_test PRIVATE cxx_std_17)
+add_test(NAME glm5next_tokenizer_protocol COMMAND glm5next_protocol_test)
+if(STRATA_GLM_PROTOCOL_TESTS_ONLY)
+  return()
+endif()
+
+# Keep source, generated files and all cache overrides private to this project.
+# Never use third_party/llama.cpp or the DeepSeek build tree.
+if(FETCHCONTENT_SOURCE_DIR_GLM5NEXT_CANDIDATE)
+  message(FATAL_ERROR "Use the verified archive, not FETCHCONTENT_SOURCE_DIR_GLM5NEXT_CANDIDATE")
+endif()
+include(FetchContent)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/_deps" CACHE PATH "Private GLM dependency directory" FORCE)
+FetchContent_Declare(glm5next_candidate
+  URL "${STRATA_GLM_ARCHIVE}"
+  URL_HASH "SHA256=${STRATA_GLM_ARCHIVE_SHA256}"
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_GetProperties(glm5next_candidate)
+if(NOT glm5next_candidate_POPULATED)
+  FetchContent_Populate(glm5next_candidate)
+endif()
+set(glm_source "${glm5next_candidate_SOURCE_DIR}")
+if(NOT EXISTS "${glm_source}/src/models/glm5next.cpp")
+  message(FATAL_ERROR "Archive lacks src/models/glm5next.cpp; expected Unsloth ${STRATA_GLM_SOURCE_SHA}")
+endif()
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
+set(GGML_CUDA ${STRATA_GLM_CUDA} CACHE BOOL "" FORCE)
+set(GGML_BACKEND_DL OFF CACHE BOOL "" FORCE)
+set(GGML_NATIVE ON CACHE BOOL "" FORCE)
+set(GGML_CUDA_FA_ALL_QUANTS OFF CACHE BOOL "" FORCE)
+if(STRATA_GLM_CUDA)
+  enable_language(CUDA) # keep compiler/version visible in the provenance record
+endif()
+add_subdirectory("${glm_source}" llama EXCLUDE_FROM_ALL)
+add_executable(strata-glm5next-tokenizer tokenizer_oracle.cpp)
+target_compile_features(strata-glm5next-tokenizer PRIVATE cxx_std_17)
+target_link_libraries(strata-glm5next-tokenizer PRIVATE llama)
+target_compile_definitions(strata-glm5next-tokenizer PRIVATE
+  STRATA_GLM_SOURCE_SHA="${STRATA_GLM_SOURCE_SHA}"
+  STRATA_GLM_ARCHIVE_SHA256="${STRATA_GLM_ARCHIVE_SHA256}")
+set_target_properties(strata-glm5next-tokenizer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+file(WRITE "${CMAKE_BINARY_DIR}/glm-source-build.txt"
+  "requested_revision=${STRATA_GLM_SOURCE_SHA}\narchive_sha256=${STRATA_GLM_ARCHIVE_SHA256}\npatches_applied_by_harness=none\n"
+  "cxx=${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\n"
+  "cuda_enabled=${STRATA_GLM_CUDA}\ncuda_compiler=${CMAKE_CUDA_COMPILER}\n"
+  "cuda_version=${CMAKE_CUDA_COMPILER_VERSION}\ncuda_architectures=${CMAKE_CUDA_ARCHITECTURES}\n"
+  "scope=vocab-only oracle; no GLM inference engine\n")

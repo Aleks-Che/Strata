@@ -6,11 +6,11 @@ None of that needs the 35 GB of weights, so it is extracted into the pack's `tok
 (docs/pack-format.md §6) and this module is what reads it back.  A C++ port follows and is tested against
 this one.
 
-THE DECISIVE PROPERTY IS THE ROUND TRIP.  Byte-level BPE maps each BYTE to a printable unicode character so
+ROUND TRIP CHECKS LOSSLESSNESS, NOT TOKEN-ID PARITY. Byte-level BPE maps each BYTE to a printable unicode character so
 that any UTF-8 input is representable with no UNK token.  Every failure mode of that mapping - the wrong
 offset for a byte, a merge applied in the wrong order, a pre-tokenizer split that drops a character - still
-produces plausible token ids.  `decode(encode(s)) == s` is the check that sees them, and it is exact because
-the byte layer is lossless.  It is asserted over a corpus chosen to hit the boundaries: multi-byte UTF-8,
+produces plausible token ids. `decode(encode(s)) == s` catches lost bytes, but an incorrect split or merge
+can still round-trip; exact IDs must also be compared with an independent oracle. Round trips cover multi-byte UTF-8,
 emoji (4-byte), combining marks, whitespace runs, and C0 control bytes.
 """
 from __future__ import annotations
@@ -63,6 +63,20 @@ QWEN35_PATTERN = (
     r"|\s+"
 )
 
+# LLAMA_VOCAB_PRE_TYPE_CHATGLM4 in the local llama.cpp src/llama-vocab.cpp.
+# Unlike qwen35, digits form groups of up to three and combining marks are
+# outside the letter class. Keep this independent of the Qwen pattern.
+# Parity with the selected GLM backend revision still needs its tokenizer oracle.
+GLM4_PATTERN = (
+    r"(?:'[sS]|'[tT]|'[rR][eE]|'[vV][eE]|'[mM]|'[lL][lL]|'[dD])"
+    r"|[^\r\n\p{L}\p{N}]?\p{L}+"
+    r"|\p{N}{1,3}"
+    r"| ?[^\s\p{L}\p{N}]+[\r\n]*"
+    r"|\s*[\r\n]+"
+    r"|\s+(?!\S)"
+    r"|\s+"
+)
+
 # Ordered splits, as in the pinned llama.cpp LLAMA_VOCAB_PRE_TYPE_JOYAI_LLM.
 # Joining these with | changes boundaries around numbers and CJK text.
 JOYAI_PATTERNS = (
@@ -94,9 +108,9 @@ class Tokenizer:
             if parts[0] not in self.ids or parts[1] not in self.ids:
                 raise ValueError("merge %d names a token outside the vocabulary: %r" % (i, m))
             self.ranks[(parts[0], parts[1])] = i
-        if pre not in ("qwen35", "joyai-llm"):
+        if pre not in ("qwen35", "joyai-llm", "glm4"):
             raise ValueError(f"unsupported pre-tokenizer: {pre}")
-        self._re = regex.compile(QWEN35_PATTERN)
+        self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN35_PATTERN)
         self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre == "joyai-llm" else None
 
         # The literals matched directly instead of being run through BPE.  GGUF token types: 3 = CONTROL,
@@ -303,7 +317,7 @@ def extract(gguf_path, out_dir) -> dict:
         "add_bos_token": False,
         # The pattern is SHIPPED, not recomputed by the reader: it is transcribed from llama.cpp for the
         # declared `pre` type, and a C++ port that re-derived it would be free to get `\p{M}` wrong again.
-        "pre_pattern": list(JOYAI_PATTERNS) if tk.pre == "joyai-llm" else QWEN35_PATTERN,
+        "pre_pattern": list(JOYAI_PATTERNS) if tk.pre == "joyai-llm" else tk._re.pattern,
         "pre_pattern_source": "llama.cpp 3cf03257 src/llama-vocab.cpp (" + tk.pre + ")",
     }
     (out / "vocab.json").write_text(json.dumps(tk.ids, ensure_ascii=False), encoding="utf-8")

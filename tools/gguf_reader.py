@@ -10,6 +10,7 @@ no ggml dependency)"). It parses the header only; tensor data is never read.
 from __future__ import annotations
 
 import dataclasses
+import os
 import pathlib
 import struct
 from typing import Any
@@ -82,6 +83,7 @@ class GGUFFile:
         self.version = 0
         self.alignment = 32
         with self.path.open("rb") as fh:
+            self._file_size = os.fstat(fh.fileno()).st_size
             self._parse(fh)
         self.data_start = self._data_start
 
@@ -95,10 +97,14 @@ class GGUFFile:
             raise ValueError(f"{self.path.name}: GGUF v{self.version}, this reader handles v3")
         for _ in range(n_kv):
             key = self._str(fh)
+            if key in self.metadata:
+                raise ValueError(f"{self.path.name}: duplicate metadata key: {key}")
             self.metadata[key] = self._value(fh)
         for _ in range(n_tensors):
             name = self._str(fh)
             (n_dims,) = struct.unpack("<I", fh.read(4))
+            if not 1 <= n_dims <= 4:
+                raise ValueError(f"{self.path.name}: invalid tensor rank: {name}: {n_dims}")
             shape = list(struct.unpack(f"<{n_dims}Q", fh.read(8 * n_dims)))
             type_id, offset = struct.unpack("<IQ", fh.read(12))
             self.tensors.append(TensorInfo(name, shape, type_id,
@@ -107,11 +113,17 @@ class GGUFFile:
         if isinstance(align, int) and align:
             self.alignment = align
         pos = fh.tell()
+        self.header_end = pos  # Empty shards need not pad to data_start.
         self._data_start = (pos + self.alignment - 1) // self.alignment * self.alignment
 
     def _str(self, fh) -> str:
         (n,) = struct.unpack("<Q", fh.read(8))
-        return fh.read(n).decode("utf-8", "replace")
+        if n > self._file_size - fh.tell():
+            raise ValueError(f"{self.path.name}: truncated GGUF string")
+        raw = fh.read(n)
+        if len(raw) != n:
+            raise ValueError(f"{self.path.name}: truncated GGUF string")
+        return raw.decode("utf-8", "replace")
 
     def _value(self, fh):
         (t,) = struct.unpack("<I", fh.read(4))

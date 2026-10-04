@@ -100,6 +100,7 @@ let health = {model: "strata", images: false, max_context: 0};
 async function loadHealth() {
   try {
     health = await (await fetch("health")).json();
+    applyReasoningCapabilities();
     $("attach-btn").title = health.images ? "Attach a text file or a picture (or drop it here)"
                                           : "Attach a text file (or drop it here)";
     $("chat-empty-sub").textContent = `${health.model} runs on this PC. Nothing leaves it.`;
@@ -131,7 +132,7 @@ function renderVram(data) {
   $("vram-fields").disabled = !vramLoaded || !data.supported || vramSaving;
   let note = data.persistent ? "Settings are saved for this launch profile." : "Settings last until the server is closed.";
   let error = vramError || data.storage_error || "";
-  if (!data.supported) error = "Live VRAM settings require the updated DeepSeek CUDA engine. This engine does not advertise support.";
+  if (!data.supported) error = "This engine does not advertise support for live VRAM settings.";
   else if (!data.alive) note = "Model unloaded. Saved settings will apply when it loads.";
   else if (data.pending) note = "Saved. Waiting for the current GPU operation to finish…";
   else if (!live.enabled) note = "Startup cache budgets are active. Apply settings to enable live memory control.";
@@ -420,7 +421,7 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept, sessi
   spark("sp-gpu", h.gpu_util, 100);
   setMetric("vram", hw.gpu_mem_used == null ? null : gb(hw.gpu_mem_used), hw.gpu_mem_total ? `/ ${gb(hw.gpu_mem_total, 0)} GB` : "GB",
             multi ? per((g) => (g.mem_used == null ? "–" : `${gb(g.mem_used)} GB`))
-                  : eng.expert_slots ? `${fmt(eng.expert_slots)} experts cached` : "");
+                  : expertCacheText(eng) || "");
   spark("sp-vram", h.gpu_mem_used, hw.gpu_mem_total);
   setMetric("temp", hw.gpu_temp == null ? null : fmt(hw.gpu_temp), "°C",
             multi ? per((g) => (g.temp == null ? "–" : `${fmt(g.temp)}°`)) : "");
@@ -454,8 +455,8 @@ function renderMonitor(live, hw, st, eng, h, last, requests, totals, kept, sessi
   $("ctx-pct").textContent = `${Math.round(frac * 100)}%`;
   $("ctx-sub").textContent = ctx ? `${kfmt(used)} / ${ctxfmt(ctx)}` : "–";
   const cacheBytes = eng.expert_cache_live_bytes ?? (eng.expert_cache_mib || 0) * 1048576;
-  $("slots-text").textContent = eng.expert_cached_matrices != null ? `${fmt(eng.expert_cached_matrices)} matrices · ${gb(cacheBytes)} GiB` :
-    eng.expert_slots ? `${fmt(eng.expert_slots)} · ${gb(cacheBytes)} GB` : "–";
+  $("slots-label").textContent = eng.expert_cached_matrices != null ? "Expert matrices in VRAM" : "Experts in VRAM";
+  $("slots-text").textContent = expertCacheText(eng) || "–";
   $("slots-bar").style.width = hw.gpu_mem_total ? `${Math.min(100, (100 * cacheBytes) / hw.gpu_mem_total)}%` : "0%";
   $("ram-text").textContent = hw.ram_total ? `${gb(hw.ram_used)} / ${gb(hw.ram_total, 0)} GB` : "–";
   const ramPct = hw.ram_total ? (100 * hw.ram_used) / hw.ram_total : 0;
@@ -704,6 +705,45 @@ function projectionText(c) {
          `${single ? ` (layer ${single.replace("single", "")}'s direction)` : ""}. Per chat in Sampling. Its package ` +
          "describes the vector as a refusal-direction projection; measure the speed yourself";
 }
+function expertCacheText(eng) {
+  const count = eng.expert_cached_matrices ?? eng.expert_slots;
+  if (count == null) return null;
+  const unit = eng.expert_cached_matrices != null ? "matrices" : "experts";
+  const size = eng.expert_cache_live_bytes != null ? `${gb(eng.expert_cache_live_bytes)} GiB used` :
+    eng.expert_cache_mib != null ? `${gb(eng.expert_cache_mib * 1048576)} GiB budget` : null;
+  return `${fmt(count)} ${unit}${size ? ` · ${size}` : ""}`;
+}
+function expertPlacementText(eng) {
+  const parts = [];
+  if (eng.expert_compute) parts.push(`Compute: ${eng.expert_compute}`);
+  if (eng.gpu_expert_layers != null) parts.push(`${fmt(eng.gpu_expert_layers)} resident expert layers`);
+  if (eng.expert_storage) parts.push(`source: ${eng.expert_storage}`);
+  return parts.length ? parts.join("; ") : null;
+}
+function speculationText(eng) {
+  if (eng.speculative === "none" || eng.spec === 0) return "Off";
+  if (eng.speculative === "dspark") return eng.spec != null ?
+    `DSpark (experimental): up to ${eng.spec} draft tokens, verified by the main model` : "DSpark (experimental)";
+  if (eng.speculative === "mtp") return "Native MTP" +
+    (eng.draft_tokens != null ? `: up to ${eng.draft_tokens} draft tokens` : "");
+  // The legacy engine's mtp_max is a verify-window size, including the main token.
+  if (eng.mtp_max != null && eng.spec > 0) return `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}`;
+  if (eng.speculative) return String(eng.speculative);
+  return eng.spec > 0 ? "Enabled; draft strategy not reported" : null;
+}
+function expertPipelineText(eng) {
+  if (eng.expert_pipeline == null) return null;
+  if (!eng.expert_pipeline) return "Off";
+  const parts = ["Enabled"];
+  if (eng.expert_pipeline_slots != null) parts.push(`${eng.expert_pipeline_slots} staging slots per model`);
+  if (eng.expert_readers != null) parts.push(`up to ${eng.expert_readers} readers`);
+  if (eng.expert_read_mode) parts.push(`read mode: ${eng.expert_read_mode}`);
+  return parts.join("; ");
+}
+function expertPolicyText(eng) {
+  return eng.expert_cache_policy === "frequency" ? "Prefer frequently used matrices; recent use decays" :
+    eng.expert_cache_policy === "lru" ? "Least recently used" : eng.expert_cache_policy || null;
+}
 function renderAbout(eng, hw, st) {
   const kv = {int8: "8-bit", q4_0: "4-bit (Hadamard-rotated)", fp16: "16-bit"}[eng.kv] || eng.kv;
   facts($("facts-engine"), [
@@ -712,14 +752,14 @@ function renderAbout(eng, hw, st) {
     ["Architecture", eng.architecture],
     ["Context", eng.max_context ? `${fmt(eng.max_context)} tokens` : null],
     ["KV cache", kv ? `${kv}${eng.kv_resident ? `, streamed: ${fmt(eng.kv_resident)} positions per layer in VRAM, the rest in RAM` : ", all in VRAM"}` : null],
-    ["Experts in VRAM", eng.expert_slots ? `${fmt(eng.expert_slots)} (${gb((eng.expert_cache_mib || 0) * 1048576)} GB)` : null],
-    ["Expert placement", eng.architecture === "deepseek4" ? `GPU computation; ${eng.gpu_expert_layers || 0} resident expert layers${eng.expert_cache_mib ? `, ${gb(eng.expert_cache_mib * 1048576)} GB cache of individual expert matrices` : ""}, other weights streamed from GGUF` : null],
-    ["Speculation", eng.architecture === "deepseek4" ? eng.speculative === "dspark" && eng.spec ? `DSpark (experimental): up to ${eng.spec} draft tokens, verified by the main model` : "Off" : eng.spec ? `MTP drafts up to ${Math.max(0, (eng.mtp_max || eng.spec) - 1)} tokens${eng.lookup ? ", prompt lookup on" : ""}` : null],
+    [eng.expert_cached_matrices != null ? "Expert matrices in VRAM" : "Experts in VRAM", expertCacheText(eng)],
+    ["Expert placement", expertPlacementText(eng)],
+    ["Speculation", speculationText(eng)],
     ["DSpark experts", eng.speculative === "dspark" ? `${eng.draft_gpu_expert_layers || 0} resident layers; ${gb((eng.draft_expert_cache_mib || 0) * 1048576)} GB GPU cache; other experts streamed from GGUF` : null],
     ["DSpark confidence filter", eng.speculative === "dspark" ? Number(eng.draft_min_confidence) > 0 ? `Keep draft prefix with confidence ≥ ${Number(eng.draft_min_confidence).toFixed(2)}` : "Off" : null],
     ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_vram_pipeline_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache and pipeline budgets` : null],
-    ["Expert transfer pipeline", eng.architecture === "deepseek4" ? eng.expert_pipeline ? `${eng.expert_pipeline_slots} staging slots per model; up to ${eng.expert_readers || 1} readers (${eng.expert_read_mode || "mmap"}); separate GPU copy stream` : "Off" : null],
-    ["Expert cache policy", eng.architecture === "deepseek4" ? eng.expert_cache_policy === "frequency" ? "Prefer frequently used matrices; recent use decays" : "Least recently used" : null],
+    ["Expert transfer pipeline", expertPipelineText(eng)],
+    ["Expert cache policy", expertPolicyText(eng)],
     ["Images", eng.images ? "on" : "off"],
     ["Experimental speed projection", projectionText(eng.cvec)],
   ]);
@@ -844,7 +884,7 @@ function markdown(text) {
 
 // ------------------------------------------------------------------ Chat
 const DEFAULTS = {thinking: "high", temperature: 0.6, top_p: 0.95, top_k: 20, max: "", seed: "", show: true, esp: true, mcp: true};
-let settings = {...DEFAULTS, ...store.get("sampling", {})};
+let settings = {...DEFAULTS, clear_thinking: false, ...store.get("sampling", {})};
 let messages = store.get("chat", []);
 let chatSessionId = store.get("chatSessionId", null) || crypto.randomUUID();
 store.set("chatSessionId", chatSessionId);
@@ -1027,19 +1067,31 @@ function apiMessages() {
 // their results (as the model read them), then the rest - so the next question can build on what the tools found.
 function assistantMessages(m) {
   const ran = (m.tools || []).filter((t) => t.round != null && t.result != null && t.state !== "skipped");
-  if (!ran.length) return m.text ? [{role: "assistant", content: m.text}] : [];
+  const reasoning = m.reasoning || "";
+  const replay = reasoningCapabilities().replay_reasoning === true;
+  if (!ran.length) return m.text || (replay && reasoning) ? [{role: "assistant", content: m.text || "",
+    ...(replay && reasoning ? {reasoning_content: reasoning} : {})}] : [];
   const out = [];
-  let pos = 0;
+  // Older saved tool records may lack reasoning offsets. Do not guess which
+  // round their reasoning belongs to; retain the previous text/call history.
+  const replayRounds = replay && ran.every((t, i) => Number.isInteger(t.rat) && t.rat >= 0 &&
+    t.rat <= reasoning.length && (!i || t.rat >= ran[i - 1].rat));
+  let pos = 0, rpos = 0;
   for (const r of [...new Set(ran.map((t) => t.round))]) {
     const calls = ran.filter((t) => t.round === r);
     const at = Math.min(Math.max(pos, calls[0].at || 0), m.text.length);
+    const rat = replayRounds ? calls[calls.length - 1].rat : 0;
+    const thought = replayRounds ? reasoning.slice(rpos, rat).trim() : "";
     out.push({role: "assistant", content: m.text.slice(pos, at).trim(),
+              ...(thought ? {reasoning_content: thought} : {}),
               tool_calls: calls.map((t) => ({id: t.id, type: "function", function: {name: t.name, arguments: JSON.stringify(t.arguments || {})}}))});
     for (const t of calls) out.push({role: "tool", tool_call_id: t.id, content: t.result});
     pos = at;
+    rpos = rat;
   }
   const rest = m.text.slice(pos).trim();
-  if (rest) out.push({role: "assistant", content: rest});
+  const thought = replayRounds ? reasoning.slice(rpos).trim() : "";
+  if (rest || thought) out.push({role: "assistant", content: rest, ...(thought ? {reasoning_content: thought} : {})});
   return out;
 }
 
@@ -1067,7 +1119,7 @@ async function send() {
   setBusy(true);
 
   const body = {model: health.model, messages: apiMessages(), stream: true,
-                reasoning_effort: settings.thinking};
+                ...reasoningRequest(settings)};
   if (settings.temperature > 0) {
     Object.assign(body, {temperature: +settings.temperature, top_p: +settings.top_p, top_k: +settings.top_k});
   } else {
@@ -1264,6 +1316,28 @@ $("input").addEventListener("paste", (e) => {
 });
 
 // ------------------------------------------------------------------ the sampling drawer
+function reasoningCapabilities() {
+  return health.reasoning || {efforts: ["none", "low", "medium", "high"], default: "high", clear_thinking: false};
+}
+function reasoningSettings(s) {
+  const caps = reasoningCapabilities();
+  return {...s, thinking: caps.efforts.includes(s.thinking) ? s.thinking : caps.default,
+          clear_thinking: caps.clear_thinking && s.clear_thinking === true};
+}
+function reasoningRequest(s) {
+  const normalized = reasoningSettings(s);
+  const request = {reasoning_effort: normalized.thinking};
+  if (reasoningCapabilities().clear_thinking) request.clear_thinking = normalized.clear_thinking;
+  return request;
+}
+function applyReasoningCapabilities() {
+  const caps = reasoningCapabilities();
+  if (!store.get("sampling", null)) settings.thinking = caps.default;
+  settings = reasoningSettings(settings);
+  for (const button of $("s-thinking").children) button.hidden = !caps.efforts.includes(button.dataset.v);
+  $("clear-thinking-row").hidden = !caps.clear_thinking;
+  loadDrawer();
+}
 function openDrawer(open) {
   $("drawer").dataset.open = String(open);
   $("drawer").setAttribute("aria-hidden", String(!open));
@@ -1271,10 +1345,12 @@ function openDrawer(open) {
   if (open) { loadDrawer(); loadShared(); loadMcp(); }
 }
 function loadDrawer(s = settings) {
+  s = reasoningSettings(s);
   for (const b of $("s-thinking").children) b.setAttribute("aria-checked", String(b.dataset.v === s.thinking));
   $("s-temp").value = s.temperature; $("s-topp").value = s.top_p; $("s-topk").value = s.top_k;
   $("s-max").value = s.max; $("s-seed").value = s.seed;
   $("s-show").setAttribute("aria-checked", String(!!s.show));
+  $("s-clear-thinking").setAttribute("aria-checked", String(s.clear_thinking));
   $("s-esp").setAttribute("aria-checked", String(s.esp !== false));
   $("esp-row").hidden = !projectionLoaded();
   $("s-mcp").setAttribute("aria-checked", String(s.mcp !== false));
@@ -1291,7 +1367,7 @@ async function loadShared() {
   $("s-share").setAttribute("aria-checked", String(sharedOn));
 }
 function sharedDefaults(s) {
-  const d = {reasoning_effort: s.thinking, temperature: +s.temperature};
+  const d = {...reasoningRequest(s), temperature: +s.temperature};
   if (+s.temperature > 0) Object.assign(d, {top_p: +s.top_p, top_k: +s.top_k});
   if (s.seed) d.seed = +s.seed;
   if (s.max) d.max_tokens = +s.max;
@@ -1319,21 +1395,26 @@ function outputs() {
   $("o-topp").textContent = (+$("s-topp").value).toFixed(2);
   $("o-topk").textContent = $("s-topk").value;
   const sel = [...$("s-thinking").children].find((b) => b.getAttribute("aria-checked") === "true");
-  $("o-thinking").textContent = sel ? {none: "answers right away", low: "short", medium: "medium", high: "thorough (default)"}[sel.dataset.v] : "";
+  const caps = reasoningCapabilities();
+  $("o-thinking").textContent = sel ? (caps.efforts.includes("none") ?
+    {none: "answers right away", low: "short", medium: "medium", high: "thorough (default)"}[sel.dataset.v] :
+    `reasoning always on${sel.dataset.v === caps.default ? " · default" : ""}`) : "";
   for (const id of ["s-topp", "s-topk"]) $(id).disabled = t === 0;
 }
 for (const b of $("s-thinking").children) b.onclick = () => { for (const x of $("s-thinking").children) x.setAttribute("aria-checked", String(x === b)); outputs(); };
 for (const id of ["s-temp", "s-topp", "s-topk"]) $(id).oninput = outputs;
 $("s-show").onclick = () => $("s-show").setAttribute("aria-checked", String($("s-show").getAttribute("aria-checked") !== "true"));
+$("s-clear-thinking").onclick = () => $("s-clear-thinking").setAttribute("aria-checked", String($("s-clear-thinking").getAttribute("aria-checked") !== "true"));
 $("s-esp").onclick = () => $("s-esp").setAttribute("aria-checked", String($("s-esp").getAttribute("aria-checked") !== "true"));
 $("s-mcp").onclick = () => $("s-mcp").setAttribute("aria-checked", String($("s-mcp").getAttribute("aria-checked") !== "true"));
 $("s-share").onclick = () => $("s-share").setAttribute("aria-checked", String($("s-share").getAttribute("aria-checked") !== "true"));
-$("s-reset").onclick = () => loadDrawer(DEFAULTS);
+$("s-reset").onclick = () => loadDrawer({...DEFAULTS, thinking: reasoningCapabilities().default, clear_thinking: false});
 $("s-apply").onclick = async () => {
   const sel = [...$("s-thinking").children].find((b) => b.getAttribute("aria-checked") === "true");
   settings = {thinking: sel ? sel.dataset.v : "high", temperature: +$("s-temp").value, top_p: +$("s-topp").value,
               top_k: +$("s-topk").value, max: $("s-max").value.trim(), seed: $("s-seed").value.trim(),
               show: $("s-show").getAttribute("aria-checked") === "true",
+              clear_thinking: reasoningCapabilities().clear_thinking && $("s-clear-thinking").getAttribute("aria-checked") === "true",
               esp: $("s-esp").getAttribute("aria-checked") === "true",
               mcp: $("s-mcp").getAttribute("aria-checked") === "true"};
   store.set("sampling", settings);

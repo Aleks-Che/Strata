@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "architecture": "glm5next",
+  "first_shard": "H:\\GLM-5.3-Flash-GGUF\\UD-Q3_K_XL\\GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf",
+  "validation_scope": "headers, split metadata, tensor geometry/ranges and core GLM/NextN shapes; no payload hashes or loader/GPU validation",
+  "shards": 4,
+  "tensors": 1412,
+  "block_count": 46,
+  "main_blocks": 45,
+  "mtp_blocks": 1,
+  "file_bytes": 147535921955,
+  "weight_bytes": 147526401400,
+  "groups": {
+    "main": {
+      "tensors": 1383,
+      "weight_bytes": 143890959608,
+      "expert_bytes": 134404374528,
+      "dense_bytes": 9486585080
+    },
+    "mtp": {
+      "tensors": 29,
+      "weight_bytes": 3635441792,
+      "expert_bytes": 3435134976,
+      "dense_bytes": 200306816
+    }
+  },
+  "tensor_type_counts": {
+    "F32": 638,
+    "IQ3_XXS": 82,
+    "IQ4_XS": 41,
+    "Q3_K": 2,
+    "Q4_K": 1,
+    "Q6_K": 4,
+    "Q8_0": 644
+  },
+  "shard_details": [
+    {
+      "name": "GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf",
+      "split_no": 0,
+      "tensors": 0,
+      "file_bytes": 9429859,
+      "header_end": 9429859,
+      "data_start": 9429888,
+      "required_end": 9429859,
+      "metadata_only": true
+    },
+    {
+      "name": "GLM-5.3-Flash-UD-Q3_K_XL-00002-of-00004.gguf",
+      "split_no": 1,
+      "tensors": 496,
+      "file_bytes": 49609243584,
+      "header_end": 30882,
+      "data_start": 30912,
+      "required_end": 49609243584,
+      "metadata_only": false
+    },
+    {
+      "name": "GLM-5.3-Flash-UD-Q3_K_XL-00003-of-00004.gguf",
+      "split_no": 2,
+      "tensors": 469,
+      "file_bytes": 49623486016,
+      "header_end": 29608,
+      "data_start": 29632,
+      "required_end": 49623486016,
+      "metadata_only": false
+    },
+    {
+      "name": "GLM-5.3-Flash-UD-Q3_K_XL-00004-of-00004.gguf",
+      "split_no": 3,
+      "tensors": 447,
+      "file_bytes": 48293762496,
+      "header_end": 28335,
+      "data_start": 28352,
+      "required_end": 48293762496,
+      "metadata_only": false
+    }
+  ]
+}

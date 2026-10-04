@@ -1,0 +1,16 @@
+# This verifies bytes against the caller's reviewed hash, not the archive's
+# provenance. Obtain the archive from the exact candidate URL in README.md.
+set(STRATA_GLM_SOURCE_SHA "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9")
+string(LENGTH "${STRATA_GLM_ARCHIVE_SHA256}" hash_length)
+if(NOT hash_length EQUAL 64 OR NOT STRATA_GLM_ARCHIVE_SHA256 MATCHES "^[0-9a-fA-F]+$")
+  message(FATAL_ERROR "Set STRATA_GLM_ARCHIVE_SHA256 to the reviewed archive's 64-digit SHA-256")
+endif()
+if(NOT EXISTS "${STRATA_GLM_ARCHIVE}" OR IS_DIRECTORY "${STRATA_GLM_ARCHIVE}")
+  message(FATAL_ERROR "STRATA_GLM_ARCHIVE must name a local archive of ${STRATA_GLM_SOURCE_SHA}")
+endif()
+file(SHA256 "${STRATA_GLM_ARCHIVE}" actual_hash)
+string(TOLOWER "${STRATA_GLM_ARCHIVE_SHA256}" expected_hash)
+if(NOT actual_hash STREQUAL expected_hash)
+  message(FATAL_ERROR "GLM archive SHA-256 mismatch: expected ${expected_hash}, got ${actual_hash}")
+endif()
+set(STRATA_GLM_ARCHIVE_SHA256 "${actual_hash}")

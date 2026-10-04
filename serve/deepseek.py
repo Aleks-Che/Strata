@@ -13,6 +13,7 @@ from serve.frontend import ChatTemplate, Event, OutputParser, ToolCall, images_o
 
 class DeepSeekTemplate(ChatTemplate):
     architecture = "deepseek4"
+    stop_token_keys = ("tokenizer.ggml.eos_token_id",)
 
     def render(self, messages, tools=None, add_generation_prompt=True, **kwargs):
         if images_of(messages):

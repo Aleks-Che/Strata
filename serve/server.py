@@ -59,6 +59,8 @@ from serve.winjob import contain  # noqa: E402
 from serve.structured import StructuredOutputError, prepare_format, validated_json  # noqa: E402
 
 IM_END = "<|im_end|>"
+DEFAULT_REASONING_CAPABILITIES = {"efforts": ["none", "low", "medium", "high"],
+                                  "default": "high", "clear_thinking": False}
 IMAGE_PAD = "<|image_pad|>"
 VISION_START = "<|vision_start|>"
 # #123: what closes the thinking when it reaches reasoning_budget_tokens (the model's own end-of-thinking tag after it)
@@ -896,11 +898,29 @@ class Service:
         self.before_load = None
         self.reasoning_budget_tokens = 0                 # #123: the config's default thinking budget (0: none)
         self.anthropic_think_unasked = True               # #278: "anthropic_thinking": "on_request" -> False
-        if getattr(template, "architecture", None) == "deepseek4":
-            self.stop_ids = {tokenizer.special_ids["tokenizer.ggml.eos_token_id"]}
+        stop_keys = getattr(template, "stop_token_keys", None)
+        if stop_keys is not None:
+            special_ids = getattr(tokenizer, "special_ids", {})
+            stop_ids = []
+            for key in stop_keys:
+                token_id = special_ids.get(key)
+                if type(token_id) is not int or token_id < 0:
+                    raise ValueError(f"Missing or invalid stop token metadata: {key}")
+                stop_ids.append(token_id)
+            if not stop_ids or len(set(stop_ids)) != len(stop_ids):
+                raise ValueError("Stop token metadata must contain distinct token IDs")
+            self.stop_ids = set(stop_ids)
         else:
             self.stop_ids = set(tokenizer.encode(IM_END, parse_special=True) +
                                 tokenizer.encode("<|endoftext|>", parse_special=True))
+
+    def normalize_request(self, req: dict, api: str):
+        """Use the selected template's API adapter before information is discarded."""
+        if api == "openai":
+            return getattr(self.template, "normalize_openai", openai_to_messages)(req)
+        if api == "anthropic":
+            return getattr(self.template, "normalize_anthropic", anthropic_to_messages)(req, self.anthropic_think_unasked)
+        raise ValueError(f"Unknown API: {api}")
 
     def loaded(self) -> bool:
         return not hasattr(self.engine, "alive") or self.engine.alive()
@@ -1058,9 +1078,25 @@ class Service:
                     print(f"[strata] idle unload: {e}", flush=True)
         threading.Thread(target=loop, daemon=True).start()
 
+    def reasoning_capabilities(self) -> dict:
+        caps = getattr(self.template, "reasoning_capabilities", DEFAULT_REASONING_CAPABILITIES)
+        return {**caps, "efforts": list(caps["efforts"])}
+
+    def engine_facts(self) -> dict:
+        """Reported engine facts plus frontend identity, without inferring GPU/MTP support."""
+        info = dict(getattr(self.engine, "info", {}) or {})
+        architecture = info.get("architecture") or getattr(self.template, "architecture", None)
+        return {**info, "model": self.model, "max_context": self.engine.max_context,
+                "images": self.vision is not None, "architecture": architecture,
+                "reasoning": self.reasoning_capabilities()}
+
+    def settings_snapshot(self) -> dict:
+        return {"shared": bool(self.shared), "defaults": dict(self.shared),
+                "reasoning": self.reasoning_capabilities()}
+
     def set_shared(self, defaults) -> dict:
         """The Chat settings every client gets for what it leaves out; {} / None = clients use their own again."""
-        self.shared = clean_shared_defaults(defaults)
+        self.shared = clean_shared_defaults(defaults, self.reasoning_capabilities())
         if self.shared_path:
             try:
                 if self.shared:
@@ -1080,7 +1116,18 @@ class Service:
         if "max_tokens" in s and not req.get("max_tokens") and not req.get("max_completion_tokens"):
             req["max_tokens"] = s["max_tokens"]
         effort = s.get("reasoning_effort")
-        if effort:
+        if effort and "none" not in self.reasoning_capabilities()["efforts"]:
+            ctk = req.get("chat_template_kwargs") or {}
+            if isinstance(ctk, dict) and "reasoning_effort" not in ctk:
+                if api == "openai":
+                    reasoning = req.get("reasoning") or {}
+                    if "reasoning_effort" not in req and isinstance(reasoning, dict) and "effort" not in reasoning:
+                        req["reasoning_effort"] = effort
+                elif api == "anthropic":
+                    config = req.get("output_config") or {}
+                    if isinstance(config, dict) and "effort" not in config:
+                        req["output_config"] = {**config, "effort": effort}
+        elif effort:
             if api == "openai":
                 ctk = req.get("chat_template_kwargs") if isinstance(req.get("chat_template_kwargs"), dict) else {}
                 if not req.get("reasoning_effort") and not req.get("reasoning") and \
@@ -1091,6 +1138,10 @@ class Service:
                     req["thinking"] = {"type": "disabled"}
                 else:
                     req["output_config"] = {"effort": effort}
+        if "clear_thinking" in s and self.reasoning_capabilities()["clear_thinking"]:
+            ctk = req.get("chat_template_kwargs")
+            if "clear_thinking" not in req and (not isinstance(ctk, dict) or "clear_thinking" not in ctk):
+                req["clear_thinking"] = s["clear_thinking"]
         return req
 
     def start_telemetry(self):
@@ -1203,8 +1254,7 @@ class Service:
             live["phase"] = cache["phase"] + " session"
         if state == "reading" and progress:
             live["prompt_read"], live["prompt_total"] = progress
-        engine = {"model": self.model, "max_context": self.engine.max_context, "images": self.vision is not None,
-                  **dict(getattr(self.engine, "info", {}) or {})}
+        engine = self.engine_facts()
         vram = self.vram_settings.snapshot(self.engine)
         if vram["alive"] and "cache_bytes" in vram["live"]:
             engine["expert_cache_live_bytes"] = vram["live"]["cache_bytes"]
@@ -1443,103 +1493,106 @@ class Service:
                             trace["state"] = "generating"
                         self.status["queued"] -= 1
                     if cancel.is_set():
-                        return
-                    engine_last0 = getattr(self.engine, "last", None)
-                    # issue #27: it died in an earlier request (or was unloaded) - start it again instead of failing
-                    self.ensure_loaded()
-                    self.archive_policy.release_expired_locked(self.engine)
-                    with self.status_lock:
-                        self.status.update(busy=True, phase="reading the prompt", prompt_tokens=len(ids),
-                                           generated=0, started=time.time(), first_token=None, tool=None, tail="",
-                                           max_tokens=max_new)
-                        self.last_request_at = time.time()
-                        self.rate.clear()               # the previous request's samples must not leak into this one
-                    before = getattr(self.engine, "last", None)
-                    last_print = time.time()
-                    prompt, thought = ids, 0            # thought: the reasoning tokens so far (the budget's count)
-                    while True:
-                        extra_args = {"embeddings": emb} if emb else {}
-                        if session_id is not None:
-                            extra_args["session_id"] = session_id
-                        gen = self.engine.generate(prompt, max_new - n, sampling, cancel, **extra_args)
-                        segment_last, segment_n = getattr(self.engine, "last", None), n
-                        ran = True
-                        seg, wrap = [], False           # this pass's tokens; the budget is reached
-                        try:
-                            for t in gen:
-                                if t is None:               # heartbeat while the engine is quiet
-                                    last_print = self._progress(last_print)
-                                    yield "ping", None
-                                    continue
-                                n += 1
-                                if trace is not None and trace["first_token_s"] is None:
-                                    with self.status_lock:
-                                        trace["first_token_s"] = round(time.perf_counter() - trace["_clock"], 3)
-                                if t in self.stop_ids:
-                                    finish = "stop"
+                        # Complete the event protocol after releasing the FIFO.
+                        # MCP must not reuse the previous round's token count.
+                        finish = "cancel"
+                    else:
+                        engine_last0 = getattr(self.engine, "last", None)
+                        # issue #27: it died in an earlier request (or was unloaded) - start it again instead of failing
+                        self.ensure_loaded()
+                        self.archive_policy.release_expired_locked(self.engine)
+                        with self.status_lock:
+                            self.status.update(busy=True, phase="reading the prompt", prompt_tokens=len(ids),
+                                               generated=0, started=time.time(), first_token=None, tool=None, tail="",
+                                               max_tokens=max_new)
+                            self.last_request_at = time.time()
+                            self.rate.clear()               # the previous request's samples must not leak into this one
+                        before = getattr(self.engine, "last", None)
+                        last_print = time.time()
+                        prompt, thought = ids, 0            # thought: the reasoning tokens so far (the budget's count)
+                        while True:
+                            extra_args = {"embeddings": emb} if emb else {}
+                            if session_id is not None:
+                                extra_args["session_id"] = session_id
+                            gen = self.engine.generate(prompt, max_new - n, sampling, cancel, **extra_args)
+                            segment_last, segment_n = getattr(self.engine, "last", None), n
+                            ran = True
+                            seg, wrap = [], False           # this pass's tokens; the budget is reached
+                            try:
+                                for t in gen:
+                                    if t is None:               # heartbeat while the engine is quiet
+                                        last_print = self._progress(last_print)
+                                        yield "ping", None
+                                        continue
+                                    n += 1
+                                    if trace is not None and trace["first_token_s"] is None:
+                                        with self.status_lock:
+                                            trace["first_token_s"] = round(time.perf_counter() - trace["_clock"], 3)
+                                    if t in self.stop_ids:
+                                        finish = "stop"
+                                        raw_ids.append(t)
+                                        break
                                     raw_ids.append(t)
-                                    break
+                                    seg.append(t)
+                                    evs = parser.feed(detok.push(t))
+                                    self._note(n, evs)
+                                    last_print = self._progress(last_print)
+                                    for ev in evs:
+                                        yield "event", ev
+                                    if budget and parser.state == "reasoning":
+                                        thought += 1
+                                        # at a clean point: no tag held back, no character split across tokens
+                                        if thought >= budget and not parser.buf and not detok.pending():
+                                            wrap = True
+                                            break
+                            except EngineDied as e:
+                                finish = "error"
+                                note = self.engine.death_note() if hasattr(self.engine, "death_note") else ""
+                                log = getattr(self.engine, "log_path", None)
+                                print(f"[strata] {e}. {note} The next request starts the engine again."
+                                      f"{' Its log: ' + log if log else ''}", flush=True)
+                                raise
+                            except ValueError as e:             # the engine's ERR line (it may have ended after it)
+                                finish = "error"
+                                print(f"[strata] the engine reported an error: {e}", flush=True)
+                                raise
+                            finally:
+                                gen.close()                 # STOP+drain to THIS request's DONE while still holding the
+                                #                             fifo, so a stop-token break can't leave the shared engine
+                                #                             queue mid-drain for the next request to read as its own DONE
+                                segment = (dict(getattr(self.engine, "last", {}) or {})
+                                           if getattr(self.engine, "last", None) is not segment_last else {})
+                                # Count actual engine work once per segment; the reasoning-budget wrapper can run two.
+                                # Do not count injected wrap-up tokens as generated model output.
+                                produced = max(n - segment_n, int(segment.get("generated") or 0))
+                                cached = min(len(prompt), max(0, int(segment.get("reused") or
+                                    getattr(self.engine, "request_cache", {}).get("reused", 0))))
+                                progress = getattr(self.engine, "progress", None)
+                                read = len(prompt) if produced else min(len(prompt), max(cached, progress[0] if progress else 0))
+                                usage["input_tokens"] += max(0, read - cached)
+                                usage["cached_tokens"] += cached
+                                usage["output_tokens"] += produced
+                            if not wrap or cancel.is_set():
+                                break
+                            # #123: the thinking reached reasoning_budget_tokens.  Close it the way the model would (a
+                            # short wrap-up and </think>) and let it answer: the next pass's prompt is this one plus what
+                            # was generated plus the wrap-up, so the engine continues from the prefix it already holds.
+                            budget = None
+                            extra = self.tok.encode(REASONING_WRAP_UP, parse_special=True)
+                            if max_new - n - len(extra) < 1:
+                                break                       # no room left to answer: "length", as without a budget
+                            print(f"[strata] thinking budget reached ({thought} tokens): wrapping up the thinking",
+                                  flush=True)
+                            for t in extra:
+                                n += 1
                                 raw_ids.append(t)
-                                seg.append(t)
                                 evs = parser.feed(detok.push(t))
                                 self._note(n, evs)
-                                last_print = self._progress(last_print)
                                 for ev in evs:
                                     yield "event", ev
-                                if budget and parser.state == "reasoning":
-                                    thought += 1
-                                    # at a clean point: no tag held back, no character split across tokens
-                                    if thought >= budget and not parser.buf and not detok.pending():
-                                        wrap = True
-                                        break
-                        except EngineDied as e:
-                            finish = "error"
-                            note = self.engine.death_note() if hasattr(self.engine, "death_note") else ""
-                            log = getattr(self.engine, "log_path", None)
-                            print(f"[strata] {e}. {note} The next request starts the engine again."
-                                  f"{' Its log: ' + log if log else ''}", flush=True)
-                            raise
-                        except ValueError as e:             # the engine's ERR line (it may have ended after it)
-                            finish = "error"
-                            print(f"[strata] the engine reported an error: {e}", flush=True)
-                            raise
-                        finally:
-                            gen.close()                 # STOP+drain to THIS request's DONE while still holding the
-                            #                             fifo, so a stop-token break can't leave the shared engine
-                            #                             queue mid-drain for the next request to read as its own DONE
-                            segment = (dict(getattr(self.engine, "last", {}) or {})
-                                       if getattr(self.engine, "last", None) is not segment_last else {})
-                            # Count actual engine work once per segment; the reasoning-budget wrapper can run two.
-                            # Do not count injected wrap-up tokens as generated model output.
-                            produced = max(n - segment_n, int(segment.get("generated") or 0))
-                            cached = min(len(prompt), max(0, int(segment.get("reused") or
-                                getattr(self.engine, "request_cache", {}).get("reused", 0))))
-                            progress = getattr(self.engine, "progress", None)
-                            read = len(prompt) if produced else min(len(prompt), max(cached, progress[0] if progress else 0))
-                            usage["input_tokens"] += max(0, read - cached)
-                            usage["cached_tokens"] += cached
-                            usage["output_tokens"] += produced
-                        if not wrap or cancel.is_set():
-                            break
-                        # #123: the thinking reached reasoning_budget_tokens.  Close it the way the model would (a
-                        # short wrap-up and </think>) and let it answer: the next pass's prompt is this one plus what
-                        # was generated plus the wrap-up, so the engine continues from the prefix it already holds.
-                        budget = None
-                        extra = self.tok.encode(REASONING_WRAP_UP, parse_special=True)
-                        if max_new - n - len(extra) < 1:
-                            break                       # no room left to answer: "length", as without a budget
-                        print(f"[strata] thinking budget reached ({thought} tokens): wrapping up the thinking",
-                              flush=True)
-                        for t in extra:
-                            n += 1
-                            raw_ids.append(t)
-                            evs = parser.feed(detok.push(t))
-                            self._note(n, evs)
-                            for ev in evs:
-                                yield "event", ev
-                        prompt = prompt + seg + extra
-                    if cancel.is_set():
-                        finish = "cancel"
+                            prompt = prompt + seg + extra
+                        if cancel.is_set():
+                            finish = "cancel"
                 except GeneratorExit:                   # the client disconnected mid-stream
                     finish = "disconnect"
                     raise
@@ -1725,8 +1778,9 @@ def run_with_mcp(svc: Service, hub, messages, tools, kw, ids, thinking, max_new,
             break
         messages.append({"role": "assistant", "content": "".join(text).strip(),
                          **({"reasoning_content": "".join(reasoning).strip()} if reasoning else {}),
-                         "tool_calls": [{"function": {"name": c.name, "arguments": c.arguments}} for c in calls]})
-        messages += [{"role": "tool", "content": r} for r in results]
+                         "tool_calls": [{"id": c.id, "type": "function",
+                                         "function": {"name": c.name, "arguments": c.arguments}} for c in calls]})
+        messages += [{"role": "tool", "tool_call_id": c.id, "content": r} for c, r in zip(calls, results)]
         ids, thinking, max_new = svc.prepare(messages, tools, kw, max_req)
     yield "done", {**done, "completion_tokens": total, "prompt_tokens": len(ids)}
 
@@ -2121,7 +2175,7 @@ def make_handler(svc: Service):
                 return
             if path == "/settings":
                 if self._authorized():
-                    self._json(200, {"shared": bool(svc.shared), "defaults": svc.shared})
+                    self._json(200, svc.settings_snapshot())
                 return
             if path == "/mcp":
                 # the MCP servers, their state and tools (the web app's switch and Monitor card)
@@ -2138,7 +2192,8 @@ def make_handler(svc: Service):
             elif path in ("/health", "/api/health"):
                 self._json(200, {"status": "ok", "max_context": svc.engine.max_context, "model": svc.model,
                                  "images": svc.vision is not None, "api_key": bool(svc.api_key),
-                                 "loaded": svc.loaded(), "service": "strata"})
+                                 "loaded": svc.loaded(), "service": "strata", "reasoning": svc.reasoning_capabilities(),
+                                 "architecture": svc.engine_facts()["architecture"]})
             elif path == "/status":
                 if not self._authorized():                  # #212: it shows the end of the last answer
                     return
@@ -2339,7 +2394,7 @@ def make_handler(svc: Service):
                 return
             print("[strata] other apps now use the Chat settings: " + ", ".join(f"{k}={v}" for k, v in shared.items())
                   if shared else "[strata] other apps use their own settings again", flush=True)
-            self._json(200, {"shared": bool(shared), "defaults": shared})
+            self._json(200, svc.settings_snapshot())
 
         def _sse(self):
             self._note(http_status=200)
@@ -2398,7 +2453,7 @@ def make_handler(svc: Service):
 
         def _openai(self, req):
             req = svc.with_shared(req, "openai")
-            messages, tools, kw = openai_to_messages(req)
+            messages, tools, kw = svc.normalize_request(req, "openai")
             messages, validator = prepare_format(req.get("response_format"), messages)
             if validator is not None and (tools or req.get("strata_mcp")):
                 raise ValueError("structured response_format with tools/MCP is not supported")
@@ -2406,7 +2461,7 @@ def make_handler(svc: Service):
             svc.request_trace.session_id = self._session_id()
             max_req = max_new = int(req.get("max_completion_tokens") or req.get("max_tokens") or 0)   # 0/-1: the rest
             use_mcp = req.get("strata_mcp") is True and svc.mcp is not None      # the web app's opt-in (serve/mcp.py)
-            own = {t.get("name") for t in tools or []}
+            own = {t.get("function", t).get("name") for t in tools or []}
             if use_mcp:
                 if not self._own_page("MCP tools can be used"):   # tools run with the user's rights on this PC
                     return
@@ -2457,7 +2512,7 @@ def make_handler(svc: Service):
             """Anthropic's token count, which Claude Code asks for its context figures: the prompt this server would
             read for the same request, rendered and tokenized - the model does not run."""
             req = svc.with_shared(req, "anthropic")
-            messages, tools, kw = anthropic_to_messages(req, svc.anthropic_think_unasked)
+            messages, tools, kw = svc.normalize_request(req, "anthropic")
             prompt = svc.template.render(messages, tools=tools, **kw)
             self._json(200, {"input_tokens": len(svc.tok.encode(prompt, parse_special=True))})
 
@@ -2465,7 +2520,7 @@ def make_handler(svc: Service):
             svc.load()
             svc.request_trace.session_id = self._session_id()
             req = svc.with_shared(req, "anthropic")
-            messages, tools, kw = anthropic_to_messages(req, svc.anthropic_think_unasked)
+            messages, tools, kw = svc.normalize_request(req, "anthropic")
             max_new = int(req.get("max_tokens") or 0)                  # 0/-1: the rest of the context
             svc.reasoning_budget(req)                         # a bad value is a 400 before anything is sent
             ids, thinking, max_new = svc.prepare(messages, tools, kw, max_new)
@@ -2587,23 +2642,27 @@ def origins_of(value, key: str, wildcard: bool) -> list[str]:
     return out
 
 
-SHARED_KEYS = ("reasoning_effort", "temperature", "top_p", "top_k", "seed", "max_tokens", "experimental_speed_projection")
+SHARED_KEYS = ("reasoning_effort", "clear_thinking", "temperature", "top_p", "top_k", "seed", "max_tokens", "experimental_speed_projection")
 
 
-def clean_shared_defaults(d) -> dict:
+def clean_shared_defaults(d, reasoning=None) -> dict:
     """The Chat settings other apps get (POST /settings): only known keys, each checked; ValueError names a bad one."""
     if d is None:
         return {}
     if not isinstance(d, dict):
         raise ValueError("defaults must be an object")
+    reasoning = reasoning if reasoning is not None else DEFAULT_REASONING_CAPABILITIES
     out = {}
     for key, value in d.items():
         if value is None or value == "":
             continue
         number = isinstance(value, (int, float)) and not isinstance(value, bool)
         if key == "reasoning_effort":
-            if value not in ("none", "low", "medium", "high"):
-                raise ValueError("reasoning_effort: none, low, medium or high")
+            if value not in reasoning["efforts"]:
+                raise ValueError("reasoning_effort: " + ", ".join(reasoning["efforts"]))
+        elif key == "clear_thinking":
+            if not reasoning["clear_thinking"] or type(value) is not bool:
+                raise ValueError("clear_thinking: requires model support and a boolean")
         elif key == "temperature":
             if not number or not 0 <= value <= 2:
                 raise ValueError("temperature: 0..2")
@@ -2856,7 +2915,7 @@ def main() -> int:
     if a.config:                                        # the Chat settings shared with other apps, from last time
         svc.shared_path = str(Path(a.config).with_suffix("")) + ".shared-settings.json"
         try:
-            svc.shared = clean_shared_defaults(json.loads(Path(svc.shared_path).read_text(encoding="utf-8")))
+            svc.shared = clean_shared_defaults(json.loads(Path(svc.shared_path).read_text(encoding="utf-8")), svc.reasoning_capabilities())
             if svc.shared:
                 print("[strata] other apps use the Chat settings: " +
                       ", ".join(f"{k}={v}" for k, v in svc.shared.items()), flush=True)
