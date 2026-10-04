@@ -1,0 +1,130 @@
+Start testing: Oct 04 09:24 RTZ 4 (зима)
+----------------------------------------------------------
+1/6 Testing: glm5next_tokenizer_protocol
+1/6 Test: glm5next_tokenizer_protocol
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/glm5next_protocol_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"glm5next_tokenizer_protocol" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+GLM tokenizer protocol checks passed (mock encoder, no llama.cpp)
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_tokenizer_protocol" end time: Oct 04 09:24 RTZ 4 (зима)
+"glm5next_tokenizer_protocol" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: glm5next_expert_file_test
+2/6 Test: glm5next_expert_file_test
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/glm5next_expert_file_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"glm5next_expert_file_test" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_expert_file_test" end time: Oct 04 09:24 RTZ 4 (зима)
+"glm5next_expert_file_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: deepseek4_expert_file_compat_test
+3/6 Test: deepseek4_expert_file_compat_test
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/deepseek4_expert_file_compat_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"deepseek4_expert_file_compat_test" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"deepseek4_expert_file_compat_test" end time: Oct 04 09:24 RTZ 4 (зима)
+"deepseek4_expert_file_compat_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: glm5next_expert_cache
+4/6 Test: glm5next_expert_cache
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/glm5next_expert_cache_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"glm5next_expert_cache" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+GPU=NVIDIA GeForce RTX 5090; synthetic cache fixtures, no GLM inference
+PASS: all 12 key fields, hit byte parity, model/generation invalidation and malformed keys
+PASS: LRU, budget shrink, plan leases, bypass and deferred trim
+PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass
+PASS: reload generation, invalidated lease accounting, cache teardown and failed-upload recovery
+PASS: common pipeline upload, partial chunks, cache hit parity and no second H2D
+<end of output>
+Test time =   0.18 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_expert_cache" end time: Oct 04 09:24 RTZ 4 (зима)
+"glm5next_expert_cache" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/6 Testing: glm5next_range_parser
+5/6 Test: glm5next_range_parser
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/strata-glm5next-transfer-check.exe" "--test-parser"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"glm5next_range_parser" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+Range parser limits, paths, malformed records and 64-bit offsets passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_range_parser" end time: Oct 04 09:24 RTZ 4 (зима)
+"glm5next_range_parser" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/6 Testing: glm5next_expert_bytes
+6/6 Test: glm5next_expert_bytes
+Command: "C:/work/git/my-repos/Strata/build-local/glm5next-transport/glm5next_expert_bytes_test.exe"
+Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+"glm5next_expert_bytes" start time: Oct 04 09:24 RTZ 4 (зима)
+Output:
+----------------------------------------------------------
+GPU=NVIDIA GeForce RTX 5090 CUDA_runtime=13000 CUDA_driver=13000
+Synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference
+PASS group=0 mode=2 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+PASS group=0 mode=2 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+PASS group=0 mode=1 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+PASS group=0 mode=1 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+PASS group=0 mode=0 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+PASS group=0 mode=0 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+PASS group=1 mode=2 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+PASS group=1 mode=2 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+PASS group=1 mode=1 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+PASS group=1 mode=1 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+PASS group=1 mode=0 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+PASS group=1 mode=0 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+PASS group=2 mode=2 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+PASS group=2 mode=2 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+PASS group=2 mode=1 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+PASS group=2 mode=1 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+PASS group=2 mode=0 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+PASS group=2 mode=0 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+PASS: 18 cases, 432 GPU matrix comparisons, guarded destinations, partial chunks, two consumer streams
+<end of output>
+Test time =   2.41 sec
+----------------------------------------------------------
+Test Passed.
+"glm5next_expert_bytes" end time: Oct 04 09:24 RTZ 4 (зима)
+"glm5next_expert_bytes" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: Oct 04 09:24 RTZ 4 (зима)

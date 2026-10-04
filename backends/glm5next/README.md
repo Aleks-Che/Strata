@@ -1,6 +1,6 @@
 # GLM candidate build and tokenizer oracle
 
-This is preparation for P0.3/P2.1b/P3.1a/P3.4, not a Strata inference backend or launcher.
+This is preparation for P0.3/P2.1b/P3, not a Strata inference backend or launcher.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive; its full build and token-ID parity
 have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
@@ -52,7 +52,7 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains five tests, including the real-range manifest parser.
+On Windows the suite contains six tests, including the range parser and GPU cache.
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
 first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
@@ -67,6 +67,41 @@ On non-Windows the GPU test has only the six host-memory cases (144 matrix
 comparisons); native file transport is not implemented there. Only Windows was
 run for P3.4a. Neither synthetic byte parity nor the DeepSeek pipeline regression
 establishes GLM dequantization, graph correctness, model output or throughput.
+
+`expert_cache.hpp` implements the isolated GPU cache component (P3.2b.1).
+`ExpertKey` carries every field of the Python reference key: complete model
+identity, load generation, main/MTP, layer, expert, projection, quant type, shape,
+shard, offset and length. The loader must supply a fresh generation on each reload
+and validate the tensor layout; the cache validates key structure, not quant math.
+The component is not yet connected to a GLM loader/router/graph.
+
+Use one host owner and one CUDA device per cache, including its leases. A miss
+requires a shared source owner and an upload callback; the callback can invoke
+`StrataExpertPipeline::transfer` and must order all writes onto the supplied
+stream. It must not reenter the cache. A hit waits on upload readiness and does
+not invoke the callback. Hold a `Lease` for every matrix needed by the current
+plan. Queue its consumers on the lease's stream before release or destruction;
+obtain a separate lease for another stream. Release records a CUDA event, so
+eviction cannot free bytes still consumed by the GPU. Source ownership remains
+with the allocation until retirement. A failed upload is drained and never
+published as a cache hit.
+
+LRU eviction considers only unleased entries whose upload and consumer events
+have completed. If none can be evicted within the byte budget, `get` returns an
+empty lease without uploading; the caller must use its uncached transfer path.
+`set_budget` may return false while live leases/events prevent trimming; retry
+after consumers finish. Reported resident bytes include invalidated allocations
+still held by leases. The budget covers matrix allocations, not allocator/event
+overhead or other model memory. A future VRAM controller must supply this limit.
+
+`invalidate(model, generation)` removes only that identity/generation. Released
+entries may require a blocking drain here; active leases remain valid, including
+after the cache object is destroyed. Counters report hits/misses, bypasses,
+evictions and invalidations. Frequency admission and allocation reuse are not
+implemented yet. The CUDA test covers key separation, byte parity, LRU/budgets,
+pending uploads/consumers, source lifetime, reload, upload failure and an upload
+through the shared pipeline followed by a hit with no second H2D. Its payloads
+are synthetic; no GLM cache speedup or real model cache parity has been measured.
 
 For read-only byte checks of actual GGUF ranges (P3.4b), the Windows CUDA-test
 configuration also builds `strata-glm5next-transfer-check.exe`. Run the inspector

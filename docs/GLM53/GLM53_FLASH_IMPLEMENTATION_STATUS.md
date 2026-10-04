@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a, reference P3.2a и GPU byte checks P3.4a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `13a0376a630adfb786518692b5281cd644c0ce81`, ветка `dev`; P3.4a уже в HEAD, P3.4b — в рабочем дереве |
-| Последняя выполненная работа | P3.4b: 432 GPU byte comparisons реальных матриц двух GGUF прошли; 5/5 CTest и 56 Python-тестов, два отдельных JSON-отчёта |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a, reference P3.2a, GPU cache P3.2b.1 и byte checks P3.4a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `64e817c1c0260861723411aa2fea2afb0455c107`, ветка `dev`; P3.4b уже в HEAD, P3.2b.1 — в рабочем дереве |
+| Последняя выполненная работа | P3.2b.1: C++ GPU cache с полными ключами, бюджетом/LRU и leases/events; 6/6 CTest и 11 Python-тестов прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.4b завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P3.2b.1 завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -60,7 +60,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | P3.1a/P3.2a/P3.4a/b DONE: общий reader/pipeline, reference keys, synthetic и реальные GGUF byte checks восьми types | GLM graph/runtime-интеграция, cache parity, численные outputs, отмена графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native GPU cache P3.2b.1 на fixtures; synthetic и реальные GGUF byte checks P3.4a/b | GLM graph/runtime-интеграция, cache parity реальной модели, численные outputs, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1239,6 +1239,83 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2; после сборки GLM graph связать native planner
   и cache keys с общим pipeline (P3.2b), используя сохранённые byte reports как
   контроль транспорта, затем подтвердить численную корректность.
+
+### P3.2b.1-01 — 2026-10-04, Asia/Yekaterinburg — GPU cache с полными ключами и CUDA lifetime
+
+- **Статус:** DONE для компонента P3.2b.1. Исполнитель Codex, цикл 4.
+  Весь P3.2b/P3 остаётся IN_PROGRESS: GLM loader/router/graph ещё не подключён.
+  Ветка `dev`, база `64e817c1c0260861723411aa2fea2afb0455c107`, дерево перед работой
+  чистое. P3.4b уже в HEAD; новые изменения не закоммичены. Сеть не перепроверялась.
+- **Реализация:** `backends/glm5next/expert_cache.hpp` содержит `ExpertKey` и
+  `ExpertCache`. Native key повторяет 12 полей Python reference contract:
+  полная model identity, generation, main/MTP, layer, expert, gate/up/down, quant,
+  columns/rows, shard, offset и bytes. Структурно неверные ключи отклоняются;
+  quant geometry проверяет loader, а не cache. Генерацию при каждом reload должен
+  менять вызывающий код; архитектура/путь или mmap pointer не служат полной identity.
+- **Поведение:** byte budget и LRU среди доступных entries; `Lease` защищает
+  матрицы текущего плана. Upload callback вызывается только на miss и может
+  использовать общий `StrataExpertPipeline::transfer`; source owner удерживается
+  через shared ownership. Ready event упорядочивает hit на другом CUDA stream.
+  Перед освобождением lease после последнего consumer записывается отдельный event;
+  незавершённые consumers и uploads исключают вытеснение. Если места нет, cache
+  возвращает пустой lease для uncached fallback, не ждёт pending events при поиске
+  места и не превышает установленный бюджет новыми allocations.
+- **Reload/ошибки:** `invalidate(model, generation)` сохраняет другие модели и
+  поколения. Активные leases остаются валидными и учитываются в resident bytes
+  после invalidation и даже удаления cache object. Явная invalidation/teardown
+  может ждать GPU; ошибка uploader дренирует stream и не публикует частично
+  загруженную матрицу. Снижение бюджета возвращает false, пока leases/events
+  мешают trim; можно повторить после завершения. Счётчики: hits/misses/bypasses/
+  evictions/invalidations. Общий transport и код DeepSeek/Qwen не менялись.
+- **Файлы:** новый header, `backends/glm5next/test_expert_cache.cpp`, CMake target
+  `glm5next_expert_cache_test` под прежним opt-in `STRATA_GLM_TRANSPORT_TESTS_CUDA`;
+  GLM README с правилами API/lifetime, план/статус и
+  [GLM53_FLASH_GPU_CACHE_TESTS.txt](GLM53_FLASH_GPU_CACHE_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\test-glm5next-transport.cmd` — exit 0; команды внутри
+  совпадают с P3.4a-01 (`vcvars64.bat`, CUDA PATH, CMake configure/build и verbose CTest).
+  Вывод сборки направлен в `build-local/glm5next-cache-build.log`; CTest log сохранён
+  по ссылке выше. **6/6 CTest**, без skips; новый cache test выполнен на **RTX 5090**.
+  MSVC **19.44.35222.0**, SDK **10.0.26100.0**, toolkit **13.0.48**;
+  повторный byte test сообщает CUDA runtime/driver **13000/13000**.
+  Новый тест подтвердил:
+  - Все 12 полей различают GPU entries (базовый ключ + 12 независимых изменений);
+    повторные hits сохраняют разные исходные bytes без повторного uploader.
+  - Model/generation invalidation не удаляет другой model/generation; main/MTP,
+    projection, layout и offsets >4 ГиБ не смешиваются. Неверные ключи отклоняются.
+  - LRU, budget shrink, защита активного плана, bypass и deferred trim.
+  - Искусственно задержанный upload и consumer в двух streams: hit ждёт ready;
+    освобождённый на CPU lease не разрешает преждевременное GPU-вытеснение;
+    miss возвращает bypass до истечения 3-секундного контрольного gate timeout.
+    Это функциональная проверка отсутствия host wait, не benchmark.
+  - Удержание source owner до retirement, reload с ещё живым lease старого
+    поколения, сохранение accounting, teardown cache при живом lease.
+  - Ошибка uploader после enqueue не оставляет entry/VRAM/source owner;
+    следующий upload на том же ключе проходит.
+  - Общий pipeline загрузил **1048593 байта** с chunk **65553**; повторный cache hit
+    побайтово совпал с исходником, H2D counter остался равен одному upload.
+  Повторно прошли прежние 432 synthetic GPU comparisons, native-reader и parser fixtures.
+- **Python-регрессии:**
+
+  ```text
+  .venv/Scripts/python.exe -m unittest tools.test_glm5next_expert_plan tools.test_glm5next_build
+  ```
+
+  Exit 0, **11 тестов**, без skips. Отдельный Python log не сохранён.
+  `git -c safe.directory=C:/work/git/my-repos/Strata diff --check` — exit 0.
+- **Граница результата:** standalone CUDA component и synthetic fixtures; этот
+  cache ещё не используется модельным GLM graph или P3.4b real-range checker.
+  Нет cached parity реальных весов, kernel/logit checks, частотного допуска,
+  переиспользования allocations, общего VRAM controller или измерения скорости.
+  Byte budget считает payload allocations, не CUDA-event/allocator overhead.
+  Один host owner и CUDA device на cache; lease consumers должны ставиться на
+  stream этого lease до release. Linux/HIP/multi-GPU и отказ CUDA allocator не
+  проверялись. Ошибки численного kernel execution также вне этой проверки.
+- **Следующий шаг:** P0.3b → P2.1b.2; затем GLM loader/graph должен создавать полные
+  ключи с новым generation при reload и интегрировать `ExpertCache::get` с
+  pipeline miss/bypass. До model graph можно отдельно расширить P3.4b checker
+  для real-range cached parity и reload/forced eviction; итоговый P3.2b не закрывать
+  без проверки этой связки и реального пути inference.
 
 ## Шаблон следующей записи
 

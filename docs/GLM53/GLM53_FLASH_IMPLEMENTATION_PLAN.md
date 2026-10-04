@@ -310,6 +310,10 @@ result работают через оба API; токены и шаблон со
     проверены на fixtures, планы main/MTP построены по локальным заголовкам.
   - [ ] P3.2b: применить этот contract в runtime-кэше и транспорте, проверить
     reload/invalidation, удержание источников и CUDA events. P3.2a не включает GPU.
+    - [x] P3.2b.1: отдельный C++ GPU cache с полными ключами, byte budget, LRU,
+      leases/events и удержанием source owner; GPU fixtures проверяют hit parity,
+      reload, pending consumers, bypass, ошибку загрузки и общий pipeline uploader.
+      GLM loader/router/graph и реальные cached outputs пока не подключены.
 - [ ] Слот освобождать по CUDA event после последнего потребителя. Отмена графа
   должна завершать или отменять чтения и не оставлять обращения к закрытым mmap.
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
