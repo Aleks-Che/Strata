@@ -1,6 +1,6 @@
 # GLM candidate build and tokenizer oracle
 
-This is preparation for P0.3/P2.1b/P3.1a, not a Strata inference backend or launcher.
+This is preparation for P0.3/P2.1b/P3.1a/P3.4a, not a Strata inference backend or launcher.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive; its full build and token-ID parity
 have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
@@ -38,6 +38,34 @@ fixture uses a sparse temporary file and requires a filesystem supporting sparse
 files. Payloads are synthetic packed bytes, not numerical quantization fixtures.
 These tests cover file-to-RAM delivery, not GLM graph integration, H2D or decoding.
 The existing DeepSeek CUDA pipeline test remains a separate regression.
+
+For GPU byte transport fixtures (P3.4a), use a separate directory and the local
+CUDA toolkit. This builds C++ against the CUDA runtime; it does not build the
+Unsloth candidate or compile model kernels with nvcc:
+
+```text
+cmake -S backends/glm5next -B build-local/glm5next-transport -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DSTRATA_GLM_TRANSPORT_TESTS_CUDA=ON -DCUDAToolkit_ROOT=/path/to/cuda
+cmake --build build-local/glm5next-transport --config Release
+ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+```
+
+On Windows, initialize the x64 compiler environment above and place the CUDA
+runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
+available. Default protocol/reader-only builds still need neither CUDA nor GPU.
+On Windows the suite contains four tests. The new test checks 432 matrix transfers
+in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
+first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
+4096x2048 matrix geometry (transposed for down), synthetic bytes for all eight
+routed types, 262161-byte staging chunks, two consumer streams and destination
+guards. Native mode protects the mmap view with PAGE_NOACCESS and removes the
+registry entry after planning; queued reads must retain their file handles.
+Source/H2D/D2D/chunk counters must match the consumed plan. Auto-mode counters
+report the actual native/mmap choice, not physical SSD reads.
+
+On non-Windows the GPU test has only the six host-memory cases (144 matrix
+comparisons); native file transport is not implemented there. Only Windows was
+run for P3.4a. Neither synthetic byte parity nor the DeepSeek pipeline regression
+establishes GLM dequantization, graph correctness, model output or throughput.
 
 For the real oracle, use a **different** build directory. Substitute the verified
 local archive and its recorded hash in this command (not executed here):

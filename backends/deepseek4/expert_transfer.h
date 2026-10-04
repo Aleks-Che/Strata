@@ -2,6 +2,7 @@
 #include "ggml-backend.h"
 #include <cstdint>
 #include "vram_policy.hpp"
+#include "../common/expert_slice.hpp"
 
 struct StrataExpertCounters {
     uint64_t hits=0, misses=0, bypass=0, evictions=0;
@@ -12,9 +13,6 @@ struct StrataExpertCounters {
     uint64_t ordered_reuses=0, reuse_events=0, eviction_syncs=0;
     uint64_t admission_rejects=0;
 };
-// Only immutable source addresses are planned. Scheduler destinations may
-// alias live activations and must not be written until their normal copy point.
-struct StrataExpertSlice { const void *data; size_t bytes; bool cacheable; };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Discard unconsumed lookahead and join the producer at every graph exit,
 // including errors and cancellation, before model mappings can be released.

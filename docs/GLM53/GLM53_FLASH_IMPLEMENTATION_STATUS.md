@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a и reference P3.2a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `2f05974e4b41ed7555182fdad2e111bc11fcc46e`, ветка `dev`; изменения P3.1a — в рабочем дереве |
-| Последняя выполненная работа | P3.1a: общий native reader, 3/3 CTest, 48 Python-тестов и пересобранный CUDA pipeline test DeepSeek прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, native reader P3.1a, reference P3.2a и GPU byte fixtures P3.4a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `d0152f41cb956d739ae7f72c36ce450500b4d268`, ветка `dev`; P3.1a уже в HEAD, изменения P3.4a — в рабочем дереве |
+| Последняя выполненная работа | P3.4a: общий CUDA-конвейер, 432 GPU-сравнения матриц; 4/4 CTest, 48 Python-тестов и пересобранный pipeline test DeepSeek прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.1a завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P3.4a завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -56,7 +56,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | P3.1a DONE: общий native reader, реальные файловые fixtures и CUDA-регрессия DeepSeek; P3.2a DONE: reference byte-range/cache-key contract | GLM runtime-интеграция, H2D для его матриц, cache parity, отмена графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | P3.1a/P3.2a/P3.4a DONE: общий native reader и CUDA pipeline, reference cache keys, 432 GPU byte comparisons восьми layouts | GLM graph/runtime-интеграция и реальные веса, cache parity, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1076,6 +1076,83 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   по `backends/glm5next/README.md`, затем P2.1b.2. При подключении GLM транспорта
   использовать общий `Source`/`read_at`, сохранив lifetime до завершения native I/O;
   отдельно связать staging/cache lifetime с CUDA events и проверить восемь layouts на GPU.
+
+### P3.4a-01 — 2026-10-04, Asia/Yekaterinburg — Общий CUDA pipeline и GLM byte fixtures
+
+- **Статус:** DONE для P3.4a, исполнитель Codex, цикл 2. Весь P3 IN_PROGRESS.
+  Ветка `dev`, база `d0152f41cb956d739ae7f72c36ce450500b4d268`, дерево перед
+  началом чистое. P3.1a из предыдущей записи уже присутствует в HEAD; новые
+  изменения P3.4a не закоммичены. Повторной проверки сети в этом цикле не было.
+- **Изменение:** `StrataExpertPipeline` перенесён из DeepSeek в
+  `backends/common/expert_pipeline.hpp`; `StrataExpertSlice` выделен в
+  `backends/common/expert_slice.hpp`. DeepSeek сохраняет прежний include/API и
+  использует этот же код. Общий pipeline больше не зависит от llama/ggml.
+  Программно сравнён с `git show HEAD:backends/deepseek4/expert_pipeline.hpp`:
+  единственное отличие реализации — include `expert_slice.hpp` вместо
+  `expert_transfer.h`; scheduling/events/counters/cancel не менялись.
+- **Новый тест:** `backends/glm5next/test_expert_bytes.cpp`, opt-in CMake-флаг
+  `STRATA_GLM_TRANSPORT_TESTS_CUDA`. Собирается отдельно от Unsloth и модели,
+  требует C++ compiler, CUDA runtime/toolkit и доступный GPU. Отсутствие GPU
+  приводит к ошибке, не к успешному skip. Обычная protocol/reader-сборка
+  сохраняет работу без CUDA. Обновлены README общего транспорта и GLM, план/статус.
+- **Что проверено:** на Windows **18 cases / 432 матрицы**: три смешанные группы
+  gate/up/down, по восемь выбранных экспертов из десяти fixture-экспертов (включая
+  первый и последний), mmap/native/auto и prefill/decode reader policies.
+  Layout соответствует матрицам 4096×2048, down — 2048×4096, с block sizes восьми
+  типов `IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K`.
+  Данные синтетические, с изменением байтов по абсолютному offset; чтение полной
+  модели и деквантование не выполняются.
+  - Native/mmap → четыре pinned staging slots → отдельный H2D stream → D2D
+    в два чередующихся consumer streams → D2H и полное сравнение с исходником.
+  - Chunk **262161 байт** разрывает quant blocks; проверены неполные хвосты,
+    padding между тензорами, последний эксперт до EOF и guards по 37 байт вокруг
+    каждой GPU-матрицы. Все 24 gate/up/down slices каждого case доставлены.
+  - Native mode читает с `PAGE_NOACCESS` на mmap и после удаления registry entry:
+    байты приходят через удержанные Source handles. В auto-prefill этого прогона
+    весь источник прочитан native, auto-decode — через mmap; это подтверждают
+    счётчики, но это не измерение физических чтений SSD.
+  - Source/H2D/D2D bytes и chunks точно равны плану; unused=0, groups=1;
+    read_peak ограничен четырьмя, для decode вне explicit-native равен одному.
+- **Сборка:** рабочая директория `C:\work\git\my-repos\Strata`. Сначала в `cmd`:
+  `call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"`,
+  затем `set VSLANG=1033` и
+  `set "PATH=%CD%\build-local\cuda-13.0\bin;%CD%\build-local\cuda-13.0\bin\x64;%PATH%"`.
+  Фактические команды:
+
+  ```text
+  cmake -S backends/glm5next -B build-local/glm5next-transport -G Ninja -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DSTRATA_GLM_TRANSPORT_TESTS_CUDA=ON -DCMAKE_BUILD_TYPE=Release "-DCUDAToolkit_ROOT=%CD%/build-local/cuda-13.0" "-DCMAKE_MAKE_PROGRAM=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/Scripts/ninja.exe"
+  cmake --build build-local/glm5next-transport --config Release
+  ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+  ```
+
+  Все команды exit 0; **4/4 CTest**, без skips. Новый GPU-тест сообщает
+  `NVIDIA GeForce RTX 5090`, CUDA runtime/driver **13000/13000**. CMake обнаружил
+  toolkit **13.0.48**, MSVC **19.44.35222.0**, SDK **10.0.26100.0**.
+  Лог: [GLM53_FLASH_GPU_BYTE_TESTS.txt](GLM53_FLASH_GPU_BYTE_TESTS.txt).
+  Времена CTest относятся к fixtures, не являются скоростью инференса.
+- **Регрессия DeepSeek:** `cmd /c build-local\check-deepseek-reader.cmd` — exit 0.
+  Скрипт повторил точные `cl`/PATH/executable команды из P3.1a-01 после `vcvars64.bat`,
+  заново собрав `backends/deepseek4/test_expert_pipeline.cpp` с новыми includes.
+  Вывод: `Pipeline overlap, file queue, byte parity, ordered reuse and cancellation passed`.
+  Проверены прежние event/reuse/cancel/overlap fixtures общего pipeline.
+  Полный DeepSeek backend и генерация на модели не запускались; отдельного лога нет.
+- **Python-регрессии:** из той же директории:
+
+  ```text
+  .venv/Scripts/python.exe -m unittest tools.test_glm5next_build tools.test_glm5next_expert_plan tools.test_glm5next_loader_contract tools.test_setup_glm5next tools.test_deepseek4 tools.test_shards
+  ```
+
+  Exit 0, **48 тестов**, без skips; прежний `ResourceWarning` в
+  `strata_pack.py:351` сохраняется. Отдельный лог не сохранён.
+  `git -c safe.directory=C:/work/git/my-repos/Strata diff --check` — exit 0.
+- **Граница результата:** транспорт packed bytes проверен на GPU; это не
+  подтверждение GLM dequantization/MoE/logits, graph integration, runtime cache
+  keys, main/MTP isolation, сессий или ускорения. Linux-ветка GPU fixture
+  (только host-memory, шесть cases) не запускалась. Router IDs заданы fixture,
+  dedup и GGUF offsets будущего native GLM planner здесь не проверяются.
+- **Следующий шаг:** P0.3b → P2.1b.2 по точке продолжения. После появления GLM
+  graph hooks подключить общий pipeline к плану gate/up/down и повторить byte parity
+  на диапазонах реального GGUF, затем проверить cache keys/events и численные outputs.
 
 ## Шаблон следующей записи
 

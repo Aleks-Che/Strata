@@ -314,6 +314,11 @@ result работают через оба API; токены и шаблон со
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить
   полную тройку gate/up/down и границы файловых диапазонов.
+  - [x] P3.4a: общий `backends/common/expert_pipeline.hpp` и GPU fixtures восьми
+    layout: 432 сравнения матриц, mmap/native/auto, prefill/decode policies,
+    два consumer streams, guards, неполные chunks и проверка счётчиков.
+    CUDA-регрессия DeepSeek прошла. Данные синтетические; GLM graph/реальные веса,
+    деквантование и численная корректность остаются для интеграционной проверки.
 - [ ] Перенести bounded read queue, совместное планирование трёх матриц, защиту
   нужных текущему плану entries, LRU и frequency admission, общий VRAM reserve.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.

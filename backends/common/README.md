@@ -1,5 +1,21 @@
 # Shared expert transport
 
+`expert_pipeline.hpp` provides the existing bounded four-slot CUDA pipeline:
+mapped/native reads -> pinned staging -> independent H2D stream -> consumer D2D.
+It now depends on `expert_slice.hpp`, `expert_file.hpp` and the CUDA runtime,
+without a llama/ggml dependency. DeepSeek's old header forwards to this module;
+its backend API still uses the same `StrataExpertSlice` layout. The move does not
+change scheduling, counters, events or cancellation behavior.
+
+`start` prepares source ranges; `transfer` consumes them in order, using CUDA
+events to protect staging/ring slots across consumer streams. Call `finish` on
+every graph exit before releasing mappings, including when a planned suffix was
+not consumed. The caller must serialize start/transfer/finish; the internal reader
+threads provide concurrency, not support for multiple graph owners. `finish`
+drains abandoned H2D work, but consumed D2D work can still be in flight: retain
+destinations until their consumer streams complete. This module does not own
+expert cache entries or supply GLM router/graph hooks.
+
 `expert_file.hpp` is the native file-reading layer used by DeepSeek and prepared
 for GLM's byte-range planner. It has no llama, ggml or CUDA dependency. The old
 DeepSeek include forwards here, so its loader hook and pipeline use this code.
@@ -23,3 +39,7 @@ the existing pipeline falls back to mmap; POSIX native reads were not added.
 The Windows tests live in `test_expert_file.cpp` and are built by the isolated
 [GLM test configuration](../glm5next/README.md). They use real temporary files
 with synthetic bytes; they do not require a model or GPU.
+
+The optional `STRATA_GLM_TRANSPORT_TESTS_CUDA` configuration also exercises this
+shared pipeline on GPU with eight GLM packed layouts. See the same GLM build
+instructions. This is byte transport validation; it does not execute GLM kernels.
