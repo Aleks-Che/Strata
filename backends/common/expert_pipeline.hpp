@@ -55,7 +55,7 @@ private:
     std::array<Slot,slots> ring{};
     std::vector<Chunk> jobs;
     size_t consumed=0,next_job=0,busy=0;
-    int read_mode,reader_limit,active_readers=0;
+    int read_mode,reader_limit,decode_reader_limit,active_readers=0;
     std::mutex mutex,copy_mutex;
     std::condition_variable cv;
     bool active=false,quit=false;
@@ -145,11 +145,12 @@ private:
         if(copy)cudaStreamDestroy(copy);
     }
 public:
-    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={})
-        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),copy_observer(std::move(observer)) {
+    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1)
+        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),copy_observer(std::move(observer)) {
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
         if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
-        if(readers<1 || readers>int(slots) || mode<0 || mode>2)throw std::runtime_error("invalid expert reader configuration");
+        if(readers<1 || readers>int(slots) || decode_readers<1 || decode_readers>readers || mode<0 || mode>2)
+            throw std::runtime_error("invalid expert reader configuration");
         try {
             check(cudaSetDevice(device));
             check(cudaStreamCreateWithFlags(&copy,cudaStreamNonBlocking));
@@ -201,10 +202,10 @@ public:
     void start(const std::vector<StrataExpertSlice>& slices) {
         finish();
         std::lock_guard<std::mutex> lock(mutex);
-        // Decode's small mmap copies measured slower with multiple submitters.
-        // Keep one stable worker there and spend queue depth on prefill I/O.
+        // Keep the historical one-worker decode default. Backends can opt in
+        // to more readers after measuring their matrix sizes and host memory.
         bool decode=std::all_of(slices.begin(),slices.end(),[](const auto &s){return s.cacheable;});
-        active_readers=decode && read_mode!=1?1:reader_limit;
+        active_readers=decode && read_mode!=1?decode_reader_limit:reader_limit;
         for(auto &slice:slices) {
             // Native cached reads do not fault the mmap view into the working
             // set. Using residency alone would keep warm decode on ReadFile

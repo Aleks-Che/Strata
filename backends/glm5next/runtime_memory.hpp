@@ -15,6 +15,8 @@ public:
     RuntimeMemory & operator=(const RuntimeMemory &)=delete;
     void warm();
     void refresh();
+    // Optional expert-placement metadata only, after a completed request.
+    void checkpoint();
     nlohmann::json snapshot() const;
 };
 }

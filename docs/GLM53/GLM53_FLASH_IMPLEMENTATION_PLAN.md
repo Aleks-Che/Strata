@@ -390,6 +390,28 @@ result работают через оба API; токены и шаблон со
     bit-exact; пять повторов после четырёх warmup: MTP 1 вырос с 8,510 до
     9,586 ток/с. Глобальные RAM/VRAM targets 95% сохранены. Подробности и
     ограничения в [отчёте](GLM53_FLASH_PIPELINE_MTP.md).
+  - [x] P3.3d: проверены decode readers/write-combined, раздельное старение main/MTP
+    frequency history и cache allocator. Добавлены pool telemetry и ограничение
+    RAM warmup по hard working-set cap. Финальный sweep на IQ3_XXS / RTX 5090:
+    MTP off/1/2/3 — 9,902/9,843/8,948/7,600 ток/с; прежний профиль на том же
+    бинарнике — 9,457. Локально выбраны MTP off, native allocator, decay131072;
+    17 candidate + 13 transport/cache CTest, 83 Python tests, 11 real-model
+    checks; baseline 9 912 320 F32 logits bit-exact. Один prompt, 64 output,
+    четыре warmup + пять повторов; [результаты и ограничения](GLM53_FLASH_PIPELINE_MTP.md).
+  - [x] P3.3e: packed cache в CUDA blocks, размер 16 МиБ выбран вместо 64 МиБ;
+    последний блок уменьшается под доступную VRAM, пустой освобождается сразу.
+    MTP off: 9,865 → 11,764 ток/с (+19,26%) на одной сборке, четыре warmup + пять
+    повторов. Main cache 12,902 → 17,307 ГиБ. 18 candidate / 13 transport CTest,
+    83 Python tests, 9 912 320 F32 logits bit-exact, 9 native pipe и 8 HTTP cases.
+    Локальный профиль обновлён. Первый запрос медленнее; один prompt / 64 output.
+    [Проверки и ограничения](GLM53_FLASH_SLAB_VALIDATION.json).
+  - [x] P3.3f: опциональное сохранение частых expert IDs и восстановление VRAM
+    cache, model/layout validation, ограниченные admission scores, атомарная
+    запись; отдельный benchmark первого ответа и нового prompt. 37 запросов,
+    19 candidate / 13 transport CTest, 83 Python tests, полные logits bit-exact,
+    9 native pipe и 8 HTTP cases. Медиана первого запроса A 68,68 → 97,85 с,
+    несмотря на снижение source/H2D на 22,36%; новый режим оставлен выключенным
+    по умолчанию. [Результаты и ограничения](GLM53_FLASH_WARM_VALIDATION.json).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить

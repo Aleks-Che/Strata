@@ -142,6 +142,7 @@ public:
         uint64_t decay_period=4096;
         size_t max_keys=131072;
         bool separate_branches=false;
+        uint64_t mtp_decay_period=0; // Zero preserves the shared decay setting.
     };
     struct Counters {
         uint64_t hits=0,misses=0,bypasses=0,evictions=0,invalidations=0;
@@ -236,7 +237,7 @@ public:
                 admission.decay_period,admission.max_keys);
         if(admission.frequency && admission.separate_branches)
             mtp_frequency=std::make_unique<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>>(
-                admission.decay_period,admission.max_keys);
+                admission.mtp_decay_period?admission.mtp_decay_period:admission.decay_period,admission.max_keys);
     }
     ExpertCache(const ExpertCache&)=delete;
     ExpertCache &operator=(const ExpertCache&)=delete;
@@ -244,6 +245,21 @@ public:
     size_t size() const {return entries.size();}
     Counters counters() const {return counts;}
     size_t history_size() const {return (frequency?frequency->size():0)+(mtp_frequency?mtp_frequency->size():0);}
+    std::vector<std::pair<ExpertKey,unsigned>> warm_entries() const {
+        device_check();std::vector<std::pair<ExpertKey,unsigned>> result;
+        for(const auto &item:entries) {
+            const auto *h=history(item.first);const unsigned score=h?h->score(item.first):0;
+            if(score>=2)result.push_back({item.first,score});
+        }
+        std::sort(result.begin(),result.end(),[](const auto &a,const auto &b) {
+            return a.second!=b.second?a.second>b.second:a.first<b.first;
+        });
+        return result;
+    }
+    void seed_frequency(const ExpertKey &key,unsigned score) {
+        device_check();key.validate();
+        if(auto *h=history(key))h->seed(key,std::min(8u,score));
+    }
     size_t resident_bytes(Branch branch) const {return accounting->branches[branch_index(branch)];}
     size_t byte_budget(Branch branch) const {return branch_limits[branch_index(branch)];}
     // Call only between dispatch scopes. Retired/pinned/in-flight allocations

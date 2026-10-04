@@ -1,5 +1,6 @@
 #include "expert_cache.hpp"
 #include "expert_memory.hpp"
+#include "expert_slab.hpp"
 #include "../common/expert_pipeline.hpp"
 #include <cstdio>
 #include <functional>
@@ -743,6 +744,96 @@ static void test_memory_policy_and_pending() {
     std::puts("PASS: total-device usage target, pending events, invalid policies and missing probe");
 }
 
+static void test_slab_allocator() {
+    constexpr size_t MiB=1ULL<<20;
+    bool grow=true;
+    auto slab=std::make_shared<ExpertSlabAllocator>(4*MiB,[&](size_t n){return grow?n:0;});
+    std::vector<void *> pointers;std::vector<size_t> sizes;
+    for(size_t i=0;i<18;++i) {
+        const size_t bytes=i%3==0?MiB+13:i%3==1?2*MiB+512:5*MiB+7;
+        void *p=nullptr;cuda_ok(slab->allocate(&p,bytes));
+        require(reinterpret_cast<uintptr_t>(p)%256==0,"slab pointer misaligned");
+        cuda_ok(cudaMemset(p,int(i+1),bytes));pointers.push_back(p);sizes.push_back(bytes);
+    }
+    auto verify=[&](size_t i) {
+        std::vector<uint8_t> out(sizes[i]);
+        cuda_ok(cudaMemcpy(out.data(),pointers[i],out.size(),cudaMemcpyDeviceToHost));
+        require(std::all_of(out.begin(),out.end(),[i](uint8_t b){return b==i+1;}),"slab allocations overlap or reused a live slot");
+    };
+    for(size_t i=0;i<pointers.size();++i)verify(i);
+    auto hole=pointers[0];cuda_ok(slab->release(hole));
+    require(slab->release(hole)==cudaErrorInvalidValue,"slab double release accepted");
+    require(slab->release(static_cast<uint8_t *>(pointers[1])+1)==cudaErrorInvalidValue,"interior slab pointer accepted");
+    grow=false;cuda_ok(slab->allocate(&pointers[0],sizes[0]));
+    require(pointers[0]==hole,"free compatible slot not reused with growth denied");
+    cuda_ok(cudaMemset(pointers[0],1,sizes[0]));
+    void *denied=reinterpret_cast<void *>(uintptr_t(1));const auto before=slab->status();
+    require(slab->allocate(&denied,11*MiB)==cudaErrorMemoryAllocation && denied==nullptr,"slab growth guard ignored");
+    require(slab->status().reserved==before.reserved && slab->status().requested==before.requested,"failed growth changed accounting");
+    require(slab->allocate(&denied,0)==cudaErrorInvalidValue,"zero slab allocation accepted");
+    require(slab->allocate(&denied,std::numeric_limits<size_t>::max())==cudaErrorInvalidValue,"overflow slab allocation accepted");
+    for(size_t i=0;i<pointers.size();++i) {verify(i);cuda_ok(slab->release(pointers[i]));}
+    require(slab->status().reserved==0 && slab->status().requested==0 && slab->status().blocks==0,"empty slabs retained VRAM");
+    require(slab->status().reuses>0 && slab->status().growth_denied==1,"slab reuse/growth counters incorrect");
+    {
+        ExpertSlabAllocator tail(4*MiB,[](size_t n){return std::min(n,size_t(3*MiB));});
+        void *p=nullptr,*q=nullptr;cuda_ok(tail.allocate(&p,MiB+13));
+        require(tail.status().partial_blocks==1 && tail.status().reserved==2*(MiB+256),"tail slab did not fit the physical allowance");
+        cuda_ok(tail.allocate(&q,MiB+13));
+        require(tail.status().blocks==1,"tail slab slot was not reused");
+        cuda_ok(cudaMemset(p,39,MiB+13));cuda_ok(cudaMemset(q,74,MiB+13));
+        std::vector<uint8_t> out(MiB+13);cuda_ok(cudaMemcpy(out.data(),p,out.size(),cudaMemcpyDeviceToHost));
+        require(std::all_of(out.begin(),out.end(),[](uint8_t v){return v==39;}),"tail slab writes overlap");
+        cuda_ok(tail.release(p));cuda_ok(tail.release(q));require(tail.status().reserved==0,"tail slab retained VRAM");
+    }
+
+    grow=true;Stream stream;const size_t n=MiB+13;
+    auto cache=std::make_unique<ExpertCache>(2*n,ExpertCache::Admission{},
+        [slab](void **p,size_t bytes){return slab->allocate(p,bytes);},
+        [slab](void *p){return slab->release(p);});
+    auto a=key(),b=a;a.bytes=b.bytes=n;++b.expert;
+    auto held=load(*cache,a,51,stream.value);
+    {auto second=load(*cache,b,72,stream.value);bytes_equal(second,n,72,stream);}stream.sync();
+    require(!cache->set_budget(0),"leased slab entry was evicted under pressure");
+    require(slab->status().requested==n,"unleased slab entry not released under pressure");
+    cache.reset();bytes_equal(held,n,51,stream);
+    require(slab->status().requested==n,"cache destruction reused outstanding lease");
+    held.release();stream.sync();
+    require(slab->status().reserved==0,"retired final lease did not release slab");
+    std::puts("PASS: mixed slab sizes/padding, guards, OOM, reuse, shrinking budget, outstanding lease and full physical release");
+}
+
+static void test_separate_decay_periods() {
+    Stream stream;ExpertCache cache(128,{true,1024,128,true,1});
+    cache.set_branch_budgets(64,64);
+    auto hot=key(),cold=hot,mtp=hot,next_mtp=hot;
+    cold.expert++;mtp.branch=next_mtp.branch=Branch::mtp;next_mtp.expert++;
+    for(int i=0;i<8;++i) {
+        {auto lease=load(cache,hot,1,stream.value);}stream.sync();
+        {auto lease=load(cache,mtp,2,stream.value);}stream.sync();
+    }
+    {auto lease=load(cache,cold,3,stream.value);require(!lease,"main history aged with MTP period");}stream.sync();
+    {auto lease=load(cache,next_mtp,4,stream.value);bytes_equal(lease,64,4,stream);}stream.sync();
+    require(cache.resident(hot) && !cache.resident(cold) && cache.resident(next_mtp) && !cache.resident(mtp),
+            "separate main/MTP aging changed residency incorrectly");
+    std::puts("PASS: main retains hot expert while shorter MTP decay admits a new expert; bytes match");
+}
+
+static void test_warm_frequency_hints() {
+    Stream stream;ExpertCache cache(64,{true,131072,128,true,4096});
+    auto hot=key(),cold=hot;++cold.expert;
+    {auto lease=load(cache,hot,42,stream.value);}stream.sync();
+    require(cache.warm_entries().empty(),"one-off warm entries exported");
+    const auto before=cache.counters();cache.seed_frequency(hot,200);
+    auto rows=cache.warm_entries();
+    require(rows.size()==1 && rows[0].first==hot && rows[0].second==8,"restored score not bounded");
+    require(cache.counters().hits==before.hits && cache.counters().misses==before.misses,"seed fabricated cache accesses");
+    for(int i=0;i<7;++i) {auto lease=load(cache,cold,73,stream.value);require(!lease,"cold expert evicted restored hot hint too soon");}
+    {auto lease=load(cache,cold,73,stream.value);bytes_equal(lease,64,73,stream);}stream.sync();
+    require(cache.resident(cold) && !cache.resident(hot),"restored hints prevented workload adaptation");
+    std::puts("PASS: resident warm hints, score cap, no fake accesses, new workload can replace restored entries");
+}
+
 int main() {
     try {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
@@ -750,6 +841,9 @@ int main() {
         test_keys();test_lru_budget();test_pending_events();test_reload_and_failure();test_pipeline_upload();
         test_allocation_failure(false);test_allocation_failure(true);
         test_branch_budgets(false);test_branch_budgets(true);test_branch_frequency();test_branch_pending();
+        test_separate_decay_periods();
+        test_warm_frequency_hints();
+        test_slab_allocator();
         test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
         test_pending_events(true);
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();

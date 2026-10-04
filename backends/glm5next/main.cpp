@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstring>
 #include <deque>
 #include <iostream>
 #include <mutex>
@@ -109,6 +110,7 @@ static void generate(llama_context * ctx,const llama_vocab * vocab,const Options
         // microbatch, synchronize and clear all hybrid components before DONE.
         const auto mt=mtp?mtp->counters:Mtp::Counters{};
         clear(ctx);if (mtp) mtp->reset();
+        if(generated>0 && std::strcmp(finish,"cancel")!=0)memory.checkpoint();
         auto stats=strata_glm_sync_snapshot();
         std::cerr<<"STRATA_GLM_REQUEST source_bytes="<<stats.source_bytes<<" h2d_bytes="<<stats.h2d_bytes
             <<" source_ms="<<stats.source_ms<<" h2d_ms="<<stats.h2d_ms<<" gpu_nodes="<<stats.gpu_nodes
@@ -178,6 +180,13 @@ int main(int argc,char ** argv) {
                 <<" expert_storage=mmap expert_compute=gpu gpu_only=1 expert_cache_mib="<<usage["cache_resident_bytes"].get<uint64_t>()/(1<<20)
                 <<" ram_target_percent="<<o.ram_percent<<" vram_target_percent="<<o.vram_percent<<" expert_stage_mib="<<(o.pipeline?4*o.chunk_mib:16)
                 <<" expert_pipeline="<<o.pipeline<<" expert_copy_events="<<usage["expert_copy_events"].get<int>()
+                <<" expert_decode_readers="<<usage["expert_decode_readers"].get<int>()
+                <<" expert_write_combined="<<usage["expert_write_combined"].get<int>()
+                <<" main_cache_decay="<<usage["main_cache_decay"].get<uint64_t>()
+                <<" expert_pool_reclaim="<<usage["expert_pool_reclaim"].get<int>()
+                <<" expert_memory_pool="<<int(usage["cuda_memory_pool"].get<bool>())
+                <<" expert_cache_slab_mib="<<usage["expert_cache_slab_mib"].get<size_t>()
+                <<" expert_warm_entries="<<usage["expert_warm_profile"]["loaded"].get<size_t>()
                 <<" expert_read_mode=mmap kv=fp16 flash_attention=0 tf32=0 tokenwise_small_batch=1 conversation_cache=0\n"
                 <<"READY "<<llama_n_ctx(ctx.get())<<" stop session-id\n"<<std::flush;
             serve(ctx.get(),vocab,o,memory,mtp.get());

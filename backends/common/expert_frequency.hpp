@@ -30,6 +30,13 @@ public:
         unsigned value=score(key);
         counts[key]={clock/period,uint8_t(std::min(255u,value+1))};
     }
+    // Restore only a bounded admission hint, without fabricating accesses or
+    // advancing decay. Callers reconstruct keys for the current model lifetime.
+    void seed(const Key &key,unsigned value) {
+        if(!value)return;
+        if(counts.find(key)==counts.end() && counts.size()>=max_keys)counts.clear();
+        counts[key]={clock/period,uint8_t(std::min(255u,value))};
+    }
     template<class Predicate>
     void erase_if(Predicate predicate) {
         for(auto it=counts.begin();it!=counts.end();) {

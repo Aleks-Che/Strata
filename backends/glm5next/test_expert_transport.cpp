@@ -63,8 +63,8 @@ static void wait_prefetch(ExpertTransport &transport) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     require(transport.counters().h2d_bytes>=4*4093,"prefetch did not fill ring before cancellation");
 }
-static void test_cancel_restart(int mode,bool decode) {
-    ExpertTransport transport(0,4093,false,4,mode);
+static void test_cancel_restart(int mode,bool decode,int readers=1,bool write_combined=false) {
+    ExpertTransport transport(0,4093,write_combined,4,mode,{},readers);
     size_t comparisons=0;
     for(size_t prefix:{size_t(0),size_t(1),size_t(7),size_t(24)}) {
         auto source=std::make_shared<Source>();std::weak_ptr<Source> weak=source;
@@ -93,9 +93,10 @@ static void test_cancel_restart(int mode,bool decode) {
     }
     const auto c=transport.counters();
     require(c.groups==4 && c.unused>0,"abandoned prefetch not accounted");
+    require(c.read_peak>=1 && c.read_peak<=uint64_t(decode && mode!=1?readers:4),"decode reader bound ignored");
     if(mode==1 || (mode==2 && !decode))require(c.file_bytes>0 && c.mmap_bytes==0,"native path not used");
     else require(c.mmap_bytes>0 && c.file_bytes==0,"mmap path not used");
-    std::printf("PASS mode=%d decode=%d: 4 plans, %zu matrix comparisons, source release and restart\n",mode,int(decode),comparisons);
+    std::printf("PASS mode=%d decode=%d readers=%d write_combined=%d: 4 plans, %zu matrix comparisons, source release and restart\n",mode,int(decode),readers,int(write_combined),comparisons);
 }
 static void test_destructor() {
     auto source=std::make_shared<Source>();std::weak_ptr<Source> weak=source;
@@ -337,6 +338,14 @@ int main() {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
         std::printf("GPU=%s; synthetic native plans; no GLM inference\n",p.name);
         for(int mode:{0,1,2})for(bool decode:{false,true})test_cancel_restart(mode,decode);
+        for(int mode:{0,1,2})for(bool decode:{false,true})for(int readers:{2,4})
+            test_cancel_restart(mode,decode,readers,true);
+        for(int readers:{0,3}) {
+            bool rejected=false;
+            try {ExpertTransport invalid(0,4093,false,2,0,{},readers);}
+            catch(const std::runtime_error &) {rejected=true;}
+            require(rejected,"invalid decode reader count accepted");
+        }
         test_destructor();test_validation_and_finish();
         for(int mode:{0,1,2})for(bool frequency:{false,true})for(bool decode:{false,true})test_dispatch(mode,frequency,decode);
         for(int mode:{0,1,2})for(bool frequency:{false,true})for(bool decode:{false,true})test_dispatch_branch_budgets(mode,frequency,decode);

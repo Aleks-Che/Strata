@@ -37,10 +37,20 @@ def main():
     ap.add_argument('--mtp-cache-mib', type=int, default=512)
     ap.add_argument('--chunk-mib', type=int, default=4)
     ap.add_argument('--copy-events', type=int, choices=(0, 1, 2), help='0: host waits; 1: events per range; 2: events per tensor')
+    ap.add_argument('--decode-readers', type=int, choices=(1, 2, 3, 4))
+    ap.add_argument('--write-combined', type=int, choices=(0, 1))
+    ap.add_argument('--main-cache-decay', type=int)
+    ap.add_argument('--pool-reclaim', type=int, choices=(0, 1))
+    ap.add_argument('--memory-pool', type=int, choices=(0, 1))
+    ap.add_argument('--cache-slab-mib', type=int, help='0 disables packed cache; otherwise 4..256 MiB per slab')
     a = ap.parse_args()
     depths = [int(x) for x in a.depths.split(',')]
     if a.repeats < 2 or a.warmups < 1 or not depths or any(x not in range(4) for x in depths):
         ap.error('at least one warmup, two measured repeats and depths 0..3 required')
+    if a.main_cache_decay is not None and not 1 <= a.main_cache_decay <= 1048576:
+        ap.error('main cache decay must be 1..1048576')
+    if a.cache_slab_mib is not None and a.cache_slab_mib != 0 and not 4 <= a.cache_slab_mib <= 256:
+        ap.error('cache slab must be 0 or 4..256 MiB')
     cfg = json.loads(a.profile.read_text(encoding='utf-8'))
     reference = json.loads(a.reference.read_text(encoding='utf-8'))
     ids, expected = reference['prompt_ids'], reference['generated_ids']
@@ -55,8 +65,16 @@ def main():
     save()
     for depth in depths:
         variant = dict(cfg)
-        if a.copy_events is not None:
-            variant['env'] = dict(cfg.get('env') or {}, STRATA_GLM_COPY_EVENTS=str(a.copy_events))
+        variant['env'] = dict(cfg.get('env') or {})
+        for name, value in (('STRATA_GLM_COPY_EVENTS', a.copy_events),
+                            ('STRATA_GLM_DECODE_READERS', a.decode_readers),
+                            ('STRATA_GLM_WRITE_COMBINED', a.write_combined),
+                            ('STRATA_GLM_MAIN_CACHE_DECAY', a.main_cache_decay),
+                            ('STRATA_GLM_POOL_RECLAIM', a.pool_reclaim),
+                            ('STRATA_GLM_MEMORY_POOL', a.memory_pool),
+                            ('STRATA_GLM_CACHE_SLAB_MIB', a.cache_slab_mib)):
+            if value is not None:
+                variant['env'][name] = str(value)
         for flag, value in (('--expert-pipeline', 1), ('--expert-chunk-mib', a.chunk_mib),
                             ('--mtp', depth), ('--mtp-cache-mib', a.mtp_cache_mib)):
             variant['args'] = replace(variant['args'], flag, value)
@@ -74,6 +92,18 @@ def main():
             assert engine.info['spec'] == depth
             if a.copy_events is not None:
                 assert engine.info['expert_copy_events'] == a.copy_events
+            if a.decode_readers is not None:
+                assert engine.info['expert_decode_readers'] == a.decode_readers
+            if a.write_combined is not None:
+                assert engine.info['expert_write_combined'] == a.write_combined
+            if a.main_cache_decay is not None:
+                assert engine.info['main_cache_decay'] == a.main_cache_decay
+            if a.pool_reclaim is not None:
+                assert engine.info['expert_pool_reclaim'] == a.pool_reclaim
+            if a.memory_pool is not None:
+                assert engine.info['expert_memory_pool'] == a.memory_pool
+            if a.cache_slab_mib is not None:
+                assert engine.info['expert_cache_slab_mib'] == a.cache_slab_mib
             for i in range(a.repeats + a.warmups):
                 tokens = [t for t in engine.generate(ids, len(expected), {'temperature': 0}, threading.Event()) if t is not None]
                 done = dict(engine.last)

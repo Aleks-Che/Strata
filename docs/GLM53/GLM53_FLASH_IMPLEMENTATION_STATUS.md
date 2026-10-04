@@ -14,18 +14,18 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `97662928e51cf4ef59320a9892fb751fcf45126c` + P3.3c в рабочем дереве; source/binary hashes и команды в COPY_EVENTS_VALIDATION |
-| Последняя выполненная работа | P3.3c: event dependencies вместо host waits для expert copies, одна пара событий на матрицу; MTP 1 вырос с 8,510 до 9,586 ток/с, точные logits и pipe/API проверены |
-| Следующая задача | Совместное исполнение коротких verify-пакетов 2–4 токена с сохранением точности; расширенные prompts/контексты и повторный подбор MTP 2/3. P4 session snapshots/restore остаётся открыт |
-| Активная задача / исполнитель | Нет; P3.3c завершён Codex, остальные открытые пункты плана сохраняются |
+| Последняя проверенная ревизия Strata | `b2567acf668ca7a98ac514f060bd27434ee3fd22` + P3.3d/e/f в рабочем дереве; source/binary hashes и команды в WARM_VALIDATION |
+| Последняя выполненная работа | P3.3f: сохранение частых expert IDs и восстановление VRAM cache; 37 benchmark requests, 9 912 320 F32 logits bit-exact, native pipe и HTTP API проверены. Первый запрос A стал медленнее по медиане: 68,68 → 97,85 с; новый прогрев оставлен opt-in и выключен локально |
+| Следующая задача | Измерить page faults и размещение CPU-страниц весов; проверить прогрев RAM с учётом уже резидентных в VRAM матриц. Сокращение H2D само по себе не устранило паузы CPU read. Длинные контексты, P4 session snapshots/restore и совместные MTP verify kernels остаются открыты |
+| Активная задача / исполнитель | Нет; P3.3f завершён как проверенный опциональный режим. Настройки скорости P3.3e сохранены |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`, Native MTP в monitor; OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный профиль: pipeline on, `STRATA_GLM_COPY_EVENTS=2`, MTP 1, cache ceiling 512 МиБ, chunk 4 МиБ, RAM/VRAM 95%, ctx2048/batch16/threads4 |
+| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели. Локальный профиль: pipeline on, events2, MTP off, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned warmup off; обновлён только backend patch identity. MTP cache ceiling 512 МиБ действует только при включении MTP |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main + 1 NextN layer, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA off, greedy; pipeline + cache, MTP 0/1/2/3, global targets 95% |
-| Измеренная скорость GLM / память | Четыре warmup + пять повторов: MTP 1 / старые waits 8,510; MTP 1 / events 9,586 (+12,64%); MTP off / events 8,978 ток/с. Диапазон нового MTP 1 — 9,553–9,655; MTP даёт +6,76% в этой серии. Один prompt / 64 output, RAM/VRAM targets 95%; прежний sweep 0/1/2/3 сохранён отдельно |
+| Последняя проверенная конфигурация запуска GLM | P3.3f: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off, greedy; pipeline + slabs16, global targets95. Полные MTP 1/2/3 проверены ранее, в этом этапе не запускались |
+| Измеренная скорость GLM / память | P3.3e: ранее получены 11,764 ток/с с slabs16 против 9,865 у прежнего allocator. P3.3f на одной новой сборке: обычный/learned warmup — 8,034/10,907 ток/с после четырёх warmup, но большой разброс 7,038–10,568 / 1,752–11,173. Медиана первого запроса 68,68/97,85 с, source 126,99/98,60 ГиБ. Устойчивый прирост не заявляется; новый режим по умолчанию выключен |
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -2980,6 +2980,160 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   совместные ядра, другие prompts/длинный sparse-контекст и новый throughput sweep
   MTP 2/3 ещё не выполнены. P4 session reuse, Linux/HIP и full-model Qwen/DeepSeek
   regression эта работа не закрывает; общий транспорт и другие профили не менялись.
+
+### P3.3d — 2026-10-04 — История кэша, allocator и выбор MTP off
+
+**Статус:** DONE для ограниченного подбора на IQ3_XXS / RTX 5090. Рабочее дерево
+от `b2567acf668ca7a98ac514f060bd27434ee3fd22`; новых коммитов в этом этапе нет.
+
+**Что изменено:** общий pipeline получил opt-in decode readers, прежний default
+одного reader сохранён. GLM экспортирует readers/write-combined, отдельный период
+main frequency history, pool reserved/used/unused telemetry, opt-in reclaim и
+выбор native/async allocator. MTP history сохраняет период 4096. RAM warmup
+останавливается при достижении hard working-set cap, даже если глобальная цель
+ещё не достигнута, чтобы дальнейшее чтение не вытесняло ранее прогретые страницы.
+
+**Измерения:** больше readers и write-combined не ускорили контрольный запрос.
+В одной серии unused reserve CUDA pool достиг 8,16 ГиБ; периодический trim не
+устранил все расходы. Native allocator / main decay131072 затем сравнен с
+прежним профилем на одном финальном бинарнике. Четыре warmup + пять повторов,
+39 prompt / 64 output tokens, ctx2048/batch16/threads4, RAM/VRAM95:
+
+| Режим | Медиана, ток/с |
+|---|---:|
+| Новый профиль, MTP off | **9,902** |
+| Новый профиль, MTP 1 | 9,843 |
+| Новый профиль, MTP 2 | 8,948 |
+| Новый профиль, MTP 3 | 7,600 |
+| Прежний профиль, MTP 1 / pool / decay4096 | 9,457 |
+
+Выбран **MTP off**: пользователь предпочёл отсутствие draft-расходов при близкой
+скорости. На новых настройках off даёт примерно на 1,50 ГиБ больше main cache,
+чем MTP 1. Освободившаяся память идёт в основной кэш; глобальные targets95
+сохранены. Локальный `strata-glm5next.json` обновлён: native allocator,
+decay131072, reader1, обычный pinned ring, events2, reclaim0, chunk4.
+MTP cache ceiling512 сохранён для ручного включения MTP, при off кэш MTP пуст.
+
+**Проверки:** 17/17 candidate CTest, 13/13 transport/cache CTest, 83 Python tests.
+Полная модель прошла 11 real checks: native depths1/2/3, forced acceptance0/1/2/3,
+seeded sampling и cancel/recovery. Все сравниваемые logits совпали бит-в-бит;
+baseline совпал с 9 912 320 сохранёнными F32 значениями. Все 45 запросов финального
+benchmark совпали по token IDs. Выбранный MTP off профиль прошёл 8 HTTP cases,
+INFO `spec=0`, unload и server exit0; отдельный native-pipe checker в этом этапе
+не перезапускался (benchmark использует native pipe). Source/binary hashes
+повторно сверены после HTTP теста.
+
+**Ограничения:** один короткий prompt, последовательные варианты, OS file cache
+не очищался. +4,71% относится только к новой контрольной серии; разница off/1
+0,60% меньше разброса отдельных повторов. Электропотребление не измерялось.
+Не заявляется изолированный выигрыш warmup guard или allocator. Один ранний
+pool/decay131072 прогон остановлен во время RAM warmup без timed результатов.
+Длинный контекст, другие prompts, Linux/HIP, реальные Qwen/DeepSeek и P4 reuse
+здесь не проверялись. Матрицы CUDA и tokenwise точная арифметика не менялись.
+
+**Артефакты:** [описание](GLM53_FLASH_PIPELINE_MTP.md),
+[все поисковые серии](GLM53_FLASH_STAGING_CACHE_BENCHMARK.json),
+[финальное сравнение](GLM53_FLASH_STAGING_CACHE_MTP_BENCHMARK.json),
+[точность](GLM53_FLASH_STAGING_CACHE_CHECK.json),
+[API](GLM53_FLASH_STAGING_CACHE_API.json),
+[manifest и команды](GLM53_FLASH_STAGING_CACHE_VALIDATION.json).
+
+**Следующая работа:** GPU arena / уплотнение кэша; расширение набора prompts и
+контекстов. Для ускорения MTP нужен общий verify kernel без изменения n1
+арифметики. P4 session snapshots/restore остаётся отдельной задачей.
+
+### P3.3e — 2026-10-04 — Уплотнение экспертного кэша, MTP off
+
+**Статус:** DONE для ограниченного теста IQ3_XXS / RTX 5090, новые изменения
+поверх P3.3d в рабочем дереве, без нового коммита.
+
+**Изменение:** `expert_slab.hpp` даёт несколько неподвижных aligned slots в
+одной CUDA allocation. Последний block уменьшается под физический остаток;
+пустые blocks возвращаются сразу. Освобождение slots использует существующие
+ready/consumer events `ExpertCache`. Runtime проверяет NVML перед новым block,
+оставляет reserve + 2 МиБ, экспортирует reserved/requested/unused/growth counters.
+Опция `STRATA_GLM_CACHE_SLAB_MIB` по умолчанию 0, локально выбрано 16 МиБ.
+CUDA-арифметика и shared pipeline в этом этапе не менялись.
+
+**Результаты:** поисковая серия control0/blocks16/blocks64 — 10,240/11,563/11,387
+ток/с. После добавления уменьшенного последнего блока выполнено новое сравнение
+на одном бинарнике, в порядке blocks16/control0: **11,764 против 9,865 ток/с**,
+**+19,26%**, четыре warmup + пять timed repeats. MTP off во всех прогонах.
+Main cache **17,307 против 12,902 ГиБ**, чтение весов за полный запрос
+**92,003 против 110,680 ГиБ**. Все 45 поисковых/final requests совпали с reference.
+
+**Проверки:** 18/18 candidate CTest, 13/13 transport/cache CTest, 83 Python tests.
+Полная модель MTP off совпала по token IDs и по **9 912 320 F32 logits бит-в-бит**.
+9 native pipe и 8 HTTP scenarios прошли, включая seeded sampling, отмену,
+следующий запрос, streaming и unload; engine/server exit0. INFO подтвердил
+MTP0/slabs16/pool0. Source/binary hashes сверены после интеграционных проверок.
+
+**Профиль:** `strata-glm5next.json` обновлён, slabs16/MTP off, RAM/VRAM95,
+main decay131072, events2, readers1, обычный pinned ring, chunk4, reclaim0/pool0.
+Фактические медианы global RAM/VRAM — **119,06/30,24 ГиБ**. Это sampled targets,
+не атомарная резервация против других процессов; максимальный VRAM sample в
+финальном сравнении 95,07% у slabs16, 95,21% у контроля.
+
+**Ограничение:** выигрыш относится к прогретой генерации. В финальной серии
+первый prefill **35,34 против 30,00 с**, первый decode **2,32 против 3,86 ток/с**
+(slabs16/control0); startup 22,36/20,86 с. Первый запрос медленнее. OS cache не
+очищался, cold SSD load не изолирован. Один prompt39/output64, ctx2048/batch16/
+threads4, greedy; другие prompts, длинный контекст, Linux/HIP и полные модели
+Qwen/DeepSeek не проверялись. MTP kernels не оптимизировались и full-model MTP
+не запускался; существующие MTP fixtures по-прежнему проходят.
+
+**Артефакты:** [описание](GLM53_FLASH_PIPELINE_MTP.md),
+[поисковые и финальные benchmarks](GLM53_FLASH_SLAB_BENCHMARK.json),
+[точность](GLM53_FLASH_SLAB_CHECK.json), [pipe](GLM53_FLASH_SLAB_PIPE.json),
+[HTTP](GLM53_FLASH_SLAB_API.json), [manifest](GLM53_FLASH_SLAB_VALIDATION.json).
+
+**Следующая работа:** уменьшить перестройку кэша первого запроса; проверить
+прогрев по сохранённым hot expert IDs и дополнительные prompts/контексты.
+P4 session snapshots/restore остаётся открыт.
+
+### P3.3f — 2026-10-04, 23:30 Asia/Yekaterinburg — Сохранённый прогрев экспертного кэша
+
+**Статус:** DONE для опционального механизма; ускорение первого запроса не
+подтверждено. Исполнитель: Codex. Изменения поверх P3.3d/e в рабочем дереве,
+без нового коммита.
+
+**Изменение:** завершённый запрос может сохранять частые резидентные expert IDs
+в атомарно заменяемый JSON. При загрузке он используется для порядка заполнения
+VRAM cache. Проверяются модель и геометрия тензоров; повреждённые/чужие hints
+отклоняются без перезаписи. Нет prompt/token/KV state; веса берутся из GGUF.
+Admission scores при восстановлении ограничены 8 для адаптации новой нагрузке.
+Добавлены telemetry и `tools/benchmark_glm5next_warm.py`.
+
+**Измерение:** Windows / Ryzen 9950X / RTX 5090 32 ГиБ / 128 ГиБ RAM, IQ3_XXS,
+MTP off, slabs16, targets95. Девять обучающих запросов, 5978 сохранённых матриц,
+затем замороженный файл и три чередующиеся пары перезапусков. Первый запрос A:
+медиана **68,68 → 97,85 с**, TTFT **27,05 → 64,45 с**, чтение/H2D
+**126,99 → 98,60 ГиБ**. Медиана warm decode **8,034 → 10,907 ток/с**, но диапазон
+нового варианта **1,752–11,173** не подтверждает стабильного выигрыша.
+Новый prompt B: одна пара дала первый ответ **232,69 → 29,85 с**, третий повтор
+**10,789 → 11,961 ток/с**. Порядок B off/learned фиксирован; OS file cache не
+очищался. Результат B не отменяет регрессию основной серии.
+
+**Проверки:** 19/19 candidate и 13/13 transport/cache CTest; 83 Python tests.
+31 ответ A совпал с сохранённым reference; пять последующих B — с первым B-off.
+Реальный MTP-off прогон с загруженными hints: **9 912 320 F32 logits bit-exact**.
+9 native pipe и 8 HTTP cases прошли, включая seeded sampling, cancel/disconnect,
+следующий запрос, OpenAI/Anthropic JSON/SSE и unload. Engine/server exit0.
+Source/binary hashes сверены; четыре generated арифметических/loader/backend
+units совпадают с P3.3e.
+
+**Решение:** `STRATA_GLM_EXPERT_PROFILE` не задан в локальном профиле; learned
+warmup остаётся выключенным. MTP off / slabs16 / targets95 и остальные настройки
+скорости сохранены. Обновлён backend patch identity под новую сборку.
+Следующий шаг — измерить hard/soft page faults и проверить прогрев RAM без
+лишнего удержания страниц весов, уже имеющихся в VRAM. Это ещё не реализовано.
+P4 reuse, длинный контекст, Linux/HIP и полные Qwen/DeepSeek не проверялись.
+
+**Артефакты:** [описание и ограничения](GLM53_FLASH_PIPELINE_MTP.md),
+[все 37 benchmark requests](GLM53_FLASH_WARM_BENCHMARK.json),
+[замороженные hints](GLM53_FLASH_WARM_HINTS.json),
+[точность](GLM53_FLASH_WARM_CHECK.json), [pipe](GLM53_FLASH_WARM_PIPE.json),
+[HTTP](GLM53_FLASH_WARM_API.json), [manifest](GLM53_FLASH_WARM_VALIDATION.json).
 
 ## Шаблон следующей записи
 

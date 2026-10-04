@@ -1,6 +1,8 @@
 #include "runtime_memory.hpp"
 #include "expert_memory.hpp"
 #include "expert_dispatch.hpp"
+#include "expert_slab.hpp"
+#include "expert_warm_profile.hpp"
 #include "gpu_trace.hpp"
 #include "llama-model.h"
 #include <atomic>
@@ -59,10 +61,26 @@ struct RuntimeMemory::Impl {
     cudaStream_t stream=nullptr;
     cudaEvent_t scratch_released=nullptr,copy_ready=nullptr;
     int event_copy=0; // 0 host waits; 1 per range; 2 one fence per expert tensor.
+    int decode_readers=1;
+    bool write_combined=false;
+    uint64_t main_cache_decay=4096;
+    bool pool_reclaim=false;
+    uint64_t pool_reclaims=0;
+    double pool_reclaim_ms=0;
     uint64_t copy_fences=0;
     cudaMemPool_t pool=nullptr;
+    std::shared_ptr<ExpertSlabAllocator> slab;
+    size_t slab_mib=0;
+    std::filesystem::path profile_path;
+    nlohmann::json profile_identity;
+    WarmProfile warm_profile;
+    bool profile_read_only=false;
+    size_t profile_loaded=0,profile_saved=0;
+    double profile_save_ms=0;
+    std::map<std::string,size_t> profile_tensor_index;
     void * staging=nullptr;
     uint64_t ram_touched=0,working_set_limit=0,d2d_bytes=0;
+    std::string ram_warm_stop="off";
     double warm_ms=0;
     bool hook=false;
 #ifdef _WIN32
@@ -77,6 +95,7 @@ struct RuntimeMemory::Impl {
         dispatch.reset(); transport.reset();
         if (stream) cudaStreamSynchronize(stream);
         controller.reset(); cache.reset(); // Drain leases before releasing stream/source.
+        slab.reset();
         if (stream) cudaStreamSynchronize(stream);
         if (pool) cudaMemPoolDestroy(pool);
         if (staging) cudaFreeHost(staging);
@@ -130,6 +149,25 @@ struct RuntimeMemory::Impl {
             tensor_index[t]=tensors.size(); tensors.push_back({t,std::move(k)});
         }
         require(!tensors.empty(),"no routed expert tensors found");
+        if(const auto *value=std::getenv("STRATA_GLM_EXPERT_PROFILE")) {
+            if(*value) {
+                profile_path=std::filesystem::u8path(value);
+                profile_identity={{"model",identity},{"file_bytes",std::filesystem::file_size(path_from_identity())},
+                    {"file_time",std::filesystem::last_write_time(path_from_identity()).time_since_epoch().count()},
+                    {"tensors",nlohmann::json::array()}};
+                std::vector<size_t> counts;
+                for(size_t i=0;i<tensors.size();++i) {
+                    const auto *t=tensors[i].first;const auto &k=tensors[i].second;
+                    profile_tensor_index[k.shard]=i;counts.push_back(size_t(t->ne[2]));
+                    profile_identity["tensors"].push_back({k.shard,k.quant,t->ne[0],t->ne[1],t->ne[2],t->nb[2]});
+                }
+                warm_profile=read_warm_profile(profile_path,profile_identity,counts);
+            }
+        }
+        if(const auto *value=std::getenv("STRATA_GLM_EXPERT_PROFILE_READ_ONLY")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_EXPERT_PROFILE_READ_ONLY must be 0 or 1");
+            profile_read_only=*value=='1';
+        }
         ram_limit();
         if (!vram_percent && !pipeline_enabled) return;
         require(chunk_mib>=1 && chunk_mib<=16,"expert chunk must be 1..16 MiB");
@@ -138,9 +176,46 @@ struct RuntimeMemory::Impl {
         policy.target_mib=(total/100*vram_percent)/MiB;
         policy.reserve_mib=std::max<uint64_t>(128,(total-total/100*vram_percent+MiB-1)/MiB);
         ExpertCache::Admission admission; admission.frequency=true; admission.separate_branches=true;
+        if (const auto * value=std::getenv("STRATA_GLM_MAIN_CACHE_DECAY")) {
+            const auto n=std::strlen(value);
+            require(n>0 && n<=7 && std::all_of(value,value+n,[](char c){return c>='0' && c<='9';}),"STRATA_GLM_MAIN_CACHE_DECAY must be 1..1048576");
+            main_cache_decay=std::stoul(value);
+            require(main_cache_decay>=1 && main_cache_decay<=1048576,"STRATA_GLM_MAIN_CACHE_DECAY must be 1..1048576");
+        }
+        admission.decay_period=main_cache_decay;
+        admission.mtp_decay_period=4096; // One draft layer has a much shorter access stream.
+        if (const auto * value=std::getenv("STRATA_GLM_POOL_RECLAIM")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_POOL_RECLAIM must be 0 or 1");
+            pool_reclaim=value[0]=='1';
+        }
         cuda_check(cudaStreamCreateWithFlags(&stream,cudaStreamNonBlocking));
         int supports_pool=0; cuda_check(cudaDeviceGetAttribute(&supports_pool,cudaDevAttrMemoryPoolsSupported,0));
-        if (supports_pool) {
+        if (const auto * value=std::getenv("STRATA_GLM_MEMORY_POOL")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_MEMORY_POOL must be 0 or 1");
+            if (value[0]=='0') supports_pool=0;
+        }
+        if (const auto * value=std::getenv("STRATA_GLM_CACHE_SLAB_MIB")) {
+            const auto n=std::strlen(value);
+            require(n>0 && n<=3 && std::all_of(value,value+n,[](char c){return c>='0' && c<='9';}),"STRATA_GLM_CACHE_SLAB_MIB must be 0 or 4..256");
+            slab_mib=std::stoul(value);
+            require(slab_mib==0 || (slab_mib>=4 && slab_mib<=256),"STRATA_GLM_CACHE_SLAB_MIB must be 0 or 4..256");
+        }
+        if (slab_mib) {
+            policy.reserve_mib+=2; // Same physical margin as the slab growth check.
+            slab=std::make_shared<ExpertSlabAllocator>(slab_mib*MiB,[this](size_t bytes) {
+                if(!vram_percent)return bytes;
+                size_t available=0,capacity=0;
+                if(!probe(0,available,capacity) || !capacity || available>capacity)return size_t(0);
+                const size_t reserve=capacity-capacity/100*vram_percent;
+                // A new block consumes more than the first entry's logical
+                // bytes. Check physical headroom before committing the block;
+                // retain 2 MiB for driver allocation granularity/sample lag.
+                return available>=reserve && available-reserve>=2*MiB?std::min(bytes,available-reserve-2*MiB):size_t(0);
+            });
+            cache=std::make_unique<ExpertCache>(0,admission,
+                [allocator=slab](void **p,size_t n){return allocator->allocate(p,n);},
+                [allocator=slab](void *p){return allocator->release(p);});
+        } else if (supports_pool) {
             cudaMemPoolProps props{}; props.allocType=cudaMemAllocationTypePinned;
             props.location.type=cudaMemLocationTypeDevice; props.location.id=0;
             cuda_check(cudaMemPoolCreate(&pool,&props));
@@ -152,6 +227,14 @@ struct RuntimeMemory::Impl {
         } else cache=std::make_unique<ExpertCache>(0,admission);
         cache->set_branch_budgets(std::numeric_limits<size_t>::max(),mtp_cache_mib*MiB);
         if (pipeline_enabled) {
+            if (const auto * value=std::getenv("STRATA_GLM_DECODE_READERS")) {
+                require(std::strlen(value)==1 && value[0]>='1' && value[0]<='4',"STRATA_GLM_DECODE_READERS must be 1..4");
+                decode_readers=value[0]-'0';
+            }
+            if (const auto * value=std::getenv("STRATA_GLM_WRITE_COMBINED")) {
+                require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_WRITE_COMBINED must be 0 or 1");
+                write_combined=value[0]=='1';
+            }
             if (const auto * value=std::getenv("STRATA_GLM_COPY_EVENTS")) {
                 require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0 || std::strcmp(value,"2")==0,"STRATA_GLM_COPY_EVENTS must be 0, 1 or 2");
                 event_copy=std::atoi(value);
@@ -165,9 +248,22 @@ struct RuntimeMemory::Impl {
                 trace=std::make_unique<GpuTrace>(std::stoi(n));
                 observer=[this](cudaStream_t stream,bool begin,size_t) {trace->record(stream,nullptr,begin);};
             }
-            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,false,2,0,std::move(observer));
+            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,write_combined,std::max(2,decode_readers),0,std::move(observer),decode_readers);
         }
-        if (vram_percent) controller=std::make_unique<ExpertMemoryController>(*cache,total,policy,probe);
+        if (vram_percent) controller=std::make_unique<ExpertMemoryController>(*cache,total,policy,
+            [this](int device,size_t &free,size_t &total) {
+                if (pool && pool_reclaim) {
+                    // Only on actual budget samples, at safe dispatch boundaries
+                    // (500 ms cadence in decode). Host-observe async frees before
+                    // trimming; otherwise unused pool pages count as non-cache
+                    // pressure and repeatedly shrink the logical cache budget.
+                    const auto started=Clock::now();
+                    cuda_check(cudaStreamSynchronize(stream));
+                    cuda_check(cudaMemPoolTrimTo(pool,0));
+                    ++pool_reclaims;pool_reclaim_ms+=milliseconds(started);
+                }
+                return probe(device,free,total);
+            });
         cuda_check(cudaHostAlloc(&staging,staging_size,cudaHostAllocDefault));
         if (controller) require(controller->refresh().sample_valid,"initial global VRAM sample invalid");
         strata_glm_sync_copy_hook([](void * owner,ggml_backend * backend,ggml_tensor * dst,const ggml_tensor * src,
@@ -284,11 +380,41 @@ struct RuntimeMemory::Impl {
         }
         cuda_check(cudaStreamSynchronize(stream));
     }
+    std::filesystem::path path_from_identity() const {return std::filesystem::u8path(identity);}
+    void checkpoint() {
+        if(profile_path.empty() || profile_read_only || !warm_profile.writable || !cache)return;
+        auto start=Clock::now();
+        try {
+            std::vector<WarmExpert> entries;
+            for(const auto &item:cache->warm_entries()) {
+                const auto index=profile_tensor_index.at(item.first.shard);
+                entries.push_back({index,item.first.expert,item.second});
+            }
+            if(!entries.empty()) {write_warm_profile(profile_path,profile_identity,entries);profile_saved=entries.size();}
+        }catch(const std::exception &e) {
+            warm_profile.writable=false;
+            std::cerr<<"STRATA_GLM expert profile save disabled: "<<e.what()<<"\n";
+        }
+        profile_save_ms+=milliseconds(start);
+    }
     void warm() {
         if (!ram_percent && !vram_percent && !pipeline_enabled) return;
         auto start=Clock::now();
         if (cache) {
             strata_glm_sync_stats unused{};
+            // Load learned resident entries in descending frequency order.
+            // These are placement hints; all weights still come from this model.
+            for(const auto &entry:warm_profile.entries) {
+                const auto *t=tensors[entry.tensor].first;const auto k=key(t,entry.expert);
+                if(controller)controller->refresh_if_due(std::chrono::milliseconds(100));
+                if(k.bytes>cache->byte_budget()-std::min(cache->byte_budget(),cache->resident_bytes()) ||
+                   k.bytes>cache->byte_budget(k.branch)-std::min(cache->byte_budget(k.branch),cache->resident_bytes(k.branch)))continue;
+                const auto *source=static_cast<const uint8_t *>(t->data)+k.offset;
+                auto lease=cache->get(k,std::shared_ptr<const void>(model,source),stream,
+                    [&](void *dest,size_t n,cudaStream_t){upload(dest,source,n,unused);});
+                if(lease) {cache->seed_frequency(k,entry.score);++profile_loaded;}
+                lease.release();cuda_check(cudaStreamSynchronize(stream));
+            }
             // Round-robin layers/projections to avoid filling only early layers.
             for (int expert=0;;++expert) {
                 bool eligible=false,full=false;
@@ -296,6 +422,7 @@ struct RuntimeMemory::Impl {
                     const auto * t=item.first; if (expert>=t->ne[2]) continue; eligible=true;
                     if (controller) controller->refresh_if_due(std::chrono::milliseconds(100));
                     const auto k=key(t,expert);
+                    if(cache->resident(k))continue;
                     if (cache->resident_bytes()+k.bytes>cache->byte_budget()) {full=true;break;}
                     if (k.bytes>cache->byte_budget(k.branch)-std::min(cache->byte_budget(k.branch),cache->resident_bytes(k.branch))) continue;
                     const auto * source=static_cast<const uint8_t *>(t->data)+k.offset;
@@ -310,13 +437,20 @@ struct RuntimeMemory::Impl {
         }
         if (ram_percent) {
             ram_limit();
+            ram_warm_stop="all_experts";
             volatile uint8_t sink=0;
             bool full=false;
             for (const auto & item:tensors) {
                 const auto * t=item.first; auto * source=static_cast<const volatile uint8_t *>(t->data);
                 for (size_t offset=0;offset<ggml_nbytes(t);) {
                     const auto r=ram();
-                    if (r.total-r.available>=r.total/100*ram_percent) {full=true;break;}
+                    if (r.total-r.available>=r.total/100*ram_percent) {ram_warm_stop="global_target";full=true;break;}
+                    // A hard Windows working-set cap can be reached before the
+                    // global target. Further touches then evict earlier pages
+                    // instead of warming more RAM. Leave one scan chunk free.
+                    if (working_set_limit && r.working_set>=working_set_limit-std::min<uint64_t>(working_set_limit,32*MiB)) {
+                        ram_warm_stop="working_set_limit";full=true;break;
+                    }
                     const auto end=std::min(offset+32*MiB,ggml_nbytes(t));
                     for (size_t p=offset;p<end;p+=4096) sink=uint8_t(sink^source[p]);
                     ram_touched+=end-offset; offset=end;
@@ -333,9 +467,30 @@ struct RuntimeMemory::Impl {
         nlohmann::json result={{"ram_target_percent",ram_percent},{"vram_target_percent",vram_percent},
             {"ram_total_bytes",r.total},{"ram_used_bytes",r.total-r.available},{"working_set_bytes",r.working_set},
             {"working_set_limit_bytes",working_set_limit},{"ram_warm_touched_bytes",ram_touched},{"warm_ms",warm_ms},
+            {"ram_warm_stop",ram_warm_stop},
             {"global_vram_valid",valid},{"global_vram_total_bytes",total},{"global_vram_used_bytes",total-free},
             {"cache_resident_bytes",cache?cache->resident_bytes():0},{"cache_budget_bytes",cache?cache->byte_budget():0},
             {"cache_d2d_bytes",d2d_bytes},{"cuda_memory_pool",pool!=nullptr}};
+        result["expert_cache_slab_mib"]=slab_mib;
+        result["expert_warm_profile"]={{"status",profile_path.empty()?"off":warm_profile.status},
+            {"read_only",profile_read_only},{"writable",!profile_path.empty() && warm_profile.writable && !profile_read_only},
+            {"candidates",warm_profile.entries.size()},{"loaded",profile_loaded},{"saved",profile_saved},
+            {"save_ms",profile_save_ms}};
+        if(slab) {
+            const auto s=slab->status();
+            result["cache_slab"]={{"reserved_bytes",s.reserved},{"requested_bytes",s.requested},
+                {"slot_bytes",s.slot_bytes},{"unused_bytes",s.reserved-s.requested},{"blocks",s.blocks},
+                {"allocations",s.allocations},{"block_allocations",s.block_allocations},
+                {"reuses",s.reuses},{"growth_denied",s.growth_denied},{"partial_blocks",s.partial_blocks}};
+        }
+        if (pool) {
+            uint64_t reserved=0,used=0;
+            cuda_check(cudaMemPoolGetAttribute(pool,cudaMemPoolAttrReservedMemCurrent,&reserved));
+            cuda_check(cudaMemPoolGetAttribute(pool,cudaMemPoolAttrUsedMemCurrent,&used));
+            result["cache_pool_reserved_bytes"]=reserved;
+            result["cache_pool_used_bytes"]=used;
+            result["cache_pool_unused_bytes"]=reserved-std::min(reserved,used);
+        }
         if (cache) {
             result["main_cache_bytes"]=cache->resident_bytes(Branch::main);
             result["mtp_cache_bytes"]=cache->resident_bytes(Branch::mtp);
@@ -348,6 +503,13 @@ struct RuntimeMemory::Impl {
         }
         result["expert_pipeline"]=pipeline_enabled;
         result["expert_copy_events"]=event_copy;
+        result["expert_decode_readers"]=decode_readers;
+        result["expert_write_combined"]=int(write_combined);
+        result["main_cache_decay"]=main_cache_decay;
+        result["mtp_cache_decay"]=4096;
+        result["expert_pool_reclaim"]=int(pool_reclaim);
+        result["pool_reclaims"]=pool_reclaims;
+        result["pool_reclaim_ms"]=pool_reclaim_ms;
         result["expert_copy_fences"]=copy_fences;
         if (trace) result["gpu_trace"]=trace->snapshot();
         if (transport) {
@@ -366,5 +528,6 @@ RuntimeMemory::RuntimeMemory(Model model,const std::string & path,int ram_percen
 RuntimeMemory::~RuntimeMemory()=default;
 void RuntimeMemory::warm() {impl->warm();}
 void RuntimeMemory::refresh() {impl->ram_limit(); if (impl->controller) impl->controller->refresh();}
+void RuntimeMemory::checkpoint() {impl->checkpoint();}
 nlohmann::json RuntimeMemory::snapshot() const {return impl->snapshot();}
 }

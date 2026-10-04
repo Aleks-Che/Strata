@@ -1,0 +1,2747 @@
+{
+  "status": "pass",
+  "cases": [
+    {
+      "name": "openai JSON",
+      "wall_seconds": 19.89000000001397,
+      "response": {
+        "id": "chatcmpl-65cae57641a645c4aba620b5",
+        "object": "chat.completion",
+        "created": 1791138523,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for MoE Models on a Single GPU\n\nMixture-of-experts (MoE) models contain many \"expert\" feed-forward subnetworks, but only a few are activated per token. This sparsity creates an opportunity: instead of keeping all experts in GPU memory, you can"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 64,
+          "total_tokens": 103,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 9623.5,
+          "prompt_per_token_ms": 246.757,
+          "prompt_per_second": 4.1,
+          "predicted_n": 64,
+          "predicted_ms": 10233.5,
+          "predicted_per_token_ms": 159.898,
+          "predicted_per_second": 6.3,
+          "draft_n": 0,
+          "draft_n_accepted": 0
+        }
+      }
+    },
+    {
+      "name": "openai SSE",
+      "wall_seconds": 8.452999999979511,
+      "response": [
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "role": "assistant",
+                "content": ""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "#"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " As"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "ynchronous"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Expert"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Off"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "loading"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " for"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Mo"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "E"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Models"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " on"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " a"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Single"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " GPU"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "\n\n"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "M"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "ixture"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-of"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-exp"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "erts"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " ("
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "Mo"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "E"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ")"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " models"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " contain"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " many"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " \""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "expert"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "\""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " feed"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-forward"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " sub"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "network"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "s"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ","
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " but"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " only"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " a"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " few"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " are"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " activated"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " per"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " token"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "."
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " This"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " sp"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "arsity"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " creates"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " an"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " opportunity"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ":"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " instead"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " of"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " keeping"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " all"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " experts"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " in"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " GPU"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " memory"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ","
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " you"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " can"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-fbdacc99076247d29ec9553f",
+          "object": "chat.completion.chunk",
+          "created": 1791138543,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {},
+              "finish_reason": "length"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 39,
+            "completion_tokens": 64,
+            "total_tokens": 103,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 39,
+            "prompt_ms": 2509.2,
+            "prompt_per_token_ms": 64.337,
+            "prompt_per_second": 15.5,
+            "predicted_n": 64,
+            "predicted_ms": 5916.5,
+            "predicted_per_token_ms": 92.446,
+            "predicted_per_second": 10.8,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "anthropic JSON",
+      "wall_seconds": 7.797000000020489,
+      "response": {
+        "id": "msg_959e465d5f854bdeaaa57230",
+        "type": "message",
+        "role": "assistant",
+        "model": "glm-5.3-flash",
+        "content": [
+          {
+            "type": "text",
+            "text": "# Asynchronous Expert Offloading for MoE Models on a Single GPU\n\nMixture-of-experts (MoE) models contain many \"expert\" feed-forward subnetworks, but only a few are activated per token. This sparsity creates an opportunity: instead of keeping all experts in GPU memory, you can"
+          }
+        ],
+        "stop_reason": "max_tokens",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 39,
+          "output_tokens": 64,
+          "cache_read_input_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "anthropic SSE",
+      "wall_seconds": 7.562999999994645,
+      "response": [
+        {
+          "type": "message_start",
+          "message": {
+            "id": "msg_52e15d7e3e01468690896ee9",
+            "type": "message",
+            "role": "assistant",
+            "model": "glm-5.3-flash",
+            "content": [],
+            "stop_reason": null,
+            "stop_sequence": null,
+            "usage": {
+              "input_tokens": 39,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "#"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " As"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ynchronous"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Expert"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Off"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "loading"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " for"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Mo"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "E"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Models"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " on"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " a"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Single"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " GPU"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "\n\n"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "M"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ixture"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-of"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-exp"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "erts"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " ("
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "Mo"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "E"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ")"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " models"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " contain"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " many"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " \""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "expert"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "\""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " feed"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-forward"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " sub"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "network"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "s"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ","
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " but"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " only"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " a"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " few"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " are"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " activated"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " per"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " token"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "."
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " This"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " sp"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "arsity"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " creates"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " an"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " opportunity"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ":"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " instead"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " of"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " keeping"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " all"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " experts"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " in"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " GPU"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " memory"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ","
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " you"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " can"
+          }
+        },
+        {
+          "type": "content_block_stop",
+          "index": 0
+        },
+        {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "max_tokens",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 39,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 64
+          }
+        },
+        {
+          "type": "message_stop"
+        }
+      ]
+    },
+    {
+      "name": "HTTP disconnect prefill",
+      "cancel_seconds": 1.8910000000032596,
+      "last_request": {
+        "projection": null,
+        "time": 1791138567.4303436,
+        "duration_s": 1.8,
+        "finish": "cancel",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 0,
+        "engine_generated": 0,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 1811.71,
+        "decode_ms": 0.0005,
+        "decode_tok_s": null,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      }
+    },
+    {
+      "name": "clean after HTTP prefill",
+      "response": {
+        "id": "chatcmpl-03091778ab92459484dfbf8f",
+        "object": "chat.completion",
+        "created": 1791138569,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 8,
+          "total_tokens": 47,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 2206.9,
+          "prompt_per_token_ms": 56.588,
+          "prompt_per_second": 17.7,
+          "predicted_n": 8,
+          "predicted_ms": 752.5,
+          "predicted_per_token_ms": 94.063,
+          "predicted_per_second": 10.6,
+          "draft_n": 0,
+          "draft_n_accepted": 0
+        }
+      }
+    },
+    {
+      "name": "HTTP disconnect decode",
+      "cancel_seconds": 0.34400000001187436,
+      "last_request": {
+        "projection": null,
+        "time": 1791138572.9203548,
+        "duration_s": 2.5,
+        "finish": "disconnect",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 4,
+        "engine_generated": 4,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2105.29,
+        "decode_ms": 400.871,
+        "decode_tok_s": 10.0,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      }
+    },
+    {
+      "name": "clean after HTTP decode",
+      "response": {
+        "id": "chatcmpl-bdaf08ff542840fd94183c5d",
+        "object": "chat.completion",
+        "created": 1791138575,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 8,
+          "total_tokens": 47,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 2069.1,
+          "prompt_per_token_ms": 53.054,
+          "prompt_per_second": 18.8,
+          "predicted_n": 8,
+          "predicted_ms": 611.5,
+          "predicted_per_token_ms": 76.443,
+          "predicted_per_second": 13.1,
+          "draft_n": 0,
+          "draft_n_accepted": 0
+        }
+      }
+    }
+  ],
+  "profile": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-warm-selected.json",
+  "models": {
+    "object": "list",
+    "data": [
+      {
+        "id": "glm-5.3-flash",
+        "object": "model",
+        "status": {
+          "value": "loaded"
+        },
+        "meta": {
+          "n_ctx": 2048
+        },
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        }
+      }
+    ]
+  },
+  "engine": {
+    "version": "glm5next-native",
+    "engine": "glm5next-native",
+    "architecture": "glm5next",
+    "backend": "llama.cpp",
+    "mtp": 0,
+    "spec": 0,
+    "draft_tokens": 0,
+    "speculative": "none",
+    "expert_storage": "mmap",
+    "expert_compute": "gpu",
+    "gpu_only": 1,
+    "expert_cache_mib": 17882,
+    "ram_target_percent": 95,
+    "vram_target_percent": 95,
+    "expert_stage_mib": 16,
+    "expert_pipeline": 1,
+    "expert_copy_events": 2,
+    "expert_decode_readers": 1,
+    "expert_write_combined": 0,
+    "main_cache_decay": 131072,
+    "expert_pool_reclaim": 0,
+    "expert_memory_pool": 0,
+    "expert_cache_slab_mib": 16,
+    "expert_warm_entries": 5978,
+    "expert_read_mode": "mmap",
+    "kv": "fp16",
+    "flash_attention": 0,
+    "tf32": 0,
+    "tokenwise_small_batch": 1,
+    "conversation_cache": 0,
+    "model": "glm-5.3-flash",
+    "max_context": 2048,
+    "images": false,
+    "reasoning": {
+      "efforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "default": "max",
+      "clear_thinking": true,
+      "replay_reasoning": true
+    }
+  },
+  "unload": {
+    "status": "unloaded"
+  },
+  "metrics_after_unload": {
+    "engine": {
+      "version": "glm5next-native",
+      "engine": "glm5next-native",
+      "architecture": "glm5next",
+      "backend": "llama.cpp",
+      "mtp": 0,
+      "spec": 0,
+      "draft_tokens": 0,
+      "speculative": "none",
+      "expert_storage": "mmap",
+      "expert_compute": "gpu",
+      "gpu_only": 1,
+      "expert_cache_mib": 17882,
+      "ram_target_percent": 95,
+      "vram_target_percent": 95,
+      "expert_stage_mib": 16,
+      "expert_pipeline": 1,
+      "expert_copy_events": 2,
+      "expert_decode_readers": 1,
+      "expert_write_combined": 0,
+      "main_cache_decay": 131072,
+      "expert_pool_reclaim": 0,
+      "expert_memory_pool": 0,
+      "expert_cache_slab_mib": 16,
+      "expert_warm_entries": 5978,
+      "expert_read_mode": "mmap",
+      "kv": "fp16",
+      "flash_attention": 0,
+      "tf32": 0,
+      "tokenwise_small_batch": 1,
+      "conversation_cache": 0,
+      "model": "glm-5.3-flash",
+      "max_context": 2048,
+      "images": false,
+      "reasoning": {
+        "efforts": [
+          "low",
+          "high",
+          "max"
+        ],
+        "default": "max",
+        "clear_thinking": true,
+        "replay_reasoning": true
+      }
+    },
+    "vram": {
+      "settings": {
+        "mode": "config",
+        "matrices": 0,
+        "target_mib": 0,
+        "reserve_mib": 1024
+      },
+      "supported": false,
+      "alive": false,
+      "pending": false,
+      "persistent": true,
+      "storage_error": null,
+      "live": {}
+    },
+    "conversation_cache": {
+      "retained_bytes": 0,
+      "active_sessions": 0
+    },
+    "live": {
+      "state": "unloaded",
+      "queued": 0,
+      "phase": null,
+      "prompt_tokens": null,
+      "prompt_read": null,
+      "prompt_total": null,
+      "generated": null,
+      "max_tokens": null,
+      "elapsed_s": null,
+      "tok_s": null,
+      "tok_s_mean": null,
+      "prefill_tok_s_mean": null,
+      "tok_s_window_s": null
+    },
+    "requests": [
+      {
+        "projection": null,
+        "time": 1791138575.502483,
+        "duration_s": 2.7,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 8,
+        "engine_generated": 8,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2069.11,
+        "decode_ms": 611.544,
+        "decode_tok_s": 13.1,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138572.9203548,
+        "duration_s": 2.5,
+        "finish": "disconnect",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 4,
+        "engine_generated": 4,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2105.29,
+        "decode_ms": 400.871,
+        "decode_tok_s": 10.0,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138569.3372102,
+        "duration_s": 3.0,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 8,
+        "engine_generated": 8,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2206.93,
+        "decode_ms": 752.504,
+        "decode_tok_s": 10.6,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138567.4303436,
+        "duration_s": 1.8,
+        "finish": "cancel",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 0,
+        "engine_generated": 0,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 1811.71,
+        "decode_ms": 0.0005,
+        "decode_tok_s": null,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138559.867944,
+        "duration_s": 7.6,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2125.7,
+        "decode_ms": 5433.32,
+        "decode_tok_s": 11.8,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138552.0714104,
+        "duration_s": 7.8,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2340.95,
+        "decode_ms": 5452.65,
+        "decode_tok_s": 11.7,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138543.6280057,
+        "duration_s": 8.4,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 2509.15,
+        "decode_ms": 5916.52,
+        "decode_tok_s": 10.8,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791138523.7292907,
+        "duration_s": 19.9,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 9623.53,
+        "decode_ms": 10233.5,
+        "decode_tok_s": 6.3,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      }
+    ],
+    "requests_kept": 8,
+    "totals": {
+      "since": 1791138523.2497761,
+      "requests": 8,
+      "prompt_tokens": 312,
+      "reused": 0,
+      "output_tokens": 276,
+      "prompt_ms": 24792.370000000003,
+      "decode_ms": 28800.909499999998,
+      "drafts_offered": 0,
+      "drafts_accepted": 0
+    },
+    "hardware": {
+      "gpu_util": 0,
+      "gpu_mem_used": 3764895744,
+      "gpu_mem_total": 34190917632,
+      "gpu_temp": 37,
+      "gpu_power": 37.946,
+      "gpu_power_limit": 400.0,
+      "gpu_pcie_gen": 2,
+      "gpu_pcie_gen_max": 5,
+      "gpu_pcie_width": 16,
+      "gpu_pcie_rx_mb": 14.3974609375,
+      "gpu_pcie_tx_mb": 1.3466796875,
+      "cpu": 9.0,
+      "ram_used": 20705533952,
+      "ram_total": 134813700096,
+      "commit_limit": 144399630336,
+      "commit_used": 41837137920,
+      "commit_available": 102562492416,
+      "disk_read_mb": 0.21452993236018522,
+      "disk_write_mb": 0.7126757075016323,
+      "tok_s": 0.0,
+      "tok_s_mean": 0.0,
+      "prefill_tok_s_mean": 0.0
+    },
+    "hardware_static": {
+      "gpu_name": "NVIDIA GeForce RTX 5090",
+      "gpu_count": 1,
+      "cpu_name": "AMD Ryzen 9 9950X 16-Core Processor",
+      "cores": 16,
+      "threads": 32,
+      "psutil": true
+    },
+    "history": {
+      "gpu_util": [
+        0,
+        21,
+        66,
+        2,
+        0,
+        1,
+        12,
+        0,
+        9,
+        8,
+        16,
+        33,
+        27,
+        38,
+        7,
+        33,
+        29,
+        3,
+        38,
+        31,
+        14,
+        54,
+        51,
+        53,
+        51,
+        52,
+        22,
+        54,
+        67,
+        67,
+        56,
+        55,
+        51,
+        57,
+        55,
+        55,
+        64,
+        52,
+        55,
+        52,
+        55,
+        56,
+        60,
+        57,
+        61,
+        66,
+        48,
+        0,
+        70,
+        56,
+        64,
+        52,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "gpu_mem_used": [
+        32516395008,
+        32490475520,
+        32475664384,
+        32482021376,
+        32466554880,
+        32484261888,
+        32480722944,
+        32480788480,
+        32461979648,
+        32475480064,
+        32486293504,
+        32465649664,
+        32483606528,
+        32476725248,
+        32476987392,
+        32467812352,
+        32480460800,
+        32478167040,
+        32478429184,
+        32476463104,
+        32476594176,
+        32476856320,
+        32476987392,
+        32476987392,
+        32476725248,
+        32476987392,
+        32476987392,
+        32477380608,
+        32487604224,
+        32494944256,
+        32495403008,
+        32486817792,
+        32487014400,
+        32487014400,
+        32487407616,
+        32487669760,
+        32479805440,
+        32480067584,
+        32480067584,
+        32478887936,
+        32478298112,
+        32477904896,
+        32713900032,
+        32686080000,
+        32595169280,
+        32515477504,
+        32472813568,
+        32415797248,
+        32415797248,
+        32399839232,
+        32395120640,
+        32353636352,
+        13065408512,
+        13056311296,
+        13056311296,
+        13071450112,
+        13232340992,
+        3764895744
+      ],
+      "gpu_temp": [
+        34,
+        34,
+        36,
+        35,
+        35,
+        36,
+        36,
+        36,
+        35,
+        36,
+        36,
+        37,
+        37,
+        37,
+        37,
+        37,
+        36,
+        37,
+        38,
+        37,
+        37,
+        38,
+        38,
+        39,
+        38,
+        38,
+        38,
+        39,
+        38,
+        38,
+        39,
+        39,
+        39,
+        39,
+        39,
+        39,
+        39,
+        40,
+        40,
+        40,
+        39,
+        39,
+        39,
+        39,
+        39,
+        39,
+        40,
+        39,
+        40,
+        39,
+        40,
+        40,
+        39,
+        38,
+        37,
+        37,
+        37,
+        37
+      ],
+      "gpu_power": [
+        27.38,
+        28.02,
+        104.52,
+        78.34,
+        62.31,
+        60.03,
+        97.56,
+        77.03,
+        49.9,
+        80.06,
+        89.46,
+        99.46,
+        115.57,
+        112.62,
+        109.62,
+        101.81,
+        93.94,
+        93.97,
+        102.75,
+        108.87,
+        108.18,
+        112.43,
+        122.93,
+        138.0,
+        137.38,
+        132.35,
+        126.04,
+        130.86,
+        117.86,
+        119.22,
+        134.23,
+        143.24,
+        143.63,
+        131.97,
+        130.42,
+        126.2,
+        122.8,
+        132.29,
+        145.25,
+        143.78,
+        133.32,
+        130.46,
+        117.7,
+        118.65,
+        110.81,
+        122.19,
+        122.91,
+        102.11,
+        120.57,
+        121.25,
+        119.1,
+        125.08,
+        106.71,
+        80.64,
+        45.2,
+        39.45,
+        40.98,
+        37.95
+      ],
+      "gpu_pcie_rx_mb": [
+        0.58,
+        18783.15,
+        698.02,
+        0.54,
+        556.62,
+        28127.15,
+        372.43,
+        6125.76,
+        883.89,
+        1.2,
+        0.54,
+        3609.21,
+        15842.8,
+        10447.31,
+        16391.61,
+        4752.79,
+        3963.93,
+        5356.35,
+        4878.93,
+        5219.36,
+        20462.36,
+        23981.09,
+        16059.69,
+        6474.62,
+        15001.91,
+        17146.01,
+        18698.04,
+        30055.53,
+        26126.44,
+        15075.81,
+        13626.17,
+        11839.56,
+        19879.15,
+        15031.17,
+        19385.94,
+        20097.66,
+        23944.63,
+        21697.98,
+        15182.49,
+        14123.89,
+        25194.43,
+        12555.72,
+        23119.76,
+        28189.1,
+        26390.76,
+        16398.92,
+        0.33,
+        26017.97,
+        21344.56,
+        19832.15,
+        19040.59,
+        13344.83,
+        1.2,
+        0.43,
+        2.42,
+        1.81,
+        4.92,
+        14.4
+      ],
+      "cpu": [
+        0.0,
+        7.6,
+        11.1,
+        7.6,
+        8.3,
+        15.1,
+        11.2,
+        7.8,
+        5.9,
+        5.5,
+        5.8,
+        6.1,
+        6.5,
+        6.0,
+        7.1,
+        6.6,
+        15.1,
+        6.7,
+        8.1,
+        9.0,
+        13.2,
+        10.3,
+        8.2,
+        9.0,
+        9.5,
+        10.4,
+        9.5,
+        9.3,
+        15.5,
+        15.4,
+        10.5,
+        10.2,
+        11.0,
+        10.5,
+        9.4,
+        12.5,
+        10.4,
+        9.2,
+        10.1,
+        8.8,
+        9.2,
+        8.2,
+        18.2,
+        19.8,
+        17.7,
+        22.1,
+        20.7,
+        12.4,
+        11.5,
+        12.0,
+        12.1,
+        11.4,
+        5.4,
+        4.6,
+        4.3,
+        8.2,
+        5.9,
+        9.0
+      ],
+      "ram_used": [
+        128095633408,
+        128107671552,
+        128037986304,
+        127966150656,
+        128128557056,
+        127900565504,
+        127856070656,
+        127702368256,
+        127702364160,
+        127689809920,
+        127716536320,
+        127801032704,
+        127759962112,
+        127667888128,
+        127689490432,
+        127791767552,
+        127734460416,
+        127538184192,
+        127587770368,
+        127957041152,
+        128015020032,
+        128048099328,
+        128030420992,
+        127908638720,
+        127964483584,
+        127934181376,
+        127845961728,
+        128070942720,
+        127919505408,
+        127975075840,
+        128151130112,
+        127997841408,
+        127970566144,
+        127936069632,
+        127929253888,
+        127914131456,
+        127905042432,
+        127903305728,
+        127899348992,
+        127895715840,
+        127894659072,
+        127916691456,
+        128079667200,
+        127855304704,
+        127813734400,
+        127879180288,
+        127885119488,
+        127835238400,
+        127789215744,
+        127758106624,
+        127747284992,
+        127740039168,
+        123261550592,
+        101270564864,
+        78977241088,
+        56391303168,
+        33515073536,
+        20705533952
+      ],
+      "disk_read_mb": [
+        null,
+        9.56,
+        216.2,
+        379.61,
+        0.19,
+        12.65,
+        210.4,
+        55.62,
+        0.0,
+        106.62,
+        52.46,
+        94.09,
+        116.89,
+        89.87,
+        137.56,
+        171.04,
+        209.1,
+        198.88,
+        131.69,
+        98.97,
+        0.04,
+        0.0,
+        2.46,
+        0.0,
+        0.0,
+        0.24,
+        0.0,
+        0.62,
+        28.09,
+        0.39,
+        0.3,
+        0.09,
+        0.11,
+        11.1,
+        0.03,
+        37.17,
+        0.0,
+        0.14,
+        0.0,
+        0.26,
+        0.28,
+        0.0,
+        0.49,
+        1.57,
+        0.48,
+        8.27,
+        9.45,
+        0.03,
+        0.0,
+        0.03,
+        1.88,
+        0.03,
+        0.09,
+        0.17,
+        0.0,
+        0.0,
+        0.05,
+        0.21
+      ],
+      "tok_s": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        5.16,
+        5.74,
+        8.36,
+        8.03,
+        7.52,
+        6.32,
+        4.71,
+        4.67,
+        5.48,
+        0.0,
+        0.0,
+        0.0,
+        9.79,
+        11.32,
+        12.46,
+        10.89,
+        9.11,
+        0.0,
+        0.0,
+        4.0,
+        11.53,
+        13.27,
+        13.05,
+        10.77,
+        10.18,
+        0.0,
+        0.0,
+        11.56,
+        13.44,
+        12.97,
+        10.78,
+        10.21,
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        11.14,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "prefill_tok_s_mean": [
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "time": 1791138584.9193842
+  },
+  "server_exit_code": 0,
+  "source_report": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-warm-api.json",
+    "sha256": "550160e860012246d564983917ad080afb184669f9b874635c76e17cfa74a6b0"
+  }
+}

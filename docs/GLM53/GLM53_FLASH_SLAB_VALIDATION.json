@@ -1,0 +1,387 @@
+{
+  "date": "2026-10-04",
+  "timezone": "Asia/Yekaterinburg",
+  "status": "pass_for_P3.3e",
+  "base_revision": "b2567acf668ca7a98ac514f060bd27434ee3fd22",
+  "working_tree_changes": true,
+  "prior_stage": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_STAGING_CACHE_VALIDATION.json",
+    "sha256": "c4b6dd3b163eaab7df98e1d68a31f8ae452b9cc0757dd0d9f43c8b32bd732648"
+  },
+  "hardware": "Windows / Ryzen 9 9950X / 128 GiB RAM / RTX 5090 32 GiB",
+  "model": {
+    "path": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+    "file_bytes": 120591950656,
+    "full_hash": "not computed"
+  },
+  "build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache\nmmf_original_sha256=08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1\nmmf_generated_sha256=e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_compiler=C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe\ncuda_version=13.0.48\ncuda_architectures_requested=120\ncuda_architectures=120a\ngraph_validation_enabled=ON\nsync_baseline_enabled=ON\nscope=isolated GLM validation and Strata pipe engine; optional expert cache, router lookahead pipeline and native NextN MTP\n",
+  "final_source_and_binary_hashes": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\expert_slab.hpp",
+      "sha256": "1deb58478c9d9fd271a658914d64b4200a0cec3e826372108120161936214123"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\runtime_memory.cpp",
+      "sha256": "c25f7d7a42617e050b5642b88832a23ee733a12e828a506a56cb6cd8dd442dd3"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\main.cpp",
+      "sha256": "213c7d9a307550f5a380a83739cd9b2627dddb788c1397d5a8101c2ca3f2222f"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\test_expert_cache.cpp",
+      "sha256": "01d7a3d798e16fbd1ae047d1dbb42deacf9b7e5fc64b9a55451b3c3485086631"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\CMakeLists.txt",
+      "sha256": "4125d3697293cb65ced6172f3cd8d8370518404bff7042aacdc59458863ff883"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\RuntimePatches.cmake",
+      "sha256": "4977964b00209a75b2e1ee9859d9256b65e5fb3fffb72ee1df2f50e8b1dd348b"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\tools\\benchmark_glm5next_mtp.py",
+      "sha256": "7039f5eb6e024544cad543e749c6a4fe2f9fde3ca7d91e2bbecd15d3ab309daa"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe",
+      "sha256": "a862ada343d9312570b43892810b6db7346d3b19860aab76d097e0740aeb11fe"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+      "sha256": "aca9fc06081dfa2dd93c74f18ea2c4e39594938a216305b20c7923df80c7e863"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-ops-check.exe",
+      "sha256": "84a18689fb2939957815458491df01f4fb037ab86ddeb027970bded7106866c8"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-quant-check.exe",
+      "sha256": "391af6fd21e3f39fe355458fc721c0fd925fcae7fe0d2187f72a80f82c79020c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe",
+      "sha256": "4f4f9c05d7e1ac722b01bd95d1ba0501e13fbf7637813b7a9d5f61a9a0999f20"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-state-check.exe",
+      "sha256": "07efaa603f40c20a08c53003c90bbd1821a89cd3a24cc6bca08238145a40f784"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-tokenizer.exe",
+      "sha256": "cf5b60f6accae4c8c4610701ba5855028a3fd5f5e3e95a70cc5668c9cb6c223e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+      "sha256": "3b3c9ba7cb8a94a160239dc4551adfe45bd15b73c341cdfe56917060c0dd3740"
+    }
+  ],
+  "generated_units": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-backend.cpp",
+      "sha256": "e2dfe013f927f8821e506e8f6426fa809cfaba7e6858a80797d925b86dcb856c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-loader.cpp",
+      "sha256": "2397f9040e92af49a4b44f61edd291be8e83d05f7e455657bd45d51d3033bf93"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-mmf.cu",
+      "sha256": "e903143325f4b5788a957f51dd2a5848280f6e5f131eb1918ba37111ac8563bc"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\strata-glm-cuda.cu",
+      "sha256": "a071c0a0d28663bc6df784e73e30c251b3da10570b06881eb07846b12404f2b8"
+    }
+  ],
+  "initial_experiment_source_and_binary_hashes": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\expert_slab.hpp",
+      "sha256": "6c1870ed82378603f639bca9b7808adbf62378dbf2805031d463c731a750cff1"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\runtime_memory.cpp",
+      "sha256": "48c1044d90b68e15256b6369153f2632e2848ab9556f7c09578ffc30df5c835f"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\main.cpp",
+      "sha256": "213c7d9a307550f5a380a83739cd9b2627dddb788c1397d5a8101c2ca3f2222f"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\test_expert_cache.cpp",
+      "sha256": "6691b47a705b635c7c31e3fd68a90f47eee0c1ccc2139747b2645fd4e60e15e1"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\CMakeLists.txt",
+      "sha256": "4125d3697293cb65ced6172f3cd8d8370518404bff7042aacdc59458863ff883"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\RuntimePatches.cmake",
+      "sha256": "4977964b00209a75b2e1ee9859d9256b65e5fb3fffb72ee1df2f50e8b1dd348b"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\tools\\benchmark_glm5next_mtp.py",
+      "sha256": "7039f5eb6e024544cad543e749c6a4fe2f9fde3ca7d91e2bbecd15d3ab309daa"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-graph-check.exe",
+      "sha256": "a862ada343d9312570b43892810b6db7346d3b19860aab76d097e0740aeb11fe"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+      "sha256": "72bc8bd9cd7ab8888cb252d3942581a5d01d27e3ad0b035725442d688d23181e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-ops-check.exe",
+      "sha256": "84a18689fb2939957815458491df01f4fb037ab86ddeb027970bded7106866c8"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-quant-check.exe",
+      "sha256": "391af6fd21e3f39fe355458fc721c0fd925fcae7fe0d2187f72a80f82c79020c"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-smoke.exe",
+      "sha256": "13e9a184343f3a97bfe7ed71d104b8829f4c5a06a4a9cf812eaaa9c3c9c752e5"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-state-check.exe",
+      "sha256": "07efaa603f40c20a08c53003c90bbd1821a89cd3a24cc6bca08238145a40f784"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-tokenizer.exe",
+      "sha256": "cf5b60f6accae4c8c4610701ba5855028a3fd5f5e3e95a70cc5668c9cb6c223e"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+      "sha256": "ac02563ec31478cfc81a288d552e0347e4d560dac0a03e5a83a8b3dae1bf6d82"
+    }
+  ],
+  "initial_source_snapshot": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-initial-source.json",
+    "sha256": "4e01bc3961001da2e41eb9fb3632c3ee0900b0c18de5b8840740b0dff407c5aa"
+  },
+  "selected_local_profile": {
+    "architecture": "glm5next",
+    "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+    "cwd": "C:\\work\\git\\my-repos\\Strata",
+    "args": [
+      "--native",
+      "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "--max-context",
+      "2048",
+      "--batch-size",
+      "16",
+      "--threads",
+      "4",
+      "--ram-target-percent",
+      "95",
+      "--vram-target-percent",
+      "95",
+      "--expert-pipeline",
+      "1",
+      "--expert-chunk-mib",
+      "4",
+      "--mtp",
+      "0",
+      "--mtp-cache-mib",
+      "512"
+    ],
+    "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+    "model_name": "glm-5.3-flash",
+    "log": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.log",
+    "host": "127.0.0.1",
+    "port": 8081,
+    "gpu": 0,
+    "sampling": {
+      "temperature": 0
+    },
+    "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+    "backend_identity": {
+      "architecture": "glm5next",
+      "engine": "glm5next-native",
+      "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache",
+      "protocol_version": 1,
+      "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+    },
+    "lib_dirs": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+    ],
+    "env": {
+      "STRATA_GLM_COPY_EVENTS": "2",
+      "STRATA_GLM_DECODE_READERS": "1",
+      "STRATA_GLM_WRITE_COMBINED": "0",
+      "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+      "STRATA_GLM_POOL_RECLAIM": "0",
+      "STRATA_GLM_MEMORY_POOL": "0",
+      "STRATA_GLM_CACHE_SLAB_MIB": "16"
+    }
+  },
+  "profile_file": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.json",
+    "sha256": "b0dc7ed570491df40c64df5d862c4b865af61de4791b44778d5739eb2a13c2a9"
+  },
+  "tested_profile_file": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-selected.json",
+    "sha256": "10079b104abe79dacdc1fc3293e90a825855663c160cc6dc75727e0caa2ce3b1"
+  },
+  "tested_profile_differs_only_in_log_path": true,
+  "benchmark_result": {
+    "final": [
+      {
+        "slab_mib": 0,
+        "median_tokens_per_second": 9.86451171449911,
+        "min_tokens_per_second": 9.728482680984522,
+        "max_tokens_per_second": 10.040016637741857,
+        "main_cache_gib": 12.901659965515137,
+        "whole_request_source_gib": 110.68013095855713,
+        "ram_used_gib": 119.04721069335938,
+        "vram_used_gib": 30.24981689453125,
+        "max_sample_vram_percent": 95.20731744717392,
+        "median_slab_unused_gib": 0.0,
+        "startup_seconds": 20.859000000025844,
+        "first_request_prefill_seconds": 29.9957,
+        "first_request_decode_tokens_per_second": 3.8570326562098227
+      },
+      {
+        "slab_mib": 16,
+        "median_tokens_per_second": 11.763936997581856,
+        "min_tokens_per_second": 10.982995533581816,
+        "max_tokens_per_second": 11.884594923957458,
+        "main_cache_gib": 17.30694341659546,
+        "whole_request_source_gib": 92.00329208374023,
+        "ram_used_gib": 119.05717086791992,
+        "vram_used_gib": 30.243927001953125,
+        "max_sample_vram_percent": 95.07328756095318,
+        "median_slab_unused_gib": 0.26950645446777344,
+        "startup_seconds": 22.35999999998603,
+        "first_request_prefill_seconds": 35.3354,
+        "first_request_decode_tokens_per_second": 2.3154443815558317
+      }
+    ],
+    "median_gain_percent": 19.255137385978482
+  },
+  "correctness": {
+    "mtp_off_real_baseline": {
+      "bit_exact": true,
+      "elements": 9912320,
+      "baseline": "build-local/glm-sync-iq3-repeat.f32",
+      "sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550"
+    },
+    "candidate_ctest": 18,
+    "transport_cache_ctest": 13,
+    "python_tests": 83,
+    "native_pipe_cases": 9,
+    "http_cases": 8,
+    "pipe_exit": 0,
+    "http_exit": 0,
+    "unload": {
+      "status": "unloaded"
+    }
+  },
+  "helpers": [
+    {
+      "file": {
+        "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\build-glm-graph.cmd",
+        "sha256": "984a29a2e45fb64769b7619a92c71a5055300fa8c08c6eb42273645af7c3d193"
+      },
+      "contents": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release \"-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz\" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DSTRATA_GLM_SYNC_BASELINE=ON \"-DPython3_EXECUTABLE=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/python.exe\" -DCMAKE_CUDA_ARCHITECTURES=120 \"-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe\" \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/glm5next-candidate-cuda --config Release -j 4\nif errorlevel 1 exit /b 1\nctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error\nexit /b %errorlevel%\n\n\n"
+    },
+    {
+      "file": {
+        "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\build-glm-transport-memory.cmd",
+        "sha256": "cbef1df31de43bd8e934618ac657ac9a49c59913e62ac57544e4c68729ef9ffb"
+      },
+      "contents": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/glm5next -B build-local/glm5next-transport -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DSTRATA_GLM_TRANSPORT_TESTS_CUDA=ON \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/glm5next-transport --config Release -j 4\nexit /b %errorlevel%\n"
+    },
+    {
+      "file": {
+        "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\run-glm-slab-sweep.py",
+        "sha256": "d0f78ddfa33b1dcc3dbe6d6edc4e485ce889c2354d12423005462809ea267433"
+      },
+      "contents": "import subprocess,sys\nfor slab in [0,16,64]:\n    name=f'glm-slab-{slab}'\n    args=[sys.executable,'tools/benchmark_glm5next_mtp.py','--profile','build-local/glm-slab-profile.json','--reference','docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json','--output',f'build-local/{name}.json','--depths','0','--warmups','4','--repeats','5','--cache-slab-mib',str(slab),'--memory-pool','0']\n    print('START',name,flush=True)\n    with open(f'build-local/{name}.log','w',encoding='utf-8') as out:\n        result=subprocess.run(args,stdout=out,stderr=subprocess.STDOUT)\n    print('END',name,result.returncode,flush=True)\n    if result.returncode:sys.exit(result.returncode)\n"
+    },
+    {
+      "file": {
+        "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\run-glm-slab-final.py",
+        "sha256": "fc669e4b3a5baa539b46be05a12422b33bd1d1d1325bf96fd901f63706d9fe1a"
+      },
+      "contents": "import subprocess,sys\nfor slab in [16,0]:\n    name=f'glm-slab-final-{slab}'\n    args=[sys.executable,'tools/benchmark_glm5next_mtp.py','--profile','build-local/glm-slab-profile.json','--reference','docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json','--output',f'build-local/{name}.json','--depths','0','--warmups','4','--repeats','5','--cache-slab-mib',str(slab),'--memory-pool','0']\n    print('START',name,flush=True)\n    with open(f'build-local/{name}.log','w',encoding='utf-8') as out:result=subprocess.run(args,stdout=out,stderr=subprocess.STDOUT)\n    print('END',name,result.returncode,flush=True)\n    if result.returncode:sys.exit(result.returncode)\n"
+    },
+    {
+      "file": {
+        "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\check-glm-slab-selected.py",
+        "sha256": "26c356387ee68b3f6b7bd92bf017cad99f9800a369c7ac93b3e52211d6ce1032"
+      },
+      "contents": "from pathlib import Path\nimport hashlib,json,os,subprocess,sys\nroot=Path.cwd()\nprofile=json.loads(Path('build-local/glm-slab-profile.json').read_text())\nprofile['env']['STRATA_GLM_CACHE_SLAB_MIB']='16'\nprofile['log']=str(root/'build-local/glm-slab-pipe.engine.log')\nselected=Path('build-local/glm-slab-selected.json')\nselected.write_text(json.dumps(profile,indent=2)+'\\n')\nreference=json.loads(Path('docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json').read_text(encoding='utf-8'))\nenv=os.environ.copy();env.update(profile['env']);env['PATH']=';'.join(profile['lib_dirs'])+';'+env.get('PATH','')\nbinary=root/'build-local/glm5next-candidate-cuda/bin/strata-glm5next-smoke.exe'\nargs=[str(binary),'--model',profile['args'][1],'--input-ids',','.join(map(str,reference['prompt_ids'])),'--ctx','2048','--batch','16','--n-predict','64','--ram-target-percent','95','--vram-target-percent','95','--expert-pipeline','1','--expert-chunk-mib','4','--logits','build-local/glm-slab-real.f32','--report','build-local/glm-slab-real.json']\nprint('START real MTP-off logits',flush=True)\nwith open('build-local/glm-slab-real.log','w',encoding='utf-8') as out:\n    result=subprocess.run(args,env=env,stdout=out,stderr=subprocess.STDOUT)\nassert result.returncode==0,result.returncode\nreport=json.loads(Path('build-local/glm-slab-real.json').read_text())\nassert report['status']=='pass' and report['generated_ids']==reference['generated_ids']\na=Path('build-local/glm-slab-real.f32').read_bytes();b=Path('build-local/glm-sync-iq3-repeat.f32').read_bytes()\nassert a==b and len(a)==9912320*4,'saved logits differ'\nreport['baseline_comparison']={'bit_exact':True,'elements':len(a)//4,'baseline':'build-local/glm-sync-iq3-repeat.f32','sha256':hashlib.sha256(a).hexdigest()}\nreport['command']=args;report['environment']=profile['env']\nPath('docs/GLM53/GLM53_FLASH_SLAB_CHECK.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\\n',encoding='utf-8')\nprint('PASS 9,912,320 F32 values bit-exact; token IDs exact',flush=True)\nfor name,tool in [('pipe','tools/check_glm5next_engine.py'),('api','tools/check_glm5next_api.py')]:\n    profile['log']=str(root/f'build-local/glm-slab-{name}.engine.log')\n    selected.write_text(json.dumps(profile,indent=2)+'\\n')\n    args=[sys.executable,tool,'--profile',str(selected),'--reference','docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json','--output',f'build-local/glm-slab-{name}.json']\n    print('START',name,flush=True)\n    with open(f'build-local/glm-slab-{name}.log','w',encoding='utf-8') as out:\n        result=subprocess.run(args,stdout=out,stderr=subprocess.STDOUT)\n    assert result.returncode==0,(name,result.returncode)\n    print('PASS',name,flush=True)\n"
+    }
+  ],
+  "other_commands": [
+    "ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error",
+    "python -m unittest tools.test_glm5next_profile tools.test_setup_glm5next tools.test_glm5next_build serve.test_glm5next serve.test_glm5next_info serve.test_glm5next_requests serve.test_glm5next_handlers serve.test_glm5next_http serve.test_glm5next_service"
+  ],
+  "cuda_dll_paths": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+  ],
+  "test_logs": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-tail-build.log",
+      "sha256": "b8af8489dc3f72c86357c6801990db8e25a9650206256adf589062ce96bb5c55"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-tail-transport-tests.log",
+      "sha256": "5bd48f287ec2b09a2c2120e2c2cc74e0651ccdf07c448be44b0c29b50dc04b9a"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-python.log",
+      "sha256": "f9a4c277a1ccc5692d42b649b0df8550d04f73bcd1d3a6b9394b66ced96f9a70"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-selected-checks.log",
+      "sha256": "1989e201ff3553c231d2abe6852fd19d7813fa1f63cd1e9b6c283ca466542cbe"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-real.log",
+      "sha256": "b64f0f3dfb8df75ac5f09cd325c615a8ce11cdee675e92b2ffc0a912d6ee7cc2"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-pipe.log",
+      "sha256": "a8e30e116625f6b97f4b20065175025e498d8b61fc57965bb6ce86ed7e998425"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-api.log",
+      "sha256": "2592dbc07a98503f1a20570ec4bb9849b99b9284c02596f3ef83468dfe58cd37"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-slab-api.server.log",
+      "sha256": "c97f92986e4d7f13a635e7835e2fc120f0bc251e908f07e00f183fd59455b5d4"
+    }
+  ],
+  "reports": [
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SLAB_BENCHMARK.json",
+      "sha256": "7304f2348fc577aeff5b2dc87e974a95d0883e232333336070b4c06dc50cf927"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SLAB_CHECK.json",
+      "sha256": "e11d4be366ea82096381687a46dd281ed88d6845e048500ddc05489cbd974bb5"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SLAB_PIPE.json",
+      "sha256": "236b45116f6dd2e9b04339d1442650521fbcbc8810e85c44b6a5ec4573737e20"
+    },
+    {
+      "path": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SLAB_API.json",
+      "sha256": "c766215a7594c176f7fda9029252ef6ebb8e426d81b7850af4e18af851b536aa"
+    }
+  ],
+  "limits": [
+    "One 39-token prompt / 64 output tokens. Four warmups, five timed repeats. Sequential groups on separate binaries; final 16 then 0 uses one binary. No universal optimum claim.",
+    "First request after model loading was slower with slabs in the final comparison. The speed improvement is for warm decoding; OS file cache was not cleared and cold SSD startup was not isolated.",
+    "RAM/VRAM 95% are global sampled targets. Other processes and sample lag can temporarily exceed them. Physical growth is checked before each new slab, with a 2 MiB margin; this is not an atomic reservation.",
+    "Source/H2D byte deltas include prefill and decode. Memory figures are post-request samples. Power consumption was not measured.",
+    "Long context, more prompts, Linux/HIP, real Qwen/DeepSeek and P4 session reuse were not tested in this round. MTP remains off in all real benchmarks and checks; pre-existing native MTP fixtures still pass."
+  ]
+}
