@@ -1,0 +1,2749 @@
+{
+  "status": "pass",
+  "cases": [
+    {
+      "name": "openai JSON",
+      "wall_seconds": 16.75,
+      "response": {
+        "id": "chatcmpl-196eafd6637b4bfc8c918fd9",
+        "object": "chat.completion",
+        "created": 1791122627,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for MoE Models on a Single GPU\n\nMixture-of-experts (MoE) models contain many \"expert\" feed-forward subnetworks, but only a few are activated per token. This sparsity creates an opportunity: instead of keeping all experts in GPU memory, you can"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 64,
+          "total_tokens": 103,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 5750.7,
+          "prompt_per_token_ms": 147.454,
+          "prompt_per_second": 6.8,
+          "predicted_n": 64,
+          "predicted_ms": 10980.2,
+          "predicted_per_token_ms": 171.566,
+          "predicted_per_second": 5.8,
+          "draft_n": 32,
+          "draft_n_accepted": 31
+        }
+      }
+    },
+    {
+      "name": "openai SSE",
+      "wall_seconds": 12.453000000008615,
+      "response": [
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "role": "assistant",
+                "content": ""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "#"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " As"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "ynchronous"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Expert"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Off"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "loading"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " for"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Mo"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "E"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Models"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " on"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " a"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " Single"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " GPU"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "\n\n"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "M"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "ixture"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-of"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-exp"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "erts"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " ("
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "Mo"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "E"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ")"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " models"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " contain"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " many"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " \""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "expert"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "\""
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " feed"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "-forward"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " sub"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "network"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "s"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ","
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " but"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " only"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " a"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " few"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " are"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " activated"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " per"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " token"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "."
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " This"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " sp"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": "arsity"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " creates"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " an"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " opportunity"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ":"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " instead"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " of"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " keeping"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " all"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " experts"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " in"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " GPU"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " memory"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": ","
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " you"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {
+                "content": " can"
+              },
+              "finish_reason": null
+            }
+          ]
+        },
+        {
+          "id": "chatcmpl-7280c97c3fe54d12b7f7cf77",
+          "object": "chat.completion.chunk",
+          "created": 1791122644,
+          "model": "glm-5.3-flash",
+          "choices": [
+            {
+              "index": 0,
+              "delta": {},
+              "finish_reason": "length"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 39,
+            "completion_tokens": 64,
+            "total_tokens": 103,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 39,
+            "prompt_ms": 4394.9,
+            "prompt_per_token_ms": 112.691,
+            "prompt_per_second": 8.9,
+            "predicted_n": 64,
+            "predicted_ms": 7974.3,
+            "predicted_per_token_ms": 124.598,
+            "predicted_per_second": 8.0,
+            "draft_n": 32,
+            "draft_n_accepted": 31
+          }
+        }
+      ]
+    },
+    {
+      "name": "anthropic JSON",
+      "wall_seconds": 11.875,
+      "response": {
+        "id": "msg_99a33db591ba48feb6f9222d",
+        "type": "message",
+        "role": "assistant",
+        "model": "glm-5.3-flash",
+        "content": [
+          {
+            "type": "text",
+            "text": "# Asynchronous Expert Offloading for MoE Models on a Single GPU\n\nMixture-of-experts (MoE) models contain many \"expert\" feed-forward subnetworks, but only a few are activated per token. This sparsity creates an opportunity: instead of keeping all experts in GPU memory, you can"
+          }
+        ],
+        "stop_reason": "max_tokens",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 39,
+          "output_tokens": 64,
+          "cache_read_input_tokens": 0
+        }
+      }
+    },
+    {
+      "name": "anthropic SSE",
+      "wall_seconds": 11.921999999991385,
+      "response": [
+        {
+          "type": "message_start",
+          "message": {
+            "id": "msg_acf3ee4f7fdd42f08681ce56",
+            "type": "message",
+            "role": "assistant",
+            "model": "glm-5.3-flash",
+            "content": [],
+            "stop_reason": null,
+            "stop_sequence": null,
+            "usage": {
+              "input_tokens": 39,
+              "output_tokens": 0
+            }
+          }
+        },
+        {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "#"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " As"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ynchronous"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Expert"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Off"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "loading"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " for"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Mo"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "E"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Models"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " on"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " a"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " Single"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " GPU"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "\n\n"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "M"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "ixture"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-of"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-exp"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "erts"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " ("
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "Mo"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "E"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ")"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " models"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " contain"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " many"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " \""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "expert"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "\""
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " feed"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "-forward"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " sub"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "network"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "s"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ","
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " but"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " only"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " a"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " few"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " are"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " activated"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " per"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " token"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "."
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " This"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " sp"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "arsity"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " creates"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " an"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " opportunity"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ":"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " instead"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " of"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " keeping"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " all"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " experts"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " in"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " GPU"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " memory"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": ","
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " you"
+          }
+        },
+        {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": " can"
+          }
+        },
+        {
+          "type": "content_block_stop",
+          "index": 0
+        },
+        {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "max_tokens",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 39,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 64
+          }
+        },
+        {
+          "type": "message_stop"
+        }
+      ]
+    },
+    {
+      "name": "HTTP disconnect prefill",
+      "cancel_seconds": 3.187000000005355,
+      "last_request": {
+        "projection": null,
+        "time": 1791122680.3204253,
+        "duration_s": 3.2,
+        "finish": "cancel",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 0,
+        "engine_generated": 0,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3180.99,
+        "decode_ms": 0.0001,
+        "decode_tok_s": null,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      }
+    },
+    {
+      "name": "clean after HTTP prefill",
+      "response": {
+        "id": "chatcmpl-b2d93c420c504ea2a68e5dde",
+        "object": "chat.completion",
+        "created": 1791122683,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 8,
+          "total_tokens": 47,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 4013.7,
+          "prompt_per_token_ms": 102.915,
+          "prompt_per_second": 9.7,
+          "predicted_n": 8,
+          "predicted_ms": 935.0,
+          "predicted_per_token_ms": 116.876,
+          "predicted_per_second": 8.6,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        }
+      }
+    },
+    {
+      "name": "HTTP disconnect decode",
+      "cancel_seconds": 0.35899999999674037,
+      "last_request": {
+        "projection": null,
+        "time": 1791122689.0166998,
+        "duration_s": 4.5,
+        "finish": "disconnect",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 4,
+        "engine_generated": 5,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3935.54,
+        "decode_ms": 543.634,
+        "decode_tok_s": 9.2,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 3,
+        "drafts_accepted": 2
+      }
+    },
+    {
+      "name": "clean after HTTP decode",
+      "response": {
+        "id": "chatcmpl-bf39d7d529374f83a7f580eb",
+        "object": "chat.completion",
+        "created": 1791122693,
+        "model": "glm-5.3-flash",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "# Asynchronous Expert Offloading for"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 39,
+          "completion_tokens": 8,
+          "total_tokens": 47,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 39,
+          "prompt_ms": 3823.5,
+          "prompt_per_token_ms": 98.039,
+          "prompt_per_second": 10.2,
+          "predicted_n": 8,
+          "predicted_ms": 904.9,
+          "predicted_per_token_ms": 113.117,
+          "predicted_per_second": 8.8,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        }
+      }
+    }
+  ],
+  "profile": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.json",
+  "models": {
+    "object": "list",
+    "data": [
+      {
+        "id": "glm-5.3-flash",
+        "object": "model",
+        "status": {
+          "value": "loaded"
+        },
+        "meta": {
+          "n_ctx": 2048
+        },
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        }
+      }
+    ]
+  },
+  "engine": {
+    "version": "glm5next-native",
+    "engine": "glm5next-native",
+    "architecture": "glm5next",
+    "backend": "llama.cpp",
+    "mtp": 1,
+    "spec": 1,
+    "draft_tokens": 1,
+    "speculative": "mtp",
+    "expert_storage": "mmap",
+    "expert_compute": "gpu",
+    "gpu_only": 1,
+    "expert_cache_mib": 17403,
+    "ram_target_percent": 95,
+    "vram_target_percent": 95,
+    "expert_stage_mib": 16,
+    "expert_pipeline": 1,
+    "expert_read_mode": "mmap",
+    "kv": "fp16",
+    "flash_attention": 0,
+    "tf32": 0,
+    "tokenwise_small_batch": 1,
+    "conversation_cache": 0,
+    "model": "glm-5.3-flash",
+    "max_context": 2048,
+    "images": false,
+    "reasoning": {
+      "efforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "default": "max",
+      "clear_thinking": true,
+      "replay_reasoning": true
+    }
+  },
+  "unload": {
+    "status": "unloaded"
+  },
+  "metrics_after_unload": {
+    "engine": {
+      "version": "glm5next-native",
+      "engine": "glm5next-native",
+      "architecture": "glm5next",
+      "backend": "llama.cpp",
+      "mtp": 1,
+      "spec": 1,
+      "draft_tokens": 1,
+      "speculative": "mtp",
+      "expert_storage": "mmap",
+      "expert_compute": "gpu",
+      "gpu_only": 1,
+      "expert_cache_mib": 17403,
+      "ram_target_percent": 95,
+      "vram_target_percent": 95,
+      "expert_stage_mib": 16,
+      "expert_pipeline": 1,
+      "expert_read_mode": "mmap",
+      "kv": "fp16",
+      "flash_attention": 0,
+      "tf32": 0,
+      "tokenwise_small_batch": 1,
+      "conversation_cache": 0,
+      "model": "glm-5.3-flash",
+      "max_context": 2048,
+      "images": false,
+      "reasoning": {
+        "efforts": [
+          "low",
+          "high",
+          "max"
+        ],
+        "default": "max",
+        "clear_thinking": true,
+        "replay_reasoning": true
+      }
+    },
+    "vram": {
+      "settings": {
+        "mode": "config",
+        "matrices": 0,
+        "target_mib": 0,
+        "reserve_mib": 1024
+      },
+      "supported": false,
+      "alive": false,
+      "pending": false,
+      "persistent": true,
+      "storage_error": null,
+      "live": {}
+    },
+    "conversation_cache": {
+      "retained_bytes": 0,
+      "active_sessions": 0
+    },
+    "live": {
+      "state": "unloaded",
+      "queued": 0,
+      "phase": null,
+      "prompt_tokens": null,
+      "prompt_read": null,
+      "prompt_total": null,
+      "generated": null,
+      "max_tokens": null,
+      "elapsed_s": null,
+      "tok_s": null,
+      "tok_s_mean": null,
+      "prefill_tok_s_mean": null,
+      "tok_s_window_s": null
+    },
+    "requests": [
+      {
+        "projection": null,
+        "time": 1791122693.5390973,
+        "duration_s": 4.7,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 8,
+        "engine_generated": 8,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3823.54,
+        "decode_ms": 904.937,
+        "decode_tok_s": 8.8,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 3,
+        "drafts_accepted": 3
+      },
+      {
+        "projection": null,
+        "time": 1791122689.0166998,
+        "duration_s": 4.5,
+        "finish": "disconnect",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 4,
+        "engine_generated": 5,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3935.54,
+        "decode_ms": 543.634,
+        "decode_tok_s": 9.2,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 3,
+        "drafts_accepted": 2
+      },
+      {
+        "projection": null,
+        "time": 1791122683.5234668,
+        "duration_s": 5.0,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 8,
+        "engine_generated": 8,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 4013.68,
+        "decode_ms": 935.007,
+        "decode_tok_s": 8.6,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 3,
+        "drafts_accepted": 3
+      },
+      {
+        "projection": null,
+        "time": 1791122680.3204253,
+        "duration_s": 3.2,
+        "finish": "cancel",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 0,
+        "engine_generated": 0,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3180.99,
+        "decode_ms": 0.0001,
+        "decode_tok_s": null,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 0,
+        "drafts_accepted": 0
+      },
+      {
+        "projection": null,
+        "time": 1791122668.407658,
+        "duration_s": 11.9,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 4080.34,
+        "decode_ms": 7817.49,
+        "decode_tok_s": 8.2,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 32,
+        "drafts_accepted": 31
+      },
+      {
+        "projection": null,
+        "time": 1791122656.544887,
+        "duration_s": 11.8,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 3992.7,
+        "decode_ms": 7852.5,
+        "decode_tok_s": 8.2,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 32,
+        "drafts_accepted": 31
+      },
+      {
+        "projection": null,
+        "time": 1791122644.0856202,
+        "duration_s": 12.4,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 4394.95,
+        "decode_ms": 7974.3,
+        "decode_tok_s": 8.0,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 32,
+        "drafts_accepted": 31
+      },
+      {
+        "projection": null,
+        "time": 1791122627.3338783,
+        "duration_s": 16.7,
+        "finish": "length",
+        "prompt_tokens": 39,
+        "reused": 0,
+        "output_tokens": 64,
+        "engine_generated": 64,
+        "cache_source": null,
+        "cache_save_ms": null,
+        "cache_restore_ms": null,
+        "cache_reason": null,
+        "prompt_ms": 5750.69,
+        "decode_ms": 10980.2,
+        "decode_tok_s": 5.8,
+        "hit_rate": null,
+        "ram_blobs": null,
+        "file_blobs": null,
+        "file_mb": null,
+        "drafts_offered": 32,
+        "drafts_accepted": 31
+      }
+    ],
+    "requests_kept": 8,
+    "totals": {
+      "since": 1791122627.096984,
+      "requests": 8,
+      "prompt_tokens": 312,
+      "reused": 0,
+      "output_tokens": 276,
+      "prompt_ms": 33172.43,
+      "decode_ms": 37008.06809999999,
+      "drafts_offered": 137,
+      "drafts_accepted": 132
+    },
+    "hardware": {
+      "gpu_util": 2,
+      "gpu_mem_used": 14379376640,
+      "gpu_mem_total": 34190917632,
+      "gpu_temp": 40,
+      "gpu_power": 53.618,
+      "gpu_power_limit": 400.0,
+      "gpu_pcie_gen": 5,
+      "gpu_pcie_gen_max": 5,
+      "gpu_pcie_width": 16,
+      "gpu_pcie_rx_mb": 22.818359375,
+      "gpu_pcie_tx_mb": 27.6123046875,
+      "cpu": 5.3,
+      "ram_used": 16166477824,
+      "ram_total": 134813700096,
+      "commit_limit": 144399630336,
+      "commit_used": 49925619712,
+      "commit_available": 94474010624,
+      "disk_read_mb": 0.8473009489141718,
+      "disk_write_mb": 0.23180691556247254,
+      "tok_s": 0.0,
+      "tok_s_mean": 0.0,
+      "prefill_tok_s_mean": 0.0
+    },
+    "hardware_static": {
+      "gpu_name": "NVIDIA GeForce RTX 5090",
+      "gpu_count": 1,
+      "cpu_name": "AMD Ryzen 9 9950X 16-Core Processor",
+      "cores": 16,
+      "threads": 32,
+      "psutil": true
+    },
+    "history": {
+      "gpu_util": [
+        47,
+        28,
+        52,
+        22,
+        20,
+        48,
+        66,
+        67,
+        63,
+        38,
+        51,
+        55,
+        57,
+        47,
+        50,
+        55,
+        58,
+        65,
+        67,
+        65,
+        31,
+        54,
+        57,
+        61,
+        52,
+        51,
+        62,
+        59,
+        63,
+        66,
+        67,
+        29,
+        50,
+        57,
+        58,
+        55,
+        54,
+        57,
+        56,
+        58,
+        65,
+        66,
+        67,
+        67,
+        61,
+        36,
+        53,
+        3,
+        67,
+        31,
+        67,
+        65,
+        65,
+        64,
+        57,
+        53,
+        2,
+        2,
+        2,
+        2
+      ],
+      "gpu_mem_used": [
+        32444833792,
+        32444833792,
+        32511942656,
+        32511418368,
+        32477863936,
+        32511418368,
+        32612081664,
+        32578527232,
+        32544972800,
+        32511418368,
+        32511418368,
+        32511418368,
+        32511418368,
+        32444309504,
+        32378773504,
+        32311926784,
+        32278372352,
+        32746758144,
+        32746758144,
+        32750821376,
+        32717266944,
+        32650158080,
+        32515940352,
+        32381722624,
+        32247504896,
+        32113287168,
+        32012623872,
+        32448831488,
+        32851484672,
+        32817930240,
+        32791388160,
+        32791388160,
+        32689414144,
+        32420978688,
+        31984771072,
+        31716335616,
+        32353869824,
+        32655859712,
+        32655859712,
+        32655859712,
+        32655859712,
+        32622305280,
+        32555196416,
+        32454270976,
+        32387162112,
+        32320053248,
+        32286498816,
+        32152215552,
+        32397516800,
+        32575250432,
+        32539074560,
+        32505520128,
+        32505520128,
+        32404856832,
+        32337747968,
+        32337747968,
+        14369415168,
+        14369415168,
+        14369415168,
+        14379376640
+      ],
+      "gpu_temp": [
+        40,
+        39,
+        39,
+        39,
+        39,
+        40,
+        39,
+        39,
+        40,
+        40,
+        40,
+        40,
+        41,
+        40,
+        40,
+        41,
+        41,
+        40,
+        40,
+        40,
+        40,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        41,
+        42,
+        42,
+        42,
+        42,
+        42,
+        42,
+        41,
+        41,
+        41,
+        42,
+        41,
+        41,
+        42,
+        41,
+        42,
+        42,
+        41,
+        42,
+        42,
+        42,
+        42,
+        42,
+        41,
+        41,
+        40,
+        40
+      ],
+      "gpu_power": [
+        120.86,
+        112.58,
+        114.02,
+        113.09,
+        114.77,
+        115.71,
+        109.64,
+        109.23,
+        114.95,
+        114.93,
+        124.77,
+        129.55,
+        131.51,
+        131.95,
+        128.82,
+        126.79,
+        131.07,
+        127.47,
+        117.37,
+        115.69,
+        116.22,
+        126.02,
+        133.22,
+        131.72,
+        133.43,
+        132.44,
+        130.5,
+        131.53,
+        128.19,
+        117.84,
+        115.14,
+        116.42,
+        121.07,
+        133.8,
+        131.42,
+        133.12,
+        131.59,
+        132.25,
+        133.27,
+        131.97,
+        119.12,
+        116.09,
+        115.92,
+        119.15,
+        116.18,
+        117.84,
+        126.57,
+        104.73,
+        118.91,
+        116.02,
+        117.15,
+        124.54,
+        121.58,
+        116.94,
+        116.51,
+        124.27,
+        110.01,
+        83.41,
+        63.3,
+        53.62
+      ],
+      "gpu_pcie_rx_mb": [
+        1143.53,
+        3886.53,
+        19206.39,
+        17576.1,
+        25699.91,
+        763.73,
+        22428.37,
+        30706.12,
+        23625.39,
+        4525.04,
+        15785.05,
+        14304.63,
+        19451.2,
+        8677.2,
+        7247.79,
+        17657.36,
+        24649.66,
+        21604.39,
+        27103.85,
+        29707.93,
+        28046.86,
+        11025.66,
+        12344.61,
+        11701.34,
+        12117.65,
+        24180.8,
+        20383.41,
+        10455.89,
+        22926.02,
+        11193.84,
+        29112.08,
+        26248.31,
+        23775.41,
+        24605.19,
+        13100.7,
+        19417.53,
+        19548.95,
+        23806.52,
+        21527.3,
+        19364.9,
+        20647.01,
+        18914.78,
+        25868.11,
+        25968.11,
+        25035.19,
+        24913.93,
+        12266.96,
+        25944.84,
+        27121.88,
+        26948.77,
+        22389.23,
+        30247.54,
+        23958.01,
+        22611.03,
+        25279.72,
+        22295.64,
+        28.86,
+        22.35,
+        25.37,
+        22.82
+      ],
+      "cpu": [
+        9.9,
+        9.3,
+        8.9,
+        8.3,
+        8.5,
+        9.1,
+        11.9,
+        9.8,
+        11.5,
+        10.6,
+        10.7,
+        9.9,
+        9.1,
+        9.1,
+        13.8,
+        11.7,
+        12.2,
+        12.3,
+        10.1,
+        11.7,
+        10.9,
+        10.3,
+        9.2,
+        9.7,
+        10.1,
+        11.7,
+        9.3,
+        9.5,
+        10.5,
+        12.3,
+        13.4,
+        12.3,
+        10.2,
+        9.8,
+        9.8,
+        11.0,
+        11.0,
+        10.1,
+        9.6,
+        10.4,
+        13.3,
+        11.3,
+        13.3,
+        14.7,
+        11.7,
+        12.3,
+        10.3,
+        9.4,
+        13.1,
+        10.6,
+        11.7,
+        12.5,
+        12.1,
+        11.1,
+        10.7,
+        8.9,
+        4.8,
+        4.0,
+        4.3,
+        5.3
+      ],
+      "ram_used": [
+        127965429760,
+        128053178368,
+        128177061888,
+        128168910848,
+        128087056384,
+        127915524096,
+        128017641472,
+        127855017984,
+        127854481408,
+        127993659392,
+        128086429696,
+        127839383552,
+        127936720896,
+        127997386752,
+        127990730752,
+        127881728000,
+        127935479808,
+        127925104640,
+        127918444544,
+        127914835968,
+        127919030272,
+        127931265024,
+        127920185344,
+        127905009664,
+        127904145408,
+        127928635392,
+        127900299264,
+        127896387584,
+        127895871488,
+        127902879744,
+        127909011456,
+        127907303424,
+        127913734144,
+        127900585984,
+        127925649408,
+        127923269632,
+        127909191680,
+        127895523328,
+        127894913024,
+        127903301632,
+        127924756480,
+        127948288000,
+        127902126080,
+        127885664256,
+        127889809408,
+        127899672576,
+        127910088704,
+        127917375488,
+        127903203328,
+        127901065216,
+        127916810240,
+        127902711808,
+        127898972160,
+        127908986880,
+        127904018432,
+        127907328000,
+        121687556096,
+        106899058688,
+        93436833792,
+        16166477824
+      ],
+      "disk_read_mb": [
+        28.12,
+        11.54,
+        6.06,
+        14.93,
+        12.19,
+        7.03,
+        0.02,
+        0.09,
+        0.14,
+        0.11,
+        0.0,
+        0.03,
+        0.03,
+        0.03,
+        8.67,
+        0.18,
+        0.21,
+        0.03,
+        0.06,
+        0.21,
+        0.08,
+        0.0,
+        0.01,
+        8.89,
+        0.0,
+        0.01,
+        0.0,
+        0.09,
+        0.0,
+        0.03,
+        2.13,
+        0.0,
+        1.1,
+        0.05,
+        0.0,
+        0.43,
+        0.04,
+        0.0,
+        0.0,
+        0.34,
+        0.01,
+        0.11,
+        0.0,
+        0.02,
+        0.06,
+        0.24,
+        0.01,
+        0.21,
+        0.0,
+        0.0,
+        0.08,
+        0.52,
+        0.0,
+        0.12,
+        0.84,
+        0.11,
+        0.12,
+        0.04,
+        0.01,
+        0.85
+      ],
+      "tok_s": [
+        6.76,
+        6.35,
+        6.03,
+        5.19,
+        6.06,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        7.76,
+        8.36,
+        8.99,
+        9.51,
+        8.71,
+        7.46,
+        7.97,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        7.52,
+        8.57,
+        8.95,
+        9.07,
+        8.93,
+        7.8,
+        8.18,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        7.46,
+        8.11,
+        8.94,
+        9.0,
+        8.8,
+        8.04,
+        8.21,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        7.57,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        7.55,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "prefill_tok_s_mean": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "time": 1791122707.1032434
+  },
+  "server_exit_code": 0,
+  "source_report": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-pipeline-mtp-api.json",
+  "source_report_sha256": "c500f94811342ca846eac7386045f7b1b9712244e7a26148ecd57638cf85465f"
+}

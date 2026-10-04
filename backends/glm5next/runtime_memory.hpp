@@ -9,7 +9,7 @@ class RuntimeMemory {
     struct Impl;
     std::unique_ptr<Impl> impl;
 public:
-    RuntimeMemory(Model model, const std::string & path, int ram_percent, int vram_percent);
+    RuntimeMemory(Model model, const std::string & path, int ram_percent, int vram_percent, bool pipeline=false, int chunk_mib=4, size_t mtp_cache_mib=512);
     ~RuntimeMemory();
     RuntimeMemory(const RuntimeMemory &)=delete;
     RuntimeMemory & operator=(const RuntimeMemory &)=delete;

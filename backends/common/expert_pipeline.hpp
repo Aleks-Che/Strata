@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <functional>
 #include <limits>
 #include <mutex>
 #include <stdexcept>
@@ -30,6 +31,9 @@ class StrataExpertPipeline {
     };
 public:
     static constexpr size_t slots=4;
+    // Optional diagnostic observer, immutable for the pipeline's lifetime.
+    // Called around each H2D submission on its actual stream, under copy_mutex.
+    using CopyObserver=std::function<void(cudaStream_t,bool,size_t)>;
     struct Counters {
         uint64_t groups=0,chunks=0,unused=0,h2d_bytes=0,d2d_bytes=0;
         uint64_t read_us=0,wait_us=0,submit_us=0;
@@ -59,6 +63,7 @@ private:
     std::exception_ptr error;
     Counters totals;
     std::vector<std::thread> producers;
+    CopyObserver copy_observer;
 
     static void check(cudaError_t status) {
         if(status!=cudaSuccess)throw std::runtime_error(std::string("expert pipeline: ")+cudaGetErrorString(status));
@@ -110,7 +115,9 @@ private:
                     // Keep copy/event pairs together while readers finish in
                     // arbitrary order. Publication follows event recording.
                     std::lock_guard<std::mutex> submit(copy_mutex);
+                    if(copy_observer)copy_observer(copy,true,job.bytes);
                     check(cudaMemcpyAsync(slot.device,slot.host,job.bytes,cudaMemcpyHostToDevice,copy));
+                    if(copy_observer)copy_observer(copy,false,job.bytes);
                     check(cudaEventRecord(slot.ready,copy));
                 }
                 uint64_t submitted=now_us()-started;
@@ -138,7 +145,8 @@ private:
         if(copy)cudaStreamDestroy(copy);
     }
 public:
-    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0):device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers) {
+    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={})
+        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),copy_observer(std::move(observer)) {
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
         if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
         if(readers<1 || readers>int(slots) || mode<0 || mode>2)throw std::runtime_error("invalid expert reader configuration");

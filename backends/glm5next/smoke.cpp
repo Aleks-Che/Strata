@@ -52,7 +52,8 @@ struct Options {
     std::string model, prompt_file, report, logits_file;
     std::vector<llama_token> ids;
     int predict=64, context=2048, batch=16, ram_percent=0, vram_percent=0;
-    bool resident=false, cpu_embedding=false, candidate_copy=false;
+    bool resident=false, cpu_embedding=false, candidate_copy=false, pipeline=false;
+    int chunk_mib=4;
 };
 using strata_glm::decode;
 static void run(const Options & o, json & report, std::vector<float> * capture=nullptr) {
@@ -62,6 +63,7 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
         {"flash_attention","off"},{"mtp",false},{"NVIDIA_TF32_OVERRIDE","0"},
         {"GGML_OP_OFFLOAD_MIN_BATCH",1},{"sampling","greedy"},{"expert_cache",o.vram_percent!=0},
         {"ram_target_percent",o.ram_percent},{"vram_target_percent",o.vram_percent},
+        {"expert_pipeline",o.pipeline},{"expert_chunk_mib",o.chunk_mib},
         {"transfer",o.candidate_copy ? "candidate selected-range reference (not instrumented)" : o.vram_percent ? "synchronous cache plus 16 MiB pinned staging" : "synchronous 16 MiB pinned staging"}};
     auto & samples=report["memory_samples"]; samples=json::array(); samples.push_back(memory("before_load"));
     auto start=Clock::now(); report["phase"]="load";
@@ -85,7 +87,7 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
     auto ctx=strata_glm::context(model.get(),o.context,o.batch);
     report["context_seconds"]=elapsed(start);
     samples.push_back(memory("after_context"));
-    strata_glm::RuntimeMemory runtime_memory(model,o.model,o.ram_percent,o.vram_percent);
+    strata_glm::RuntimeMemory runtime_memory(model,o.model,o.ram_percent,o.vram_percent,o.pipeline,o.chunk_mib);
     runtime_memory.warm();
     report["runtime_memory_after_warm"]=runtime_memory.snapshot();
     report["global_memory_samples"]=json::array();
@@ -166,6 +168,14 @@ static json self_test(const std::string & directory) {
         require(b==d && cached["generated_ids"]==streamed["generated_ids"],"cached selected-copy parity failed");
         require(cached["runtime_memory_after_decode"]["cache"]["hits"].get<uint64_t>()>0,"cache did not serve hits");
         tests.push_back({{"name","cached selected-copy exact logits parity"},{"top_k",top_k},{"status","pass"},{"cached",cached}});
+        for (int budget:{0,90}) {
+            json piped; std::vector<float> e; o.pipeline=true; o.vram_percent=budget;
+            run(o,piped,&e);
+            require(b==e && piped["generated_ids"]==streamed["generated_ids"],"pipeline logits parity failed");
+            if (!budget) require(piped["runtime_memory_after_decode"]["pipeline"]["chunks"].get<uint64_t>()>0,"pipeline transferred no misses");
+            require(piped["runtime_memory_after_decode"]["pipeline"]["unused_bytes"]==0,"pipeline abandoned selected expert bytes");
+            tests.push_back({{"name","router lookahead pipeline exact logits parity"},{"top_k",top_k},{"cache_percent",budget},{"status","pass"},{"pipeline",piped}});
+        }
     }
     // Deliberately put embeddings on CPU: the complete split audit must reject
     // the graph before any expert transfer or computation, not merely log it.
@@ -180,7 +190,7 @@ static json self_test(const std::string & directory) {
     return {{"status","pass"},{"scope","synthetic streamed/resident F16-KV parity and negative GPU audit"},{"checks",tests}};
 }
 int main(int argc,char ** argv) {
-    json report={{"status","error"},{"scope","synchronous CLI validation with optional expert cache; MTP off"},
+    json report={{"status","error"},{"scope","streamed CLI validation with optional expert cache/pipeline; MTP off"},
         {"requested_revision",STRATA_GLM_SOURCE_SHA},{"archive_sha256",STRATA_GLM_ARCHIVE_SHA256},{"patch_set",STRATA_GLM_PATCH_SET}};
     Options o; int exit_code=1;
     try {
@@ -200,6 +210,8 @@ int main(int argc,char ** argv) {
             else if (arg=="--batch") o.batch=std::stoi(value);
             else if (arg=="--ram-target-percent") o.ram_percent=std::stoi(value);
             else if (arg=="--vram-target-percent") o.vram_percent=std::stoi(value);
+            else if (arg=="--expert-pipeline") {const int n=std::stoi(value); require(n==0 || n==1,"pipeline must be 0/1");o.pipeline=n!=0;}
+            else if (arg=="--expert-chunk-mib") o.chunk_mib=std::stoi(value);
             else if (arg=="--input-ids") { std::istringstream in(value); std::string id; while(std::getline(in,id,',')) o.ids.push_back(std::stoi(id)); }
             else throw std::runtime_error("unknown option "+arg);
         }

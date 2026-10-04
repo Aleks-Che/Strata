@@ -13,19 +13,19 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P1 DONE; P0/P2/P3 и подготовка P5 IN_PROGRESS. Рабочий pipe/API/profile и runtime expert cache проверены; async overlap, P4 и MTP ещё не готовы |
-| Последняя проверенная ревизия Strata | `ebd0ca1b5262b2840058aff863ae6000e599e961`, ветка `dev`; код этой работы уже в HEAD, новые отчёты и итоговая сводка добавлены в рабочее дерево |
-| Последняя выполненная работа | P3.5h: глобальные RAM/VRAM targets 90/95%, expert cache в реальном графе, явный LRU и CUDA pool; exact logits, native pipe и оба HTTP API на 95% |
-| Следующая задача | P3.3b: shared asynchronous pipeline для cache misses в runtime_memory.cpp; измерить перекрытие и сохранить полную logits parity |
-| Активная задача / исполнитель | Нет; P1.1b/P2.5h/P3.5h завершены, требуется продолжение P3.3b |
+| Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
+| Последняя проверенная ревизия Strata | `3b0e0f75a50d7f284e479443a4d859b691565a16` + изменения рабочего дерева; source/binary hashes в PIPELINE_MTP_VALIDATION |
+| Последняя выполненная работа | P3.3b / P5.1a,2c,3a,5a / P6.1a: runtime pipeline, native draft/verify/rollback, битовая parity, подбор глубины/cache/chunk и локальный профиль MTP 1 |
+| Следующая задача | P3: увеличить измеренное H2D/compute overlap; P4: hybrid session snapshots/restore. Расширить MTP замеры на другие prompts и длинный sparse-контекст |
+| Активная задача / исполнитель | Нет; перечисленные подпункты завершены Codex, остаток плана открыт |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next` + setup profile, OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный `strata-glm5next.json`: RAM/VRAM 95%, ctx2048/batch16 |
+| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`, Native MTP в monitor; OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный профиль: pipeline on, MTP 1, cache ceiling 512 МиБ, chunk 4 МиБ, RAM/VRAM 95%, ctx2048/batch16/threads4 |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main layers, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA/MTP off, greedy; synchronous cache + 16 МиБ pinned staging, NVML global target 95% |
-| Измеренная скорость GLM / память | 95%: 3,781/4,012 ток/с в двух новых процессах; медиана 3,897. Повтор в том же pipe engine: 6,306 ток/с по 63 decode steps, с sampling/output. NVML 94,59–95,20%; RAM 91,97–95,24%, ниже цели после прогрева всех экспертов. Подробности в MEMORY_VALIDATION |
+| Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main + 1 NextN layer, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA off, greedy; pipeline + cache, MTP 0/1/2/3, global targets 95% |
+| Измеренная скорость GLM / память | Медианы трёх прогретых повторов: MTP off 8,584; MTP 1 8,730; MTP 2 7,431; MTP 3 6,555 ток/с. Лучший из проверенных вариантов — 1/512 МиБ/4 МиБ; преимущество над off небольшое, около 1,7%. Глобальные бюджеты RAM/VRAM 95% сохранены; подробности и снимки памяти в PIPELINE_MTP |
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -70,8 +70,16 @@ reference — **3,274 ток/с**; это не независимая реали
 [repeat](GLM53_FLASH_SYNC_REPEAT.json), [reference](GLM53_FLASH_SYNC_CANDIDATE_REFERENCE.json),
 [команды/CTest](GLM53_FLASH_SYNC_VALIDATION_TESTS.txt).
 P1.1b/P2.5h затем подключили production pipe/profile и оба HTTP API; P3.5h —
-runtime cache и RAM/VRAM targets. Native MTP, async overlap, real-state rollback
-и длинный sparse-контекст остаются следующими частями работ.
+runtime cache и RAM/VRAM targets. P3.3b/P5 далее подключили pipeline и native MTP
+с real-state rollback. Сессии и длинный sparse-контекст остаются открытыми.
+
+**P3.3b / P5 / P6.1a:** общий async pipeline, native NextN draft/verify/rollback,
+раздельные main/MTP cache keys, target sample-and-match и короткие CUDA matvec
+пакеты. Реальные MTP 1/2/3, forced rejection, seeded sampling и cancel/recovery
+совпали с baseline; baseline совпал с сохранёнными P1 logits бит-в-бит.
+Подбор параметров, ограниченное измеренное overlap, отчёты и остаток работ:
+[конвейер и MTP](GLM53_FLASH_PIPELINE_MTP.md),
+[manifest](GLM53_FLASH_PIPELINE_MTP_VALIDATION.json).
 
 Новый основной GGUF проверен 2026-10-04: **1 файл, 1412 тензоров, 112,310 ГиБ**,
 45 основных блоков и 1 MTP; имена/формы прошли существующий loader contract.
@@ -126,10 +134,10 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | Прежние graph/ops/state/quant/tokenizer checks и P1.1a real mixed-quant logits/F16 forward; 10/10 CTest | Real-state rollback, длинный sparse-контекст, независимый template oracle |
 | P1. Основной GPU engine | DONE | P1.1a/b: baseline, pipe/profile/setup, 64 токена, GPU-only, F16 KV, exact logits и отмена реального графа; 12/12 CTest | Дальнейший async transport относится к P3 |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/b DONE: реальная tokenizer parity 80/80 на каждом GGUF после ignore_merges; P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 на fixtures/mock; P2.5g — 30 HTTP-сценариев с mock engine; P2.5h — native GLM JSON/SSE/disconnect/unload | Независимый template oracle, расширенные реальные tools/диалоги; runtime selection, INFO и HTTP с GPU engine уже проверены P2.5h |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass/periodic refresh P3.5a/b/c/d/e/f/g; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b; P3.5h — runtime cache, global 95% targets, exact real logits, LRU/pool и API | Shared async transport/compute overlap, подбор периода refresh (сейчас 500 мс), cold I/O и readers/chunks с compute |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, controller P3.5a–h, byte checks P3.4a–d, telemetry/bench P3.6a/P3.7a,b; P3.3b — runtime async pipeline с router lookahead, exact logits, CUDA trace | Увеличить пока небольшое overlap, проверить cold I/O и readers/chunks на других workloads, подобрать refresh (сейчас 500 мс) |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
-| P5. Native MTP | IN_PROGRESS | Подготовка P5.2a/b: main/MTP ceilings, независимая frequency history и branch pressure snapshots контроллера, CUDA/dispatch fixtures прошли; исполнения MTP нет | Подключение native MTP graph, INFO/monitor, draft/verify/rollback, sampling, сессии и A/B скорости |
-| P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
+| P5. Native MTP | IN_PROGRESS | P5.1a/2c/3a/5a: shared-weight NextN context, INFO/monitor, main/MTP cache ceilings, depths 1/2/3, draft/verify/rollback, seeded sampling, stop/cancel; real logits bit-exact | Session restore/reuse, index sharing между draft iterations, длинный sparse-контекст и реальные tool/EOS диалоги |
+| P6. Замеры и выпуск профиля | IN_PROGRESS | P6.1a: глубины 0/1/2/3, cache 256/512, chunks 4/8 на одном prompt; профиль MTP 1/512/4, pipe/API/fixtures и документация | Другие prompts/контексты, full-model Qwen/DeepSeek регрессии, Linux/HIP, полная release matrix |
 
 ## Правила заполнения для агента
 
@@ -2876,6 +2884,62 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   другие prompts, UD-Q3_K_XL generation и full-model Qwen/DeepSeek regression.
 - **Дальше:** P3.3b — shared async pipeline для misses, exact logits и
   cancel/recovery на реальном GPU runtime; затем отдельный замер перекрытия compute.
+
+### P3.3b / P5.1a,2c,3a,5a / P6.1a — 2026-10-04 — Pipeline, MTP и подбор профиля
+
+- **Статус:** DONE для перечисленных подпунктов; исполнитель Codex. Этапы P3/P5/P6
+  целиком не закрыты, P4 session reuse ещё не реализован.
+- **Ревизия:** `3b0e0f75a50d7f284e479443a4d859b691565a16` + рабочее дерево.
+  Точные source/binary hashes и связь разных сборок с отчётами — в manifest.
+- **Конвейер:** runtime использует общий StrataExpertPipeline через transport/
+  dispatch. Scheduler после router IDs планирует gate/up/down с теми же IDs.
+  Cache leases удерживаются, misses читаются вперёд в четыре bounded slots,
+  H2D идёт отдельным stream; CUDA events защищают reuse и завершение запросов.
+  Main/MTP имеют отдельные ключи/частоты и ceiling под общей VRAM целью.
+- **MTP:** native NextN context разделяет model weights с main, использует
+  target feature rows, draft/verify и точный hybrid rollback. Поддержаны глубины
+  1/2/3, target sample-and-match, seeded sampling, bonus/length/stop/cancel,
+  INFO/monitor и proposed/accepted/time telemetry. Запросы начинают с чистого state.
+- **Ошибка и исправление:** исходный batched CUDA path менял logits (max abs
+  1,8882 на 16 токенах) и затем IDs. Короткие MUL_MAT и quantized MUL_MAT_ID
+  пакеты теперь используют одиночную арифметику. Один повтор synthetic BF16
+  routed теста выявил нестабильность нового dispatch для неквантованных экспертов;
+  для них восстановлен исходный путь. Реальные IQ3_XXS routed weights квантованы.
+  Финальные 108 сравнений — 90 exact и 18 original routed numerical — прошли,
+  включая восемь повторов отдельного теста после исправления.
+- **Точность на полной модели:** 39 prompt + 64 output; native MTP 1/2/3, forced
+  first/middle/all, 32-token seeded sampling, draft cancellation/clean next прошли.
+  Все сравниваемые logits бит-в-бит. Baseline с MTP weights/n_rs_seq=3 также
+  совпал с сохранёнными P1 **9 912 320 F32 logits** бит-в-бит.
+- **Подбор скорости:** отдельные процессы, один warmup + три повтора на глубину,
+  greedy, F16 KV, ctx2048/batch16, TF32/FA off, budgets 95%, chunks 4 МиБ,
+  MTP cache ceiling 512 МиБ. Медианы: off **8,584**, 1 **8,730**, 2 **7,431**,
+  3 **6,555 ток/с**. Формула 63 / DONE.decode_seconds включает sampling/draft/
+  verify/repair/output; исключает load, warmup и prefill. OS cache не очищался.
+  Cache 256 МиБ дал 7,287 ток/с, chunk 8 МиБ — 8,457 (по пять повторов).
+  По одному prompt нельзя подтвердить универсальную оптимальность; выигрыш
+  MTP 1 над off около 1,7% и сопоставим с разбросом.
+- **Рабочий профиль:** `strata-glm5next.json` — pipeline 1, MTP 1, ceiling 512 МиБ,
+  chunk 4 МиБ, RAM/VRAM 95%, threads4. CLI/setup без локального профиля сохраняют
+  opt-in. Ни один другой модельный профиль не менялся.
+- **CUDA trace:** шесть target graphs, объединённые H2D spans 1853,812 мс,
+  compute spans 775,289 мс, пересечение **2,166 мс**. Это небольшое пересечение
+  интервалов streams, не оценка одновременной занятости SM и не throughput benchmark.
+- **Проверки:** финальная сборка и 14/14 candidate CTest (10,75 с), 13/13
+  shared transport/cache CTest (4,65 с), 85 Python tests (5,833 с); реальный
+  pipe 9 сценариев и HTTP 8 сценариев на профиле MTP 1, exit 0 и unload.
+  Synthetic MTP fixture отдельно проверяет stop на первом/принятом/отклонённом
+  токене. Pipe/API и real trace предшествуют ограничению BF16 dispatch;
+  manifest сохраняет их собственные binary hashes, не приписывает им новую сборку.
+- **Артефакты:** [описание и таблицы](GLM53_FLASH_PIPELINE_MTP.md),
+  [manifest](GLM53_FLASH_PIPELINE_MTP_VALIDATION.json),
+  [команды/логи](GLM53_FLASH_PIPELINE_MTP_TESTS.txt),
+  [MTP](GLM53_FLASH_MTP_CHECK.json), [CUDA trace](GLM53_FLASH_PIPELINE_GPU_TRACE.json),
+  [benchmark](GLM53_FLASH_MTP_BENCHMARK.json),
+  [pipe](GLM53_FLASH_PIPELINE_MTP_PIPE.json), [API](GLM53_FLASH_PIPELINE_MTP_API.json).
+- **Осталось:** повышение степени overlap, session snapshots/restore,
+  index sharing между draft iterations, длинный sparse-контекст, другие prompts/
+  кванты, реальные tools/EOS, Linux/HIP и full-model Qwen/DeepSeek regression.
 
 ## Шаблон следующей записи
 

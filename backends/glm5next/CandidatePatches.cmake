@@ -43,3 +43,70 @@ set_property(TARGET ggml-cuda PROPERTY SOURCES "${glm_cuda_sources};${glm_mmf_ge
 set_source_files_properties("${glm_mmf_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
   INCLUDE_DIRECTORIES "${glm_source}/ggml/src/ggml-cuda")
 set(glm_candidate_patches "cuda-f32-mmf-respect-tf32-override")
+
+# Small verification windows must use the same per-token matvec arithmetic as
+# ordinary decode. Batched GEMM/vector paths round activations differently;
+# at IQ3 this can change routing and target logits even before any rollback.
+set(glm_cuda_original "${glm_source}/ggml/src/ggml-cuda/ggml-cuda.cu")
+file(SHA256 "${glm_cuda_original}" glm_cuda_hash)
+if(NOT glm_cuda_hash STREQUAL "eee8c85f32f45c47d0f84210d82109598c0dd32c73b3d4605972a62569af7034")
+  message(FATAL_ERROR "Review GLM small-batch CUDA dispatch patch for changed source")
+endif()
+file(READ "${glm_cuda_original}" glm_cuda_dispatch)
+set(glm_dense_anchor "static void ggml_cuda_mul_mat(ggml_backend_cuda_context & ctx, const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {")
+string(REPLACE "${glm_dense_anchor}" "${glm_dense_anchor}
+    if (getenv(\"STRATA_GLM_TOKENWISE_MATMUL\") && src1->ne[1] > 1 && src1->ne[1] <= 4) {
+        for (int64_t i = 0; i < src1->ne[1]; ++i) {
+            ggml_tensor x = *src1, y = *dst;
+            x.ne[1] = y.ne[1] = 1;
+            x.data = (char *) src1->data + i*src1->nb[1];
+            y.data = (char *) dst->data + i*dst->nb[1];
+            y.src[1] = &x;
+            ggml_cuda_mul_mat(ctx, src0, &x, &y);
+        }
+        return;
+    }
+" glm_cuda_dispatch "${glm_cuda_dispatch}")
+set(glm_id_anchor "static void ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {")
+string(REPLACE "${glm_id_anchor}" "${glm_id_anchor}
+    if (getenv(\"STRATA_GLM_TOKENWISE_MATMUL\") && ggml_is_quantized(dst->src[0]->type) && dst->ne[2] > 1 && dst->ne[2] <= 4) {
+        for (int64_t i = 0; i < dst->ne[2]; ++i) {
+            ggml_tensor x = *dst->src[1], ids = *dst->src[2], y = *dst;
+            x.ne[2] = y.ne[2] = ids.ne[1] = 1;
+            x.data = (char *) dst->src[1]->data + i*dst->src[1]->nb[2];
+            ids.data = (char *) dst->src[2]->data + i*dst->src[2]->nb[1];
+            y.data = (char *) dst->data + i*dst->nb[2];
+            y.src[1] = &x; y.src[2] = &ids;
+            ggml_cuda_mul_mat_id(ctx, &y);
+        }
+        return;
+    }
+" glm_cuda_dispatch "${glm_cuda_dispatch}")
+set(glm_sync_anchor "static bool ggml_cuda_mul_mat_id_needs_sync(const ggml_tensor * dst, const int cc) {")
+string(REPLACE "${glm_sync_anchor}" "${glm_sync_anchor}
+    if (getenv(\"STRATA_GLM_TOKENWISE_MATMUL\") && ggml_is_quantized(dst->src[0]->type) && dst->ne[2] > 1 && dst->ne[2] <= 4) {
+        ggml_tensor x = *dst->src[1], y = *dst;
+        x.ne[2] = y.ne[2] = 1; y.src[1] = &x;
+        return ggml_cuda_mul_mat_id_needs_sync(&y, cc);
+    }
+" glm_cuda_dispatch "${glm_cuda_dispatch}")
+set(glm_cuda_generated "${CMAKE_BINARY_DIR}/strata-glm-cuda.cu")
+set(glm_cuda_old "")
+if(EXISTS "${glm_cuda_generated}")
+  file(READ "${glm_cuda_generated}" glm_cuda_old)
+endif()
+if(NOT glm_cuda_old STREQUAL glm_cuda_dispatch)
+  file(WRITE "${glm_cuda_generated}" "${glm_cuda_dispatch}")
+endif()
+get_target_property(glm_cuda_sources ggml-cuda SOURCES)
+set(glm_dispatch_sources "${glm_cuda_sources}")
+list(FILTER glm_dispatch_sources INCLUDE REGEX "(^|/)ggml-cuda\\.cu$")
+list(LENGTH glm_dispatch_sources glm_dispatch_count)
+if(NOT glm_dispatch_count EQUAL 1)
+  message(FATAL_ERROR "Expected one ggml-cuda.cu source")
+endif()
+list(REMOVE_ITEM glm_cuda_sources ${glm_dispatch_sources})
+set_property(TARGET ggml-cuda PROPERTY SOURCES "${glm_cuda_sources};${glm_cuda_generated}")
+set_source_files_properties("${glm_cuda_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
+  INCLUDE_DIRECTORIES "${glm_source}/ggml/src/ggml-cuda")
+string(APPEND glm_candidate_patches ",optional-tokenwise-small-batch-matmul")

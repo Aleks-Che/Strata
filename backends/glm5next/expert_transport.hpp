@@ -46,8 +46,8 @@ class ExpertTransport {
             throw std::logic_error("incomplete GLM transfer plan; remainder cancelled");
     }
 public:
-    ExpertTransport(int gpu,size_t chunk,bool write_combined=false,int readers=2,int mode=0)
-        :chunk_bytes(chunk),pipeline(std::make_unique<StrataExpertPipeline>(gpu,chunk,write_combined,readers,mode)) {}
+    ExpertTransport(int gpu,size_t chunk,bool write_combined=false,int readers=2,int mode=0,StrataExpertPipeline::CopyObserver observer={})
+        :chunk_bytes(chunk),pipeline(std::make_unique<StrataExpertPipeline>(gpu,chunk,write_combined,readers,mode,std::move(observer))) {}
     ExpertTransport(const ExpertTransport&)=delete;
     ExpertTransport &operator=(const ExpertTransport&)=delete;
     // Default destruction drains the pipeline before destroying owners.

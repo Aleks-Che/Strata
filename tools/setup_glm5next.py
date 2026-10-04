@@ -2,7 +2,7 @@
 
 python tools/setup_glm5next.py --model-dir H:/GLM-5.3-Flash-GGUF/UD-Q3_K_XL --check-only
 
-Without --check-only, export the tokenizer and a separate synchronous GLM profile
+Without --check-only, export the tokenizer and a separate GLM profile
 for the already-built backend. No downloads or changes to other model profiles.
 """
 from __future__ import annotations
@@ -220,13 +220,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def prepare_profile(report, exe, profile, *, context=2048, batch=16, threads=4, port=8081, cuda_dir=None,
-                    ram_target_percent=0, vram_target_percent=0):
+                    ram_target_percent=0, vram_target_percent=0, expert_pipeline=0, expert_chunk_mib=4,
+                    mtp=0, mtp_cache_mib=512):
     """Write a new profile only after validating backend identity and settings."""
     if not (32 <= context <= 1048576 and 1 <= batch <= min(context, 4096) and
             1 <= threads <= 256 and 1 <= port <= 65535):
         raise ValueError("Invalid context, batch, threads or port")
     if any(p != 0 and not 10 <= p <= 95 for p in (ram_target_percent, vram_target_percent)):
         raise ValueError("Memory targets must be 0 (off) or 10..95 percent")
+    if expert_pipeline not in (0, 1) or not 1 <= expert_chunk_mib <= 16:
+        raise ValueError("Expert pipeline must be 0/1, chunk size 1..16 MiB")
+    if mtp not in (0, 1, 2, 3) or (mtp and batch < mtp + 1) or not 0 <= mtp_cache_mib <= 32768:
+        raise ValueError("MTP depth must be 0..3, batch >= depth+1, cache limit 0..32768 MiB")
     exe, profile = Path(exe).resolve(), Path(profile).resolve()
     if not exe.is_file():
         raise ValueError(f"Build strata-glm5next first: {exe}")
@@ -265,6 +270,8 @@ def prepare_profile(report, exe, profile, *, context=2048, batch=16, threads=4, 
     for flag, percent in (("--ram-target-percent", ram_target_percent), ("--vram-target-percent", vram_target_percent)):
         if percent:
             cfg["args"] += [flag, str(percent)]
+    cfg["args"] += ["--expert-pipeline", str(expert_pipeline), "--expert-chunk-mib", str(expert_chunk_mib),
+                    "--mtp", str(mtp), "--mtp-cache-mib", str(mtp_cache_mib)]
     with profile.open("x", encoding="utf-8") as out:
         out.write(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
     return cfg
@@ -285,6 +292,10 @@ def main():
     parser.add_argument("--port", type=int, default=8081)
     parser.add_argument("--ram-target-percent", type=int, default=0, help="Global physical RAM target; 0 disables warmup")
     parser.add_argument("--vram-target-percent", type=int, default=0, help="Global VRAM target; 0 disables expert cache")
+    parser.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0)
+    parser.add_argument("--expert-chunk-mib", type=int, default=4, help="Each of four pinned/device ring slots, 1..16 MiB")
+    parser.add_argument("--mtp", type=int, choices=(0, 1, 2, 3), default=0, help="Native NextN draft depth; 0 disables MTP")
+    parser.add_argument("--mtp-cache-mib", type=int, default=512, help="MTP expert cache ceiling inside the global VRAM budget")
     parser.add_argument("--output", type=Path, help="Also save the JSON report to this path")
     parser.add_argument("--tensor-details", action="store_true", help="Include every tensor's shape, type and byte range")
     parser.add_argument("--loader-contract", action="store_true",
@@ -300,7 +311,9 @@ def main():
         if not args.check_only:
             prepare_profile(report, args.exe, args.profile, context=args.context, batch=args.batch_size,
                             threads=args.threads, port=args.port, cuda_dir=args.cuda_dir,
-                            ram_target_percent=args.ram_target_percent, vram_target_percent=args.vram_target_percent)
+                            ram_target_percent=args.ram_target_percent, vram_target_percent=args.vram_target_percent,
+                            expert_pipeline=args.expert_pipeline, expert_chunk_mib=args.expert_chunk_mib,
+                            mtp=args.mtp, mtp_cache_mib=args.mtp_cache_mib)
             report["profile"] = str(args.profile.resolve())
         output = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
         if args.output:

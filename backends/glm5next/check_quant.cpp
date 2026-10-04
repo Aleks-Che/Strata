@@ -97,7 +97,8 @@ static json error(const Floats & a,const Floats & b,double limit) {
     return {{"pass",finite && nmse<=limit},{"finite",finite},{"nmse",nmse},{"max_abs",max_abs},{"nmse_limit",limit}};
 }
 
-int main() {
+int main(int argc,char ** argv) {
+    const bool tokenwise=argc==2 && std::string(argv[1])=="--tokenwise";
     json report={{"schema_version",1},{"status","error"},
         {"scope","synthetic packed matrix kernels; no GGUF weights or streamed dispatch"},
         {"requested_revision",STRATA_GLM_SOURCE_SHA},{"archive_sha256",STRATA_GLM_ARCHIVE_SHA256},
@@ -105,6 +106,15 @@ int main() {
         {"shape",{{"input",Fixture::k},{"output",Fixture::m},{"experts",Fixture::experts},{"selected",Fixture::used}}},
         {"nmse_limit",1e-4},{"weight_seed",0x53a001u},{"input_seed",0x53b001u},{"results",json::array()}};
     try {
+        require(argc==1 || tokenwise,"unknown option");
+        if (tokenwise) {
+#ifdef _WIN32
+            _putenv_s("STRATA_GLM_TOKENWISE_MATMUL","1");
+#else
+            setenv("STRATA_GLM_TOKENWISE_MATMUL","1",1);
+#endif
+        }
+        report["tokenwise_small_batch"]=tokenwise;
         const char * tf32=std::getenv("NVIDIA_TF32_OVERRIDE");
         require(tf32 && std::string(tf32)=="0","set NVIDIA_TF32_OVERRIDE=0");
         ggml_backend_load_all();
@@ -118,6 +128,29 @@ int main() {
                       GGML_TYPE_IQ2_S,GGML_TYPE_IQ3_S,GGML_TYPE_IQ3_XXS,GGML_TYPE_IQ4_XS,
                       GGML_TYPE_Q2_K,GGML_TYPE_Q3_K,GGML_TYPE_Q4_K}) {
             Fixture fixture(type);
+            if (tokenwise) {
+                for(int n:{2,3,4}) for(int mode:{0,1,2}) {
+                    const int lanes=mode==2?Fixture::used:1,used=mode?Fixture::used:1;
+                    const auto x=inputs(n,lanes);const auto ids=routes(n);
+                    const auto batch=compute(gpu.get(),fixture,n,mode,x,ids);Floats serial;
+                    for(int i=0;i<n;++i) {
+                        auto one=compute(gpu.get(),fixture,1,mode,
+                            {x.begin()+i*Fixture::k*lanes,x.begin()+(i+1)*Fixture::k*lanes},
+                            {ids.begin()+i*Fixture::used,ids.begin()+(i+1)*Fixture::used});
+                        serial.insert(serial.end(),one.begin(),one.end());
+                    }
+                    const bool exact=batch.size()==serial.size() && !std::memcmp(batch.data(),serial.data(),batch.size()*sizeof(float));
+                    // Only packed expert matvec supports token-strided views.
+                    // Non-quantized MUL_MAT_ID retains its upstream batch path.
+                    const bool patched=mode==0 || ggml_is_quantized(type);
+                    const auto comparison=error(batch,serial,patched?0:type==GGML_TYPE_F32?1e-10:1e-4);
+                    const bool ok=patched?exact:comparison["pass"].get<bool>();
+                    pass &= ok;report["results"].push_back({{"type",ggml_type_name(type)},{"tokens",n},{"mode",mode},
+                        {"elements",n*Fixture::m*used},{"comparison",patched?"bit_exact":"upstream non-quantized numerical"},
+                        {"status",ok?"pass":"fail"},{"batch_vs_single",comparison}});
+                }
+                continue;
+            }
             for(int n:{1,4,17}) for(int mode:{0,1,2}) {
                 const auto x=inputs(n,mode==2?Fixture::used:1);
                 const auto ids=routes(n);

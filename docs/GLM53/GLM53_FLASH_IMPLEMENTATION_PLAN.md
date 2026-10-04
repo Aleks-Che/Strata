@@ -347,7 +347,7 @@ result работают через оба API; токены и шаблон со
 
 ### P3. Полный конвейер и кэш матриц
 
-- [ ] Подключить SSD/mmap → ограниченный RAM staging → asynchronous H2D → GPU ring
+- [x] Подключить SSD/mmap → ограниченный RAM staging → asynchronous H2D → GPU ring
   → compute. После готовности router IDs объединять запросы gate/up/down и удалять
   дубликаты. Сохранять все 8 выбранных экспертов и исходные квантованные байты.
   - [x] P3.1a: общий Windows native reader в `backends/common/expert_file.hpp`,
@@ -380,6 +380,11 @@ result работают через оба API; токены и шаблон со
     освобождает источники после чтений. Проверены partial cancel/restart и
     exception teardown на Windows CUDA fixtures; graph/cache integration и
     отмена реального GLM inference ещё не подключены.
+  - [x] P3.3b: `runtime_memory.cpp` подключён к общему pipeline/dispatch; после
+    router IDs планируются gate/up/down с удержанием cache hits и mapping owner.
+    Четыре slots, отдельный H2D stream, CUDA events, cleanup scope и GPU-only audit.
+    Реальный IQ3_XXS: exact logits; native MTP использует тот же транспорт.
+    Измерения и ограничения: [pipeline/MTP](GLM53_FLASH_PIPELINE_MTP.md).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить
@@ -501,6 +506,10 @@ Upstream MTP PR на дату исследования имеет статус D
 - [ ] Подключить MTP выбранной совместимой ветки с проверкой feature tensors,
   общим embedding/output там, где это предусмотрено моделью, и без дублирования
   основных весов. Проверить `index_share_for_mtp_iteration` по официальному config.
+  - [x] P5.1a: native NextN context разделяет один model с target; feature rows,
+    shared embedding/output и `load_mtp` подключены. В официальном config флаг
+    index sharing равен true; выбранный кандидат пока пересчитывает draft indexer.
+    Это ограничение отмечено в [отчёте](GLM53_FLASH_PIPELINE_MTP.md).
 - [ ] Передавать expert weights MTP через тот же конвейер; задать отдельный лимит
   кэша и историю частот под общим бюджетом VRAM.
   - [x] P5.2a: optional main/MTP byte ceilings и независимые frequency history
@@ -513,14 +522,25 @@ Upstream MTP PR на дату исследования имеет статус D
     превышение global/branch не считается дважды; исправлен нулевой deferred
     при незавершённом branch trim. CUDA LRU/frequency и probe failure/recovery
     checks прошли. Вывод в GLM INFO/monitor и MTP graph ещё не подключены.
+  - [x] P5.2c: реальные main/MTP graphs используют общие transport/cache/controller,
+    раздельные keys/frequency и MTP byte ceiling под global VRAM target.
+    Параметры `--mtp-cache-mib`, `--expert-pipeline` и размер chunk доступны в setup/profile.
 - [ ] Начать с одного draft token, затем 2 и 3. Проверять кандидатов основной
   моделью, поддержать частичное принятие и корректную обработку стоп-токенов/tools.
+  - [x] P5.3a: глубины 1/2/3, target sample-and-match, bonus token и ограничение
+    длины подключены. Forced first/middle/all, seeded sampling, отмена/clean next
+    прошли на полном GGUF; stop branches отдельно проверены на native fixture.
+    Сохранение сессий и real tool-call/EOS coverage остаются отдельными проверками.
 - [ ] Реализовать откат всех ветвей состояния на точное число принятых токенов,
   включая KDA и pooled indexer. Проверить reject-first, reject-middle, accept-all,
   отмену раунда и сохранение сессии после каждого случая.
 - [ ] Проверить greedy-equivalence и корректность speculative sampling.
   Одинаковый seed сам по себе не гарантирует одинаковую последовательность при
   разных схемах расходования RNG; отдельно тестировать алгоритм принятия/коррекции.
+  - [x] P5.5a: real 64-token greedy и 32-token seeded equivalence, включая все
+    сравниваемые logits бит-в-бит. Найден и исправлен drift короткого CUDA batch:
+    matmul 2–4 колонок использует путь одиночного decode. Добавлены 108 batch-vs-single
+    CUDA matrix comparisons; исходный pin не изменён, применяется generated patch.
 - [ ] В monitor вывести draft proposed/accepted, среднюю длину принятия, время draft,
   verify/rollback и полезные выходные токены/с. Включать MTP в рабочем профиле только
   после положительного A/B по итоговой скорости, а не по одному acceptance rate.
@@ -533,6 +553,11 @@ Upstream MTP PR на дату исследования имеет статус D
 
 - [ ] Обобщить harness `tools/benchmark_deepseek4.py` или добавить GLM-адаптер:
   фиксированные tokenized prompts, seed, sampling и версия backend в результатах.
+  - [x] P6.1a: `tools/benchmark_glm5next_mtp.py` проверяет сохранённые IDs в
+    отдельных warmed pipe engines; сравнение MTP 0/1/2/3, ceiling 256/512 МиБ,
+    chunks 4/8 МиБ. Лучший измеренный вариант 1/512/4 установлен в локальном
+    профиле с RAM/VRAM 95%. Это один 39-token prompt и 64 output; расширенная
+    workload matrix остаётся открытой. [Результаты](GLM53_FLASH_PIPELINE_MTP.md).
 - [ ] Измерить prefill 256 / 4096 / 16384 токена и decode 128–256 токенов;
   затем 32K/64K при достаточной памяти. Отдельно проверить смену темы и чата.
 - [ ] Разделить первый проход, повторный prefill, восстановленный prefix и warm

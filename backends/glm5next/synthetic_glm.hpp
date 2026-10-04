@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-inline void write_synthetic_glm(const std::string & path, uint32_t top_k) {
+inline void write_synthetic_glm(const std::string & path, uint32_t top_k, bool mtp=false) {
     std::unique_ptr<gguf_context, decltype(&gguf_free)> file(gguf_init_empty(), gguf_free);
     std::unique_ptr<ggml_context, decltype(&ggml_free)> ctx(
         ggml_init({ggml_tensor_overhead()*128, nullptr, true}), ggml_free);
@@ -24,10 +24,10 @@ inline void write_synthetic_glm(const std::string & path, uint32_t top_k) {
     const auto v = [f](const char * key, float value) {
         gguf_set_val_f32(f, (std::string("glm5next.")+key).c_str(), value);
     };
-    u("block_count", 2); u("context_length", 512); u("embedding_length", 256);
+    u("block_count", mtp?3:2); u("context_length", 512); u("embedding_length", 256);
     u("feed_forward_length", 512); u("vocab_size", 64); u("attention.head_count", 2);
-    const uint32_t kv_heads[] = {0, 1};
-    gguf_set_arr_data(f, "glm5next.attention.head_count_kv", GGUF_TYPE_UINT32, kv_heads, 2);
+    const uint32_t kv_heads[] = {0, 1, 1};
+    gguf_set_arr_data(f, "glm5next.attention.head_count_kv", GGUF_TYPE_UINT32, kv_heads, mtp?3:2);
     u("attention.q_lora_rank", 128); u("attention.kv_lora_rank", 128);
     u("attention.key_length", 128); u("attention.value_length", 128);
     u("attention.key_length_mla", 128); u("attention.value_length_mla", 128);
@@ -42,7 +42,7 @@ inline void write_synthetic_glm(const std::string & path, uint32_t top_k) {
     u("expert_count", 4); u("expert_used_count", 2); u("expert_shared_count", 1);
     u("expert_feed_forward_length", 256); u("expert_shared_feed_forward_length", 256);
     u("expert_group_count", 1); u("expert_group_used_count", 1); u("expert_gating_func", 2);
-    u("leading_dense_block_count", 1); u("nextn_predict_layers", 0);
+    u("leading_dense_block_count", 1); u("nextn_predict_layers", mtp?1:0);
     v("expert_weights_scale", 2.5f);
     gguf_set_val_bool(f, "glm5next.expert_weights_norm", true);
     v("swiglu_clamp_exp", 10); v("swiglu_clamp_shexp", 10);
@@ -101,6 +101,23 @@ inline void write_synthetic_glm(const std::string & path, uint32_t top_k) {
     for (const std::string kind : {"gate", "up", "down"}) {
         add("blk.1.ffn_"+kind+"_exps.weight", 256, 256, 4);
         add("blk.1.ffn_"+kind+"_shexp.weight", 256, 256);
+    }
+    if (mtp) {
+        const std::string p="blk.2.";
+        add(p+"attn_norm.weight",256);add(p+"ffn_norm.weight",256);
+        add(p+"attn_output.weight",256,256);
+        add(p+"attn_q_a.weight",256,128);add(p+"attn_q_a_norm.weight",128);
+        add(p+"attn_q_b.weight",128,256);add(p+"attn_kv_a_mqa.weight",256,128);
+        add(p+"attn_kv_a_norm.weight",128);add(p+"attn_k_b.weight",128,128,2);add(p+"attn_v_b.weight",128,128,2);
+        add(p+"indexer.k_norm.weight",128);add(p+"indexer.k_norm.bias",128);
+        add(p+"indexer.proj.weight",256,32);add(p+"indexer.attn_k.weight",256,128);add(p+"indexer.attn_q_b.weight",128,4096);
+        add(p+"indexer_compressor_gate.weight",256,128);add(p+"indexer_compressor_ape.weight",128,4);
+        add(p+"ffn_gate_inp.weight",256,4);add(p+"exp_probs_b.bias",4);
+        for (const std::string kind:{"gate","up","down"}) {
+            add(p+"ffn_"+kind+"_exps.weight",256,256,4);add(p+"ffn_"+kind+"_shexp.weight",256,256);
+        }
+        add(p+"nextn.eh_proj.weight",512,256);add(p+"nextn.enorm.weight",256);
+        add(p+"nextn.hnorm.weight",256);add(p+"nextn.shared_head_norm.weight",256);
     }
     if (!gguf_write_to_file(f, path.c_str(), false)) throw std::runtime_error("cannot write synthetic GGUF");
 }

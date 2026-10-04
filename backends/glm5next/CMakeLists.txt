@@ -59,8 +59,8 @@ if(STRATA_GLM_TRANSPORT_TESTS_CUDA)
   target_link_libraries(glm5next_expert_cache_test PRIVATE CUDA::cudart Threads::Threads)
   add_test(NAME glm5next_expert_cache COMMAND glm5next_expert_cache_test)
   set_tests_properties(glm5next_expert_cache PROPERTIES TIMEOUT 30)
-  set_property(SOURCE test_expert_cache.cpp test_expert_transport.cpp check_expert_ranges.cpp check_memory_pressure.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_memory.hpp")
+  set_property(SOURCE test_expert_bytes.cpp test_expert_cache.cpp test_expert_transport.cpp check_expert_ranges.cpp check_memory_pressure.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_transport.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_dispatch.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp")
   if(WIN32)
     foreach(memory_target glm5next_global_memory_test deepseek4_global_memory_compat_test)
       add_executable(${memory_target} test_global_memory.cpp)
@@ -136,24 +136,33 @@ if(STRATA_GLM_SYNC_BASELINE)
   find_package(CUDAToolkit REQUIRED)
   add_library(strata-glm-runtime-memory STATIC runtime_memory.cpp)
   target_compile_features(strata-glm-runtime-memory PUBLIC cxx_std_17)
-  target_include_directories(strata-glm-runtime-memory PUBLIC "${glm_source}/vendor" PRIVATE "${glm_source}/src")
-  target_link_libraries(strata-glm-runtime-memory PUBLIC llama CUDA::cudart)
+  target_include_directories(strata-glm-runtime-memory PUBLIC "${glm_source}/vendor" PRIVATE "${glm_source}/src" "${glm_source}/ggml/src")
+  set_property(SOURCE runtime_memory.cpp APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/gpu_trace.hpp")
+  target_link_libraries(strata-glm-runtime-memory PUBLIC llama CUDA::cudart Threads::Threads)
   if(WIN32)
     target_compile_definitions(strata-glm-runtime-memory PRIVATE NOMINMAX)
     target_link_libraries(strata-glm-runtime-memory PUBLIC psapi)
   endif()
   set_property(SOURCE runtime_memory.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/runtime_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/global_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_key.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/device_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/vram_policy.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_frequency.hpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/global_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_key.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/device_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/vram_policy.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_frequency.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_dispatch.hpp;${CMAKE_CURRENT_SOURCE_DIR}/expert_transport.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp")
   add_executable(strata-glm5next main.cpp)
   target_compile_features(strata-glm5next PRIVATE cxx_std_17)
-  target_include_directories(strata-glm5next PRIVATE "${glm_source}/vendor")
+  target_include_directories(strata-glm5next PRIVATE "${glm_source}/vendor" "${glm_source}/src")
   target_link_libraries(strata-glm5next PRIVATE llama strata-glm-runtime-memory Threads::Threads)
   target_compile_definitions(strata-glm5next PRIVATE
     STRATA_GLM_SOURCE_SHA="${STRATA_GLM_SOURCE_SHA}"
     STRATA_GLM_PATCH_SET="${glm_candidate_patches}")
   set_target_properties(strata-glm5next PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
   set_property(SOURCE main.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h")
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mtp.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h")
+  add_executable(strata-glm5next-mtp-check check_mtp.cpp)
+  target_compile_features(strata-glm5next-mtp-check PRIVATE cxx_std_17)
+  target_include_directories(strata-glm5next-mtp-check PRIVATE "${glm_source}/src" "${glm_source}/vendor")
+  target_link_libraries(strata-glm5next-mtp-check PRIVATE llama strata-glm-runtime-memory)
+  set_target_properties(strata-glm5next-mtp-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  set_property(SOURCE check_mtp.cpp APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mtp.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/synthetic_glm.hpp")
+  add_test(NAME glm5next_native_mtp COMMAND strata-glm5next-mtp-check --fixture "${CMAKE_BINARY_DIR}/mtp-fixture" --report "${CMAKE_BINARY_DIR}/mtp-fixture-report.json")
+  set_tests_properties(glm5next_native_mtp PROPERTIES TIMEOUT 180)
   add_executable(strata-glm5next-smoke smoke.cpp)
   target_compile_features(strata-glm5next-smoke PRIVATE cxx_std_17)
   target_include_directories(strata-glm5next-smoke PRIVATE "${glm_source}/vendor")
@@ -182,7 +191,7 @@ if(STRATA_GLM_SYNC_BASELINE)
   endif()
   if(WIN32)
     get_filename_component(glm_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
-    set_tests_properties(glm5next_sync_baseline PROPERTIES ENVIRONMENT_MODIFICATION
+    set_tests_properties(glm5next_sync_baseline glm5next_native_mtp PROPERTIES ENVIRONMENT_MODIFICATION
       "PATH=path_list_prepend:${glm_cuda_bin}/x64;PATH=path_list_prepend:${glm_cuda_bin}")
   endif()
 endif()
@@ -212,12 +221,13 @@ if(STRATA_GLM_GRAPH_CHECK)
   add_test(NAME glm5next_candidate_ops COMMAND strata-glm5next-ops-check)
   add_test(NAME glm5next_candidate_state COMMAND strata-glm5next-state-check "${CMAKE_BINARY_DIR}/state-fixture")
   add_test(NAME glm5next_candidate_quant COMMAND strata-glm5next-quant-check)
-  set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant PROPERTIES TIMEOUT 120 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0")
+  add_test(NAME glm5next_tokenwise_quant COMMAND strata-glm5next-quant-check --tokenwise)
+  set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant glm5next_tokenwise_quant PROPERTIES TIMEOUT 120 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0")
   if(WIN32)
     # CTest rebuilds the environment when applying NVIDIA_TF32_OVERRIDE. Hosts
     # with both Path and PATH can otherwise lose the caller's CUDA DLL prefix.
     get_filename_component(glm_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
-    set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant PROPERTIES ENVIRONMENT_MODIFICATION
+    set_tests_properties(glm5next_candidate_ops glm5next_candidate_state glm5next_candidate_quant glm5next_tokenwise_quant PROPERTIES ENVIRONMENT_MODIFICATION
       "PATH=path_list_prepend:${glm_cuda_bin}/x64;PATH=path_list_prepend:${glm_cuda_bin}")
   endif()
 endif()
@@ -237,4 +247,4 @@ file(WRITE "${CMAKE_BINARY_DIR}/glm-source-build.txt"
   "cuda_architectures=${glm_cuda_architectures}\n"
   "graph_validation_enabled=${STRATA_GLM_GRAPH_CHECK}\n"
   "sync_baseline_enabled=${STRATA_GLM_SYNC_BASELINE}\n"
-  "scope=isolated GLM validation, synchronous baseline and Strata pipe engine with optional runtime cache; no async compute overlap or MTP\n")
+  "scope=isolated GLM validation and Strata pipe engine; optional expert cache, router lookahead pipeline and native NextN MTP\n")

@@ -1,0 +1,1650 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "scope": "synthetic packed matrix kernels; no GGUF weights or streamed dispatch",
+  "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback",
+  "NVIDIA_TF32_OVERRIDE": "0",
+  "shape": {
+    "input": 512,
+    "output": 64,
+    "experts": 16,
+    "selected": 8
+  },
+  "nmse_limit": 0.0001,
+  "weight_seed": 5480449,
+  "input_seed": 5484545,
+  "results": [
+    {
+      "type": "f32",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f32",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 1e-10
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "f16",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "bf16",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "upstream non-quantized numerical",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0001
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "elements": 128,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "elements": 1024,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "elements": 192,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "elements": 1536,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "elements": 256,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    },
+    {
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "elements": 2048,
+      "comparison": "bit_exact",
+      "status": "pass",
+      "batch_vs_single": {
+        "pass": true,
+        "finite": true,
+        "nmse": 0.0,
+        "max_abs": 0.0,
+        "nmse_limit": 0.0
+      }
+    }
+  ],
+  "tokenwise_small_batch": true,
+  "device": "NVIDIA GeForce RTX 5090",
+  "source_log": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-pipeline-mtp-final-validation.log",
+    "sha256": "c4a2af75e4a77c8c2075ff1e48ce734e7362aca6b94ed290599fa5359e150ea6"
+  },
+  "comparison_counts": {
+    "bit_exact": 90,
+    "upstream non-quantized numerical": 18
+  }
+}

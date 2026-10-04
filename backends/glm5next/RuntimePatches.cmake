@@ -7,13 +7,18 @@ function(glm_runtime_source target relative expected_hash output_name)
   endif()
   file(READ "${original}" source_text)
   if(target STREQUAL "ggml-base")
+    string(REPLACE "ggml_backend_graph_compute_async(split_backend," "strata_glm_graph_compute(split_backend," source_text "${source_text}")
     # The implementation needs backend types and APIs, so put it after includes.
     string(REPLACE "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {"
-      "#include \"sync_runtime.inc\"\nstatic enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {\n#include \"gpu_only_audit.inc\""
+      "#include \"sync_runtime.inc\"\nstatic enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {\n#include \"gpu_only_audit.inc\"\n    strata_glm_plan_scope strata_glm_scope;"
       source_text "${source_text}")
     string(REPLACE "                        ggml_backend_tensor_set_async(split_backend,"
-      "                        if (strata_glm_sync_active && !strata_glm_candidate_copy) {\n                            strata_glm_copy_range(split_backend, input_cpy, input, expert_offset, expert_size_copy + padding_end);\n                            return;\n                        }\n                        ggml_backend_tensor_set_async(split_backend,"
+      "                        if (strata_glm_sync_active && !strata_glm_candidate_copy) {\n                            strata_glm_copy_range(split_backend, input_cpy, input, expert_offset, expert_size_copy + padding_end, last_id-first_id+1);\n                            return;\n                        }\n                        ggml_backend_tensor_set_async(split_backend,"
       source_text "${source_text}")
+    string(REPLACE "                        prev_ids_tensor = ids_tensor;"
+      "#include \"pipeline_sched.inc\"\n                        prev_ids_tensor = ids_tensor;" source_text "${source_text}")
+    string(REPLACE "        prev_backend_id = split_backend_id;\n    }\n\n    return GGML_STATUS_SUCCESS;"
+      "        prev_backend_id = split_backend_id;\n    }\n\n    strata_glm_scope.finish();\n    return GGML_STATUS_SUCCESS;" source_text "${source_text}")
     string(REPLACE "                    // try async copy, but if not possible,"
       "                    if (strata_glm_sync_active && ggml_backend_buffer_is_host(input->buffer) &&\n                        ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&\n                        strstr(input->name, \"_exps.weight\")) {\n                        GGML_LOG_ERROR(\"STRATA_GLM refusing full expert tensor copy: %s\\n\", input->name);\n                        return GGML_STATUS_FAILED;\n                    }\n                    // try async copy, but if not possible,"
       source_text "${source_text}")
@@ -43,10 +48,10 @@ function(glm_runtime_source target relative expected_hash output_name)
   get_filename_component(original_dir "${original}" DIRECTORY)
   set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
     INCLUDE_DIRECTORIES "${original_dir};${CMAKE_CURRENT_SOURCE_DIR}"
-    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc")
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc")
 endfunction()
 glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)
 glm_runtime_source(llama src/llama-model-loader.cpp
   5ef07476310d4678df18a61a6ec0a1ebcbb58c7534ac3c624b9fe0f315a4ab01 strata-glm-loader.cpp)
-string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,optional-runtime-expert-cache")
+string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback")

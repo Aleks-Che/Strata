@@ -1,0 +1,221 @@
+{
+  "status": "pass",
+  "configuration": {
+    "batch": 16,
+    "kv": "F16",
+    "model": "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+    "n_ctx": 2048,
+    "n_rs_seq": 3,
+    "pipeline": true,
+    "prompt_ids": [
+      154822,
+      154824,
+      154826,
+      25062,
+      287,
+      29905,
+      371,
+      25,
+      12035,
+      154827,
+      840,
+      20726,
+      304,
+      6364,
+      1246,
+      38797,
+      6203,
+      1007,
+      10623,
+      8608,
+      1598,
+      264,
+      20933,
+      8667,
+      18347,
+      15534,
+      4128,
+      1614,
+      389,
+      825,
+      22611,
+      13,
+      20635,
+      2326,
+      14964,
+      3501,
+      13,
+      154828,
+      154841
+    ],
+    "ram_target_percent": 95,
+    "synthetic": false,
+    "vram_target_percent": 95
+  },
+  "source_report": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-pipeline-mtp-trace.json",
+    "sha256": "4c3c0d3d2dee9c63bff2d18cdf3f8e243f61b743869658344c6b2ee94356abbe"
+  },
+  "binary": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+    "sha256": "a800c482c04b441127e730843671f1fb61f40dcf6dfa1b286aaeb819b1fd3078"
+  },
+  "scope": "First six target graphs: three prefill batches and three decode calls. Instrumented graph-boundary synchronization; not a throughput benchmark.",
+  "interpretation": "Intervals use CUDA events on actual streams. Compute-split spans include dependencies and waits; overlap is interval intersection, not proof of simultaneous busy SM kernels.",
+  "baseline_vs_saved_logits": {
+    "bit_exact": true,
+    "elements": 9912320,
+    "path": "build-local/glm-sync-iq3-repeat.f32"
+  },
+  "saved_logits": {
+    "path": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-sync-iq3-repeat.f32",
+    "sha256": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550"
+  },
+  "checks": [
+    {
+      "name": "baseline",
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 64,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "native depth 1",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 64,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "native depth 2",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 64,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "native depth 3",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 16,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "forced first round accepted 0",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 16,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "forced first round accepted 1",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 16,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "forced first round accepted 2",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 16,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "forced first round accepted 3",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 32,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "seeded target sample-and-match",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    },
+    {
+      "name": "cancel during draft",
+      "status": "pass"
+    },
+    {
+      "equal_prefix_tokens": 16,
+      "max_abs": 0.0,
+      "max_abs_limit": 0.05,
+      "name": "clean after cancel",
+      "nmse": 0.0,
+      "nmse_limit": 1e-06,
+      "status": "pass"
+    }
+  ],
+  "graphs": [
+    {
+      "cancelled": false,
+      "compute_ms": 593.3944702148438,
+      "compute_splits": 127,
+      "h2d_ms": 746.4103393554688,
+      "h2d_submissions": 8329,
+      "overlap_ms": 0.1688232421875
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 74.01535496115685,
+      "compute_splits": 127,
+      "h2d_ms": 704.2938199043274,
+      "h2d_submissions": 7722,
+      "overlap_ms": 1.78424072265625
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 48.31021595001221,
+      "compute_splits": 127,
+      "h2d_ms": 306.1152000427246,
+      "h2d_submissions": 3618,
+      "overlap_ms": 0.03660774230957031
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 25.8128080368042,
+      "compute_splits": 127,
+      "h2d_ms": 21.77745819091797,
+      "h2d_submissions": 295,
+      "overlap_ms": 0.07308769226074219
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 18.303226113319397,
+      "compute_splits": 127,
+      "h2d_ms": 29.10793685913086,
+      "h2d_submissions": 386,
+      "overlap_ms": 0.06240081787109375
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 15.453311007469893,
+      "compute_splits": 127,
+      "h2d_ms": 46.1077036857605,
+      "h2d_submissions": 576,
+      "overlap_ms": 0.0411224365234375
+    }
+  ],
+  "totals_ms": {
+    "h2d_ms": 1853.81245803833,
+    "compute_ms": 775.2893862836063,
+    "overlap_ms": 2.1662826538085938
+  },
+  "full_intervals": "Retained in source_report in build-local, omitted here to avoid duplicating intervals across every memory snapshot."
+}
