@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a и warm transport benchmark P3.7a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `05dc32d03d232161987496e0296366ad4c4cc413`, ветка `dev`; P3.7a уже в HEAD, P2.5g — в рабочем дереве |
-| Последняя выполненная работа | P2.5g: оба API через реальные loopback HTTP-сокеты, JSON/SSE и disconnect watcher; 30 сценариев / 56 запросов, 48 интеграционных и смежных тестов прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a и warm transport/chunk benchmark P3.7a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `2a7503be11b8311c380fcf127a8d6d3a8e1a8594`, ветка `dev`; P2.5g уже в HEAD, P3.7b — в рабочем дереве |
+| Последняя выполненная работа | P3.7b: controlled chunk/staging sweep 256 КиБ/1/4/16 МиБ, 96 конфигураций / 48384 byte comparisons на двух GGUF; 26 Python tests прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P2.5g завершён на mock engine, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; компонент P3.7b завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 16 (P3.5f-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -73,7 +73,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; 72 локальные проверки нового GGUF; P2.5g — 30 реальных HTTP-сценариев с mock engine, смежный прогон 48 tests | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport benchmark P3.7a | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers с compute и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport/chunk benchmark P3.7a/b | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers/chunks с compute и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -2214,6 +2214,75 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
   candidate/oracle/CUDA и сохранить tokenizer parity. После появления backend
   повторить HTTP disconnect/FIFO сценарии с реальным GPU cleanup.
+
+### P3.7b-01 — 2026-10-04, Asia/Yekaterinburg — Размеры chunk и staging
+
+- **Статус:** DONE для warm component sweep; общий P3 и окончательный выбор
+  параметров для GLM inference остаются IN_PROGRESS.
+- **Исполнитель:** Codex, автоматический цикл 19.
+- **Ревизия:** `2a7503be11b8311c380fcf127a8d6d3a8e1a8594`, ветка `dev`;
+  дерево до начала чистое. P3.7b оставлен в рабочем дереве.
+- **Пункт плана:** P3, подбор reader/staging параметров; проверить предложенный
+  размер 16 МиБ и меньшие chunks с одинаковыми прочими настройками.
+- **Изменение:** runner `tools/benchmark_glm5next_transfer.py` принимает
+  `--chunk-sweep` (до 8 разных размеров, не более 16 МиБ), `--modes`, `--readers`
+  и `--phases`. CLI запрещает одновременные chunk-sweep/chunk-bytes; selections
+  валидируются до model inspection. Старый вызов сохраняет 18 cases при 1 МиБ.
+  Schema 2 содержит chunk size каждого run, hash runner и сравнения внутри
+  неизменных mode/phase/configured-readers. Baseline — 1 МиБ, если он включён,
+  иначе наименьший chunk. Сравниваются wall-time medians и расход pinned/ring;
+  single-phase subset также поддержан. Порядок всего набора перемешан с seed.
+- **Файлы:** `tools/benchmark_glm5next_transfer.py`,
+  `tools/test_glm5next_transfer_benchmark.py`, `backends/glm5next/README.md`,
+  план, этот статус, [Python log](GLM53_FLASH_CHUNK_TESTS.txt) и два JSON ниже.
+- **Проверки:** cwd `C:\work\git\my-repos\Strata`, Windows, Python 3.12.7.
+  `cmd /c ".venv\Scripts\python.exe -m unittest tools.test_glm5next_transfer_benchmark tools.test_glm5next_transfer_check -v > build-local\glm5next-chunk-tests.log 2>&1"`
+  — **exit 0, 26 tests, 0,778 с**. Новые проверки охватывают bounds/duplicate
+  selections, воспроизводимость seed, разделение сравнений по всем фиксированным
+  факторам, fallback baseline, ratios/capacities, single-phase report и прежние
+  defaults. Прежние malformed protocol, timeout/error и byte-counter checks прошли.
+  GPU checker взят из проверенной сборки P3.7a; C++/CUDA исходники не менялись,
+  повторная сборка/CTest не запускались.
+- **Реальные замеры:** PATH дополнен `build-local/cuda-13.0/bin` и
+  `build-local/cuda-13.0/bin/x64`. Обе команды — exit 0:
+  `.venv\Scripts\python.exe -m tools.benchmark_glm5next_transfer --gguf H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local\glm5next-transport\strata-glm5next-transfer-check.exe --chunk-sweep 262144 1048576 4194304 16777216 --readers 1 2 --seed 19 --output docs\GLM53\GLM53_FLASH_IQ3_XXS_CHUNK_BENCHMARK.json`
+  `.venv\Scripts\python.exe -m tools.benchmark_glm5next_transfer --gguf H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL\GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf --checker build-local\glm5next-transport\strata-glm5next-transfer-check.exe --chunk-sweep 262144 1048576 4194304 16777216 --readers 1 2 --seed 19 --output docs\GLM53\GLM53_FLASH_UD_Q3_K_XL_CHUNK_BENCHMARK.json`
+  Стенд: Ryzen 9 9950X, RTX 5090, CUDA runtime/driver 13000/13000.
+  На профиль: 72 matrices (layers 3/11/45, IDs 0–6/287) × 48 cases ×
+  (2 warmup + 5 samples) = **24192 полных byte comparisons**, всего **48384**.
+  Source/H2D/D2D/chunk counters и guards прошли. После прогона проверены
+  status/case counts и совпадение hashes runner/checker с текущими файлами.
+  `git diff --check` — exit 0.
+- **Результат, median мс:** одинаковый mmap mode, prefill с двумя readers,
+  decode с одним. Измеряется весь выбранный payload, не один эксперт:
+
+  | Профиль / фаза | 256 КиБ | 1 МиБ | 4 МиБ | 16 МиБ |
+  |---|---:|---:|---:|---:|
+  | IQ3_XXS, 227 МиБ, prefill | 45,238 | 17,806 | 11,912 | 11,452 |
+  | IQ3_XXS, 227 МиБ, decode | 46,325 | 18,273 | 12,061 | 11,596 |
+  | UD-Q3_K_XL, 294,5 МиБ, prefill | 58,777 | 23,176 | 16,809 | 14,900 |
+  | UD-Q3_K_XL, 294,5 МиБ, decode | 60,383 | 23,222 | 16,362 | 14,938 |
+
+  Pinned staging и device ring по отдельности занимают **1/4/16/64 МиБ** для
+  этих четырёх chunk sizes. Основной профиль даёт 936/264/80/72 chunks,
+  дополнительный — 1200/344/112/72. На 16 МиБ каждая выбранная матрица помещается
+  в один chunk. 4 МиБ — кандидат для будущего сравнения с compute: расход каждого
+  staging/ring pool вчетверо меньше, чем на 16 МиБ. Нельзя переносить эти medians
+  на скорость генерации. Native с одним reader не показывает такого же эффекта;
+  все сочетания и диапазоны samples сохранены в
+  [IQ3_XXS JSON](GLM53_FLASH_IQ3_XXS_CHUNK_BENCHMARK.json) и
+  [UD-Q3_K_XL JSON](GLM53_FLASH_UD_Q3_K_XL_CHUNK_BENCHMARK.json).
+- **Ограничения:** выбранные диапазоны предварительно прогреты; cache отсутствует,
+  GPU compute/overlap, реальные routing traces, OS disk I/O и полная модель не
+  измерялись. Таймер включает CPU scheduling/read, H2D/D2D и final sync; allocation,
+  warmup и D2H/byte validation снаружи. Ratios — описательные, не статистическая
+  гарантия. Runtime defaults не менялись. Linux/HIP/multi-GPU и inference
+  Qwen/DeepSeek/GLM/MTP в этом цикле не запускались.
+- **Блокер:** P0.3b сохраняется, последняя попытка получить архив Unsloth в цикле
+  16 завершилась `WinError 10013`; в цикле 19 внешний доступ не перепроверялся.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив и собрать
+  candidate/oracle/CUDA. После подключения compute сравнить 4/16 МиБ с учётом
+  доступной VRAM и фактической скорости генерации.
 
 ## Шаблон следующей записи
 

@@ -134,8 +134,41 @@ component observations, not new runtime defaults. Reports:
 [IQ3_XXS](../../docs/GLM53/GLM53_FLASH_IQ3_XXS_TRANSPORT_BENCHMARK.json),
 [UD-Q3_K_XL](../../docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_TRANSPORT_BENCHMARK.json).
 Protocol checks: `python -m unittest tools.test_glm5next_transfer_benchmark`.
-Cold storage, representative routed workloads, chunk-size sweeps and integrated
-GLM compute remain necessary before choosing production reader settings.
+Cold storage, representative routed workloads and integrated GLM compute remain
+necessary before choosing production reader settings.
+
+P3.7b adds `--chunk-sweep BYTES...` (up to eight distinct sizes, 1 byte–16 MiB),
+mutually exclusive with `--chunk-bytes`. Filter cases with `--modes`, `--readers`
+and `--phases`. For example, append these options to the command above and use
+a separate output file:
+
+```text
+--chunk-sweep 262144 1048576 4194304 16777216 --readers 1 2 --seed 19
+```
+
+This runs 48 cases: three source modes × two configured reader counts × two
+phases × four chunks, with seeded shuffled order. Defaults without these flags
+still run the original 18 cases at 1 MiB. Report schema 2 records chunk size in
+each run, the runner hash, and `chunk_comparisons` grouped by fixed mode, phase
+and configured reader count. Ratios compare median wall time with the 1 MiB case
+when present, otherwise the smallest requested chunk. They are descriptive
+ratios, not confidence estimates. A single requested phase is supported.
+Fixed pinned/ring capacities expose the memory cost: 256 KiB/1 MiB/4 MiB/16 MiB
+chunks allocate 1/4/16/64 MiB respectively in each pool. Actual payload remains
+unchanged; a chunk larger than a matrix does not merge it with the next matrix.
+The engine/transport defaults are unchanged. Real GGUF sweep reports:
+[IQ3_XXS](../../docs/GLM53/GLM53_FLASH_IQ3_XXS_CHUNK_BENCHMARK.json),
+[UD-Q3_K_XL](../../docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_CHUNK_BENCHMARK.json).
+
+On the same Windows / Ryzen 9 9950X / RTX 5090 / CUDA 13.0 system (2026-10-04),
+each profile passed 48 configurations and 24192 full matrix comparisons. At
+fixed mmap/one-reader decode, medians for 256 KiB/1 MiB/4 MiB/16 MiB chunks were
+46.325/18.273/12.061/11.596 ms for the 227 MiB IQ3_XXS selection, and
+60.383/23.222/16.362/14.938 ms for the 294.5 MiB UD-Q3_K_XL selection.
+These observations include transport scheduling and both H2D/D2D, with no compute.
+At 16 MiB every selected matrix fits one chunk; at 4 MiB some matrices still split.
+The 4 MiB case uses one quarter of the staging/ring capacity of 16 MiB and is a
+candidate for the later integrated comparison, not a measured token-rate gain.
 
 `expert_plan.hpp` provides the native route-to-range planner (P3.1b), without CUDA,
 llama.cpp or payload reads. The loader supplies the full model identity and load

@@ -66,7 +66,7 @@ def run_sample(checker, matrices, directory, chunk_bytes, mode, readers, decode,
     if lines[-1] != f'VERIFIED {comparisons}':
         raise ValueError('Benchmark did not verify every matrix')
     median_ns = statistics.median(s['elapsed_ns'] for s in samples)
-    return {'mode': mode, 'phase': 'decode' if decode else 'prefill', 'readers': readers,
+    return {'mode': mode, 'phase': 'decode' if decode else 'prefill', 'readers': readers, 'chunk_bytes': chunk_bytes,
             'effective_readers': effective, 'gpu': bytes.fromhex(gpu[1]).decode('utf-8'),
             'cuda_runtime': int(gpu[2]), 'cuda_driver': int(gpu[3]), 'command': command,
             'byte_comparisons': comparisons, 'payload_bytes': total, 'destination_bytes': guarded,
@@ -77,8 +77,52 @@ def run_sample(checker, matrices, directory, chunk_bytes, mode, readers, decode,
             'stderr_tail': result.stderr[-8192:].decode('utf-8', errors='replace')}
 
 
-def benchmark(gguf, checker, layers, experts, chunk_bytes, warmups, repeats, timeout, seed):
+def benchmark_cases(chunk_sizes, modes, readers, phases, seed):
+    for name, values in (('chunk sizes', chunk_sizes), ('modes', modes), ('readers', readers), ('phases', phases)):
+        if not values or len(values) != len(set(values)):
+            raise ValueError(f'Require nonempty distinct {name}')
+    if len(chunk_sizes) > 8:
+        raise ValueError('At most eight chunk sizes per sweep')
+    for chunk in chunk_sizes:
+        if integer(chunk, 'chunk bytes', 1) > 16*1024*1024:
+            raise ValueError('Chunk size exceeds 16 MiB')
+    for reader in readers:
+        if integer(reader, 'readers', 1) > 4:
+            raise ValueError('At most four readers')
+    if any(mode not in MODES for mode in modes) or any(phase not in ('prefill', 'decode') for phase in phases):
+        raise ValueError('Unknown reader mode or phase')
+    cases = list(itertools.product(modes, readers, (phase == 'decode' for phase in phases), chunk_sizes))
+    random.Random(seed).shuffle(cases)
+    return cases
+
+
+def chunk_comparisons(runs):
+    """Compare chunk sizes only within a fixed mode/phase/configured-reader group."""
+    groups = {}
+    for run in runs:
+        groups.setdefault((run['mode'], run['phase'], run['readers']), []).append(run)
+    comparisons = []
+    for (mode, phase, readers), group in sorted(groups.items()):
+        ordered = sorted(group, key=lambda run: run['chunk_bytes'])
+        # Prefer the previous 1 MiB baseline when included, otherwise the smallest.
+        baseline = next((r for r in ordered if r['chunk_bytes'] == 1024*1024), ordered[0])
+        fastest = min(ordered, key=lambda run: run['median_ms'])
+        comparisons.append({'mode': mode, 'phase': phase, 'readers': readers,
+                            'effective_readers': baseline['effective_readers'],
+                            'baseline_chunk_bytes': baseline['chunk_bytes'],
+                            'lowest_observed_chunk_bytes': fastest['chunk_bytes'],
+                            'measurements': [{**{k: r[k] for k in ('chunk_bytes', 'median_ms', 'min_ms', 'max_ms',
+                                                                   'pinned_bytes', 'ring_bytes')},
+                                              'median_ratio_to_baseline': r['median_ms']/baseline['median_ms']}
+                                             for r in ordered]})
+    return comparisons
+
+
+def benchmark(gguf, checker, layers, experts, chunk_bytes, warmups, repeats, timeout, seed, *,
+              chunk_sizes=None, modes=tuple(MODES), readers=(1, 2, 4), phases=('prefill', 'decode')):
     gguf, checker = Path(gguf).resolve(), Path(checker).resolve()
+    sizes = list(chunk_sizes) if chunk_sizes is not None else [chunk_bytes]
+    cases = benchmark_cases(sizes, modes, readers, phases, seed)
     if not layers or not experts:
         raise ValueError('Require layers and experts')
     report = inspect_model(gguf, tensor_details=True)
@@ -90,14 +134,12 @@ def benchmark(gguf, checker, layers, experts, chunk_bytes, warmups, repeats, tim
         shards.append({'path': str(path), 'bytes': stat.st_size, 'mtime_ns': stat.st_mtime_ns,
                        'header_bytes': shard['header_end'], 'header_sha256': digest(path, shard['header_end'])})
     binary_hash = digest(checker)
-    cases = list(itertools.product(MODES, (1, 2, 4), (False, True)))
-    random.Random(seed).shuffle(cases)
     runs = []
-    for mode, readers, decode in cases:
-        run = run_sample(checker, matrices, gguf.parent, chunk_bytes, mode, readers,
+    for mode, reader_count, decode, chunk in cases:
+        run = run_sample(checker, matrices, gguf.parent, chunk, mode, reader_count,
                          decode, warmups, repeats, timeout)
         runs.append(run)
-        print(f"{run['phase']} {mode} readers={readers}/{run['effective_readers']}: "
+        print(f"{run['phase']} {mode} readers={reader_count}/{run['effective_readers']} chunk={chunk}: "
               f"{run['median_ms']:.3f} ms ({run['min_ms']:.3f}..{run['max_ms']:.3f})", flush=True)
     for shard in shards:
         stat = Path(shard['path']).stat()
@@ -108,16 +150,19 @@ def benchmark(gguf, checker, layers, experts, chunk_bytes, warmups, repeats, tim
     if len({(r['gpu'], r['cuda_runtime'], r['cuda_driver']) for r in runs}) != 1:
         raise ValueError('GPU identity changed between runs')
     best = {}
-    for phase in ('prefill', 'decode'):
+    for phase in phases:
         selected = min((r for r in runs if r['phase'] == phase), key=lambda r: r['median_ms'])
-        best[phase] = {k: selected[k] for k in ('mode', 'readers', 'effective_readers', 'median_ms',
+        best[phase] = {k: selected[k] for k in ('mode', 'readers', 'effective_readers', 'chunk_bytes', 'median_ms',
                                                'min_ms', 'max_ms', 'payload_gib_per_second')}
     return {'status': 'pass', 'first_shard': str(gguf), 'shards': shards,
             'checker': str(checker), 'checker_sha256': binary_hash,
-            'layers': layers, 'experts': experts, 'chunk_bytes': chunk_bytes,
+            'runner_sha256': digest(Path(__file__)),
+            'layers': layers, 'experts': experts, 'chunk_bytes': sizes[0] if len(sizes) == 1 else None,
+            'chunk_sizes': sizes, 'modes': list(modes), 'readers': list(readers), 'phases': list(phases),
             'warmups': warmups, 'repeats': repeats, 'case_order_seed': seed,
             'matrix_count': len(matrices), 'quant_types': sorted({m.quant for m in matrices}),
-            'matrices': [asdict(m) for m in matrices], 'runs': runs, 'lowest_observed_medians': best}
+            'matrices': [asdict(m) for m in matrices], 'runs': runs, 'lowest_observed_medians': best,
+            'chunk_comparisons': chunk_comparisons(runs)}
 
 
 def main(argv=None):
@@ -127,7 +172,12 @@ def main(argv=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--layers', type=int, nargs='+', default=[3, 11, 45])
     parser.add_argument('--experts', type=int, nargs='+', default=[0, 1, 2, 3, 4, 5, 6, 287])
-    parser.add_argument('--chunk-bytes', type=int, default=1024*1024)
+    chunks = parser.add_mutually_exclusive_group()
+    chunks.add_argument('--chunk-bytes', type=int, default=1024*1024)
+    chunks.add_argument('--chunk-sweep', type=int, nargs='+', help='Up to eight distinct chunk sizes in bytes')
+    parser.add_argument('--modes', choices=MODES, nargs='+', default=list(MODES))
+    parser.add_argument('--readers', type=int, choices=(1, 2, 3, 4), nargs='+', default=[1, 2, 4])
+    parser.add_argument('--phases', choices=('prefill', 'decode'), nargs='+', default=['prefill', 'decode'])
     parser.add_argument('--warmups', type=int, default=2)
     parser.add_argument('--repeats', type=int, default=5)
     parser.add_argument('--timeout', type=float, default=120)
@@ -138,7 +188,7 @@ def main(argv=None):
     for source in [args.gguf, args.checker, *args.gguf.parent.glob('*.gguf')]:
         if args.output.resolve() == source.resolve() or (args.output.exists() and source.exists() and args.output.samefile(source)):
             parser.error('Output must not overwrite a source shard or checker')
-    result = {'schema_version': 1, 'status': 'error', 'started_utc': datetime.now(timezone.utc).isoformat(),
+    result = {'schema_version': 2, 'status': 'error', 'started_utc': datetime.now(timezone.utc).isoformat(),
               'platform': platform.platform(), 'processor': platform.processor(),
               'scope': 'Warm selected packed ranges, full payload and guards verified; no cache, compute or inference',
               'timed_region': 'pipeline start, all ordered transfers, finish and final consumer stream synchronization',
@@ -152,7 +202,8 @@ def main(argv=None):
                               'Lowest observed medians are local observations, not runtime recommendations']}
     try:
         result.update(benchmark(args.gguf, args.checker, args.layers, args.experts, args.chunk_bytes,
-                                args.warmups, args.repeats, args.timeout, args.seed))
+                                args.warmups, args.repeats, args.timeout, args.seed, chunk_sizes=args.chunk_sweep,
+                                modes=args.modes, readers=args.readers, phases=args.phases))
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
         result['error'] = str(error)
     result['finished_utc'] = datetime.now(timezone.utc).isoformat()

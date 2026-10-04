@@ -396,6 +396,11 @@ result работают через оба API; токены и шаблон со
     9072 matrix comparisons на профиль RTX 5090. JSON содержит все samples,
     counters, hashes и фактическую decode policy. Runtime defaults не менялись;
     cold I/O, влияние compute, routing и окончательный подбор остаются открытыми.
+  - [x] P3.7b: chunk/staging sweep 256 КиБ/1/4/16 МиБ на обоих GGUF;
+    сравнения сгруппированы при одинаковых mode/phase/readers, указан расход
+    pinned/ring. По 48 конфигураций и 24192 byte comparisons на профиль.
+    CLI поддерживает выбор modes/readers/phases; результаты и raw samples
+    сохранены. Это warm transport; runtime defaults и compute не изменялись.
 - [ ] Добавить счётчики source bytes, H2D bytes, GPU hits, admission/bypass,
   ожидания read/H2D/compute, evictions и пик staging. Подтвердить перекрытие работ
   CUDA timeline, а не только наличием `Async` в имени вызова.

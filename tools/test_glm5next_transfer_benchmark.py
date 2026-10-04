@@ -1,5 +1,7 @@
 """Benchmark protocol checks without CUDA or model downloads."""
 from dataclasses import replace
+import contextlib
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -105,6 +107,75 @@ class BenchmarkTests(unittest.TestCase):
                 bench.main(['--gguf', str(root/'model.gguf'), '--checker', str(checker), '--output', str(checker)])
             run.assert_not_called()
             self.assertEqual(checker.read_bytes(), b'preserve')
+
+    def test_case_selection_bounds_and_seed(self):
+        sizes = [262144, 1048576, 4194304, 16777216]
+        cases = bench.benchmark_cases(sizes, ['mmap', 'native'], [1, 2], ['decode'], 19)
+        expected = {(mode, readers, True, chunk) for mode in ('mmap', 'native')
+                    for readers in (1, 2) for chunk in sizes}
+        self.assertEqual(set(cases), expected)
+        self.assertEqual(len(cases), len(expected))
+        self.assertEqual(cases, bench.benchmark_cases(sizes, ['mmap', 'native'], [1, 2], ['decode'], 19))
+        self.assertNotEqual(cases, bench.benchmark_cases(sizes, ['mmap', 'native'], [1, 2], ['decode'], 20))
+        for kwargs in ({'chunk_sizes': []}, {'chunk_sizes': [1, 1]}, {'chunk_sizes': [0]},
+                       {'chunk_sizes': [True]}, {'chunk_sizes': [16777217]}, {'chunk_sizes': list(range(1, 10))},
+                       {'modes': []}, {'modes': ['unknown']}, {'modes': ['mmap', 'mmap']},
+                       {'readers': [0]}, {'readers': [5]}, {'readers': [True]}, {'readers': [1, 1]},
+                       {'phases': []}, {'phases': ['other']}, {'phases': ['decode', 'decode']}):
+            options = dict(chunk_sizes=[1048576], modes=['mmap'], readers=[1], phases=['decode'], seed=19)
+            options.update(kwargs)
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                bench.benchmark_cases(**options)
+
+    def test_chunk_comparison_keeps_other_factors_fixed(self):
+        base, _ = self.run_fixture()
+        runs = []
+        for mode in ('mmap', 'native'):
+            for phase in ('prefill', 'decode'):
+                for readers in (1, 2):
+                    for chunk, ms in ((262144, 30), (1048576, 20), (4194304, 25)):
+                        runs.append({**base, 'mode': mode, 'phase': phase, 'readers': readers,
+                                     'effective_readers': 1 if phase == 'decode' and mode == 'mmap' else readers,
+                                     'chunk_bytes': chunk, 'median_ms': ms, 'min_ms': ms-1, 'max_ms': ms+1,
+                                     'pinned_bytes': 4*chunk, 'ring_bytes': 4*chunk})
+        comparisons = bench.chunk_comparisons(list(reversed(runs)))
+        self.assertEqual(len(comparisons), 8)
+        for comparison in comparisons:
+            self.assertEqual(comparison['baseline_chunk_bytes'], 1048576)
+            self.assertEqual(comparison['lowest_observed_chunk_bytes'], 1048576)
+            self.assertEqual([m['median_ratio_to_baseline'] for m in comparison['measurements']], [1.5, 1, 1.25])
+            self.assertEqual([m['pinned_bytes'] for m in comparison['measurements']], [1048576, 4194304, 16777216])
+        without_old_baseline = [r for r in runs if r['chunk_bytes'] != 1048576]
+        for comparison in bench.chunk_comparisons(without_old_baseline):
+            self.assertEqual(comparison['baseline_chunk_bytes'], 262144)
+            self.assertEqual(comparison['lowest_observed_chunk_bytes'], 4194304)
+
+    def test_filtered_single_phase_report_and_original_defaults(self):
+        template, _ = self.run_fixture()
+
+        def sample(checker, matrices, directory, chunk, mode, readers, decode, *args):
+            return {**template, 'chunk_bytes': chunk, 'mode': mode, 'readers': readers,
+                    'phase': 'decode' if decode else 'prefill', 'effective_readers': 1 if decode and mode != 'native' else readers,
+                    'pinned_bytes': chunk*4, 'ring_bytes': chunk*4}
+
+        with patch.object(bench, 'inspect_model', return_value={'shard_details': []}), \
+                patch.object(bench, 'plan_expert_reads', return_value=[self.matrix]), \
+                patch.object(bench, 'digest', return_value='a'*64), \
+                patch.object(bench, 'run_sample', side_effect=sample) as run, contextlib.redirect_stdout(io.StringIO()):
+            report = bench.benchmark('model.gguf', 'checker', [3], [0], 1048576, 1, 2, 10, 19,
+                                     chunk_sizes=[262144, 1048576], modes=['native'], readers=[2], phases=['decode'])
+            self.assertEqual(run.call_count, 2)
+            self.assertEqual(set(report['lowest_observed_medians']), {'decode'})
+            self.assertIsNone(report['chunk_bytes'])
+            self.assertEqual(report['chunk_sizes'], [262144, 1048576])
+            self.assertEqual(len(report['chunk_comparisons']), 1)
+            self.assertEqual(report['runner_sha256'], 'a'*64)
+            run.reset_mock()
+            original = bench.benchmark('model.gguf', 'checker', [3], [0], 1048576, 1, 2, 10, 17)
+            self.assertEqual(run.call_count, 18)
+            self.assertEqual(original['chunk_bytes'], 1048576)
+            self.assertEqual(original['chunk_sizes'], [1048576])
+            self.assertEqual(set(original['lowest_observed_medians']), {'prefill', 'decode'})
 
 
 if __name__ == '__main__':

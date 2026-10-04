@@ -1,0 +1,41 @@
+test_case_selection_bounds_and_seed (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_case_selection_bounds_and_seed) ... ok
+test_chunk_comparison_keeps_other_factors_fixed (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_chunk_comparison_keeps_other_factors_fixed) ... ok
+test_failed_run_is_not_published_as_success (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_failed_run_is_not_published_as_success) ... ok
+test_filtered_single_phase_report_and_original_defaults (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_filtered_single_phase_report_and_original_defaults) ... ok
+test_limits_fail_before_subprocess (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_limits_fail_before_subprocess) ... ok
+test_output_cannot_replace_checker (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_output_cannot_replace_checker) ... usage: python.exe -m unittest [-h] --gguf GGUF --checker CHECKER --output
+                              OUTPUT [--layers LAYERS [LAYERS ...]]
+                              [--experts EXPERTS [EXPERTS ...]]
+                              [--chunk-bytes CHUNK_BYTES | --chunk-sweep CHUNK_SWEEP [CHUNK_SWEEP ...]]
+                              [--modes {mmap,native,auto} [{mmap,native,auto} ...]]
+                              [--readers {1,2,3,4} [{1,2,3,4} ...]]
+                              [--phases {prefill,decode} [{prefill,decode} ...]]
+                              [--warmups WARMUPS] [--repeats REPEATS]
+                              [--timeout TIMEOUT] [--seed SEED]
+python.exe -m unittest: error: Output must not overwrite a source shard or checker
+ok
+test_rejects_missing_or_corrupt_evidence (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_rejects_missing_or_corrupt_evidence) ... ok
+test_samples_and_effective_reader_policy (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_samples_and_effective_reader_policy) ... ok
+test_subprocess_failure_and_timeout_propagate (tools.test_glm5next_transfer_benchmark.BenchmarkTests.test_subprocess_failure_and_timeout_propagate) ... ok
+test_bad_results_never_pass (tools.test_glm5next_transfer_check.TransferCheckTests.test_bad_results_never_pass) ... ok
+test_cache_cli_failure_replaces_stale_success (tools.test_glm5next_transfer_check.TransferCheckTests.test_cache_cli_failure_replaces_stale_success) ... ok
+test_cache_manifest_and_lifecycle_counters (tools.test_glm5next_transfer_check.TransferCheckTests.test_cache_manifest_and_lifecycle_counters) ... ok
+test_cache_manifest_validates_complete_key (tools.test_glm5next_transfer_check.TransferCheckTests.test_cache_manifest_validates_complete_key) ... ok
+test_cache_report_identity_covers_observed_file_set (tools.test_glm5next_transfer_check.TransferCheckTests.test_cache_report_identity_covers_observed_file_set) ... ok
+test_cache_results_reject_missing_stages_counters_and_old_protocol (tools.test_glm5next_transfer_check.TransferCheckTests.test_cache_results_reject_missing_stages_counters_and_old_protocol) ... ok
+test_changed_source_or_checker_rejected (tools.test_glm5next_transfer_check.TransferCheckTests.test_changed_source_or_checker_rejected) ... ok
+test_child_failure_timeout_and_invalid_timeout (tools.test_glm5next_transfer_check.TransferCheckTests.test_child_failure_timeout_and_invalid_timeout) ... ok
+test_cli_error_replaces_stale_success_and_protects_inputs (tools.test_glm5next_transfer_check.TransferCheckTests.test_cli_error_replaces_stale_success_and_protects_inputs) ... ok
+test_dispatch_modes_and_cancel_read_ahead (tools.test_glm5next_transfer_check.TransferCheckTests.test_dispatch_modes_and_cancel_read_ahead) ... ok
+test_dispatch_report_and_mutually_exclusive_cli_modes (tools.test_glm5next_transfer_check.TransferCheckTests.test_dispatch_report_and_mutually_exclusive_cli_modes) ... ok
+test_dispatch_requires_distinct_triples_and_identity (tools.test_glm5next_transfer_check.TransferCheckTests.test_dispatch_requires_distinct_triples_and_identity) ... ok
+test_dispatch_results_reject_missing_reordered_stages_and_bad_counters (tools.test_glm5next_transfer_check.TransferCheckTests.test_dispatch_results_reject_missing_reordered_stages_and_bad_counters) ... ok
+test_manifest_exact_ranges_modes_and_unicode_paths (tools.test_glm5next_transfer_check.TransferCheckTests.test_manifest_exact_ranges_modes_and_unicode_paths) ... ok
+test_manifest_limits_and_path_escape (tools.test_glm5next_transfer_check.TransferCheckTests.test_manifest_limits_and_path_escape) ... ok
+test_path_specific_counters_and_auto (tools.test_glm5next_transfer_check.TransferCheckTests.test_path_specific_counters_and_auto) ... ok
+test_report_includes_headers_binary_ranges_and_dedup (tools.test_glm5next_transfer_check.TransferCheckTests.test_report_includes_headers_binary_ranges_and_dedup) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.778s
+
+OK
