@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, GPU cache P3.2b.1, transport lifetime P3.3a, byte checks P3.4a/b/c и frequency admission P3.5a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `9a6787e78239d77112ede43e09709f1db0d7a06b`, ветка `dev`; P3.1b уже в HEAD, P3.3a — в рабочем дереве |
-| Последняя выполненная работа | P3.3a: transport adapter удерживает mmap и дренирует отменённый остаток; 9/9 CTest на RTX 5090, новые 24 плана / 192 матрицы и прежние проверки прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, GPU cache P3.2b.1, transport lifetime P3.3a, byte checks P3.4a/b/c и cache policies P3.5a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `9cd57f2b74c8ec275b591d90b495a0c178e7957c`, ветка `dev`; P3.3a уже в HEAD, P3.5b — в рабочем дереве |
+| Последняя выполненная работа | P3.5b: предварительная защита resident entries всего плана; чистая сборка и 9/9 CTest на RTX 5090 прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.3a завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; компонент P3.5b завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -66,7 +66,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; GPU cache P3.2b.1 и frequency admission P3.5a на fixtures; synthetic/real GGUF byte checks P3.4a/b/c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; GPU cache P3.2b.1, frequency admission P3.5a и plan protection P3.5b на fixtures; synthetic/real GGUF byte checks P3.4a/b/c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1581,6 +1581,67 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2. После появления GLM graph связать native
   planner с удерживаемыми cache leases и ordered miss/bypass plan через
   `ExpertTransport`; проверить отмену реальных prefill/decode и численную parity.
+
+### P3.5b-01 — 2026-10-04, Asia/Yekaterinburg — Предварительная защита матриц текущего плана
+
+- **Статус:** DONE для компонента P3.5b; P3 остаётся IN_PROGRESS. Codex, цикл 9.
+  Ветка `dev`, база `9cd57f2b74c8ec275b591d90b495a0c178e7957c`, исходное дерево
+  чистое; изменения не закоммичены. P0.3b и его сетевой блокер не перепроверялись.
+- **Проблема:** consumer lease защищает entry лишь после `get`. Если первый ключ
+  плана отсутствует, его загрузка может вытеснить resident entry, который потребуется
+  позже в том же плане. Нужна защита всей уже resident части до обработки misses.
+- **Реализация:** `ExpertCache::protect_plan(keys)` возвращает move-only `PlanPins`.
+  Проверяются все ключи и лимит 12288; дубликаты удерживаются один раз, отсутствующие
+  ключи не выделяют память. Pins не предоставляют указателей на GPU bytes, не ставят
+  CUDA work, не ждут ready events, не меняют LRU/frequency или access counters.
+  Они удерживают allocation/source через shared ownership и исключают entry из
+  кандидатов на вытеснение. Overlapping guards могут независимо завершаться;
+  `release()` идемпотентен, destructor снимает защиту при исключении/отмене.
+- **Lifetime:** actual consumers обязаны брать обычный `get()` lease с ready wait
+  и consumer event. Leases вновь загруженных misses также нужно удерживать до конца
+  плана. Invalidation удаляет lookup entry, но его bytes/source остаются учтены,
+  пока жив pin/lease; reload не превышает бюджет. Pins могут пережить cache object.
+  Снятие последней ссылки на retired entry может ждать GPU. Это защита residency,
+  не snapshot и не доступ к старому generation после reload; loader должен пересоздать
+  план при смене поколения. API остаётся для одного host owner/device.
+- **Файлы:** `backends/glm5next/expert_cache.hpp`, `test_expert_cache.cpp`, GLM README,
+  план/статус и [CTest log](GLM53_FLASH_PLAN_PINS_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\check-glm-native-plan.cmd` — exit 0. Скрипт и compiler/CUDA PATH
+  описаны в P3.1b-01; выполнены:
+
+  ```text
+  cmake --build build-local/glm5next-transport --config Release --clean-first
+  ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+  ```
+
+  Чистая пересборка всех targets; **9/9 CTest**, без skips. MSVC **19.44.35222.0**,
+  SDK **10.0.26100.0**, GPU **RTX 5090**, CUDA runtime/driver **13000/13000**.
+  Полный локальный log: `build-local/glm5next-plan-pins-build.log`; CTest сохранён выше.
+  Новые fixtures подтверждают:
+  - Ранний miss C вытесняет неплановый B, сохраняя поздний hit A с исходными bytes
+    и без повторного uploader; проверено отдельно для LRU и frequency admission.
+  - Plan pin вместе с lease нового miss не допускает третью allocation и защищает
+    от budget shrink; после release trim полностью освобождает VRAM.
+  - Dedup/absent keys, неизменность counters/history size и LRU, пустой план,
+    неверные ключи и превышение лимита; неуспешная validation не оставляет pins.
+  - Overlapping pins, generation invalidation с сохранением resident accounting,
+    bypass нового generation до освобождения старого и последующий успешный reload.
+  - Cache teardown при живых pin/consumer lease, исходные GPU bytes и exception
+    cancellation без оставшейся защиты. Pending upload не задерживает protect_plan;
+    фактический consumer по-прежнему получает правильные bytes через ready event.
+  Прежние native planner, 432 GPU matrix comparisons, transport cancel/restart
+  (24 плана / 192 матрицы), reader/DeepSeek compatibility, parser и mock tokenizer
+  fixtures также прошли. Python-тесты в этом цикле не запускались.
+- **Ограничения:** synthetic GPU fixtures и отдельный cache API. GLM graph пока
+  не вызывает protect_plan; нет проверки всей связки planner/cache/miss transport
+  на реальной модели, logits, MTP, скорости или overlap timeline. Pins занимают
+  host metadata и удерживают VRAM до release; общего VRAM controller ещё нет.
+  Полные Qwen/DeepSeek inference, Unsloth build, Linux/HIP/multi-GPU не запускались.
+  Общие transport/runtime модули и политика DeepSeek/Qwen не менялись.
+- **Следующий шаг:** P0.3b → P2.1b.2. Для интеграции перед первым miss создавать
+  `PlanPins`, получать consumer leases, строить ordered miss/bypass plan и снимать
+  защиту на всех выходах графа; проверить численную parity и отмену реального GLM.
 
 ## Шаблон следующей записи
 

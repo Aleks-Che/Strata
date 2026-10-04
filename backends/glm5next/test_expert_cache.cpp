@@ -291,6 +291,91 @@ static void test_frequency_pipeline_bypass() {
     bytes_equal(hit,n,0x18,stream);
     std::puts("PASS: admission bypass still delivers full matrix via pipeline; hot hit keeps original bytes");
 }
+static void test_plan_pins(bool frequency) {
+    Stream stream;ExpertCache cache(128,{frequency,100000,32});
+    auto a=key(),b=a,c=a,d=a;++b.expert;c.expert+=2;d.expert+=3;
+    {auto lease=load(cache,a,0x11,stream.value);}stream.sync();
+    {auto lease=load(cache,b,0x22,stream.value);}stream.sync();
+    const auto before=cache.counters();const auto history=cache.history_size();
+    auto pins=cache.protect_plan({c,a,a}); // The first route misses; the later A hit is LRU.
+    require(pins.size()==1 && cache.counters().hits==before.hits && cache.counters().misses==before.misses &&
+            cache.history_size()==history,"plan protection changed accesses or pinned duplicate/absent keys");
+    int uploads=0;
+    auto fresh=load(cache,c,0x33,stream.value,&uploads); // Must evict B, not the later planned A.
+    {auto later=load(cache,a,0xFF,stream.value,&uploads);bytes_equal(later,64,0x11,stream);}stream.sync();
+    require(uploads==1 && cache.counters().evictions==1,"earlier miss displaced a later planned hit");
+    auto bypass=load(cache,d,0x44,stream.value,&uploads);
+    require(!bypass && uploads==1,"plan pin/newly loaded lease did not protect current plan");
+    require(!cache.set_budget(0) && cache.resident_bytes()==128,"budget shrink freed protected plan entries");
+    fresh.release();stream.sync();pins.release();pins.release();
+    require(cache.set_budget(0) && cache.resident_bytes()==0,"plan cancellation did not release protection");
+    std::printf("PASS: plan-wide pins protect later hits, deduplicate, preserve counters and cooperate with miss leases/trim (%s)\n",
+                frequency?"frequency":"lru");
+}
+
+static void test_pin_reload_and_teardown() {
+    Stream stream;auto a=key(),next=a;++next.generation;
+    auto owner=std::make_shared<std::vector<uint8_t>>(64,0x61);std::weak_ptr<std::vector<uint8_t>> weak=owner;
+    auto cache=std::make_unique<ExpertCache>(64);
+    {auto lease=cache->get(a,owner,stream.value,[&](void *dest,size_t n,cudaStream_t s) {
+        cuda_ok(cudaMemcpyAsync(dest,owner->data(),n,cudaMemcpyHostToDevice,s));
+    });}stream.sync();owner.reset();
+    auto pins=cache->protect_plan({a});auto second=cache->protect_plan({a});
+    require(cache->invalidate(a.model,a.generation)==1 && cache->size()==0 && cache->resident_bytes()==64,
+            "invalidation lost pinned allocation accounting");
+    auto blocked=load(*cache,next,0x72,stream.value);
+    require(!blocked && !weak.expired(),"generation reload overcommitted pinned old weights");
+    pins.release();require(cache->resident_bytes()==64 && !weak.expired(),"overlapping plan pins lost source");
+    second.release();require(cache->resident_bytes()==0 && weak.expired(),"invalidated source leaked after last pin");
+    {auto lease=load(*cache,next,0x72,stream.value);bytes_equal(lease,64,0x72,stream);}stream.sync();
+    auto survives=cache->protect_plan({next});
+    auto consumer=load(*cache,next,0,stream.value);cache.reset();
+    bytes_equal(consumer,64,0x72,stream);consumer.release();stream.sync();survives.release();
+
+    ExpertCache retry(64);
+    {auto lease=load(retry,a,1,stream.value);}stream.sync();
+    try {auto guard=retry.protect_plan({a});throw std::runtime_error("fixture cancellation");}
+    catch(const std::runtime_error &) {}
+    require(retry.set_budget(0) && retry.resident_bytes()==0,"exception unwinding retained pin");
+    std::puts("PASS: overlapping pins, invalidation accounting, generation reload, cache teardown and exception cancellation");
+}
+
+static void test_pin_validation_and_lru() {
+    Stream stream;auto a=key(),b=a,c=a;++b.expert;c.expert+=2;
+    ExpertCache cache(128);
+    {auto lease=load(cache,a,1,stream.value);}stream.sync();
+    {auto lease=load(cache,b,2,stream.value);}stream.sync();
+    auto invalid=a;invalid.bytes=0;bool rejected=false;
+    try {auto bad=cache.protect_plan({a,invalid});}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected,"invalid plan key accepted");
+    rejected=false;
+    try {auto big=cache.protect_plan(std::vector<ExpertKey>(12289,a));}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected,"plan pin metadata limit ignored");
+    {auto empty=cache.protect_plan({});require(empty.size()==0,"empty pin plan");}
+    {auto guard=cache.protect_plan({a});} // Protection alone must not touch LRU.
+    {auto lease=load(cache,c,3,stream.value);}stream.sync();
+    auto remaining=cache.protect_plan({a,b,c});
+    require(remaining.size()==2 && cache.counters().evictions==1,"validation leaked a pin");
+    int uploads=0;
+    {auto b_hit=load(cache,b,0,stream.value,&uploads);bytes_equal(b_hit,64,2,stream);}
+    require(uploads==0,"plan probe changed LRU order");
+    std::puts("PASS: plan validation/limit/empty plan and protection without LRU changes");
+}
+
+static void test_pins_do_not_wait_for_upload() {
+    Stream stream;ExpertCache cache(64);auto a=key();Gate gate(stream.value);
+    auto owner=std::make_shared<int>(1);
+    auto lease=cache.get(a,owner,stream.value,[&](void *dest,size_t n,cudaStream_t s) {
+        cuda_ok(cudaLaunchHostFunc(s,block,&gate));cuda_ok(cudaMemsetAsync(dest,0x39,n,s));
+    });
+    lease.release();
+    auto pins=cache.protect_plan({a});
+    require(pins.size()==1 && !gate.expired.load(),"plan protection waited for pending upload");
+    gate.release.store(true);stream.sync();
+    auto hit=load(cache,a,0,stream.value);bytes_equal(hit,64,0x39,stream);
+    std::puts("PASS: plan pins do not wait for upload; consumer lease preserves ready-event byte parity");
+}
+
 int main() {
     try {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
@@ -298,6 +383,8 @@ int main() {
         test_keys();test_lru_budget();test_pending_events();test_reload_and_failure();test_pipeline_upload();
         test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
         test_pending_events(true);
+        test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();
+        test_pin_validation_and_lru();test_pins_do_not_wait_for_upload();
         return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }

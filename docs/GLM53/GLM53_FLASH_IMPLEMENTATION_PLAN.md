@@ -350,6 +350,10 @@ result работают через оба API; токены и шаблон со
     GLM GPU cache. Полные ключи, учёт bypass, атомарный выбор нескольких LRU victims,
     invalidation и CUDA lifetime проверены на fixtures; DeepSeek history regression
     прошла. Подключение к GLM graph, общий VRAM controller и замеры ещё не выполнены.
+  - [x] P3.5b: `ExpertCache::protect_plan` предварительно удерживает все resident
+    entries текущего плана, чтобы ранний miss не вытеснил поздний hit. Проверены
+    LRU/frequency, overlapping pins, trim, reload/invalidation и отмена. Реальный
+    GLM graph должен связать эту защиту с consumer leases и планом miss/bypass.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

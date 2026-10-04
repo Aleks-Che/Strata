@@ -6,6 +6,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -61,6 +62,23 @@ class ExpertCache {
         }
     };
 public:
+    // Pin all resident matrices before processing any misses. A pin is not a
+    // consumer lease: it exposes no pointer and records no CUDA work. Obtain a
+    // normal get() lease for each actual consumer and retain newly loaded leases
+    // for the remainder of the plan. Invalidation may retire pinned entries, but
+    // their allocations remain charged until both pins and leases are released.
+    class PlanPins {
+        friend class ExpertCache;
+        std::vector<std::shared_ptr<Entry>> entries;
+        explicit PlanPins(std::vector<std::shared_ptr<Entry>> values):entries(std::move(values)) {}
+    public:
+        PlanPins(const PlanPins&)=delete;
+        PlanPins &operator=(const PlanPins&)=delete;
+        PlanPins(PlanPins&&)=default;
+        PlanPins &operator=(PlanPins&&)=delete;
+        size_t size() const {return entries.size();}
+        void release() {entries.clear();}
+    };
     class Lease {
         friend class ExpertCache;
         std::shared_ptr<Entry> entry;
@@ -158,6 +176,22 @@ public:
     Counters counters() const {return counts;}
     size_t history_size() const {return frequency?frequency->size():0;}
     bool set_budget(size_t limit) {device_check();budget=limit;return room(0);}
+
+    // Does not count accesses, alter frequency/LRU or upload absent keys. The
+    // returned pins protect later hits from an earlier miss in the same plan.
+    PlanPins protect_plan(const std::vector<ExpertKey> &plan) {
+        device_check();
+        if(plan.size()>12288)throw std::invalid_argument("GLM cache plan exceeds matrix limit");
+        for(const auto &key:plan)key.validate();
+        std::vector<std::shared_ptr<Entry>> pinned;
+        std::set<ExpertKey> seen;
+        for(const auto &key:plan) {
+            if(!seen.insert(key).second)continue;
+            auto found=entries.find(key);
+            if(found!=entries.end())pinned.push_back(found->second.entry);
+        }
+        return PlanPins(std::move(pinned));
+    }
 
     // Upload must enqueue all writes to the supplied stream (for example using
     // StrataExpertPipeline::transfer). It must not retain the destination or

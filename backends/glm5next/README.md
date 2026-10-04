@@ -141,6 +141,28 @@ shard, offset and length. The loader must supply a fresh generation on each relo
 and validate the tensor layout; the cache validates key structure, not quant math.
 The component is not yet connected to a GLM loader/router/graph.
 
+Before processing any misses from a routed plan, call `cache.protect_plan(keys)`
+and keep the returned `PlanPins` alive for the plan (P3.5b). It pins every currently
+resident key, including uploads still in flight, so an early miss cannot evict a
+later planned hit. Duplicate keys are pinned once; absent keys are not allocated.
+All keys validate first, and the input is bounded to 12288 matrix keys. Protection
+does not count an access, update frequency/LRU, enqueue CUDA work or wait for upload
+readiness. `size()` reports the number of unique entries actually pinned.
+
+Pins expose no data pointers. Actual consumers still need a normal `get()` lease,
+which orders upload readiness and records consumer events on release. Keep leases
+for newly loaded matrices through the rest of the plan too; those matrices were
+absent when pins were taken. End/cancel the plan by destroying the pins or calling
+their idempotent `release()`. Multiple guards may overlap. Explicit invalidation
+removes entries from lookup but retains their bytes/source owners while pinned;
+new generations cannot exceed the shared byte budget. Pins can outlive the cache
+object. Retiring the last reference to an invalidated allocation may wait for its
+GPU work, like cache teardown. This protects residency only; it is not a snapshot
+or permission to obtain old-generation data after reload. The model loader must
+cancel/rebuild plans when changing generations. Use the same single host owner as
+the cache. CUDA fixtures cover early miss/later hit, both admission policies,
+overlapping guards, budget trim, invalidation, teardown and exception cancellation.
+
 Use one host owner and one CUDA device per cache, including its leases. A miss
 requires a shared source owner and an upload callback; the callback can invoke
 `StrataExpertPipeline::transfer` and must order all writes onto the supplied
