@@ -52,7 +52,7 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains seven tests, including the range parser, GPU cache
+On Windows the suite contains eight tests, including the native route planner, range parser, GPU cache
 and the unchanged DeepSeek frequency-history regression through its compatibility include.
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
@@ -63,6 +63,34 @@ guards. Native mode protects the mmap view with PAGE_NOACCESS and removes the
 registry entry after planning; queued reads must retain their file handles.
 Source/H2D/D2D/chunk counters must match the consumed plan. Auto-mode counters
 report the actual native/mmap choice, not physical SSD reads.
+
+`expert_plan.hpp` provides the native route-to-range planner (P3.1b), without CUDA,
+llama.cpp or payload reads. The loader supplies the full model identity and load
+generation, main/total/leading-dense block counts, one layer's three routed tensor
+layouts and shard sizes/data starts. `plan_experts` validates all three layouts,
+quant row geometry, byte counts, tensor overlap, file bounds and transposed down
+shape before returning full `ExpertKey` values. The shared key definition now lives
+in `expert_key.hpp`; the GPU cache includes it without changing key semantics.
+
+The planner supports the eight routed quant types listed above, rejects dense
+layers and invalid IDs, and deduplicates routes in first-use order. Each unique ID
+keeps its complete gate/up/down triple, regardless of descriptor input order.
+Duplicate IDs may come from a batch; compute still applies each token's original
+router weights. This planner only deduplicates weight transfers. Empty routes
+produce an empty plan after layout validation. `max_routes` (default 4096) bounds
+input IDs, including duplicates, and thus at most three times that many output
+keys; larger batches must be split by the caller. Offsets are 64-bit, including
+offsets above 4 GiB and a final expert ending exactly at EOF. An unused metadata-only
+shard may end before its aligned data start, as in the split GLM profile.
+
+The planner owns only metadata. The graph adapter must resolve returned shard
+offsets to valid source views, retain mappings/file owners, protect current-plan
+cache leases, and drain the pipeline before releasing sources on all exit paths.
+It does not create a GLM graph, execute a router or own CUDA events. The CPU test
+checks 384 keys from independent fixture geometry plus malformed layouts/routes.
+The GPU byte test now gets its 24-matrix plans from this native planner, with
+duplicate router IDs and independent expected offsets; its 432 comparisons remain
+synthetic packed bytes, not model logits or a measured speedup.
 
 On non-Windows the GPU test has only the six host-memory cases (144 matrix
 comparisons); native file transport is not implemented there. Only Windows was

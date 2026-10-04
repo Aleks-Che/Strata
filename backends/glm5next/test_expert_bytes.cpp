@@ -1,5 +1,6 @@
 // Packed-byte delivery only: no GLM forward pass or quantization arithmetic.
 #include "../common/expert_pipeline.hpp"
+#include "expert_plan.hpp"
 #include <cstdio>
 
 static void check(bool value,const char *message) {
@@ -97,10 +98,24 @@ static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
     std::vector<StrataExpertSlice> slices;
     std::vector<size_t> destination_offsets;
     size_t dest_bytes=guard,source_bytes=0,chunks=0;
-    // Eight distinct routes, including both boundaries; retain every triple.
-    for(size_t expert:{9,0,8,2,7,3,6,4})for(size_t projection=0;projection<3;++projection) {
-        const size_t bytes=fixture.matrix_bytes[projection];
-        slices.push_back({fixture.data()+fixture.starts[projection]+expert*bytes,bytes,decode});
+    // Route through the native planner, with duplicate IDs and both boundaries.
+    using namespace strata_glm;
+    constexpr const char *quants[]={"IQ2_S","IQ3_S","IQ4_XS","Q2_K","Q3_K","IQ3_XXS","Q6_K","Q4_K"};
+    ExpertLayerLayout layout{group==2?45:group==1?11:3,45,46,3,{}};
+    for(size_t p=0;p<3;++p)
+        layout.tensors[p]={Projection(p),quants[(group*3+p)%8],p==2?2048u:4096u,p==2?4096u:2048u,
+                           10,0,fixture.starts[p],fixture.matrix_bytes[p]*10};
+    auto plan=plan_experts("synthetic-model-"+std::to_string(group),1,layout,
+                          {{"fixture.gguf",96,fixture.bytes.size()}},{9,0,9,8,2,7,3,6,4,0});
+    check(plan.size()==24,"native planner lost a routed triple");
+    constexpr size_t experts[]={9,0,8,2,7,3,6,4};
+    for(size_t i=0;i<plan.size();++i) {
+        const auto &key=plan[i];const size_t p=i%3,expert=experts[i/3];
+        const size_t bytes=fixture.matrix_bytes[p];
+        // Independent fixture offsets/sizes remain the oracle for the plan.
+        check(key.expert==int(expert) && key.projection==Projection(p) && key.bytes==bytes &&
+              key.offset==fixture.starts[p]+expert*bytes,"native planner disagrees with fixture ranges");
+        slices.push_back({fixture.data()+key.offset,size_t(key.bytes),decode});
         destination_offsets.push_back(dest_bytes);
         dest_bytes+=bytes+guard;
         source_bytes+=bytes;
@@ -160,7 +175,7 @@ int main() {
         int runtime=0,driver=0;
         cuda_ok(cudaRuntimeGetVersion(&runtime));cuda_ok(cudaDriverGetVersion(&driver));
         std::printf("GPU=%s CUDA_runtime=%d CUDA_driver=%d\n",props.name,runtime,driver);
-        std::puts("Synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference");
+    std::puts("Native router plan -> synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference");
         size_t cases=0;
         for(size_t group=0;group<3;++group) {
             Fixture fixture(group);

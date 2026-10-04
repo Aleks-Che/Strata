@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a, reference P3.2a, GPU cache P3.2b.1, byte checks P3.4a/b/c и frequency admission P3.5a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `8b1a95c25092ad04e81fc9dc09ffc148387351db`, ветка `dev`; P3.5a уже в HEAD, P3.4c — в рабочем дереве |
-| Последняя выполненная работа | P3.4c: real-range GPU cache checker; 2160 byte comparisons на двух GGUF, 7/7 CTest на RTX 5090 и 20 Python-тестов прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, GPU cache P3.2b.1, byte checks P3.4a/b/c и frequency admission P3.5a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `b4cc3d2ce313e051cae9517085e1292838fe5077`, ветка `dev`; P3.4c уже в HEAD, P3.1b — в рабочем дереве |
+| Последняя выполненная работа | P3.1b: native route planner и общий ExpertKey без CUDA dependency; чистая сборка, 8/8 CTest, 384 CPU keys и 432 GPU matrix comparisons прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.4c завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P3.1b завершён как отдельный компонент, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -66,7 +66,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, GPU cache P3.2b.1 и frequency admission P3.5a на fixtures; synthetic/real GGUF byte checks P3.4a/b и real-range cached parity P3.4c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline и native planner P3.1b; GPU cache P3.2b.1 и frequency admission P3.5a на fixtures; synthetic/real GGUF byte checks P3.4a/b и real-range cached parity P3.4c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1449,6 +1449,77 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   llama/oracle/CUDA targets по `backends/glm5next/README.md`, сохранить hash/build
   evidence, затем P2.1b.2. При интеграции GLM loader/graph использовать real-range
   cache reports как контроль транспорта, отдельно проверять численные outputs.
+
+### P3.1b-01 — 2026-10-04, Asia/Yekaterinburg — Native planner выбранных экспертов
+
+- **Статус:** DONE для компонента P3.1b; P3 остаётся IN_PROGRESS. Codex, цикл 7.
+  Ветка `dev`, база `b4cc3d2ce313e051cae9517085e1292838fe5077`, исходное дерево
+  чистое; изменения не закоммичены. Поиск `*86ebfef*` в build-local/third_party
+  не нашёл архив кандидата; сеть и P0.3b не перепроверялись.
+- **Реализация:** `backends/glm5next/expert_plan.hpp` принимает model identity,
+  generation, layer/main/total/leading-dense block counts, три tensor layouts,
+  shard geometry и router IDs. Проверяет восемь routed quant types, целые quant
+  rows, tensor byte counts, транспонированную down shape, expert counts, file bounds,
+  перекрытия тензоров и overflow. Dense layers и неверные IDs отклоняются.
+  Metadata-only shard без padding допустим, пока на него не ссылается тензор.
+- **План:** dedup IDs в порядке первого обращения; на каждый уникальный ID
+  возвращается полная тройка gate/up/down с 12 полями cache key. Порядок входных
+  tensor descriptors не меняет порядок проекций. 64-bit offsets не округляются
+  между экспертами. Пустой route list даёт пустой план после валидации layouts.
+  `max_routes=4096` по умолчанию ограничивает вход, включая повторы; выход не более
+  трёх ключей на ID. Этот dedup относится к доставке весов: graph обязан сохранить
+  отдельные router weights каждого токена. Планировщик не читает payload и не
+  владеет mmap, файлами, GPU allocations или событиями.
+- **Общий ключ:** прежние `ExpertKey`/`ExpertKeyHash` вынесены без изменения
+  семантики из cache в `expert_key.hpp`, не зависящий от CUDA. И cache, и planner
+  используют одну структуру. Остальной cache и общий транспорт не менялись.
+- **Интеграция проверки:** `test_expert_bytes.cpp` теперь получает диапазоны из
+  native planner по IDs с повторами; независимые fixture offsets/bytes остаются
+  эталоном. Все восемь уникальных экспертов и их 24 матрицы доставляются через
+  общий pipeline. Это интеграция с transport fixture, не с модельным router.
+- **Файлы:** новые `expert_key.hpp`, `expert_plan.hpp`, `test_expert_plan.cpp`;
+  `expert_cache.hpp`, `test_expert_bytes.cpp`, CMake и README в `backends/glm5next`;
+  план/статус и [CTest log](GLM53_FLASH_NATIVE_PLAN_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\test-glm5next-transport.cmd` — exit 0, configure/build/CTest
+  с параметрами из P3.5a-01. Затем после окончательной правки выполнена чистая
+  пересборка всех потребителей нового header:
+
+  ```text
+  cmd /c build-local\check-glm-native-plan.cmd
+  ```
+
+  Скрипт вызывает `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat`,
+  добавляет `build-local/cuda-13.0/bin` и `bin/x64` в PATH, выполняет:
+
+  ```text
+  cmake --build build-local/glm5next-transport --config Release --clean-first
+  ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+  ```
+
+  Exit 0, **8/8 CTest**, без skips. Полный локальный лог:
+  `build-local/glm5next-native-plan-clean-build.log`; CTest output сохранён выше.
+  MSVC **19.44.35222.0**, SDK **10.0.26100.0**, RTX 5090, CUDA runtime/driver
+  **13000/13000**. CPU test не включает/не линкует CUDA:
+  **384 ключа** по независимым fixtures, восемь типов, main/MTP, split shards,
+  metadata-only, offsets >4 ГиБ, точный EOF, dedup и malformed layouts/routes.
+  GPU: **18 случаев / 432 матрицы**, mmap/native/auto × prefill/decode × три mixed
+  группы типов; guards, неполные chunks, два consumer streams. Счётчики source,
+  H2D/D2D/chunks совпали с планом. Native case по-прежнему закрывает доступ к mmap
+  через PAGE_NOACCESS и удаляет registry entry после старта: jobs удерживают handles.
+  Также прошли прежние cache/frequency/lifetime tests, reader compatibility,
+  range parser и tokenizer protocol fixtures. Python-тесты в этом цикле не запускались.
+- **Ограничения:** новая native адресация проверена на synthetic descriptors/bytes,
+  не по полной GLM loader metadata и не на реальном router output. P3.4c JSON
+  сохраняются как прежнее evidence другого пути (Python planner). Нет численных
+  kernels/logits, graph hooks, общей политики VRAM, отмены графа, измерения скорости
+  или overlap. Planner не заменяет GGUF inspector; loader должен передавать
+  проверенные metadata и удерживать реальные источники. Полные Qwen/DeepSeek
+  inference, Unsloth build, Linux/HIP/multi-GPU не проверялись.
+- **Следующий шаг:** P0.3b → P2.1b.2; после появления GLM loader/router заполнить
+  `ExpertLayerLayout` из реальных tensor descriptors, связать `plan_experts` с
+  cache leases и pipeline, проверить outputs. До этого можно отдельно проверить
+  совпадение native/Python планов по заголовкам обоих реальных GGUF.
 
 ## Шаблон следующей записи
 

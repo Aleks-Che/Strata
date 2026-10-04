@@ -303,6 +303,10 @@ result работают через оба API; токены и шаблон со
     явные 64-битные offsets, проверка диапазонов и удержание файлового источника.
     Native fixtures восьми quant layouts и регрессия существующего CUDA pipeline
     DeepSeek прошли. Подключение GLM graph, staging/H2D и cache keys ещё не выполнено.
+  - [x] P3.1b: native C++ planner после router IDs — проверка трёх tensor layouts,
+    eight routed quants, dedup в порядке первого обращения, полные gate/up/down
+    cache keys и 64-bit ranges. CPU fixtures и доставка его планов через общий
+    CUDA pipeline прошли; реальный loader/router/graph ещё не подключён.
 - [ ] Разделить ключи кэша по модели/поколению загрузки, основной/MTP ветке, слою,
   эксперту и матрице. Учитывать tensor layout, quant type, file offset и размер.
   - [x] P3.2a: reference-план адресации gate/up/down и cache-key contract в
