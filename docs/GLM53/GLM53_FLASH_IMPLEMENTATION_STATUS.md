@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a, reference P3.2a, GPU cache P3.2b.1, byte checks P3.4a/b и frequency admission P3.5a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `a752b933a8accc300b901e7ff139c9459894b719`, ветка `dev`; P3.2b.1 уже в HEAD, P3.5a — в рабочем дереве |
-| Последняя выполненная работа | P3.5a: общий frequency history и opt-in допуск в GLM GPU cache; 7/7 CTest на RTX 5090 и 11 Python-тестов прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a, reference P3.2a, GPU cache P3.2b.1, byte checks P3.4a/b/c и frequency admission P3.5a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `8b1a95c25092ad04e81fc9dc09ffc148387351db`, ветка `dev`; P3.5a уже в HEAD, P3.4c — в рабочем дереве |
+| Последняя выполненная работа | P3.4c: real-range GPU cache checker; 2160 byte comparisons на двух GGUF, 7/7 CTest на RTX 5090 и 20 Python-тестов прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; P3.5a завершён как отдельный компонент, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P3.4c завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -35,6 +35,12 @@
 с обычным чтением файлов: по 72 матрицы в mmap/native/auto, все сравнения прошли.
 [IQ3_XXS](GLM53_FLASH_IQ3_XXS_GPU_TRANSFER.json),
 [UD-Q3_K_XL](GLM53_FLASH_UD_Q3_K_XL_GPU_TRANSFER.json).
+
+P3.4c повторил эти диапазоны через отдельный LRU cache: cold/hit/eviction/reload/
+invalidation, **2160 сравнений** на двух моделях и трёх режимах. Hit не добавляет
+source/H2D bytes. Поколения меняются в ключах checker, настоящего model reload нет.
+[IQ3_XXS cache](GLM53_FLASH_IQ3_XXS_GPU_CACHE.json),
+[UD-Q3_K_XL cache](GLM53_FLASH_UD_Q3_K_XL_GPU_CACHE.json).
 
 Вопреки имени `IQ3_XXS`, фактические routed types — IQ2_S/IQ3_S/IQ4_XS и
 Q2_K/Q3_K для MTP. Среди остальных весов есть BF16. Проверка CUDA должна учитывать
@@ -60,7 +66,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native GPU cache P3.2b.1 и frequency admission P3.5a на fixtures; synthetic и реальные GGUF byte checks P3.4a/b | GLM graph/runtime-интеграция, cache parity реальной модели, численные outputs, отмена графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, GPU cache P3.2b.1 и frequency admission P3.5a на fixtures; synthetic/real GGUF byte checks P3.4a/b и real-range cached parity P3.4c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1373,6 +1379,76 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   P3.4b checker на real-range cached parity/reload/forced eviction, затем подключить
   loader/router к `ExpertCache::get` и uncached bypass. Весь P3.2b/P3 не закрывать
   без численной проверки реального inference и измерения перекрытия.
+
+### P3.4c-01 — 2026-10-04, Asia/Yekaterinburg — Реальные GGUF через GPU cache
+
+- **Статус:** DONE только для P3.4c, P3/P3.2b остаются IN_PROGRESS. Codex, цикл 6.
+  Ветка `dev`, база `8b1a95c25092ad04e81fc9dc09ffc148387351db`, исходное дерево
+  чистое; изменения этого цикла не закоммичены. P0.3b/сеть не перепроверялись.
+- **Реализация:** `tools/check_glm5next_transfer.py --cache-check` передаёт native
+  checker полные поля cache key через отдельный `GLM_CACHE_RANGES_V1`; прежний
+  manifest и обычные проверки сохранены. Каждый диапазон получает отдельный LRU
+  cache с бюджетом ровно одной матрицы. Проверяются cold generation 1, hit на
+  другом CUDA stream, generation 2 с принудительным вытеснением, повторная загрузка
+  generation 1 с вытеснением generation 2, затем invalidation и generation 3.
+  Все пять результатов сравниваются с независимым stdio baseline; verification
+  destinations имеют guards. Miss вызывает общий pipeline с retained mapping owner;
+  hit не вызывает uploader и не добавляет source/H2D bytes. Cache и transport
+  counters проверяются native-кодом по этапам и Python runner по всем строкам отчёта.
+- **Identity:** SHA-256 списка наблюдаемых shard paths, sizes, mtimes и header hashes.
+  Это идентификатор набора файлов в checker, не полный hash весов и не production
+  loader/session fingerprint. JSON schema 2 хранит identity scope, сценарий,
+  executable hash, диапазоны, GPU и counters. Ошибка заменяет прежний success report.
+- **Файлы:** `backends/glm5next/check_expert_ranges.cpp`, GLM README,
+  `tools/check_glm5next_transfer.py`, `tools/test_glm5next_transfer_check.py`, план,
+  статус, два JSON ниже и [CTest log](GLM53_FLASH_REAL_CACHE_TESTS.txt).
+- **Сборка и fixtures:** рабочая директория всех команд `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\test-glm5next-transport.cmd` — exit 0, **7/7 CTest**, без skips;
+  configure/build/CTest и compiler environment те же, что в P3.5a-01.
+  MSVC **19.44.35222.0**, SDK **10.0.26100.0**, RTX 5090, CUDA runtime/driver
+  **13000/13000**. Полный локальный build log —
+  `build-local/glm5next-cached-ranges-build.log`. Parser fixtures проверили новые
+  поля, shard/path agreement, malformed identity/branch/projection, missing fields,
+  64-bit offsets и переполнение; прежние 432 synthetic GPU comparisons, cache
+  fixtures, reader, tokenizer protocol и DeepSeek frequency regression прошли.
+- **Python:** `.venv/Scripts/python.exe -m unittest tools.test_glm5next_transfer_check tools.test_glm5next_expert_plan`
+  — exit 0, **20 тестов**, без skips. Добавлены точный manifest/counters contract,
+  отказ при пропущенных этапах, лишнем H2D, неверных counters и старом protocol,
+  валидация ключей, identity по изменённому источнику и замена stale success report.
+  Отдельный Python log не сохранялся.
+- **Реальные веса:** перед командами CUDA DLL PATH дополнен
+  `build-local/cuda-13.0/bin` и `build-local/cuda-13.0/bin/x64`.
+
+  ```text
+  .venv/Scripts/python.exe -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --cache-check --output docs/GLM53/GLM53_FLASH_IQ3_XXS_GPU_CACHE.json
+  .venv/Scripts/python.exe -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/UD-Q3_K_XL/GLM-5.3-Flash-UD-Q3_K_XL-00001-of-00004.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --cache-check --output docs/GLM53/GLM53_FLASH_UD_Q3_K_XL_GPU_CACHE.json
+  ```
+
+  Обе команды — exit 0, `status=pass`:
+  [IQ3_XXS](GLM53_FLASH_IQ3_XXS_GPU_CACHE.json),
+  [UD-Q3_K_XL](GLM53_FLASH_UD_Q3_K_XL_GPU_CACHE.json).
+  В каждом из трёх режимов на модель: **72 матрицы, 360 сравнений bytes, 72 hits,
+  288 misses/admissions, 144 evictions, 72 invalidations**, bypass=0;
+  hit source/H2D=0. Всего **2160 сравнений**, gate/up/down, main/MTP, все восемь
+  routed quant types двух профилей. Source/H2D/D2D pipeline на режим:
+  IQ3_XXS **952107008 байт / 3744 chunks**, UD-Q3_K_XL **1235222528 байт / 4800 chunks**.
+  Дополнительные cache-to-verification D2D copies в pipeline counters не входят.
+  Native/mmap counters описывают способ доступа, не физические SSD reads.
+- **Регрессия обычного checker:** первая команда выше повторена без `--cache-check`,
+  с `--output build-local/glm5next-uncached-regression.json` — exit 0, 72 матрицы
+  в каждом из трёх режимов. Старые P3.4b JSON не перезаписывались.
+  `git -c safe.directory=C:/work/git/my-repos/Strata -c core.safecrlf=false diff --check` — exit 0.
+- **Граница результата:** выбранные реальные payloads, не все веса. Смена generation
+  симулирует loader key; файл не remap/reload. Кэш пересоздаётся для каждой матрицы,
+  mixed-range планирование и frequency admission на реальных весах не проверены.
+  Сравнения синхронизируют streams: это не benchmark и не проверка перекрытия.
+  Нет деквантования, численных logits, GLM graph integration, настоящего MTP,
+  отмены inference, сессий или измеренной скорости. Полные Qwen/DeepSeek inference,
+  Linux/HIP/multi-GPU не запускались. Общий runtime и политика cache не менялись.
+- **Следующий шаг:** P0.3b — получить архив закреплённого кандидата, собрать
+  llama/oracle/CUDA targets по `backends/glm5next/README.md`, сохранить hash/build
+  evidence, затем P2.1b.2. При интеграции GLM loader/graph использовать real-range
+  cache reports как контроль транспорта, отдельно проверять численные outputs.
 
 ## Шаблон следующей записи
 

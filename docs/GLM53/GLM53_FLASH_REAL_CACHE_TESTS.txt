@@ -1,0 +1,105 @@
+UpdateCTestConfiguration  from :C:/work/git/my-repos/Strata/build-local/glm5next-transport/DartConfiguration.tcl
+Test project C:/work/git/my-repos/Strata/build-local/glm5next-transport
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: glm5next_tokenizer_protocol
+
+1: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\glm5next_protocol_test.exe
+1: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+1: Test timeout computed to be: 9999879
+1: GLM tokenizer protocol checks passed (mock encoder, no llama.cpp)
+1/7 Test #1: glm5next_tokenizer_protocol .........   Passed    0.01 sec
+test 2
+    Start 2: deepseek4_expert_frequency_compat
+
+2: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\deepseek4_expert_frequency_compat_test.exe
+2: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+2: Test timeout computed to be: 9999879
+2: Frequency admission history, decay, saturation and bound passed
+2/7 Test #2: deepseek4_expert_frequency_compat ...   Passed    0.00 sec
+test 3
+    Start 3: glm5next_expert_file_test
+
+3: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\glm5next_expert_file_test.exe
+3: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+3: Test timeout computed to be: 60
+3: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+3: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+3: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+3: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+3/7 Test #3: glm5next_expert_file_test ...........   Passed    0.06 sec
+test 4
+    Start 4: deepseek4_expert_file_compat_test
+
+4: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\deepseek4_expert_file_compat_test.exe
+4: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+4: Test timeout computed to be: 60
+4: PASS: 384 matrix reads, 8 quant layouts, 8 experts, gate/up/down, partial chunks and guards
+4: PASS: bounds, overflow, overlapping registration, pre-cancel and request reuse
+4: PASS: 160 concurrent reads after unmap/close, reload identity and handle release
+4: PASS: offsets above 4 GiB, chunk-size limit, short-read rejection and recovery
+4/7 Test #4: deepseek4_expert_file_compat_test ...   Passed    0.07 sec
+test 5
+    Start 5: glm5next_expert_cache
+
+5: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\glm5next_expert_cache_test.exe
+5: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+5: Test timeout computed to be: 30
+5: GPU=NVIDIA GeForce RTX 5090; synthetic cache fixtures, no GLM inference
+5: PASS: all 12 key fields, hit byte parity, model/generation invalidation and malformed keys
+5: PASS: LRU, budget shrink, plan leases, bypass and deferred trim
+5: PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass (lru)
+5: PASS: reload generation, invalidated lease accounting, cache teardown and failed-upload recovery
+5: PASS: common pipeline upload, partial chunks, cache hit parity and no second H2D
+5: PASS: frequency history separates all 12 key fields and invalidates only one model/generation
+5: PASS: hot protection, repeat-miss admission, ties, counters, decay, history bound and reload cleanup
+5: PASS: mixed-size admission is atomic, protects leases and replaces multiple idle victims
+5: PASS: admission bypass still delivers full matrix via pipeline; hot hit keeps original bytes
+5: PASS: ready wait across streams, source ownership, pending consumer events and nonblocking bypass (frequency)
+5/7 Test #5: glm5next_expert_cache ...............   Passed    0.18 sec
+test 6
+    Start 6: glm5next_range_parser
+
+6: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\strata-glm5next-transfer-check.exe "--test-parser"
+6: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+6: Test timeout computed to be: 9999879
+6: Range parser limits, paths, malformed records and 64-bit offsets passed
+6: Cache manifest full keys, identity, branch/projection, shard, overflow and missing fields passed
+6/7 Test #6: glm5next_range_parser ...............   Passed    0.01 sec
+test 7
+    Start 7: glm5next_expert_bytes
+
+7: Test command: C:\work\git\my-repos\Strata\build-local\glm5next-transport\glm5next_expert_bytes_test.exe
+7: Working Directory: C:/work/git/my-repos/Strata/build-local/glm5next-transport
+7: Test timeout computed to be: 120
+7: GPU=NVIDIA GeForce RTX 5090 CUDA_runtime=13000 CUDA_driver=13000
+7: Synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference
+7: PASS group=0 mode=2 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+7: PASS group=0 mode=2 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+7: PASS group=0 mode=1 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+7: PASS group=0 mode=1 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=85983232 mmap_bytes=0
+7: PASS group=0 mode=0 decode=0 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+7: PASS group=0 mode=0 decode=1 matrices=24 bytes=85983232 chunks=336 file_bytes=0 mmap_bytes=85983232
+7: PASS group=1 mode=2 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+7: PASS group=1 mode=2 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+7: PASS group=1 mode=1 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+7: PASS group=1 mode=1 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=76546048 mmap_bytes=0
+7: PASS group=1 mode=0 decode=0 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+7: PASS group=1 mode=0 decode=1 matrices=24 bytes=76546048 chunks=304 file_bytes=0 mmap_bytes=76546048
+7: PASS group=2 mode=2 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+7: PASS group=2 mode=2 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+7: PASS group=2 mode=1 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+7: PASS group=2 mode=1 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=114294784 mmap_bytes=0
+7: PASS group=2 mode=0 decode=0 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+7: PASS group=2 mode=0 decode=1 matrices=24 bytes=114294784 chunks=448 file_bytes=0 mmap_bytes=114294784
+7: PASS: 18 cases, 432 GPU matrix comparisons, guarded destinations, partial chunks, two consumer streams
+7/7 Test #7: glm5next_expert_bytes ...............   Passed    2.43 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   2.77 sec

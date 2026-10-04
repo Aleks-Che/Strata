@@ -330,6 +330,11 @@ result работают через оба API; токены и шаблон со
     × 3 режима, 432 сравнения всего. Диапазоны и payload прошли общий pipeline;
     GPU bytes совпали с независимым stdio-чтением, счётчики совпали с планом.
     JSON для каждого профиля сохранён; graph hooks, cache и MoE kernels не проверены.
+  - [x] P3.4c: тот же checker с `--cache-check` проверяет cold/hit/forced eviction/
+    generation reload/invalidation на выбранных реальных матрицах обоих профилей.
+    72 матрицы × 5 этапов × 3 режима × 2 модели = 2160 сравнений bytes;
+    hits не добавляют source/H2D bytes. Это отдельный LRU cache на каждую матрицу,
+    без GLM graph, численных kernels и настоящего model reload.
 - [ ] Перенести bounded read queue, совместное планирование трёх матриц, защиту
   нужных текущему плану entries, LRU и frequency admission, общий VRAM reserve.
   - [x] P3.5a: общий bounded frequency history с decay и opt-in допуск в отдельном

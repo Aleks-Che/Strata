@@ -144,6 +144,79 @@ class TransferCheckTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             main(args[:-1]+[str(alias)])
 
+    def cached_output(self):
+        return ('GPU 46697874757265 13000 13000\n'
+                + ''.join(f'CACHE_OK {i} 100 5 1 4 2 1\n' for i in range(3))
+                + 'TOTAL 1200 1200 1200 0 24\nCACHE_TOTAL 3 12 6 3 15\n')
+
+    def run_cached(self):
+        return run_transport([sys.executable, str(self.script)], self.matrices,
+                             self.root, 64, 'native', 5, 'a'*64)
+
+    def test_cache_manifest_and_lifecycle_counters(self):
+        payload = manifest(self.matrices, self.root, 64, 'native', 'a'*64)
+        lines = payload.decode('ascii').splitlines()
+        self.assertEqual(lines[0], f'GLM_CACHE_RANGES_V1 64 1 3 {"a"*64}')
+        for m, line in zip(self.matrices, lines[1:]):
+            self.assertEqual(line, f'{m.file_offset} {m.bytes} {str((self.root/m.shard).resolve()).encode("utf-8").hex()}'
+                             f' {m.branch} {m.layer} {m.expert} {m.projection} {m.quant}'
+                             f' {m.columns} {m.rows} {m.shard.encode("utf-8").hex()}')
+        self.emitter(self.cached_output(), expected=payload)
+        result = self.run_cached()
+        self.assertEqual(result['h2d_bytes'], 1200)
+        self.assertEqual(result['cache'], {'hits': 3, 'misses': 12, 'admissions': 12,
+                                         'evictions': 6, 'invalidations': 3, 'byte_comparisons': 15,
+                                         'bypasses': 0, 'hit_source_bytes': 0, 'hit_h2d_bytes': 0})
+
+    def test_cache_results_reject_missing_stages_counters_and_old_protocol(self):
+        valid = self.cached_output()
+        for output in (self.output, valid.replace(' 5 1 4 2 1', ' 4 1 4 2 1', 1),
+                       valid.replace('CACHE_OK 1', 'CACHE_OK 0'),
+                       valid.replace('CACHE_TOTAL 3 12 6 3 15', 'CACHE_TOTAL 3 12 5 3 15'),
+                       valid.replace('1200 1200 1200 0 24', '1500 1500 1500 0 30'),
+                       valid.replace('CACHE_TOTAL 3 12 6 3 15\n', ''), valid+'extra\n'):
+            with self.subTest(output=output):
+                self.emitter(output)
+                with self.assertRaises(ValueError):
+                    self.run_cached()
+
+    def test_cache_manifest_validates_complete_key(self):
+        for identity in ('', 'a'*63, 'g'*64):
+            with self.assertRaises(ValueError):
+                manifest(self.matrices, self.root, 64, 'native', identity)
+        for change in ({'branch': 'other'}, {'projection': 'other'}, {'quant': 'Q3_K extra'},
+                       {'layer': -1}, {'expert': 1 << 31}, {'columns': 0}, {'rows': 1 << 64},
+                       {'file_offset': (1 << 64) - 1}):
+            with self.assertRaises(ValueError):
+                manifest([replace(self.matrices[0], **change)], self.root, 64, 'native', 'a'*64)
+
+    def test_cache_report_identity_covers_observed_file_set(self):
+        gguf = self.model()
+        with patch('tools.check_glm5next_transfer.run_transport', return_value={'status': 'fixture'}) as run:
+            result = check(gguf, self.script, [1, 2], [0], ['native'], 64, 5, True)
+            identity = result['cache_identity']
+            self.assertEqual(run.call_args.args[-1], identity)
+            self.assertEqual(len(identity), 64)
+            with gguf.open('ab') as f:
+                f.write(b'padding')
+            changed = check(gguf, self.script, [1, 2], [0], ['native'], 64, 5, True)
+            self.assertNotEqual(changed['cache_identity'], identity)
+        self.assertEqual(len(result['cache_scenario']['stages']), 5)
+        self.assertEqual({m['branch'] for m in result['matrices']}, {'main', 'mtp'})
+
+    def test_cache_cli_failure_replaces_stale_success(self):
+        gguf = self.model()
+        output = self.root / 'cache.json'
+        output.write_text('{"status":"pass"}', encoding='utf-8')
+        with patch('tools.check_glm5next_transfer.check', side_effect=ValueError('cache stage missing')) as run:
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(['--gguf', str(gguf), '--checker', str(self.script),
+                                       '--cache-check', '--output', str(output)]), 1)
+        self.assertTrue(run.call_args.args[-1])
+        report = json.loads(output.read_text(encoding='utf-8'))
+        self.assertEqual((report['schema_version'], report['status']), (2, 'error'))
+        self.assertIn('cache stage missing', report['error'])
+
 
 if __name__ == '__main__':
     unittest.main()

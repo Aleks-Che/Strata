@@ -156,8 +156,36 @@ record identity, not independent authenticity. Source files remain unchanged.
 Each process uses prefill-style slices and a fresh mapping. Native/mmap counters
 describe the source access path, not physical SSD traffic. This checker serializes
 comparison after each matrix and is not a speed benchmark, full GLM model run,
-numerical quantization test, cache check or MTP execution. Python runner contracts:
+numerical quantization test or MTP execution. Without `--cache-check` it does not
+exercise the cache. Python runner contracts:
 `python -m unittest tools.test_glm5next_transfer_check`.
+
+For isolated cache parity on the same real ranges (P3.4c), add `--cache-check` and
+use a separate output, for example `docs/GLM53/GLM53_FLASH_IQ3_XXS_GPU_CACHE.json`.
+The wrapper sends a `GLM_CACHE_RANGES_V1` manifest with the complete matrix key.
+Its model identity hashes the observed shard paths, sizes, mtimes and header
+hashes. This separates the checked file sets but is neither a full payload hash
+nor a production loader/session fingerprint. The default range protocol remains
+unchanged. Cached reports use schema version 2 and record the identity and stages.
+
+Each range gets a fresh LRU cache with exactly that matrix's byte budget. Five
+stages are compared against the independent stdio baseline: cold generation 1,
+a hit on another CUDA stream, generation 2 insertion forcing eviction, generation
+1 reloading and evicting generation 2, then explicit invalidation of generation 1
+and insertion of generation 3. Generations simulate loader keys; the checker does
+not reload a model or remap files. Every stage copies cached bytes into a guarded
+verification destination. Misses use the shared pipeline and retained mapping
+owner; hits must not invoke the uploader, read source bytes or add H2D traffic.
+Per-stage deltas and per-range cache counters are checked in C++; Python requires
+all ordered range results and exact aggregate counters. Pipeline D2D counters
+exclude the additional cache-to-verification copies.
+
+For 72 ranges each mode must report 360 byte comparisons, 72 hits, 288 misses,
+144 evictions and 72 invalidations, with no bypass. Source/H2D bytes and chunks
+must equal four passes over the ranges. No timings are used as a benchmark:
+stages synchronize for comparison. This checks selected packed weights and cache
+lifetime, not dequantization, mixed-range cache planning, frequency admission on
+real weights, GLM graph integration, numerical logits or MTP execution.
 
 For the real oracle, use a **different** build directory. Substitute the verified
 local archive and its recorded hash in this command (not executed here):
