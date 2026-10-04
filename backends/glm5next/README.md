@@ -1,7 +1,9 @@
-# GLM candidate validation and synchronous inference baseline
+# GLM validation and synchronous Strata engine
 
-This contains P0.3/P2.1b/P3 checks and the opt-in P1 synchronous CLI baseline.
-The Strata server protocol and launcher integration are still pending.
+This contains P0.3/P2.1b/P3 checks, the opt-in synchronous CLI baseline and
+`strata-glm5next` for the existing Strata server protocol. The engine can cache
+routed expert matrices on GPU and warm mapped pages to global memory targets.
+Compute/transfer overlap, reusable conversation state and native MTP remain pending.
 The protocol and native reader tests build without a model, CUDA or llama.cpp. The oracle
 target requires the audited Unsloth archive. Candidate llama/oracle/CUDA compilation
 and 80 token-ID comparisons on each local GGUF passed on 2026-10-04 (P0.3b.1/P2.1b.2).
@@ -42,8 +44,8 @@ The archive downloaded from that exact commit's GitHub codeload URL on 2026-10-0
 is 37,493,950 bytes with SHA-256
 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`.
 It is saved locally as `build-local/llama-glm-86ebfef2.tar.gz`; 3599 extracted
-source files were compared with the archive and matched. No dependency patches
-were applied. This is a locally recorded checksum, not an independently published
+source files were compared with the archive and matched. The original dependency files remain unchanged. Later validation stages use
+private generated copies for the TF32 and runtime hooks described below. This is a locally recorded checksum, not an independently published
 checksum. [Build record](../../docs/GLM53/GLM53_FLASH_CANDIDATE_BUILD.json),
 [commands and logs](../../docs/GLM53/GLM53_FLASH_CANDIDATE_BUILD_TESTS.txt).
 
@@ -929,3 +931,60 @@ UD-Q3_K_XL generation, native MTP and full-model Qwen/DeepSeek regression remain
 [first run](../../docs/GLM53/GLM53_FLASH_SYNC_FIRST_RUN.json),
 [repeat](../../docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json),
 [candidate copy reference](../../docs/GLM53/GLM53_FLASH_SYNC_CANDIDATE_REFERENCE.json).
+
+
+## Server profile and memory targets
+
+P1.1b/P2.5h add GEN/PP/T/DONE/ERR, STOP and QUIT, deterministic seeded sampling,
+startup INFO, GLM template selection and a separate setup profile. Each request
+clears the complete hybrid state. Session IDs are accepted for protocol
+compatibility; session reuse and cache administration are not advertised.
+STOP finishes the current microbatch and clears state before DONE.
+The actual IQ3_XXS model passed OpenAI and Anthropic JSON/SSE, client disconnects,
+subsequent request recovery and unload. See
+[protocol validation](../../docs/GLM53/GLM53_FLASH_PROTOCOL_VALIDATION.json).
+
+After building with `STRATA_GLM_SYNC_BASELINE=ON`, create a fresh profile:
+
+```powershell
+python tools/setup_glm5next.py --model H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --exe build-local/glm5next-candidate-cuda/bin/strata-glm5next.exe --cuda-dir build-local/cuda-13.0 --profile strata-glm5next.json --ram-target-percent 95 --vram-target-percent 95
+python serve/server.py --engine strata --config strata-glm5next.json --port 8081 --open
+```
+
+Setup refuses to overwrite an existing profile or tokenizer directory. The local
+`strata-glm5next.json` prepared on this PC already has both targets set to 95.
+To change them, edit their values in the profile's `args`. Omit both flags or use
+zero to reproduce the uncached baseline; supported enabled values are 10–95.
+The profile binds `127.0.0.1` and leaves existing model profiles alone.
+
+The targets include memory used by Windows and other applications. On Windows,
+VRAM comes from PCI-matched NVML, never the per-process CUDA WDDM view. The cache
+controller refreshes at 500 ms copy boundaries, and at each request. It includes
+fixed weights, state, scratch and allocation overhead in the global target.
+RAM warmup touches existing mapped expert pages, creates no second weight copy,
+and stops near the requested physical usage. Windows applies a process working
+set maximum calculated from the remaining global budget; the original limit is
+restored on unload. Linux has bounded warmup but no equivalent working set cap.
+OS activity and sample timing can move actual usage around the requested value.
+Startup warmup time is reported separately from generation.
+
+The runtime retains the model mapping for each cache entry. Cache keys use the
+canonical model path, load generation, main branch, layer/expert/projection,
+quantization/geometry and a `runtime-tensor:` namespace with tensor-relative
+offsets. These are not GGUF file offsets. The cache includes the exact upstream
+MMQ padding bytes. Hits copy GPU-to-GPU into the existing graph scratch; misses
+use one 16 MiB pinned staging buffer. All copies finish before graph compute.
+A private CUDA memory pool is used when supported; otherwise allocations use
+`cudaMalloc`. LRU order is maintained explicitly so misses probe only candidate
+eviction events. OOM admissions bypass the cache and keep the complete transfer.
+
+Real-model validation commands (the profile contains the effective budgets):
+
+```powershell
+python tools/check_glm5next_engine.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-memory95-pipe.json
+python tools/check_glm5next_api.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-memory95-api.json --port 8081
+```
+
+These tools load the full model and stop their engine/server on completion.
+`strata-glm5next-smoke` accepts the same two memory flags, writes per-decode global
+RAM/NVML samples and can save raw float32 logits with `--logits` for exact parity.

@@ -1,0 +1,20 @@
+#pragma once
+#include "runtime.hpp"
+#include "nlohmann/json.hpp"
+
+namespace strata_glm {
+// One model/owner thread; selected expert bytes still finish before compute.
+// Percentages refer to GLOBAL physical usage, including other processes.
+class RuntimeMemory {
+    struct Impl;
+    std::unique_ptr<Impl> impl;
+public:
+    RuntimeMemory(Model model, const std::string & path, int ram_percent, int vram_percent);
+    ~RuntimeMemory();
+    RuntimeMemory(const RuntimeMemory &)=delete;
+    RuntimeMemory & operator=(const RuntimeMemory &)=delete;
+    void warm();
+    void refresh();
+    nlohmann::json snapshot() const;
+};
+}

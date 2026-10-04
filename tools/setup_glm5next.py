@@ -2,8 +2,8 @@
 
 python tools/setup_glm5next.py --model-dir H:/GLM-5.3-Flash-GGUF/UD-Q3_K_XL --check-only
 
-Only admission inspection is implemented. Backend setup and inference are separate
-plan items; a successful report does not establish loader or GPU compatibility.
+Without --check-only, export the tokenizer and a separate synchronous GLM profile
+for the already-built backend. No downloads or changes to other model profiles.
 """
 from __future__ import annotations
 
@@ -13,6 +13,9 @@ import json
 from pathlib import Path
 import re
 import struct
+import os
+import subprocess
+import sys
 
 if __package__:
     from .gguf_reader import BLOCK_GEOMETRY, GGUFFile
@@ -213,28 +216,97 @@ def inspect_model(first, *, tensor_details=False, loader_contract=False):
     return report
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def prepare_profile(report, exe, profile, *, context=2048, batch=16, threads=4, port=8081, cuda_dir=None,
+                    ram_target_percent=0, vram_target_percent=0):
+    """Write a new profile only after validating backend identity and settings."""
+    if not (32 <= context <= 1048576 and 1 <= batch <= min(context, 4096) and
+            1 <= threads <= 256 and 1 <= port <= 65535):
+        raise ValueError("Invalid context, batch, threads or port")
+    if any(p != 0 and not 10 <= p <= 95 for p in (ram_target_percent, vram_target_percent)):
+        raise ValueError("Memory targets must be 0 (off) or 10..95 percent")
+    exe, profile = Path(exe).resolve(), Path(profile).resolve()
+    if not exe.is_file():
+        raise ValueError(f"Build strata-glm5next first: {exe}")
+    pack = profile.parent / "packs" / profile.stem
+    if profile.exists() or pack.exists():
+        raise ValueError("Profile/tokenizer destination already exists; choose a new --profile path")
+    env = dict(os.environ)
+    dirs = [str((Path(cuda_dir) / sub).resolve()) for sub in ("bin", "bin/x64")
+            if (Path(cuda_dir) / sub).is_dir()] if cuda_dir else []
+    if dirs:
+        key = "PATH" if os.name == "nt" else "LD_LIBRARY_PATH"
+        env[key] = os.pathsep.join(dirs + [env.get(key, "")])
+    result = subprocess.run([str(exe), "--version"], env=env, capture_output=True, text=True, timeout=30, check=True)
+    identity = json.loads(result.stdout)
+    if __package__:
+        from .glm5next_loader_contract import LOADER_SHA
+        from .strata_tokenizer import extract
+    else:
+        from glm5next_loader_contract import LOADER_SHA
+        from strata_tokenizer import extract
+    if (not isinstance(identity, dict) or identity.get("architecture") != "glm5next" or identity.get("protocol_version") != 1 or
+            identity.get("source_sha") != LOADER_SHA):
+        raise ValueError("Expected the audited GLM backend with pipe protocol v1")
+    profile.parent.mkdir(parents=True, exist_ok=True)
+    extract(report["first_shard"], pack)
+    cfg = {"architecture": "glm5next", "exe": str(exe), "cwd": str(ROOT),
+           "args": ["--native", report["first_shard"], "--max-context", str(context),
+                    "--batch-size", str(batch), "--threads", str(threads)],
+           "tokenizer": str(pack / "tokenizer"), "model_name": "glm-5.3-flash",
+           "log": str(profile.with_suffix(".log")), "host": "127.0.0.1", "port": port,
+           "gpu": 0, "sampling": {"temperature": 0},
+           "statistics_file": str(profile.with_suffix(".usage.sqlite")),
+           "backend_identity": identity}
+    if dirs:
+        cfg["lib_dirs"] = dirs
+    for flag, percent in (("--ram-target-percent", ram_target_percent), ("--vram-target-percent", vram_target_percent)):
+        if percent:
+            cfg["args"] += [flag, str(percent)]
+    with profile.open("x", encoding="utf-8") as out:
+        out.write(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n")
+    return cfg
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model-dir", type=Path, required=True)
-    parser.add_argument("--check-only", action="store_true", required=True,
-                        help="Only inspection is available; no profile is created")
+    model = parser.add_mutually_exclusive_group(required=True)
+    model.add_argument("--model-dir", type=Path)
+    model.add_argument("--model", type=Path, help="Exact GGUF or first shard")
+    parser.add_argument("--check-only", action="store_true", help="Inspect without creating a profile")
+    parser.add_argument("--exe", type=Path, default=ROOT / "build-local/glm5next-candidate-cuda/bin" / ("strata-glm5next.exe" if os.name == "nt" else "strata-glm5next"))
+    parser.add_argument("--profile", type=Path, default=ROOT / "strata-glm5next.json")
+    parser.add_argument("--cuda-dir", type=Path)
+    parser.add_argument("--context", type=int, default=2048)
+    parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--threads", type=int, default=4)
+    parser.add_argument("--port", type=int, default=8081)
+    parser.add_argument("--ram-target-percent", type=int, default=0, help="Global physical RAM target; 0 disables warmup")
+    parser.add_argument("--vram-target-percent", type=int, default=0, help="Global VRAM target; 0 disables expert cache")
     parser.add_argument("--output", type=Path, help="Also save the JSON report to this path")
     parser.add_argument("--tensor-details", action="store_true", help="Include every tensor's shape, type and byte range")
     parser.add_argument("--loader-contract", action="store_true",
                         help="Also check full-model names/shapes against the audited Unsloth loader revision")
     args = parser.parse_args()
     try:
-        first = sorted(args.model_dir.glob("*-00001-of-*.gguf"))
-        if not first:
+        first = [args.model] if args.model else sorted(args.model_dir.glob("*-00001-of-*.gguf"))
+        if not first and args.model_dir:
             first = sorted(args.model_dir.glob("*.gguf"))
         if len(first) != 1:
             raise ValueError("The directory must contain exactly one model's first shard")
-        report = inspect_model(first[0], tensor_details=args.tensor_details, loader_contract=args.loader_contract)
+        report = inspect_model(first[0], tensor_details=args.tensor_details, loader_contract=args.loader_contract or not args.check_only)
+        if not args.check_only:
+            prepare_profile(report, args.exe, args.profile, context=args.context, batch=args.batch_size,
+                            threads=args.threads, port=args.port, cuda_dir=args.cuda_dir,
+                            ram_target_percent=args.ram_target_percent, vram_target_percent=args.vram_target_percent)
+            report["profile"] = str(args.profile.resolve())
         output = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
         if args.output:
             args.output.write_text(output, encoding="utf-8")
-    except (OSError, ValueError) as exc:
-        parser.exit(1, f"GLM inspection failed: {exc}\n")
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        parser.exit(1, f"GLM setup failed: {exc}\n")
     print(output, end="")
 
 

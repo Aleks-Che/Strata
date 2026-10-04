@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
@@ -21,9 +22,12 @@ namespace strata_glm {
 // A miss can bypass when all eviction candidates are leased or still in flight.
 class ExpertCache {
 public:
-    // Test seam: successful allocations must be cudaFree-compatible. On failure
+    // Successful allocations must match the paired Release (cudaFree by default). On failure
     // the callback must return a CUDA error without allocating or enqueueing work.
     using Allocate=std::function<cudaError_t(void **,size_t)>;
+    // Paired release runs after all consumers complete. Custom allocators may
+    // enqueue release on their own retained stream (e.g. a CUDA memory pool).
+    using Release=std::function<cudaError_t(void *)>;
 private:
     static void check(cudaError_t e) {
         if(e!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(e));
@@ -44,16 +48,17 @@ private:
         std::shared_ptr<Accounting> accounting;
         std::shared_ptr<const void> source;
         void *data=nullptr;
+        Release release;
         size_t bytes;
         size_t branch;
         cudaEvent_t ready=nullptr;
         std::vector<cudaEvent_t> consumers;
-        Entry(std::shared_ptr<Accounting> a,size_t n,std::shared_ptr<const void> owner,const Allocate &allocate,size_t b)
-            :accounting(std::move(a)),source(std::move(owner)),bytes(n),branch(b) {
+        Entry(std::shared_ptr<Accounting> a,size_t n,std::shared_ptr<const void> owner,const Allocate &allocate,Release free,size_t b)
+            :accounting(std::move(a)),source(std::move(owner)),release(std::move(free)),bytes(n),branch(b) {
             auto allocation=allocate(&data,bytes);
             if(allocation!=cudaSuccess)throw AllocationFailure(allocation);
             auto status=cudaEventCreateWithFlags(&ready,cudaEventDisableTiming);
-            if(status!=cudaSuccess) {cudaFree(data);check(status);}
+            if(status!=cudaSuccess) {release(data);check(status);}
             accounting->bytes+=bytes;
             accounting->branches[branch]+=bytes;
         }
@@ -62,7 +67,7 @@ private:
             cudaGetDevice(&previous);cudaSetDevice(accounting->device);
             cudaEventSynchronize(ready);
             for(auto e:consumers) {cudaEventSynchronize(e);cudaEventDestroy(e);}
-            cudaEventDestroy(ready);cudaFree(data);
+            cudaEventDestroy(ready);release(data);
             accounting->bytes-=bytes;
             accounting->branches[branch]-=bytes;
             cudaSetDevice(previous);
@@ -144,14 +149,15 @@ public:
         uint64_t allocation_bypasses=0;
     };
 private:
-    struct Cached {std::shared_ptr<Entry> entry;uint64_t used;};
+    struct Cached {std::shared_ptr<Entry> entry;std::list<ExpertKey>::iterator order;};
     std::map<ExpertKey,Cached> entries;
+    std::list<ExpertKey> lru;
     std::shared_ptr<Accounting> accounting;
     size_t budget;
     std::array<size_t,2> branch_limits{std::numeric_limits<size_t>::max(),std::numeric_limits<size_t>::max()};
     Allocate allocate;
+    Release release;
     bool admission_enabled=true;
-    uint64_t clock=0;
     Counters counts;
     std::unique_ptr<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>> frequency;
     std::unique_ptr<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>> mtp_frequency;
@@ -179,18 +185,20 @@ private:
         if(candidate && frequency && !fits(accounting->bytes,accounting->branches)) {
             // Plan all victims first. A mixed-size candidate must not evict a
             // cold entry and then fail admission against the next, hotter one.
-            std::vector<decltype(entries.begin())> victims;
-            for(auto it=entries.begin();it!=entries.end();++it)
-                if(it->second.entry.use_count()==1 && it->second.entry->idle())victims.push_back(it);
-            std::sort(victims.begin(),victims.end(),[](auto a,auto b){return a->second.used<b->second.used;});
             size_t remaining=accounting->bytes;
             auto branches=accounting->branches;
             std::vector<decltype(entries.begin())> selected;
             const auto score=history(*candidate)->score(*candidate);
             while(!fits(remaining,branches)) {
-                auto next=std::find_if(victims.begin(),victims.end(),[&](auto it){return eligible(it->second.entry->branch,branches);});
-                if(next==victims.end())return false;
-                auto victim=*next;victims.erase(next);
+                auto victim=entries.end();
+                // Probe events only for actual LRU candidates. Scanning/querying
+                // every resident matrix on every miss dominated real decoding.
+                for (const auto & key:lru) {
+                    auto it=entries.find(key);
+                    if (std::find(selected.begin(),selected.end(),it)!=selected.end()) continue;
+                    if (eligible(it->second.entry->branch,branches) && it->second.entry.use_count()==1 && it->second.entry->idle()) {victim=it;break;}
+                }
+                if(victim==entries.end())return false;
                 // Independently aged branch histories have incomparable clocks.
                 // Cross-branch pressure uses LRU; same-history victims use LFU admission.
                 if(history(*candidate)==history(victim->first) && score<history(victim->first)->score(victim->first)) {
@@ -200,26 +208,28 @@ private:
                 branches[victim->second.entry->branch]-=victim->second.entry->bytes;
                 selected.push_back(victim);
             }
-            for(auto victim:selected) {entries.erase(victim);++counts.evictions;}
+            for(auto victim:selected) {lru.erase(victim->second.order);entries.erase(victim);++counts.evictions;}
             return true;
         }
         while(!fits(accounting->bytes,accounting->branches)) {
             auto victim=entries.end();
-            for(auto it=entries.begin();it!=entries.end();++it) {
+            for(const auto & key:lru) {
+                auto it=entries.find(key);
                 if(!eligible(it->second.entry->branch,accounting->branches))continue;
                 if(it->second.entry.use_count()!=1 || !it->second.entry->idle())continue;
-                if(victim==entries.end() || it->second.used<victim->second.used)victim=it;
+                victim=it;break;
             }
             if(victim==entries.end())return false;
-            entries.erase(victim);++counts.evictions;
+            lru.erase(victim->second.order);entries.erase(victim);++counts.evictions;
         }
         return true;
     }
 public:
     explicit ExpertCache(size_t limit):ExpertCache(limit,Admission{}) {}
-    ExpertCache(size_t limit,Admission admission,Allocate allocator=[](void **ptr,size_t n){return cudaMalloc(ptr,n);})
-        :budget(limit),allocate(std::move(allocator)) {
-        if(!allocate)throw std::invalid_argument("GLM cache requires an allocator");
+    ExpertCache(size_t limit,Admission admission,Allocate allocator=[](void **ptr,size_t n){return cudaMalloc(ptr,n);},
+                Release releaser=[](void *ptr){return cudaFree(ptr);})
+        :budget(limit),allocate(std::move(allocator)),release(std::move(releaser)) {
+        if(!allocate || !release)throw std::invalid_argument("GLM cache requires an allocator and release");
         int device=-1;check(cudaGetDevice(&device));accounting=std::make_shared<Accounting>(device);
         if(admission.frequency)
             frequency=std::make_unique<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>>(
@@ -280,7 +290,7 @@ public:
         if(found!=entries.end()) {
             if(frequency)history(key)->record(key);
             check(cudaStreamWaitEvent(stream,found->second.entry->ready,0));
-            found->second.used=++clock;++counts.hits;
+            lru.splice(lru.end(),lru,found->second.order);++counts.hits;
             return Lease(found->second.entry,stream);
         }
         ++counts.misses;
@@ -291,7 +301,7 @@ public:
             ++counts.bypasses;return {};
         }
         std::shared_ptr<Entry> entry;
-        try {entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source),allocate,branch_index(key.branch));}
+        try {entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source),allocate,release,branch_index(key.branch));}
         catch(const AllocationFailure &failure) {
             if(failure.code!=cudaErrorMemoryAllocation)throw;
             // A budget sample is not a reservation. Use the existing uncached
@@ -305,7 +315,9 @@ public:
             upload(entry->data,size_t(key.bytes),stream);
             check(cudaEventRecord(entry->ready,stream));
         }catch(...) {cudaStreamSynchronize(stream);throw;}
-        entries.emplace(key,Cached{entry,++clock});
+        lru.push_back(key);
+        try {entries.emplace(key,Cached{entry,std::prev(lru.end())});}
+        catch(...) {lru.pop_back();throw;}
         ++counts.admissions;
         return Lease(std::move(entry),stream);
     }
@@ -323,7 +335,7 @@ public:
         });
         for(auto it=entries.begin();it!=entries.end();) {
             if(it->first.model==model && it->first.generation==generation) {
-                it=entries.erase(it);++removed;
+                lru.erase(it->second.order);it=entries.erase(it);++removed;
             }else ++it;
         }
         counts.invalidations+=removed;return removed;

@@ -248,10 +248,12 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
 
 ### P1. Основная модель, синхронная подгрузка, строгий GPU-режим
 
-- [ ] Создать `strata-glm5next` с существующим протоколом Strata и отдельным профилем.
+- [x] Создать `strata-glm5next` с существующим протоколом Strata и отдельным профилем.
   Архитектурные параметры читать из GGUF, а не из констант DeepSeek на 43 слоя.
   P1.1a: отдельный диагностический `strata-glm5next-smoke` уже исполняет модель;
-  production executable/protocol/profile остаются P1.1b.
+  P1.1b/P2.5h: production executable/profile/setup и оба HTTP API проверены
+  на IQ3_XXS, включая STOP/disconnect, seeded sampling, clean state и unload.
+  См. [protocol manifest](GLM53_FLASH_PROTOCOL_VALIDATION.json).
 - [x] Разместить attention, KDA, mHC, dense/shared FFN и router на GPU.
   Routed matrices держать в отображениях файлов и доставлять по фактическим IDs.
 - [x] Сначала реализовать простой последовательный режим копирования как базу

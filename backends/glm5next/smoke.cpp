@@ -1,5 +1,7 @@
 // Explicit P1 baseline runner. This is not the server protocol or an MTP engine.
 #include "sync_runtime.h"
+#include "runtime.hpp"
+#include "runtime_memory.hpp"
 #include "synthetic_glm.hpp"
 #include "llama.h"
 #include "ggml-backend.h"
@@ -22,13 +24,6 @@ using Model = std::unique_ptr<llama_model, decltype(&llama_model_free)>;
 using Context = std::unique_ptr<llama_context, decltype(&llama_free)>;
 static void require(bool ok, const std::string & message) { if (!ok) throw std::runtime_error(message); }
 static double elapsed(Clock::time_point start) { return std::chrono::duration<double>(Clock::now()-start).count(); }
-static void env(const char * key, const char * value) {
-#ifdef _WIN32
-    _putenv_s(key, value);
-#else
-    setenv(key, value, 1);
-#endif
-}
 static std::string read(const std::string & path) {
     std::ifstream in(path, std::ios::binary); require(bool(in), "cannot open "+path);
     return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
@@ -42,7 +37,7 @@ static json counters() {
 }
 static json memory(const char * phase) {
     size_t free=0,total=0; ggml_backend_dev_memory(ggml_backend_dev_by_name("CUDA0"), &free, &total);
-    json m={{"phase",phase},{"device_used_bytes_including_other_processes",total-free},{"device_total_bytes",total}};
+    json m={{"phase",phase},{"cuda_view_used_bytes",total-free},{"cuda_view_total_bytes",total}};
 #ifdef _WIN32
     PROCESS_MEMORY_COUNTERS_EX p{}; p.cb=sizeof(p);
     require(GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&p),sizeof(p))!=0,"memory query failed");
@@ -56,42 +51,22 @@ static json memory(const char * phase) {
 struct Options {
     std::string model, prompt_file, report, logits_file;
     std::vector<llama_token> ids;
-    int predict=64, context=2048, batch=16;
+    int predict=64, context=2048, batch=16, ram_percent=0, vram_percent=0;
     bool resident=false, cpu_embedding=false, candidate_copy=false;
 };
-static void decode(llama_context * ctx, const std::vector<llama_token> & ids, int start, int count, int position) {
-    auto b=llama_batch_init(count,0,1); b.n_tokens=count;
-    for (int i=0;i<count;++i) {
-        b.token[i]=ids[start+i]; b.pos[i]=position+i; b.n_seq_id[i]=1; b.seq_id[i][0]=0; b.logits[i]=i==count-1;
-    }
-    const int rc=llama_decode(ctx,b); llama_batch_free(b);
-    require(rc==0,"llama_decode failed: "+std::to_string(rc));
-    llama_synchronize(ctx);
-}
+using strata_glm::decode;
 static void run(const Options & o, json & report, std::vector<float> * capture=nullptr) {
     strata_glm_sync_enable(true); strata_glm_sync_candidate_copy(o.candidate_copy); strata_glm_sync_reset();
     report["configuration"]={{"model",o.model},{"resident_experts",o.resident},{"n_ctx",o.context},
         {"n_batch",o.batch},{"n_ubatch",o.batch},{"n_predict",o.predict},{"kv_type","F16"},
         {"flash_attention","off"},{"mtp",false},{"NVIDIA_TF32_OVERRIDE","0"},
-        {"GGML_OP_OFFLOAD_MIN_BATCH",1},{"sampling","greedy"},{"expert_cache",false},
-        {"transfer",o.candidate_copy ? "candidate selected-range reference (not instrumented)" : "synchronous 16 MiB pinned staging"}};
+        {"GGML_OP_OFFLOAD_MIN_BATCH",1},{"sampling","greedy"},{"expert_cache",o.vram_percent!=0},
+        {"ram_target_percent",o.ram_percent},{"vram_target_percent",o.vram_percent},
+        {"transfer",o.candidate_copy ? "candidate selected-range reference (not instrumented)" : o.vram_percent ? "synchronous cache plus 16 MiB pinned staging" : "synchronous 16 MiB pinned staging"}};
     auto & samples=report["memory_samples"]; samples=json::array(); samples.push_back(memory("before_load"));
-    auto * gpu=ggml_backend_dev_by_name("CUDA0"); auto * cpu=ggml_backend_dev_by_name("CPU");
-    require(gpu && cpu,"CUDA0 and CPU buffer backends required");
-    auto mp=llama_model_default_params();
-    ggml_backend_dev_t devices[]={gpu,nullptr}; mp.devices=devices;
-    llama_model_tensor_buft_override overrides[]={
-        {"token_embd\\.weight",ggml_backend_dev_buffer_type(o.cpu_embedding ? cpu : gpu)},
-        {"blk\\.[0-9]+\\.ffn_(gate|up|down)_exps\\.weight",ggml_backend_dev_buffer_type(cpu)},
-        {nullptr,nullptr}};
-    if (o.resident) overrides[1]={nullptr,nullptr};
-    mp.tensor_buft_overrides=overrides; mp.n_gpu_layers=-1; mp.split_mode=LLAMA_SPLIT_MODE_NONE;
-    mp.load_mode=LLAMA_LOAD_MODE_MMAP; mp.load_mtp=false; mp.use_extra_bufts=false;
     auto start=Clock::now(); report["phase"]="load";
-    Model model(llama_model_load_from_file(o.model.c_str(),mp),llama_model_free);
-    require(bool(model),"model load failed"); report["load_seconds"]=elapsed(start);
-    char arch[64]{}; llama_model_meta_val_str(model.get(),"general.architecture",arch,sizeof(arch));
-    require(std::string(arch)=="glm5next","runner accepts glm5next only");
+    auto model=strata_glm::load(o.model,o.resident,o.cpu_embedding);
+    report["load_seconds"]=elapsed(start);
     samples.push_back(memory("after_load"));
     std::cerr << "STRATA_GLM loaded in " << report["load_seconds"] << " s\n";
     const auto * vocab=llama_model_get_vocab(model.get());
@@ -106,14 +81,15 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
     require(!ids.empty() && ids.size()+o.predict<=size_t(o.context),"prompt plus generation must fit context");
     for (auto id:ids) require(id>=0 && id<n_vocab,"input token outside vocabulary");
     report["prompt_ids"]=ids; report["prompt_tokens"]=ids.size();
-    auto cp=llama_context_default_params();
-    cp.n_ctx=o.context; cp.n_batch=cp.n_ubatch=o.batch; cp.n_seq_max=1; cp.n_rs_seq=0;
-    cp.n_threads=cp.n_threads_batch=4; cp.type_k=cp.type_v=GGML_TYPE_F16;
-    cp.flash_attn_type=LLAMA_FLASH_ATTN_TYPE_DISABLED; cp.offload_kqv=cp.op_offload=true; cp.no_perf=false;
     report["phase"]="context"; start=Clock::now();
-    Context ctx(llama_init_from_model(model.get(),cp),llama_free);
-    require(bool(ctx),"context allocation failed"); report["context_seconds"]=elapsed(start);
+    auto ctx=strata_glm::context(model.get(),o.context,o.batch);
+    report["context_seconds"]=elapsed(start);
     samples.push_back(memory("after_context"));
+    strata_glm::RuntimeMemory runtime_memory(model,o.model,o.ram_percent,o.vram_percent);
+    runtime_memory.warm();
+    report["runtime_memory_after_warm"]=runtime_memory.snapshot();
+    report["global_memory_samples"]=json::array();
+    std::cerr<<"STRATA_GLM_MEMORY "<<report["runtime_memory_after_warm"].dump()<<"\n";
     report["phase"]="prefill"; strata_glm_sync_reset(); start=Clock::now();
     for (size_t i=0;i<ids.size();i+=o.batch) {
         const int count=std::min(size_t(o.batch),ids.size()-i);
@@ -148,6 +124,7 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
         start=Clock::now(); decode(ctx.get(),generated,i,1,int(ids.size())+i);
         decode_seconds+=elapsed(start); ++decode_steps;
         samples.push_back(memory("decode"));
+        report["global_memory_samples"].push_back(runtime_memory.snapshot());
     }
     std::cerr << "\n";
     report["generated_ids"]=generated; report["generated_tokens"]=generated.size(); report["output_text"]=output;
@@ -157,6 +134,7 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
     report["decode_transport"]=counters(); report["all_logits_finite"]=true;
     if (!report.contains("stop_reason")) report["stop_reason"]="length";
     samples.push_back(memory("after_decode"));
+    report["runtime_memory_after_decode"]=runtime_memory.snapshot();
     report["status"]="pass"; report["phase"]="complete";
     std::cerr << "STRATA_GLM decode " << report["decode_tokens_per_second"] << " tok/s (" << decode_steps << " steps)\n";
 }
@@ -183,6 +161,11 @@ static json self_test(const std::string & directory) {
         json reference; std::vector<float> c; o.candidate_copy=true; run(o,reference,&c);
         require(b==c && reference["generated_ids"]==streamed["generated_ids"],"candidate selected-copy parity failed");
         tests.push_back({{"name","candidate selected-copy parity"},{"top_k",top_k},{"status","pass"},{"elements",c.size()}});
+        json cached; std::vector<float> d; o.candidate_copy=false; o.vram_percent=90;
+        run(o,cached,&d);
+        require(b==d && cached["generated_ids"]==streamed["generated_ids"],"cached selected-copy parity failed");
+        require(cached["runtime_memory_after_decode"]["cache"]["hits"].get<uint64_t>()>0,"cache did not serve hits");
+        tests.push_back({{"name","cached selected-copy exact logits parity"},{"top_k",top_k},{"status","pass"},{"cached",cached}});
     }
     // Deliberately put embeddings on CPU: the complete split audit must reject
     // the graph before any expert transfer or computation, not merely log it.
@@ -197,7 +180,7 @@ static json self_test(const std::string & directory) {
     return {{"status","pass"},{"scope","synthetic streamed/resident F16-KV parity and negative GPU audit"},{"checks",tests}};
 }
 int main(int argc,char ** argv) {
-    json report={{"status","error"},{"scope","P1 synchronous CLI baseline; no server, MTP or expert cache"},
+    json report={{"status","error"},{"scope","synchronous CLI validation with optional expert cache; MTP off"},
         {"requested_revision",STRATA_GLM_SOURCE_SHA},{"archive_sha256",STRATA_GLM_ARCHIVE_SHA256},{"patch_set",STRATA_GLM_PATCH_SET}};
     Options o; int exit_code=1;
     try {
@@ -215,11 +198,13 @@ int main(int argc,char ** argv) {
             else if (arg=="--n-predict") o.predict=std::stoi(value);
             else if (arg=="--ctx") o.context=std::stoi(value);
             else if (arg=="--batch") o.batch=std::stoi(value);
+            else if (arg=="--ram-target-percent") o.ram_percent=std::stoi(value);
+            else if (arg=="--vram-target-percent") o.vram_percent=std::stoi(value);
             else if (arg=="--input-ids") { std::istringstream in(value); std::string id; while(std::getline(in,id,',')) o.ids.push_back(std::stoi(id)); }
             else throw std::runtime_error("unknown option "+arg);
         }
         require(o.predict>0 && o.context>0 && o.batch>0,"positive predict/context/batch required");
-        env("NVIDIA_TF32_OVERRIDE","0"); env("GGML_OP_OFFLOAD_MIN_BATCH","1");
+        strata_glm::environment();
         ggml_backend_load_all(); llama_backend_init();
         require(ggml_backend_dev_by_name("CUDA0")!=nullptr,"CUDA0 missing");
         if (!test_dir.empty()) report["validation"]=self_test(test_dir);

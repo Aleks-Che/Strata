@@ -1,0 +1,222 @@
+{
+  "status": "pass",
+  "cases": [
+    {
+      "name": "baseline",
+      "tokens": [
+        36,
+        59,
+        10,
+        57,
+        36,
+        59,
+        23,
+        4
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 83.7787,
+        "decode_ms": 9.9691,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.09400000001187436
+    },
+    {
+      "name": "clean second request",
+      "tokens": [
+        36,
+        59,
+        10,
+        57,
+        36,
+        59,
+        23,
+        4
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.2043,
+        "decode_ms": 9.2429,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.0159999999741558
+    },
+    {
+      "name": "invalid token rejected",
+      "error": "token outside vocabulary"
+    },
+    {
+      "name": "seeded sampling",
+      "tokens": [
+        61,
+        12,
+        23,
+        62,
+        38,
+        10,
+        28,
+        35
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.2307,
+        "decode_ms": 9.0222,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.015000000013969839
+    },
+    {
+      "name": "seeded sampling repeat",
+      "tokens": [
+        61,
+        12,
+        23,
+        62,
+        38,
+        10,
+        28,
+        35
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.1172,
+        "decode_ms": 9.3173,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.01600000000325963
+    },
+    {
+      "name": "cancel prefill",
+      "tokens_observed": 0,
+      "cancel_seconds": 0.01600000000325963,
+      "done": {
+        "generated": 0,
+        "prompt_tokens": 33,
+        "prompt_ms": 4.4592,
+        "decode_ms": 0.0001,
+        "finish": "cancel",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      }
+    },
+    {
+      "name": "clean after prefill",
+      "tokens": [
+        36,
+        59,
+        10,
+        57,
+        36,
+        59,
+        23,
+        4
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.1831,
+        "decode_ms": 9.1939,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.0
+    },
+    {
+      "name": "cancel decode",
+      "tokens_observed": 2,
+      "cancel_seconds": 0.0,
+      "done": {
+        "generated": 2,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.3647,
+        "decode_ms": 2.8536,
+        "finish": "cancel",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      }
+    },
+    {
+      "name": "clean after decode",
+      "tokens": [
+        36,
+        59,
+        10,
+        57,
+        36,
+        59,
+        23,
+        4
+      ],
+      "done": {
+        "generated": 8,
+        "prompt_tokens": 33,
+        "prompt_ms": 6.1793,
+        "decode_ms": 9.3185,
+        "finish": "length",
+        "drafts_accepted": 0,
+        "drafts_offered": 0,
+        "reused": 0
+      },
+      "wall_seconds": 0.01600000000325963
+    }
+  ],
+  "info": {
+    "version": "glm5next-sync-p1",
+    "engine": "glm5next-sync-p1",
+    "architecture": "glm5next",
+    "backend": "llama.cpp",
+    "mtp": 0,
+    "spec": 0,
+    "speculative": "none",
+    "expert_storage": "mmap",
+    "expert_compute": "gpu",
+    "gpu_only": 1,
+    "expert_cache_mib": 0,
+    "expert_stage_mib": 16,
+    "expert_pipeline": 0,
+    "expert_read_mode": "mmap",
+    "kv": "fp16",
+    "flash_attention": 0,
+    "tf32": 0,
+    "conversation_cache": 0
+  },
+  "process_exit_code": 0,
+  "binary_sha256": "a7f919255f813cddc754d40d777e4c21962e6b66a6e3c9e9358f254b6d02d16c",
+  "configuration": {
+    "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+    "cwd": "C:\\work\\git\\my-repos\\Strata",
+    "args": [
+      "--native",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\stream-fixture\\stream-8.gguf",
+      "--max-context",
+      "512",
+      "--batch-size",
+      "16"
+    ],
+    "log": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\stream-fixture\\stream-8.protocol.log",
+    "lib_dirs": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+    ]
+  }
+}

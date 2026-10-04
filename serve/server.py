@@ -735,6 +735,28 @@ def gpu_list(cfg: dict) -> list[int]:
     return [int(str(x).strip()) for x in items if str(x).strip() != ""]
 
 
+def configured_template(cfg: dict, tok, tokenizer_path: Path):
+    """Validate an architecture's tokenizer/template before starting its engine."""
+    tpl = tokenizer_path / "chat_template.jinja"
+    architecture = cfg.get("architecture")
+    if architecture == "deepseek4":
+        from serve.deepseek import DeepSeekTemplate
+        if tok.pre != "joyai-llm" or not tpl.exists():
+            raise SystemExit("DeepSeek requires its own exported tokenizer and chat template")
+        return DeepSeekTemplate(tpl)
+    if architecture == "glm5next":
+        from serve.glm5next import GLMTemplate
+        if tok.pre != "glm4" or not tpl.exists():
+            raise SystemExit("GLM requires its own exported glm4 tokenizer and chat template")
+        for key in GLMTemplate.stop_token_keys:
+            if key not in tok.special_ids:
+                raise SystemExit(f"GLM tokenizer is missing {key}")
+        return GLMTemplate(tpl)
+    if architecture not in (None, "qwen4exp"):
+        raise SystemExit(f"Unsupported model architecture: {architecture}")
+    return ChatTemplate(tpl if tpl.exists() else ROOT / "serve/chat_template.jinja")
+
+
 def engine_args(cfg: dict) -> list[str]:
     """The engine's arguments: the config's, and with several GPUs the layer split across them ("layer_split" in the
     config: "auto" by default, or the first layer of each later GPU's share, e.g. "18" or "16,32")."""
@@ -2811,6 +2833,7 @@ def main() -> int:
         tokenizer_config = json.loads((tpath / "tokenizer.json").read_text(encoding="utf-8")) if (tpath / "tokenizer.json").exists() else {}
         tok = ST.Tokenizer(tokens, merges, types, pre=tokenizer_config.get("pre", "qwen35"),
                            special_ids=tokenizer_config.get("special_ids"))
+    template = configured_template(cfg, tok, tpath)
     hub = hub_from_config(cfg, a.mcp_config)            # before the minutes of loading: a bad entry stops here
     if a.engine == "strata":
         if not cfg:
@@ -2853,17 +2876,7 @@ def main() -> int:
         stats_path = str(ROOT / stats_path)
     statistics = UsageStatistics(stats_path)
     archive_path = str(Path(a.config).with_suffix("")) + ".archive-settings.json" if a.config else None
-    # the model's own chat template (exported with its tokenizer), else the original model's
-    tpl = tpath / "chat_template.jinja"
-    template_type = ChatTemplate
-    if cfg.get("architecture") == "deepseek4":
-        from serve.deepseek import DeepSeekTemplate
-        template_type = DeepSeekTemplate
-        if tok.pre != "joyai-llm" or not tpl.exists():
-            raise SystemExit("DeepSeek requires its own exported tokenizer and chat template")
-    elif cfg.get("architecture") not in (None, "qwen4exp"):
-        raise SystemExit(f"Unsupported model architecture: {cfg['architecture']}")
-    svc = Service(engine, tok, template_type(tpl if tpl.exists() else ROOT / "serve/chat_template.jinja"),
+    svc = Service(engine, tok, template,
                   model_name=cfg.get("model_name", "qwen3.8-flash-next"), vision=vision,
                   sampling_defaults=sampling_defaults,
                   fit_max_tokens=a.fit_max_tokens or cfg.get("fit_max_tokens") is True,

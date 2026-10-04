@@ -1,0 +1,37 @@
+{
+  "status": "pass",
+  "stage": "P1.1b / P2.5h",
+  "recorded_at": "2026-10-04T17:15:31.430193+05:00",
+  "base_revision": "f76442c",
+  "ctest_count": 12,
+  "ctest_seconds": 4.26,
+  "python_existing_tests": 54,
+  "python_profile_tests": 3,
+  "binary_sha256": "a7f919255f813cddc754d40d777e4c21962e6b66a6e3c9e9358f254b6d02d16c",
+  "source_sha256": {
+    "backends/glm5next/CMakeLists.txt": "d4c451ea397709fac03689fcf0b1a38121303a4f50be1bb37e1eba42ca3085c7",
+    "backends/glm5next/main.cpp": "98cc4dde3b20db7b1e3eb4788913f459a34c1462ae49a0c1161579f6bb8ebd2c",
+    "backends/glm5next/protocol.hpp": "183c58e0826c0e18a552f5c2c7187105c1ed882605b6ab0ec4a9740595a2c4b0",
+    "backends/glm5next/runtime.hpp": "e45d9c7b64811b51b130930d0685d03877548c8e6f75f700a648d45021674f74",
+    "backends/glm5next/smoke.cpp": "25dc23cd3f6fe6738d3456249088cf1a6d0ba446d4a335dd1c03c2a00f7bf1d1",
+    "backends/glm5next/test_protocol.cpp": "960de7a8bf5408ba842029d78621e3e834f3d15cfc55a65a3258109a0a9b1278",
+    "serve/server.py": "0c28c975060ef918fbfe5146382c5d7ccfbed0c9396db51add15472c8aee975c",
+    "serve/test_glm5next_profile.py": "a242822e447d11f89a0cb6e7be13a5a3431b8d74dbd46ea6cedce8317c7a8f9d",
+    "tools/setup_glm5next.py": "52422bbc450f0cc0c4dd53db679f5020a7d1e365cf49228c5835ade4f6c6dcda",
+    "tools/check_glm5next_engine.py": "83f66175f867a7b6bf98c7faa00ba5c28665e8abbe8aa14ac847f9ed2d8a985d",
+    "tools/check_glm5next_api.py": "af6a3acffb56d488adcca0609d94eb3087726f7eadd394e8221b816eb61350ac"
+  },
+  "report_sha256": {
+    "PIPE_CHECK.json": "b4864b601ab7e1a2454f2b1c02074af844396da3fd88066a5afc4f9cab7b369d",
+    "API_CHECK.json": "36499c238ce4e86417c49b5cda728c39bb1c2ee2260fada413a4d2156cf663af",
+    "PIPE_FIXTURE_CHECK.json": "570be15c3dfd007e4a939864bc5ae54ea503443261a471b0f1959d435279aadc"
+  },
+  "limits": [
+    "Synchronous mmap streaming, cache off, MTP off",
+    "One prompt, ctx2048, 64 generated; seeded sampling 8 tokens; no real tool-call round trip",
+    "CPU-only reference fixtures remain; real GPU audit active",
+    "STOP waits for current microbatch, then clears all hybrid state",
+    "No conversation state reuse or cache administration"
+  ],
+  "local_profile": "strata-glm5next.json"
+}

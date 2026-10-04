@@ -17,7 +17,7 @@
 | Последняя проверенная ревизия Strata | `3f7289dbb2c09de7a53386db5595396226fcbe5a`, ветка `dev`; прежние graph/state/quant/tokenizer изменения теперь в HEAD, P1.1a добавлена в рабочем дереве без commit |
 | Последняя выполненная работа | P1.1a: synchronous CLI, 16 МиБ pinned staging, strict GPU audit, три генерации по 64 токена; все 9 912 320 logits совпали бит-в-бит; 10/10 CTest |
 | Следующая задача | P1.1b: существующий протокол Strata и профиль поверх проверенного GLM runtime; затем shared async/cache integration |
-| Активная задача / исполнитель | Нет; P1.1a завершена, P1 в целом IN_PROGRESS, требуется продолжение |
+| Активная задача / исполнитель | P3 runtime memory IN_PROGRESS — Codex: по запросу пользователя целевые 95% общей RAM/VRAM (уточнение пользователя; 90% уже проверены); P1.1b pipe/profile/API проверены, отчёты сохранены |
 | Блокеры | Блокеров для продолжения нет. Архив, бинарник и real-model baseline доступны; запуск GLM через production server ещё не подключён |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -2800,6 +2800,38 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   prompts, генерация UD-Q3_K_XL, Linux/HIP и full-model Qwen/DeepSeek регрессии.
 - **Следующий шаг:** P1.1b — выделить runtime из smoke runner и подключить
   существующий протокол Strata/profile, сверяя результат с сохранённым baseline.
+
+### P1.1b / P2.5h — 2026-10-04 — Pipe engine, профиль и реальный HTTP API
+
+- **Статус:** DONE, только эти подпункты; исполнитель Codex.
+- **Ревизия:** `f76442cfb20045486a6620f57ebc577a3873c6be` + изменения рабочего дерева.
+- **Изменение:** общий `runtime.hpp`, native `main.cpp` и `protocol.hpp`;
+  GEN/PP/T/DONE/ERR, STOP/QUIT, ограниченная очередь, sampling с seed,
+  очистка полного hybrid state на каждом запросе и после отмены. INFO не
+  объявляет MTP, session reuse, cache-admin или vram-control.
+  `serve/server.py` выбирает GLM template до запуска engine. Setup экспортирует
+  tokenizer и отдельный localhost profile, проверяет backend identity и
+  отказывается перезаписывать существующие profile/pack.
+- **Проверки:** 12/12 CTest (4,26 с), 54 существующих Python checks + 3 новых
+  profile checks. Реальный native pipe: 9 сценариев, повторный greedy и seeded
+  sampling, invalid token, STOP в prefill/decode и последующие чистые запросы;
+  process exit 0. Реальный HTTP: OpenAI/Anthropic JSON/SSE по 64 токена,
+  disconnect/recovery в prefill/decode; unload, server exit 0. Ответы совпали
+  с сохранённым P1.1a baseline. GPU-only, F16 KV, ctx2048/batch16,
+  TF32/FA/MTP off; на этом этапе экспертный кэш выключен.
+- **Артефакты / команды / точные конфигурации:**
+  [manifest](GLM53_FLASH_PROTOCOL_VALIDATION.json),
+  [pipe](GLM53_FLASH_PIPE_CHECK.json), [API](GLM53_FLASH_API_CHECK.json),
+  [fixture](GLM53_FLASH_PIPE_FIXTURE_CHECK.json),
+  [команды и CTest](GLM53_FLASH_PROTOCOL_TESTS.txt).
+  Эти отчёты сохраняют профиль до последующего включения memory targets.
+- **Исправления harness:** передавать CUDA DLL directories в `child_env`;
+  сохранить process handle до `engine.close()`; HTTP monitor использует
+  `live.state`, а не `live.phase`. Ошибки harness не выдаются за успешные проверки.
+- **Осталось:** shared async overlap, MTP, snapshots/session restore,
+  real-state rollback, длинный sparse-контекст и full-model Qwen/DeepSeek regressions.
+- **Следующий шаг:** P3.5h — подключить cache/controller к реальному графу,
+  настроить запрошенные пользователем бюджеты памяти и проверить все logits.
 
 ## Шаблон следующей записи
 

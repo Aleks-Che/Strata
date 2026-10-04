@@ -6,6 +6,11 @@ static thread_local bool strata_glm_sync_active = false;
 static thread_local bool strata_glm_candidate_copy = false;
 static thread_local strata_glm_sync_stats strata_glm_sync_counters = {};
 static thread_local ggml_backend_buffer_t strata_glm_staging = nullptr;
+static thread_local strata_glm_copy_hook strata_glm_copy_callback = nullptr;
+static thread_local void * strata_glm_copy_owner = nullptr;
+extern "C" void strata_glm_sync_copy_hook(strata_glm_copy_hook hook, void * owner) {
+    strata_glm_copy_callback = hook; strata_glm_copy_owner = owner;
+}
 static constexpr size_t strata_glm_staging_limit = 16 * 1024 * 1024;
 using strata_glm_clock = std::chrono::steady_clock;
 static double strata_glm_elapsed(strata_glm_clock::time_point start) {
@@ -27,6 +32,10 @@ static void strata_glm_copy_range(ggml_backend_t backend, ggml_tensor * dst,
                                   const ggml_tensor * src, size_t offset, size_t bytes) {
     GGML_ASSERT(offset <= ggml_nbytes(src) && bytes <= ggml_nbytes(src)-offset);
     GGML_ASSERT(offset <= ggml_nbytes(dst) && bytes <= ggml_nbytes(dst)-offset);
+    if (strata_glm_copy_callback) {
+        strata_glm_copy_callback(strata_glm_copy_owner, backend, dst, src, offset, bytes, &strata_glm_sync_counters);
+        return;
+    }
     if (!strata_glm_staging) {
         auto * type = ggml_backend_dev_host_buffer_type(ggml_backend_get_device(backend));
         GGML_ASSERT(type && "GLM synchronous baseline requires pinned host staging");
