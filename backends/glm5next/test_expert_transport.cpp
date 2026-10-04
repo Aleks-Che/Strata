@@ -1,5 +1,6 @@
 #include "expert_transport.hpp"
 #include "expert_plan.hpp"
+#include "expert_dispatch.hpp"
 #include <cstdio>
 #include <functional>
 
@@ -151,11 +152,113 @@ static void test_validation_and_finish() {
     require(!transport.in_progress(),"empty plan could not finish");
     std::puts("PASS: binding validation before submission, matrix/chunk limits, model/generation isolation, ordered transfer, incomplete finish and empty restart");
 }
+static void test_dispatch(int mode,bool frequency) {
+    auto source=std::make_shared<Source>();auto all=source->plan();
+    const auto a=all[0],b=all[1],c=all[2],d=all[3];
+    ExpertCache cache(size_t(a.bytes+c.bytes),{frequency,100000,32});
+    ExpertTransport transport(0,4093,false,4,mode);
+    if(mode==1) {
+        DWORD old=0;require(VirtualProtect(source->view,source->bytes.size(),PAGE_NOACCESS,&old)!=0,"dispatch native protection");
+    }
+    auto run=[&](const std::vector<ExpertKey> &plan,bool supply_sources) {
+        constexpr size_t guard=37;size_t total=guard;
+        std::vector<size_t> offsets;
+        for(const auto &key:plan) {offsets.push_back(total);total+=size_t(key.bytes)+guard;}
+        Device dest(total);std::vector<uint8_t> expected(total,0xA5),actual(total);
+        for(size_t i=0;i<plan.size();++i)
+            std::copy_n(source->bytes.data()+plan[i].offset,size_t(plan[i].bytes),expected.data()+offsets[i]);
+        ExpertDispatch dispatch(cache,transport,plan,supply_sources?views(source):std::vector<ExpertSourceView>{},false);
+        for(size_t i=0;i<plan.size();++i)dispatch.copy(i,dest.data+offsets[i],dest.stream);
+        dispatch.finish();require(dispatch.remaining()==0 && !transport.in_progress(),"dispatch did not finish miss plan");
+        cuda_ok(cudaStreamSynchronize(dest.stream));
+        cuda_ok(cudaMemcpy(actual.data(),dest.data,total,cudaMemcpyDeviceToHost));
+        require(actual==expected,"dispatch hit/miss/bypass bytes or guards differ");
+    };
+    run({a,b},true);const auto before=transport.counters();const auto cached=cache.counters();
+    run({c,a,d},true); // C evicts unplanned B; pinned A hits; D must bypass held C/A.
+    const auto after=transport.counters();const auto counts=cache.counters();
+    require(after.h2d_bytes-before.h2d_bytes==c.bytes+d.bytes &&
+            after.file_bytes-before.file_bytes+after.mmap_bytes-before.mmap_bytes==c.bytes+d.bytes,
+            "dispatch prefetched a cache hit or lost a bypass");
+    require(counts.hits-cached.hits==1 && counts.misses-cached.misses==2 &&
+            counts.admissions-cached.admissions==1 && counts.evictions-cached.evictions==1 &&
+            counts.bypasses-cached.bypasses==1,"dispatch cache decisions differ from plan");
+    run({c,a},false); // All hits require neither source views nor transport work.
+    const auto hot=transport.counters();
+    require(hot.h2d_bytes==after.h2d_bytes && hot.file_bytes==after.file_bytes && hot.mmap_bytes==after.mmap_bytes &&
+            hot.groups==after.groups,"all-hit dispatch performed source/H2D work");
+    if(frequency) {
+        run({c,a},false); // Make both unpinned victims hotter than the bypassed D.
+        const auto before_reject=cache.counters();const auto before_io=transport.counters();
+        run({d},true);
+        require(cache.counters().admission_rejects==before_reject.admission_rejects+1 &&
+                transport.counters().h2d_bytes==before_io.h2d_bytes+d.bytes,
+                "frequency-rejected matrix was not delivered via bypass");
+    }
+    Device dest(size_t(c.bytes));
+    {
+        ExpertDispatch cancelled(cache,transport,{c,d,a},views(source),false);
+        cancelled.copy(0,dest.data,dest.stream);
+        cancelled.cancel();cancelled.cancel();
+    }
+    cuda_ok(cudaStreamSynchronize(dest.stream));
+    require(cache.set_budget(0) && cache.resident_bytes()==0,"dispatch cancel retained pins or leases");
+    run({a,b},true); // Zero budget: every selected matrix still arrives via bypass.
+    require(cache.resident_bytes()==0,"zero-budget dispatch allocated cache bytes");
+    std::printf("PASS dispatch mode=%d frequency=%d: mixed miss/hit/bypass, all-hit no I/O, cancellation and zero budget\n",mode,int(frequency));
+}
+
+static void test_dispatch_errors() {
+    auto source=std::make_shared<Source>();auto plan=source->plan();
+    ExpertCache cache(1<<20);ExpertTransport transport(0,4093,false,4,0);
+    auto bad=views(source);++bad[0].generation;bool rejected=false;
+    try {ExpertDispatch invalid(cache,transport,{plan[0]},bad,false);}
+    catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected && !transport.in_progress() && cache.counters().misses==0,"bad dispatch binding changed cache or transport");
+    rejected=false;
+    try {ExpertDispatch duplicate(cache,transport,{plan[0],plan[0]},views(source),false);}
+    catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected,"duplicate dispatch key accepted");
+    Device dest(size_t(plan[0].bytes));
+    {
+        ExpertDispatch dispatch(cache,transport,{plan[0],plan[1]},views(source),false);
+        rejected=false;
+        try {ExpertDispatch nested(cache,transport,{}, {},false);}catch(const std::logic_error &) {rejected=true;}
+        require(rejected,"nested dispatch accepted");
+        rejected=false;
+        try {dispatch.copy(1,dest.data,dest.stream);}catch(const std::logic_error &) {rejected=true;}
+        require(rejected && dispatch.remaining()==2,"invalid dispatch order consumed work");
+        dispatch.copy(0,dest.data,dest.stream);
+        rejected=false;
+        try {dispatch.finish();}catch(const std::logic_error &) {rejected=true;}
+        require(rejected && !transport.in_progress(),"incomplete dispatch did not drain");
+    }
+    cuda_ok(cudaStreamSynchronize(dest.stream));
+    // A loader must not invalidate mid-plan. Detect the loss of a planned hit
+    // and cancel instead of using an absent/misordered pipeline range.
+    {
+        ExpertDispatch dispatch(cache,transport,{plan[0]}, {},false);
+        cache.invalidate(plan[0].model,plan[0].generation);rejected=false;
+        try {dispatch.copy(0,dest.data,dest.stream);}catch(const std::logic_error &) {rejected=true;}
+        require(rejected && !transport.in_progress() && cache.resident_bytes()==0,"stale residency was not cancelled safely");
+    }
+    try {
+        ExpertDispatch dispatch(cache,transport,{plan[0],plan[1]},views(source),false);
+        dispatch.copy(0,dest.data,dest.stream);throw std::runtime_error("dispatch fixture exception");
+    }catch(const std::runtime_error &e) {require(std::string(e.what())=="dispatch fixture exception","unexpected dispatch exception");}
+    cuda_ok(cudaStreamSynchronize(dest.stream));
+    require(!transport.in_progress() && cache.set_budget(0),"dispatch destructor retained active plan protection");
+    {ExpertDispatch empty(cache,transport,{}, {},false);empty.finish();}
+    std::puts("PASS: dispatch validation, duplicate/nested/order rejection, incomplete finish, invalidation detection, exception cleanup and empty plan");
+}
+
 int main() {
     try {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
         std::printf("GPU=%s; synthetic native plans; no GLM inference\n",p.name);
         for(int mode:{0,1,2})for(bool decode:{false,true})test_cancel_restart(mode,decode);
-        test_destructor();test_validation_and_finish();return 0;
+        test_destructor();test_validation_and_finish();
+        for(int mode:{0,1,2})for(bool frequency:{false,true})test_dispatch(mode,frequency);
+        test_dispatch_errors();return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }

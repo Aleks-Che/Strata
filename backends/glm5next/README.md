@@ -129,6 +129,37 @@ before transfers; weak ownership checks verify retirement. Native mode protects
 the mapped pages with PAGE_NOACCESS. These are synthetic byte/lifetime checks;
 actual I/O/CUDA failure injection and real GLM request cancellation remain untested.
 
+`expert_dispatch.hpp` joins the planner output, cache and transport (P3.2b.2).
+Construct `ExpertDispatch(cache, transport, keys, source_views, decode)`, call
+`copy(index, destination, stream)` in plan order, then `finish()`. Cache and
+transport must outlive the scope and have one host owner; do not mutate either
+externally while the dispatch is active. The scope first pins the resident part
+of the entire plan, probes residency without counting accesses, and gives only
+the ordered misses to `ExpertTransport`. Every actual access uses `get()` exactly
+once. An admitted miss fills the cache through transport, a hit copies cached bytes,
+and a bypass transfers all selected bytes directly to the destination. Consumer
+leases for hits and newly loaded entries remain held through the plan. All-hit
+plans can omit source views and must produce no source/H2D work.
+
+`cancel()`, incomplete `finish()` and exception destruction drain the remaining
+miss plan before releasing leases, pins and source views. Queue destination users
+on their supplied streams and keep destination memory/streams alive until those
+users complete. Cache-to-destination D2D copies are not included in the pipeline's
+D2D counter; it counts ring-to-cache/bypass transfers only. An unexpected residency
+change is an error and cancels the scope; this is a diagnostic for external
+invalidation, not support for simultaneous reload. Duplicate keys and nested
+scopes are rejected. Source/layout validation remains the loader/planner's job;
+the transport additionally checks binding and ranges for misses. The adapter
+copies weights to caller destinations; it does not execute a GLM graph or expose
+cache pointers for compute in place.
+
+Windows CUDA fixtures exercise mixed hit/admitted-miss/bypass plans, all-hit plans,
+zero cache budget, frequency rejection, cancellation and exception cleanup with
+native planned ranges, mixed quants and guarded destinations. They run mmap/native/
+auto with LRU and frequency policies; dispatch fixtures use prefill reader policy.
+Existing transport fixtures separately test decode. No dispatch speedup, real
+GGUF dispatch, numerical logits or model graph integration has been measured.
+
 On non-Windows the GPU test has only the six host-memory cases (144 matrix
 comparisons); native file transport is not implemented there. Only Windows was
 run for P3.4a. Neither synthetic byte parity nor the DeepSeek pipeline regression

@@ -318,6 +318,10 @@ result работают через оба API; токены и шаблон со
       leases/events и удержанием source owner; GPU fixtures проверяют hit parity,
       reload, pending consumers, bypass, ошибку загрузки и общий pipeline uploader.
       GLM loader/router/graph и реальные cached outputs пока не подключены.
+    - [x] P3.2b.2: native dispatch scope объединяет plan pins, consumer leases и
+      ordered miss/bypass transport; hits исключены из prefetch, bypass доставляет
+      полные матрицы. Mixed plans, frequency rejection, zero budget и отмена
+      проверены на CUDA fixtures; GLM graph и реальные model outputs ещё отсутствуют.
 - [ ] Слот освобождать по CUDA event после последнего потребителя. Отмена графа
   должна завершать или отменять чтения и не оставлять обращения к закрытым mmap.
   - [x] P3.3a: отдельный native transport adapter удерживает source mappings,

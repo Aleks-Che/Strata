@@ -177,6 +177,12 @@ public:
     size_t history_size() const {return frequency?frequency->size():0;}
     bool set_budget(size_t limit) {device_check();budget=limit;return room(0);}
 
+    // Planning probe only. Hold PlanPins before relying on residency across
+    // later misses; this does not count an access or order a GPU consumer.
+    bool resident(const ExpertKey &key) const {
+        device_check();key.validate();return entries.find(key)!=entries.end();
+    }
+
     // Does not count accesses, alter frequency/LRU or upload absent keys. The
     // returned pins protect later hits from an earlier miss in the same plan.
     PlanPins protect_plan(const std::vector<ExpertKey> &plan) {

@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, GPU cache P3.2b.1, transport lifetime P3.3a, byte checks P3.4a/b/c и cache policies P3.5a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `9cd57f2b74c8ec275b591d90b495a0c178e7957c`, ветка `dev`; P3.3a уже в HEAD, P3.5b — в рабочем дереве |
-| Последняя выполненная работа | P3.5b: предварительная защита resident entries всего плана; чистая сборка и 9/9 CTest на RTX 5090 прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c и cache policies P3.5a/b DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `0dbd97de55a75190405436add4929251deecd4f2`, ветка `dev`; P3.5b уже в HEAD, P3.2b.2 — в рабочем дереве |
+| Последняя выполненная работа | P3.2b.2: dispatch scope связал cache pins/leases с ordered miss/bypass transport; чистая сборка и 9/9 CTest на RTX 5090 прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.5b завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; компонент P3.2b.2 завершён, требуется продолжение P0.3b |
 | Блокеры | P0.3b: загрузка архива из Python повторно получила `WinError 10013` (P3.1a-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA pipeline test доступен, несмотря на ошибку NVML |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -66,7 +66,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; GPU cache P3.2b.1, frequency admission P3.5a и plan protection P3.5b на fixtures; synthetic/real GGUF byte checks P3.4a/b/c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, frequency admission P3.5a и plan protection P3.5b на fixtures; synthetic/real GGUF byte checks P3.4a/b/c | GLM graph/runtime-интеграция, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1642,6 +1642,72 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2. Для интеграции перед первым miss создавать
   `PlanPins`, получать consumer leases, строить ordered miss/bypass plan и снимать
   защиту на всех выходах графа; проверить численную parity и отмену реального GLM.
+
+### P3.2b.2-01 — 2026-10-04, Asia/Yekaterinburg — Cache-aware dispatch выбранных матриц
+
+- **Статус:** DONE для отдельного компонента P3.2b.2; весь P3.2b/P3 остаётся
+  IN_PROGRESS. Codex, цикл 10. Ветка `dev`, база
+  `0dbd97de55a75190405436add4929251deecd4f2`, исходное дерево чистое; изменения
+  не закоммичены. P0.3b и сетевой блокер в этом цикле не перепроверялись.
+- **Реализация:** новый `backends/glm5next/expert_dispatch.hpp` связывает native
+  keys, `ExpertCache::PlanPins`, consumer leases и `ExpertTransport`. Scope до
+  первого miss защищает все resident entries и строит ordered transport plan
+  только для отсутствующих ключей. Новый `ExpertCache::resident` — planning probe
+  без изменения access counters/LRU/frequency и без CUDA consumer work.
+  Фактический `get` вызывается один раз на копируемую матрицу: hit копируется из
+  cache, admitted miss доставляется pipeline в cache и затем в destination,
+  bypass доставляется полностью прямо в destination. Все leases удерживаются
+  до конца scope. All-hit plan работает без source views и без source/H2D.
+- **Отмена/ошибки:** cancel, неполный finish и exception destructor сначала
+  дренируют остаток miss plan, затем освобождают leases/pins/source views.
+  Duplicate keys, nested scope и неверный порядок отклоняются. Изменившаяся
+  residency диагностируется с отменой scope; concurrent reload не поддерживается.
+  Cache и transport должны пережить scope и не меняться извне во время исполнения.
+  Destination memory/streams остаются живы до завершения GPU consumers.
+- **Файлы:** новый header, `expert_cache.hpp`, `test_expert_transport.cpp`, GLM
+  README, план/статус и [CTest log](GLM53_FLASH_DISPATCH_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\check-glm-native-plan.cmd` — exit 0. Compiler environment и
+  CUDA PATH те же, что в P3.1b-01; скрипт выполнил:
+
+  ```text
+  cmake --build build-local/glm5next-transport --config Release --clean-first
+  ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+  ```
+
+  **9/9 CTest**, без skips; MSVC **19.44.35222.0**, SDK **10.0.26100.0**,
+  RTX 5090, CUDA runtime/driver **13000/13000**. Полный локальный build log:
+  `build-local/glm5next-dispatch-build.log`; CTest output сохранён выше.
+  Новые native-plan fixtures прошли в **шести конфигурациях**:
+  mmap/native/auto × LRU/frequency, prefill reader policy, synthetic mixed
+  IQ2_S/IQ3_S/IQ4_XS и guarded destinations. Подтверждены:
+  - Early miss C вытесняет неплановый B, поздний hit A сохраняется, D bypass
+    доставляет все bytes. Source/H2D delta равна только C+D; cache counters
+    показывают 1 hit, 2 misses, 1 admission, 1 eviction и 1 bypass.
+  - All-hit scope не меняет source/H2D/group counters и не требует источников.
+    При нулевом бюджете все матрицы доставляются через bypass без cache allocations.
+  - Frequency rejection также доставляет полную матрицу через bypass, с проверкой
+    admission_rejects и H2D delta. Native mapping защищён PAGE_NOACCESS.
+  - Cancel после prefix освобождает защиту для budget trim; invalid source identity,
+    duplicate/nested/order errors, incomplete finish, invalidation detection,
+    exception cleanup и empty scope не оставляют активный transport plan.
+  Прежние 384 native keys, 432 GPU comparisons, transport cancel/restart,
+  cache/pins/frequency, reader/DeepSeek compatibility, parser и tokenizer protocol
+  fixtures прошли. Python-тесты в этом цикле не запускались.
+  `git -c safe.directory=C:/work/git/my-repos/Strata -c core.safecrlf=false diff --check`
+  — exit 0.
+- **Ограничения:** dispatch копирует selected weights в destinations, не выполняет
+  GLM graph и не вычисляет непосредственно из cache pointers. Pipeline D2D counter
+  учитывает ring→cache/bypass; дополнительные cache→destination copies в него не
+  входят. Проверка synthetic, не реальные GGUF/logits. Decode policy отдельно
+  покрыта прежними transport fixtures, но новые dispatch cases используют prefill.
+  Нет скорости/overlap timeline, полного runtime reload, MTP, GPU/I/O fault injection
+  или полного Qwen/DeepSeek inference. Общий pipeline и DeepSeek/Qwen не менялись.
+  Linux/HIP/multi-GPU и Unsloth build не запускались.
+- **Следующий шаг:** P0.3b → P2.1b.2. При появлении GLM loader/router передавать
+  `plan_experts` и проверенные source views в `ExpertDispatch` на copy points графа,
+  затем проверить реальные cached outputs и отмену prefill/decode. До графа можно
+  прогнать dispatch на выбранных реальных GGUF ranges через отдельный checker.
 
 ## Шаблон следующей записи
 
