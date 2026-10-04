@@ -7,6 +7,26 @@ function(glm_runtime_source target relative expected_hash output_name)
   endif()
   file(READ "${original}" source_text)
   if(target STREQUAL "ggml-base")
+    set(wait_before "                // wait for the split backend to finish using the input before overwriting it
+                if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
+                    ggml_backend_event_wait(split_backend, sched->events[split_backend_id][sched->cur_copy]);
+                } else {
+                    ggml_backend_synchronize(split_backend);
+                }")
+    string(FIND "${source_text}" "${wait_before}" wait_found)
+    if(wait_found EQUAL -1)
+      message(FATAL_ERROR "GLM scheduler scratch-wait boundary not found")
+    endif()
+    # Only the selected-expert hook owns the replacement dependency chain.
+    # All other input copies, including user inputs, retain upstream waits.
+    string(REPLACE "${wait_before}" "                const bool strata_event_input = strata_glm_sync_active && !strata_glm_candidate_copy &&
+                    strata_glm_event_copy && strata_glm_copy_callback && split->graph.n_nodes > 0 &&
+                    ggml_backend_buffer_is_host(input->buffer) &&
+                    ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&
+                    split->graph.nodes[0]->op == GGML_OP_MUL_MAT_ID && split->graph.nodes[0]->src[0] == input_cpy;
+                if (!strata_event_input) {
+${wait_before}
+                }" source_text "${source_text}")
     string(REPLACE "ggml_backend_graph_compute_async(split_backend," "strata_glm_graph_compute(split_backend," source_text "${source_text}")
     # The implementation needs backend types and APIs, so put it after includes.
     string(REPLACE "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {"
@@ -54,4 +74,4 @@ glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)
 glm_runtime_source(llama src/llama-model-loader.cpp
   5ef07476310d4678df18a61a6ec0a1ebcbb58c7534ac3c624b9fe0f315a4ab01 strata-glm-loader.cpp)
-string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback")
+string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy")

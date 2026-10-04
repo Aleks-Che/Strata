@@ -388,5 +388,11 @@
     "engine_and_checker_processes": "none observed after tests",
     "localhost_8081_listener": "none observed after tests",
     "gpu_memory_used_mib_after_cleanup": 4031
+  },
+  "code_revision_after_validation": "97662928e51cf4ef59320a9892fb751fcf45126c",
+  "code_revision_note": "Final source-file hashes still match; code was committed during report preparation. The agent did not create the commit.",
+  "commands_and_test_summary": {
+    "path": "GLM53_FLASH_PIPELINE_MTP_TESTS.txt",
+    "sha256": "ef470475d217db4580732814525f041cebecbcf7bf1a29145d3513b50a6c218b"
   }
 }

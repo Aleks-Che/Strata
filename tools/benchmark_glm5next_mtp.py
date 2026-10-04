@@ -1,7 +1,7 @@
 """Compare native MTP depths in separate, warmed pipe engines on this PC.
 
 Uses the exact saved prompt/continuation. Never changes the working profile.
-The first request warms routing/cache; the following requests are timed.
+Warmup requests prime routing/cache; the following requests are timed.
 """
 import argparse
 import hashlib
@@ -33,18 +33,21 @@ def main():
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--depths', default='0,1,2,3')
     ap.add_argument('--repeats', type=int, default=3)
+    ap.add_argument('--warmups', type=int, default=1)
     ap.add_argument('--mtp-cache-mib', type=int, default=512)
     ap.add_argument('--chunk-mib', type=int, default=4)
+    ap.add_argument('--copy-events', type=int, choices=(0, 1, 2), help='0: host waits; 1: events per range; 2: events per tensor')
     a = ap.parse_args()
     depths = [int(x) for x in a.depths.split(',')]
-    if a.repeats < 2 or not depths or any(x not in range(4) for x in depths):
-        ap.error('at least two measured repeats and depths 0..3 required')
+    if a.repeats < 2 or a.warmups < 1 or not depths or any(x not in range(4) for x in depths):
+        ap.error('at least one warmup, two measured repeats and depths 0..3 required')
     cfg = json.loads(a.profile.read_text(encoding='utf-8'))
     reference = json.loads(a.reference.read_text(encoding='utf-8'))
     ids, expected = reference['prompt_ids'], reference['generated_ids']
     a.output.parent.mkdir(parents=True, exist_ok=True)
     report = {'status': 'running', 'configuration': cfg, 'reference': str(a.reference.resolve()),
               'binary_sha256': hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest(),
+              'warmup_requests': a.warmups, 'timed_requests': a.repeats,
               'timing': '(output tokens - 1) * 1000 / DONE.decode_ms; excludes load/warmup/prefill, includes target sampling, draft, verify, repair and pipe writes',
               'scope': 'one saved prompt, sequential engines, OS file cache not cleared', 'variants': []}
     def save():
@@ -52,6 +55,8 @@ def main():
     save()
     for depth in depths:
         variant = dict(cfg)
+        if a.copy_events is not None:
+            variant['env'] = dict(cfg.get('env') or {}, STRATA_GLM_COPY_EVENTS=str(a.copy_events))
         for flag, value in (('--expert-pipeline', 1), ('--expert-chunk-mib', a.chunk_mib),
                             ('--mtp', depth), ('--mtp-cache-mib', a.mtp_cache_mib)):
             variant['args'] = replace(variant['args'], flag, value)
@@ -67,11 +72,13 @@ def main():
             result['info'] = engine.info
             assert engine.info['gpu_only'] == 1 and engine.info['expert_pipeline'] == 1
             assert engine.info['spec'] == depth
-            for i in range(a.repeats + 1):
+            if a.copy_events is not None:
+                assert engine.info['expert_copy_events'] == a.copy_events
+            for i in range(a.repeats + a.warmups):
                 tokens = [t for t in engine.generate(ids, len(expected), {'temperature': 0}, threading.Event()) if t is not None]
                 done = dict(engine.last)
                 assert done['finish'] == 'length' and len(tokens) == len(expected), done
-                run = {'warmup': i == 0, 'tokens': tokens, 'equals_reference': tokens == expected, 'done': done,
+                run = {'warmup': i < a.warmups, 'tokens': tokens, 'equals_reference': tokens == expected, 'done': done,
                        'tokens_per_second': (len(tokens) - 1) * 1000 / done['decode_ms']}
                 result['runs'].append(run)
                 print(f"MTP {depth}, run {i}: {run['tokens_per_second']:.3f} tok/s, reference={run['equals_reference']}", flush=True)

@@ -57,6 +57,9 @@ struct RuntimeMemory::Impl {
     std::unique_ptr<ExpertMemoryController> controller;
     ExpertMemoryController::Probe probe=make_global_memory_probe();
     cudaStream_t stream=nullptr;
+    cudaEvent_t scratch_released=nullptr,copy_ready=nullptr;
+    int event_copy=0; // 0 host waits; 1 per range; 2 one fence per expert tensor.
+    uint64_t copy_fences=0;
     cudaMemPool_t pool=nullptr;
     void * staging=nullptr;
     uint64_t ram_touched=0,working_set_limit=0,d2d_bytes=0;
@@ -70,13 +73,15 @@ struct RuntimeMemory::Impl {
         static std::atomic<uint64_t> next{0}; generation=++next;
     }
     ~Impl() {
-        if (hook) {strata_glm_sync_compute_hook(nullptr);strata_glm_sync_plan_hooks(nullptr,nullptr);strata_glm_sync_copy_hook(nullptr,nullptr);}
+        if (hook) {strata_glm_sync_event_copy(false);strata_glm_sync_compute_hook(nullptr);strata_glm_sync_plan_hooks(nullptr,nullptr);strata_glm_sync_copy_hook(nullptr,nullptr);}
         dispatch.reset(); transport.reset();
         if (stream) cudaStreamSynchronize(stream);
         controller.reset(); cache.reset(); // Drain leases before releasing stream/source.
         if (stream) cudaStreamSynchronize(stream);
         if (pool) cudaMemPoolDestroy(pool);
         if (staging) cudaFreeHost(staging);
+        if (scratch_released) cudaEventDestroy(scratch_released);
+        if (copy_ready) cudaEventDestroy(copy_ready);
         if (stream) cudaStreamDestroy(stream);
 #ifdef _WIN32
         if (ws_changed) SetProcessWorkingSetSizeEx(GetCurrentProcess(),old_min,old_max,old_flags);
@@ -147,6 +152,14 @@ struct RuntimeMemory::Impl {
         } else cache=std::make_unique<ExpertCache>(0,admission);
         cache->set_branch_budgets(std::numeric_limits<size_t>::max(),mtp_cache_mib*MiB);
         if (pipeline_enabled) {
+            if (const auto * value=std::getenv("STRATA_GLM_COPY_EVENTS")) {
+                require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0 || std::strcmp(value,"2")==0,"STRATA_GLM_COPY_EVENTS must be 0, 1 or 2");
+                event_copy=std::atoi(value);
+            }
+            if (event_copy) {
+                cuda_check(cudaEventCreateWithFlags(&scratch_released,cudaEventDisableTiming));
+                cuda_check(cudaEventCreateWithFlags(&copy_ready,cudaEventDisableTiming));
+            }
             StrataExpertPipeline::CopyObserver observer;
             if (const auto * n=std::getenv("STRATA_GLM_TRACE_GRAPHS")) {
                 trace=std::make_unique<GpuTrace>(std::stoi(n));
@@ -161,6 +174,7 @@ struct RuntimeMemory::Impl {
                                     size_t offset,size_t bytes,size_t count,strata_glm_sync_stats * stats) {
             static_cast<Impl *>(owner)->copy(backend,dst,src,offset,bytes,count,*stats);
         },this); hook=true;
+        strata_glm_sync_event_copy(event_copy);
         if (pipeline_enabled) strata_glm_sync_plan_hooks(
             [](void * owner,const strata_glm_expert * entries,size_t n,bool decode,strata_glm_sync_stats * stats) {
                 static_cast<Impl *>(owner)->begin_plan(entries,n,decode,*stats);
@@ -189,6 +203,9 @@ struct RuntimeMemory::Impl {
             if (cancel) dispatch->cancel(); else dispatch->finish();
             dispatch.reset(); dispatch_keys.clear(); dispatch_next=0;
         }
+        // A failed copy may not have published its final compute dependency.
+        // Drain before error recovery can clear/reuse either context's scratch.
+        if (cancel && event_copy) cuda_check(cudaStreamSynchronize(stream));
         if (stats) account(*stats);
     }
     void begin_plan(const strata_glm_expert * entries,size_t n,bool decode,strata_glm_sync_stats & stats) {
@@ -215,10 +232,23 @@ struct RuntimeMemory::Impl {
         }
     }
     void copy(ggml_backend * backend,ggml_tensor * dst,const ggml_tensor * src,size_t offset,size_t bytes,size_t count,strata_glm_sync_stats & stats) {
-        ggml_backend_synchronize(backend);
         const auto stride=src->nb[2];
         require(offset%stride==0 && count>0 && count<=size_t(src->ne[2])-offset/stride,"invalid selected expert span");
         const size_t first=offset/stride;
+        // The scheduler copies all selected ranges of one tensor consecutively,
+        // then submits its split. Gate/up/down use distinct runtime namespaces.
+        // A single pair of events can therefore protect the entire tensor.
+        const bool first_range=event_copy!=2 || dispatch_next==0 ||
+            dispatch_keys[dispatch_next-1].shard!=tensors.at(tensor_index.at(src)).second.shard;
+        if (event_copy && first_range) {
+            require(std::strstr(ggml_backend_name(backend),"CUDA")!=nullptr,"event copy requires the audited CUDA backend");
+            // Events are recorded/waited immediately on the real backend stream.
+            // Re-recording is safe: each wait captures the preceding record.
+            // The pinned CUDA backend stores cudaEvent_t in event.context.
+            ggml_backend_event released{ggml_backend_get_device(backend),scratch_released};
+            ggml_backend_event_record(&released,backend);
+            cuda_check(cudaStreamWaitEvent(stream,scratch_released,0));
+        } else if (!event_copy) ggml_backend_synchronize(backend);
         if (pipeline_enabled) {
             require(bool(dispatch),"selected copy has no router lookahead plan");
             ++stats.ranges;
@@ -228,7 +258,14 @@ struct RuntimeMemory::Impl {
                 dispatch->copy(dispatch_next++,static_cast<uint8_t *>(dst->data)+k.offset,stream);
                 d2d_bytes+=k.bytes;
             }
-            cuda_check(cudaStreamSynchronize(stream)); account(stats); return;
+            const bool last_range=event_copy!=2 || dispatch_next==dispatch_keys.size() ||
+                dispatch_keys[dispatch_next].shard!=tensors.at(tensor_index.at(src)).second.shard;
+            if (event_copy && last_range) {
+                cuda_check(cudaEventRecord(copy_ready,stream));
+                ggml_backend_event ready{ggml_backend_get_device(backend),copy_ready};
+                ggml_backend_event_wait(backend,&ready);++copy_fences;
+            } else if (!event_copy) cuda_check(cudaStreamSynchronize(stream));
+            account(stats); return;
         }
         if (controller) controller->refresh_if_due(std::chrono::milliseconds(500));
         std::vector<ExpertKey> plan;
@@ -310,6 +347,8 @@ struct RuntimeMemory::Impl {
             result["controller"]={{"failed_samples",s.failed_samples},{"samples",s.samples},{"deferred_bytes",s.deferred}};}
         }
         result["expert_pipeline"]=pipeline_enabled;
+        result["expert_copy_events"]=event_copy;
+        result["expert_copy_fences"]=copy_fences;
         if (trace) result["gpu_trace"]=trace->snapshot();
         if (transport) {
             const auto c=transport->counters();

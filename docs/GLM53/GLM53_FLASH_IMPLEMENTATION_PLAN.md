@@ -385,6 +385,11 @@ result работают через оба API; токены и шаблон со
     Четыре slots, отдельный H2D stream, CUDA events, cleanup scope и GPU-only audit.
     Реальный IQ3_XXS: exact logits; native MTP использует тот же транспорт.
     Измерения и ограничения: [pipeline/MTP](GLM53_FLASH_PIPELINE_MTP.md).
+  - [x] P3.3c: host waits выбранных expert copies заменены GPU event dependencies;
+    режим 2 ставит одну пару событий на матрицу. 16/16 CTest и full-model logits
+    bit-exact; пять повторов после четырёх warmup: MTP 1 вырос с 8,510 до
+    9,586 ток/с. Глобальные RAM/VRAM targets 95% сохранены. Подробности и
+    ограничения в [отчёте](GLM53_FLASH_PIPELINE_MTP.md).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить

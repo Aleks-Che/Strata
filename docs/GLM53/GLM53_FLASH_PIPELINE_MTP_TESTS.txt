@@ -1,0 +1,160 @@
+GLM pipeline + native MTP validation, 2026-10-04, Asia/Yekaterinburg
+Workspace: C:\work\git\my-repos\Strata
+Hardware: Ryzen 9 9950X, 128 GiB RAM, RTX 5090 32 GiB, Windows.
+Model: H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf
+Full model hash was not computed. Source/archive/build/binary hashes are in
+GLM53_FLASH_PIPELINE_MTP_VALIDATION.json. This file records commands to reproduce
+these checks and summaries of actual saved logs. They are not independent model
+oracles: target/draft use the same pinned candidate and generated patches.
+
+1. Final native build and CTest
+
+Local helper contents (run in cmd; it initializes MSVC/CUDA):
+@echo off
+setlocal
+cd /d "%~dp0.."
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+set "CUDA_PATH=%CD%\build-local\cuda-13.0"
+set "PATH=%CUDA_PATH%\bin;%CUDA_PATH%\bin\x64;%PATH%"
+cmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release "-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DSTRATA_GLM_SYNC_BASELINE=ON "-DPython3_EXECUTABLE=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/python.exe" -DCMAKE_CUDA_ARCHITECTURES=120 "-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe" "-DCUDAToolkit_ROOT=%CUDA_PATH%"
+if errorlevel 1 exit /b 1
+cmake --build build-local/glm5next-candidate-cuda --config Release -j 4
+if errorlevel 1 exit /b 1
+ctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error
+exit /b %errorlevel%
+
+
+
+
+Invocation:
+cmd /c "build-local\build-glm-graph.cmd > build-local\glm-pipeline-mtp-final-validation.log 2>&1"
+Result: exit 0; 14/14 passed, 10.75 seconds.
+
+Final small-batch dispatch regression repeat (PowerShell):
+$env:PATH="$PWD\build-local\cuda-13.0\bin;$PWD\build-local\cuda-13.0\bin\x64;$env:PATH"
+ctest --test-dir build-local/glm5next-candidate-cuda --repeat until-fail:8 -R glm5next_tokenwise_quant --output-on-failure
+Result: exit 0; eight consecutive passes, 10.99 seconds.
+108 comparisons per execution: 90 bit-exact; 18 original nonquantized routed
+F32/F16/BF16 comparisons with the existing numerical limits. See TOKENWISE_QUANT.
+
+A previous repeated full CTest failed one BF16 per-route case (NMSE 0.94807).
+The new tokenwise MUL_MAT_ID dispatch and matching graph synchronization predicate
+were restricted to quantized weights. Nonquantized routed types use upstream
+dispatch again. The failure is retained in glm-pipeline-mtp-trace-ctest.log and
+glm-tokenwise-quant-failure.json. Final/repeated results above follow that fix.
+
+2. Shared transport/cache build and tests
+
+Local helper:
+@echo off
+setlocal
+cd /d "%~dp0.."
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+set "CUDA_PATH=%CD%\build-local\cuda-13.0"
+set "PATH=%CUDA_PATH%\bin;%CUDA_PATH%\bin\x64;%PATH%"
+cmake -S backends/glm5next -B build-local/glm5next-transport -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_GLM_PROTOCOL_TESTS_ONLY=ON -DSTRATA_GLM_TRANSPORT_TESTS_CUDA=ON "-DCUDAToolkit_ROOT=%CUDA_PATH%"
+if errorlevel 1 exit /b 1
+cmake --build build-local/glm5next-transport --config Release -j 4
+exit /b %errorlevel%
+
+
+ctest --test-dir build-local/glm5next-transport --output-on-failure
+Result: 13/13 passed, 4.65 seconds. The optional shared copy-observer interface
+was included. Full-model Qwen and DeepSeek inference was not run.
+
+3. Python checks
+
+python -m unittest discover -s tools -p "test*glm5next*.py"
+Result: 85 tests, 5.833 seconds, OK. Expected argparse negative cases print
+usage/error text inside this successful unittest run.
+
+4. Full-model correctness
+
+PowerShell CUDA DLL environment as above. Uninstrumented full check:
+build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe --model H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --memory-percent 95 --tokens 64 --report build-local/glm-mtp-real95-fixed.json
+Result: 11 cases passed. Depths 1/2/3 at 64 output tokens, forced first-round
+acceptance 0/1/2/3 at 16 tokens, seeded sample-and-match 32 tokens, cancellation
+and clean next request. All compared target logits max_abs=0, NMSE=0.
+This historical checker binary hash was not captured; it is not attributed to
+the final binary. The following independent repeat has captured binary identity.
+
+Full repeat with saved P1 F32 comparison and bounded diagnostic GPU trace:
+$env:STRATA_GLM_TRACE_GRAPHS='6'
+build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe --model H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --memory-percent 95 --tokens 64 --reference-logits build-local/glm-sync-iq3-repeat.f32 --report build-local/glm-pipeline-mtp-trace.json
+Remove-Item Env:STRATA_GLM_TRACE_GRAPHS
+Result: exit 0, same 11 cases passed. Baseline equals all 9,912,320 stored P1 F32
+logits bit-for-bit (raw SHA-256 1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550).
+Six target graphs captured: three prefill batches and three decode calls.
+H2D union 1853.812458 ms, compute-split spans 775.289386 ms, intersection 2.166283 ms.
+Spans are not direct SM busy time. Graph-boundary synchronization affects timing;
+this run is not used for throughput. Raw intervals stay in build-local report;
+summary and binary identity are in GLM53_FLASH_PIPELINE_GPU_TRACE.json.
+
+Synthetic native fixture (also executed by final CTest):
+build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe --fixture build-local/glm5next-candidate-cuda/mtp-fixture --report build-local/glm5next-candidate-cuda/mtp-fixture-report.json
+14 cases passed, including stop on first sample, accepted draft and rejected draft.
+
+5. Throughput parameter sweep (trace OFF)
+
+python tools/benchmark_glm5next_mtp.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-mtp-benchmark.json --depths 0,1,2,3 --repeats 3 --mtp-cache-mib 512 --chunk-mib 4
+python tools/benchmark_glm5next_mtp.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-mtp-cache256-benchmark.json --depths 1,0 --repeats 5 --mtp-cache-mib 256 --chunk-mib 4
+python tools/benchmark_glm5next_mtp.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-mtp-chunk8-benchmark.json --depths 1 --repeats 5 --mtp-cache-mib 512 --chunk-mib 8
+All reports status pass; all IDs equal reference; all engines exit 0.
+Each depth starts a new engine, runs one warmup and then N timed requests.
+Use a fresh --output basename on rerun so engine stderr files are not appended.
+All variants: ctx2048/batch16/threads4, F16 KV, FA/TF32 off, global RAM/VRAM 95%.
+OS file cache was not cleared. DONE speed = 63*1000/decode_ms for 64 output tokens,
+including sampling/draft/verify/repair/pipe writes; excludes load/warmup/prefill.
+Medians: off 8.583972; MTP1 8.730006; MTP2 7.431445; MTP3 6.555064 tokens/s.
+MTP1/cache256/chunk4: 7.286649; off control: 8.338363; MTP1/cache512/chunk8: 8.457159.
+Local profile selected MTP1/cache512/chunk4. 1.7% gain over off is comparable to
+run variability. Only one prompt; no claim of universal best settings.
+Reports preserve each benchmark binary hash and all first/warm request timings.
+
+6. Real pipe/API with selected local profile
+
+python tools/check_glm5next_engine.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-pipeline-mtp-pipe.json
+Result: 9 cases pass, process exit 0, INFO spec=1/gpu_only=1/expert_pipeline=1.
+python tools/check_glm5next_api.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-pipeline-mtp-api.json
+Result: 8 cases pass, OpenAI/Anthropic JSON/SSE, HTTP disconnect/recovery during
+prefill/decode, unload, server exit 0. Bound to localhost.
+These tests preceded trace-only filtering and the final nonquantized routed
+CUDA guard. Their binary hashes are retained separately. The final guard does
+not alter the real IQ3_XXS quantized expert path. Final full/repeated CTest passed.
+
+7. Actual saved CTest summaries
+
+glm-pipeline-mtp-final-validation.log
+10/14 Test #10: glm5next_pipe_lifecycle .............   Passed    0.82 sec
+11/14 Test #11: glm5next_candidate_ops ..............   Passed    0.76 sec
+12/14 Test #12: glm5next_candidate_state ............   Passed    1.07 sec
+13/14 Test #13: glm5next_candidate_quant ............   Passed    1.62 sec
+14/14 Test #14: glm5next_tokenwise_quant ............   Passed    1.43 sec
+100% tests passed, 0 tests failed out of 14
+Total Test time (real) =  10.75 sec
+
+glm-tokenwise-quant-repeat.log
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.37 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.35 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.36 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.38 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.40 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.36 sec
+    Test #14: glm5next_tokenwise_quant .........   Passed    1.36 sec
+1/1 Test #14: glm5next_tokenwise_quant .........   Passed    1.40 sec
+100% tests passed, 0 tests failed out of 1
+Total Test time (real) =  10.99 sec
+
+glm-pipeline-transport-tests.log
+10/13 Test #10: deepseek4_global_memory_compat_test ...   Passed    0.21 sec
+11/13 Test #11: glm5next_expert_transport .............   Passed    0.76 sec
+12/13 Test #12: glm5next_range_parser .................   Passed    0.01 sec
+13/13 Test #13: glm5next_expert_bytes .................   Passed    3.03 sec
+100% tests passed, 0 tests failed out of 13
+Total Test time (real) =   4.65 sec
+
+
+Raw log hashes are in the manifest. Engines/checkers and localhost:8081 server
+were stopped after tests; observed GPU memory after cleanup: 4031 MiB of 32607.

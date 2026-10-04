@@ -19,6 +19,8 @@ extern "C" {
 void strata_glm_sync_copy_hook(strata_glm_copy_hook hook, void * owner);
 void strata_glm_sync_plan_hooks(strata_glm_plan_hook plan, strata_glm_finish_hook finish);
 void strata_glm_sync_compute_hook(strata_glm_compute_hook compute);
+// The copy hook itself fences both scratch reuse and compute readiness on GPU.
+void strata_glm_sync_event_copy(bool enabled);
 void strata_glm_sync_enable(bool enabled);
 // Validation reference: use the candidate's original selected-range transfer.
 // GPU audit remains enabled; no pinned/source timing claim is made for it.

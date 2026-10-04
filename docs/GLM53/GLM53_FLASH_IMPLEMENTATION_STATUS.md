@@ -14,18 +14,18 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `3b0e0f75a50d7f284e479443a4d859b691565a16` + изменения рабочего дерева; source/binary hashes в PIPELINE_MTP_VALIDATION |
-| Последняя выполненная работа | P3.3b / P5.1a,2c,3a,5a / P6.1a: runtime pipeline, native draft/verify/rollback, битовая parity, подбор глубины/cache/chunk и локальный профиль MTP 1 |
-| Следующая задача | P3: увеличить измеренное H2D/compute overlap; P4: hybrid session snapshots/restore. Расширить MTP замеры на другие prompts и длинный sparse-контекст |
-| Активная задача / исполнитель | Нет; перечисленные подпункты завершены Codex, остаток плана открыт |
+| Последняя проверенная ревизия Strata | `97662928e51cf4ef59320a9892fb751fcf45126c` + P3.3c в рабочем дереве; source/binary hashes и команды в COPY_EVENTS_VALIDATION |
+| Последняя выполненная работа | P3.3c: event dependencies вместо host waits для expert copies, одна пара событий на матрицу; MTP 1 вырос с 8,510 до 9,586 ток/с, точные logits и pipe/API проверены |
+| Следующая задача | Совместное исполнение коротких verify-пакетов 2–4 токена с сохранением точности; расширенные prompts/контексты и повторный подбор MTP 2/3. P4 session snapshots/restore остаётся открыт |
+| Активная задача / исполнитель | Нет; P3.3c завершён Codex, остальные открытые пункты плана сохраняются |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`, Native MTP в monitor; OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный профиль: pipeline on, MTP 1, cache ceiling 512 МиБ, chunk 4 МиБ, RAM/VRAM 95%, ctx2048/batch16/threads4 |
+| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`, Native MTP в monitor; OpenAI/Anthropic JSON/SSE, STOP/QUIT и unload проверены на полной модели. Локальный профиль: pipeline on, `STRATA_GLM_COPY_EVENTS=2`, MTP 1, cache ceiling 512 МиБ, chunk 4 МиБ, RAM/VRAM 95%, ctx2048/batch16/threads4 |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
 | Последняя проверенная конфигурация запуска GLM | IQ3_XXS, 45 main + 1 NextN layer, 39 prompt + 64 generated, ctx2048/batch16, F16 KV, TF32/FA off, greedy; pipeline + cache, MTP 0/1/2/3, global targets 95% |
-| Измеренная скорость GLM / память | Медианы трёх прогретых повторов: MTP off 8,584; MTP 1 8,730; MTP 2 7,431; MTP 3 6,555 ток/с. Лучший из проверенных вариантов — 1/512 МиБ/4 МиБ; преимущество над off небольшое, около 1,7%. Глобальные бюджеты RAM/VRAM 95% сохранены; подробности и снимки памяти в PIPELINE_MTP |
+| Измеренная скорость GLM / память | Четыре warmup + пять повторов: MTP 1 / старые waits 8,510; MTP 1 / events 9,586 (+12,64%); MTP off / events 8,978 ток/с. Диапазон нового MTP 1 — 9,553–9,655; MTP даёт +6,76% в этой серии. Один prompt / 64 output, RAM/VRAM targets 95%; прежний sweep 0/1/2/3 сохранён отдельно |
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -2940,6 +2940,46 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Осталось:** повышение степени overlap, session snapshots/restore,
   index sharing между draft iterations, длинный sparse-контекст, другие prompts/
   кванты, реальные tools/EOS, Linux/HIP и full-model Qwen/DeepSeek regression.
+
+### P3.3c — 2026-10-04 — GPU dependencies доставки экспертов и контроль скорости
+
+- **Статус:** DONE; исполнитель Codex. База `97662928` + рабочее дерево.
+- **Изменение:** scheduler пропускает свой host wait только для expert input,
+  которым владеет event-copy hook. Runtime связывает scratch reuse и готовность
+  копии с настоящим CUDA backend stream. Режим 1 ставит пару events на диапазон,
+  режим 2 — на матрицу целиком; остальные input waits сохранены. При отмене
+  copy stream дренируется перед повторным использованием контекста.
+- **Выбор режима:** preliminary sweep 0/1/2 ещё прогревался во время замеров,
+  поэтому он не используется для итогового процента. В контрольной серии
+  четыре warmup + пять измерений на процесс: старый режим с MTP 1 — **8,510**,
+  режим 2 с MTP 1 — **9,586** (9,553–9,655), режим 2 без MTP — **8,978 ток/с**.
+  Рост от event-copy **12,64%**, дополнительный эффект MTP **6,76%**.
+  Те же 39 prompt / 64 output, ctx2048/batch16/threads4, cache512/chunk4,
+  budgets95/95, greedy, F16 KV, TF32/FA off; файловый кэш ОС не очищался.
+- **Настройки:** локальный профиль сохраняет MTP 1 и добавляет
+  `env.STRATA_GLM_COPY_EVENTS=2`. `0` возвращает исходный режим для A/B;
+  CLI без переменной использует 0. Содержимое матричных ядер не менялось.
+- **Точность:** оба event-варианта проверены на полном IQ3_XXS. Для окончательного
+  режима 2 все 9 912 320 baseline F32 logits совпали с P1 бит-в-бит;
+  MTP 1/2/3, forced 0/1/2/3, seeded sampling, cancel/clean-next прошли с нулевыми
+  max abs/NMSE там, где сравнивались logits. Всего 11 real-model случаев.
+- **Регрессии:** 16/16 CTest (13,12 с), включая два новых event-mode GPU fixtures;
+  85 Python tests (5,997 с). Рабочий профиль: 9/9 native pipe и 8/8 HTTP сценариев,
+  INFO `expert_copy_events=2`, process/server exit 0, unload. После тестов
+  engine/server остановлены; наблюдаемая VRAM 3523/32607 МиБ.
+- **Трассировка:** шесть target graphs; H2D union 1935,988 мс, compute spans
+  1066,873 мс, пересечение 55,698 мс. Предыдущий отдельный trace имел 2,166 мс
+  пересечения. Это stream intervals, включая ожидания, не SM busy time;
+  instrumented trace не используется для сравнения throughput.
+- **Артефакты:** [замеры](GLM53_FLASH_COPY_EVENTS_BENCHMARK.json),
+  [точность/trace](GLM53_FLASH_COPY_EVENTS_CHECK.json),
+  [pipe](GLM53_FLASH_COPY_EVENTS_PIPE.json), [API](GLM53_FLASH_COPY_EVENTS_API.json),
+  [manifest/команды](GLM53_FLASH_COPY_EVENTS_VALIDATION.json),
+  [описание](GLM53_FLASH_PIPELINE_MTP.md).
+- **Осталось:** короткие matvec пакеты всё ещё исполняются по токенам ради точности;
+  совместные ядра, другие prompts/длинный sparse-контекст и новый throughput sweep
+  MTP 2/3 ещё не выполнены. P4 session reuse, Linux/HIP и full-model Qwen/DeepSeek
+  regression эта работа не закрывает; общий транспорт и другие профили не менялись.
 
 ## Шаблон следующей записи
 

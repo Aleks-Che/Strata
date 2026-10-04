@@ -177,7 +177,8 @@ int main(int argc,char ** argv) {
             std::cout<<"INFO engine=glm5next-native architecture=glm5next backend=llama.cpp mtp="<<(o.mtp?1:0)<<" spec="<<o.mtp<<" draft_tokens="<<o.mtp<<" speculative="<<(o.mtp?"mtp":"none")
                 <<" expert_storage=mmap expert_compute=gpu gpu_only=1 expert_cache_mib="<<usage["cache_resident_bytes"].get<uint64_t>()/(1<<20)
                 <<" ram_target_percent="<<o.ram_percent<<" vram_target_percent="<<o.vram_percent<<" expert_stage_mib="<<(o.pipeline?4*o.chunk_mib:16)
-                <<" expert_pipeline="<<o.pipeline<<" expert_read_mode=mmap kv=fp16 flash_attention=0 tf32=0 tokenwise_small_batch=1 conversation_cache=0\n"
+                <<" expert_pipeline="<<o.pipeline<<" expert_copy_events="<<usage["expert_copy_events"].get<int>()
+                <<" expert_read_mode=mmap kv=fp16 flash_attention=0 tf32=0 tokenwise_small_batch=1 conversation_cache=0\n"
                 <<"READY "<<llama_n_ctx(ctx.get())<<" stop session-id\n"<<std::flush;
             serve(ctx.get(),vocab,o,memory,mtp.get());
         }
