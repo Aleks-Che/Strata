@@ -5,6 +5,27 @@ The protocol and native reader tests build without a model, CUDA or llama.cpp. T
 target requires the audited Unsloth archive; its full build and token-ID parity
 have not yet been checked. Qwen and DeepSeek dependencies/build files are unchanged.
 
+The GLM frontend also has a real loopback HTTP integration check (P2.5g):
+
+```text
+python -m unittest serve.test_glm5next_http -v
+```
+
+It binds only `127.0.0.1` on an OS-selected port and uses the production `Server`,
+request handlers and socket-disconnect watcher, with a byte tokenizer and mock
+engine. Thirty scenarios cover both APIs, JSON/SSE Unicode/reasoning and terminal
+boundaries, client tool-result continuation, validation errors before streaming,
+queued disconnects, and disconnects during prefill/reasoning/partial tool output.
+The mock stops emitting before disconnect: cancellation must come from the actual
+socket watcher, with no pings or simulated writer failures. Tests check that an
+open quiet client survives a watcher poll, engine cleanup holds the FIFO, cancelled
+queued requests never enter the engine, accounting is not duplicated, the next
+request succeeds, and request/listener/watcher threads finish. Five test methods
+(56 HTTP requests) passed on Windows / Python 3.12.7 on 2026-10-04.
+Telemetry and archive scheduling are not started. No real tools are invoked.
+GLM GPU cleanup, model token IDs, backend protocol and inference remain untested
+by this fixture; a passing frontend check does not enable the model profile.
+
 Candidate: `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, as in the
 [loader report](../../docs/GLM53/GLM53_FLASH_LOADER_COMPATIBILITY.md).
 Download the [exact commit archive](https://github.com/unslothai/llama.cpp/archive/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9.tar.gz)

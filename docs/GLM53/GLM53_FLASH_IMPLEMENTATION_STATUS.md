@@ -13,11 +13,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a и warm transport benchmark P3.7a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `730e2b8c405953a08f88a312bd2c1c6b7f609a9f`, ветка `dev`; P3.5f уже в HEAD, P3.7a — в рабочем дереве |
-| Последняя выполненная работа | P3.7a: warm transport benchmark на обоих GGUF, по 18 конфигураций / 9072 byte comparisons; 12/12 CTest и 23 Python tests прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f/g, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f, pipeline telemetry P3.6a и warm transport benchmark P3.7a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `05dc32d03d232161987496e0296366ad4c4cc413`, ветка `dev`; P3.7a уже в HEAD, P2.5g — в рабочем дереве |
+| Последняя выполненная работа | P2.5g: оба API через реальные loopback HTTP-сокеты, JSON/SSE и disconnect watcher; 30 сценариев / 56 запросов, 48 интеграционных и смежных тестов прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.7a завершён, требуется продолжение P0.3b |
+| Активная задача / исполнитель | Нет; P2.5g завершён на mock engine, требуется продолжение P0.3b |
 | Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 16 (P3.5f-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
@@ -72,7 +72,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | Подготовка | DONE | План и инвентаризация сохранены | — |
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
-| P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
+| P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; 72 локальные проверки нового GGUF; P2.5g — 30 реальных HTTP-сценариев с mock engine, смежный прогон 48 tests | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP с GPU engine и полная модель |
 | P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f; synthetic/real GGUF byte checks P3.4a/b/c/d, telemetry P3.6a и warm transport benchmark P3.7a | GLM graph/runtime-интеграция, период refresh, численные cached outputs полной модели, отмена реального графа, cold I/O, подбор readers с compute и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
@@ -2162,6 +2162,58 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив,
   собрать candidate/oracle/CUDA и сохранить tokenizer parity; затем повторить
   выбор reader settings на routed workloads вместе с compute.
+
+### P2.5g-01 — 2026-10-04, Asia/Yekaterinburg — GLM frontend через loopback HTTP
+
+- **Статус:** DONE для HTTP/frontend с mock engine; общий P2 остаётся IN_PROGRESS.
+- **Исполнитель:** Codex, автоматический цикл 18.
+- **Ревизия:** `05dc32d03d232161987496e0296366ad4c4cc413`, ветка `dev`;
+  дерево до начала чистое. P2.5g оставлен в рабочем дереве.
+- **Пункт плана:** P2.5, снять ограничение прежних in-memory handler tests,
+  проверить реальные JSON/SSE-соединения, disconnect watcher и очередь.
+- **Изменение:** добавлен `serve/test_glm5next_http.py`. Production `Server`,
+  handlers и `_watch_client` работают на настоящих TCP-сокетах `127.0.0.1:0`
+  (порт назначает ОС). Tokenizer побайтовый, engine подставной, template GLM fixture.
+  HTTP обработчики, watcher и runtime настройки не изменялись. Test server
+  удерживает request threads до завершения и проверяет отсутствие неожиданного
+  исключения, утёкшего listener и новых `strata-client-watch` threads.
+- **Файлы:** `serve/test_glm5next_http.py`, `backends/glm5next/README.md`,
+  план, этот статус и [лог тестов](GLM53_FLASH_HTTP_TESTS.txt).
+- **Проверки:** Windows, Python 3.12.7, рабочая директория
+  `C:\work\git\my-repos\Strata`.
+  Команда:
+  `cmd /c ".venv\Scripts\python.exe -m unittest serve.test_glm5next_http serve.test_glm5next_handlers serve.test_glm5next_service serve.test_glm5next_requests serve.test_glm5next_mcp serve.test_server.ClientHangUp -v > build-local\glm5next-http-tests.log 2>&1"`
+  — **exit 0, 48 tests, 20,618 с**, без skip/failure.
+  Новые 5 test methods выполняют **30 сценариев / 56 HTTP-запросов**:
+  - OpenAI/Anthropic × JSON/SSE: Unicode/reasoning, stop/end_turn, HTTP/1.0,
+    JSON Content-Length и SSE terminal event ровно один раз.
+  - Client tool-call → tool-result → continuation для обоих API в JSON/SSE;
+    IDs/arguments и rendered tool_response сохранены. Реальные tools не исполнялись.
+  - Неверные effort/enable_thinking/clear_thinking дают HTTP 400 JSON до начала
+    stream/generation; следующий валидный запрос проходит.
+  - OpenAI/Anthropic × JSON/SSE × prefill/reasoning/partial tool: mock после
+    выбранного prefix перестаёт выдавать токены и heartbeat. Открытое тихое
+    соединение выдерживает watcher poll; после socket shutdown/close настоящий
+    watcher устанавливает cancel, engine заканчивается до тестового timeout.
+    Проверены monitor state `disconnected`, engine close при занятом FIFO,
+    освобождение busy/queued, один учёт usage/history и успешный следующий запрос.
+  - Отключённый клиент, ожидающий занятой FIFO, не начинает engine и не создаёт
+    usage/history. Проверены оба API и JSON/SSE; следующий запрос проходит.
+  Смежный прогон включает прежние GLM handlers/service/normalizer/MCP/web-history
+  проверки и два существующих Qwen-template `ClientHangUp` socket tests.
+  `git diff --check` — exit 0.
+- **Ограничения:** это HTTP интеграция GLM frontend с mock, не GLM inference.
+  GPU cleanup, реальные GLM tokenizer IDs, backend protocol, независимый template
+  oracle и модель не проверены. Telemetry sampler/archive scheduler не стартовали;
+  listener создавался напрямую из production Server с production handler.
+  Linux, proxy/TLS, реальные MCP процессы и GUI в этом пункте не проверялись.
+  Изменения движка не потребовались; CTest/CUDA в этом цикле не запускались.
+- **Блокер:** P0.3b не снят; последняя загрузка архива Unsloth в цикле 16
+  получила `WinError 10013`. В цикле 18 внешний доступ не перепроверялся;
+  локальные TCP-соединения разрешены и прошли проверки.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
+  candidate/oracle/CUDA и сохранить tokenizer parity. После появления backend
+  повторить HTTP disconnect/FIFO сценарии с реальным GPU cleanup.
 
 ## Шаблон следующей записи
 

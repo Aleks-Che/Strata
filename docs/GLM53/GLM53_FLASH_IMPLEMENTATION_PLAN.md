@@ -284,7 +284,13 @@ Unsloth GGUF. Для ветки Unsloth опубликованы условия 
   - [x] P2.5f: отмена до generation и в очереди завершает API/MCP без двойного
     учёта токенов; disconnect при prefill/reasoning/partial tool освобождает slot
     для следующего запроса. Проверено на mock, in-memory writer и threads;
-    настоящий socket watcher и GLM GPU cleanup остаются для runtime-проверки.
+    socket watcher дополнительно проверен в P2.5g; GLM GPU cleanup остаётся для runtime-проверки.
+  - [x] P2.5g: реальные loopback HTTP-сокеты для обоих API: JSON/SSE Unicode и
+    reasoning, tool-call/result continuation, HTTP 400 до начала stream, отключение
+    клиента в очереди и при prefill/reasoning/partial tool. Production watcher
+    отменяет молчащий mock engine; FIFO/usage/monitor и следующий запрос проверены.
+    30 сценариев, 56 HTTP-запросов на Windows. GLM GPU engine и tokenizer oracle
+    не задействованы; это интеграция HTTP с существующим GLM frontend.
 - [x] Отобразить реальные настройки thinking: локальный template использует
   `reasoning_effort` low/high/max и `clear_thinking`. В нём нет `enable_thinking`
   или вставки `/nothink`; обещать отключение reasoning через Qwen-переключатель нельзя.

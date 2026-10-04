@@ -1,0 +1,55 @@
+test_invalid_options_return_json_before_stream_and_engine (serve.test_glm5next_http.GLMHTTPTests.test_invalid_options_return_json_before_stream_and_engine) ... ok
+test_json_and_sse_unicode_reasoning_and_boundaries (serve.test_glm5next_http.GLMHTTPTests.test_json_and_sse_unicode_reasoning_and_boundaries) ... ok
+test_queued_socket_disconnect_never_starts_engine (serve.test_glm5next_http.GLMHTTPTests.test_queued_socket_disconnect_never_starts_engine) ... ok
+test_socket_disconnect_in_prefill_reasoning_and_partial_tool (serve.test_glm5next_http.GLMHTTPTests.test_socket_disconnect_in_prefill_reasoning_and_partial_tool) ... ok
+test_tool_result_round_trip_json_and_sse (serve.test_glm5next_http.GLMHTTPTests.test_tool_result_round_trip_json_and_sse) ... ok
+test_anthropic_tool_result_round_trip (serve.test_glm5next_handlers.GLMHandlerTests.test_anthropic_tool_result_round_trip) ... ok
+test_cancel_before_generation_finishes_both_api_responses (serve.test_glm5next_handlers.GLMHandlerTests.test_cancel_before_generation_finishes_both_api_responses) ... ok
+test_cancel_mcp_continuation_does_not_count_previous_round_twice (serve.test_glm5next_handlers.GLMHandlerTests.test_cancel_mcp_continuation_does_not_count_previous_round_twice) ... ok
+test_cancelled_done_event_is_emitted_after_releasing_fifo (serve.test_glm5next_handlers.GLMHandlerTests.test_cancelled_done_event_is_emitted_after_releasing_fifo) ... ok
+test_client_tool_name_wins_over_mcp_wrapped_and_bare (serve.test_glm5next_handlers.GLMHandlerTests.test_client_tool_name_wins_over_mcp_wrapped_and_bare) ... ok
+test_disconnect_during_prefill_reasoning_or_incomplete_tool_releases_engine (serve.test_glm5next_handlers.GLMHandlerTests.test_disconnect_during_prefill_reasoning_or_incomplete_tool_releases_engine) ... ok
+test_invalid_options_return_json_before_stream_or_generation (serve.test_glm5next_handlers.GLMHandlerTests.test_invalid_options_return_json_before_stream_or_generation) ... ok
+test_json_and_sse_unicode_reasoning_and_stop (serve.test_glm5next_handlers.GLMHandlerTests.test_json_and_sse_unicode_reasoning_and_stop) ... ok
+test_noncolliding_mcp_tool_still_executes (serve.test_glm5next_handlers.GLMHandlerTests.test_noncolliding_mcp_tool_still_executes) ... ok
+test_openai_tool_result_round_trip (serve.test_glm5next_handlers.GLMHandlerTests.test_openai_tool_result_round_trip) ... ok
+test_request_cancelled_while_waiting_for_fifo_never_runs_engine (serve.test_glm5next_handlers.GLMHandlerTests.test_request_cancelled_while_waiting_for_fifo_never_runs_engine) ... ok
+test_complete_calls_report_handoff_in_both_apis (serve.test_glm5next_service.GLMServiceTests.test_complete_calls_report_handoff_in_both_apis) ... ok
+test_each_boundary_stops_text_in_both_api_streams (serve.test_glm5next_service.GLMServiceTests.test_each_boundary_stops_text_in_both_api_streams) ... ok
+test_eom_does_not_invent_call_for_truncated_or_malformed_output (serve.test_glm5next_service.GLMServiceTests.test_eom_does_not_invent_call_for_truncated_or_malformed_output) ... ok
+test_invalid_metadata_fails_at_service_construction (serve.test_glm5next_service.GLMServiceTests.test_invalid_metadata_fails_at_service_construction) ... ok
+test_length_takes_precedence_even_after_complete_call (serve.test_glm5next_service.GLMServiceTests.test_length_takes_precedence_even_after_complete_call) ... ok
+test_literal_marker_text_is_not_a_token_boundary (serve.test_glm5next_service.GLMServiceTests.test_literal_marker_text_is_not_a_token_boundary) ... ok
+test_qwen_fallback_unchanged (serve.test_glm5next_service.GLMServiceTests.test_qwen_fallback_unchanged) ... ok
+test_stop_ids_are_not_hardcoded (serve.test_glm5next_service.GLMServiceTests.test_stop_ids_are_not_hardcoded) ... ok
+test_stop_ids_resolved_without_encoding_qwen_markers (serve.test_glm5next_service.GLMServiceTests.test_stop_ids_resolved_without_encoding_qwen_markers) ... ok
+test_anthropic_thinking_is_always_on_without_invented_budget_mapping (serve.test_glm5next_requests.GLMRequestTests.test_anthropic_thinking_is_always_on_without_invented_budget_mapping) ... ok
+test_anthropic_tool_error_is_visible_to_model (serve.test_glm5next_requests.GLMRequestTests.test_anthropic_tool_error_is_visible_to_model) ... ok
+test_anthropic_tool_results_and_reasoning_render (serve.test_glm5next_requests.GLMRequestTests.test_anthropic_tool_results_and_reasoning_render) ... ok
+test_bad_calls_and_content_are_request_errors (serve.test_glm5next_requests.GLMRequestTests.test_bad_calls_and_content_are_request_errors) ... ok
+test_clear_thinking_reaches_template (serve.test_glm5next_requests.GLMRequestTests.test_clear_thinking_reaches_template) ... ok
+test_count_tokens_handler_uses_glm_adapter_without_http (serve.test_glm5next_requests.GLMRequestTests.test_count_tokens_handler_uses_glm_adapter_without_http) ... ok
+test_default_dispatch_keeps_existing_normalizers (serve.test_glm5next_requests.GLMRequestTests.test_default_dispatch_keeps_existing_normalizers) ... ok
+test_double_encoded_lists_supported (serve.test_glm5next_requests.GLMRequestTests.test_double_encoded_lists_supported) ... ok
+test_effort_sources_and_override_precedence (serve.test_glm5next_requests.GLMRequestTests.test_effort_sources_and_override_precedence) ... ok
+test_mixed_anthropic_text_results_keep_order (serve.test_glm5next_requests.GLMRequestTests.test_mixed_anthropic_text_results_keep_order) ... ok
+test_openai_ids_arguments_and_late_system_preserved (serve.test_glm5next_requests.GLMRequestTests.test_openai_ids_arguments_and_late_system_preserved) ... ok
+test_service_selects_glm_adapter_and_prepares_prompt (serve.test_glm5next_requests.GLMRequestTests.test_service_selects_glm_adapter_and_prepares_prompt) ... ok
+test_unsupported_options_fail_for_both_apis (serve.test_glm5next_requests.GLMRequestTests.test_unsupported_options_fail_for_both_apis) ... ok
+test_cancel_does_not_prepare_partial_results (serve.test_glm5next_mcp.GLMMcpTests.test_cancel_does_not_prepare_partial_results) ... ok
+test_client_tools_prevent_mcp_execution (serve.test_glm5next_mcp.GLMMcpTests.test_client_tools_prevent_mcp_execution) ... ok
+test_multiple_calls_keep_ids_through_prompt_and_api (serve.test_glm5next_mcp.GLMMcpTests.test_multiple_calls_keep_ids_through_prompt_and_api) ... ok
+test_qwen_loop_accepts_added_ids (serve.test_glm5next_mcp.GLMMcpTests.test_qwen_loop_accepts_added_ids) ... ok
+test_repeated_tool_across_rounds_has_distinct_ids (serve.test_glm5next_mcp.GLMMcpTests.test_repeated_tool_across_rounds_has_distinct_ids) ... ok
+test_round_limit_and_length_never_execute_calls (serve.test_glm5next_mcp.GLMMcpTests.test_round_limit_and_length_never_execute_calls) ... ok
+test_browser_history_retains_current_tool_turn_reasoning (serve.test_glm5next_mcp.GLMWebHistoryTests.test_browser_history_retains_current_tool_turn_reasoning) ... ok
+test_clear_thinking_clears_only_prior_turn_after_new_user_message (serve.test_glm5next_mcp.GLMWebHistoryTests.test_clear_thinking_clears_only_prior_turn_after_new_user_message) ... ok
+test_non_streamed (serve.test_server.ClientHangUp.test_non_streamed) ... [strata] done: 0 tokens in 1 s (0.0 tok/s) (cancel, cancel=True)
+ok
+test_streamed (serve.test_server.ClientHangUp.test_streamed) ... [strata] done: 0 tokens in 1 s (0.0 tok/s) (cancel, cancel=True)
+ok
+
+----------------------------------------------------------------------
+Ran 48 tests in 20.618s
+
+OK
