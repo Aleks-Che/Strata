@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "started_utc": "2026-10-04T06:09:57.689670+00:00",
+  "scope": "Real external CUDA allocation and NVML/cache controller; synthetic weights, no GLM graph or throughput",
+  "holder_bytes": 268435456,
+  "cache_cap_bytes": 67108864,
+  "matrix_bytes": 33554432,
+  "policy_mode": 2,
+  "reserve_mib": 128,
+  "byte_comparisons_per_policy": 5,
+  "worker_timeout_seconds": 20,
+  "sample_retry_deadline_seconds": 8,
+  "runner_sha256": "1467169a440014786026e7e26d22c04c20560fdcd3753f6df27f570adfbb9650",
+  "checker": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-transport\\strata-glm5next-memory-pressure-check.exe",
+  "runs": [
+    {
+      "status": "pass",
+      "policy": "lru",
+      "holder_pid": 55048,
+      "controller_pid": 32268,
+      "device": {
+        "phase": "ready",
+        "pci": "0000:01:00.0",
+        "cuda_runtime": 13000,
+        "cuda_driver": 13000
+      },
+      "stages": [
+        {
+          "phase": "warm",
+          "free_bytes": 31035203584,
+          "total_bytes": 34190917632,
+          "target_bytes": 67108864,
+          "resident_bytes": 67108864,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 0,
+          "misses": 2,
+          "evictions": 0,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "protected",
+          "free_bytes": 30766768128,
+          "total_bytes": 34190917632,
+          "target_bytes": 0,
+          "resident_bytes": 33554432,
+          "deferred_bytes": 33554432,
+          "sample_valid": 1,
+          "trim_complete": 0,
+          "hits": 1,
+          "misses": 2,
+          "evictions": 1,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "trimmed",
+          "free_bytes": 30800322560,
+          "total_bytes": 34190917632,
+          "target_bytes": 0,
+          "resident_bytes": 0,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 1,
+          "misses": 2,
+          "evictions": 2,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "recovered",
+          "free_bytes": 31035203584,
+          "total_bytes": 34190917632,
+          "target_bytes": 67108864,
+          "resident_bytes": 67108864,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 1,
+          "misses": 4,
+          "evictions": 2,
+          "device_target_mib": 3074
+        }
+      ]
+    },
+    {
+      "status": "pass",
+      "policy": "frequency",
+      "holder_pid": 60256,
+      "controller_pid": 45120,
+      "device": {
+        "phase": "ready",
+        "pci": "0000:01:00.0",
+        "cuda_runtime": 13000,
+        "cuda_driver": 13000
+      },
+      "stages": [
+        {
+          "phase": "warm",
+          "free_bytes": 31035203584,
+          "total_bytes": 34190917632,
+          "target_bytes": 67108864,
+          "resident_bytes": 67108864,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 0,
+          "misses": 2,
+          "evictions": 0,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "protected",
+          "free_bytes": 30766768128,
+          "total_bytes": 34190917632,
+          "target_bytes": 0,
+          "resident_bytes": 33554432,
+          "deferred_bytes": 33554432,
+          "sample_valid": 1,
+          "trim_complete": 0,
+          "hits": 1,
+          "misses": 2,
+          "evictions": 1,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "trimmed",
+          "free_bytes": 30800322560,
+          "total_bytes": 34190917632,
+          "target_bytes": 0,
+          "resident_bytes": 0,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 1,
+          "misses": 2,
+          "evictions": 2,
+          "device_target_mib": 3074
+        },
+        {
+          "phase": "recovered",
+          "free_bytes": 31035203584,
+          "total_bytes": 34190917632,
+          "target_bytes": 67108864,
+          "resident_bytes": 67108864,
+          "deferred_bytes": 0,
+          "sample_valid": 1,
+          "trim_complete": 1,
+          "hits": 1,
+          "misses": 4,
+          "evictions": 2,
+          "device_target_mib": 3074
+        }
+      ]
+    }
+  ],
+  "checker_sha256": "f0c9bbafa222be76b04c10659c1e239cc985349339f5bf7e73a010d24a4444ea"
+}

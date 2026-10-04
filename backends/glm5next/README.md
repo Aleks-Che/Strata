@@ -139,6 +139,36 @@ which branch ran. This does not connect the absent GLM inference graph or test
 pressure from another application. A reader that failed initialization must be
 recreated; read failures re-resolve the PCI handle on the next sample.
 
+An explicit external-process check is available as P3.5e; it is not part of default
+CTest. Build the CUDA transport configuration, set the CUDA runtime DLL PATH, then:
+
+```text
+python -m tools.check_glm5next_memory --checker build-local/glm5next-transport/strata-glm5next-memory-pressure-check.exe --output docs/GLM53/GLM53_FLASH_EXTERNAL_MEMORY.json
+```
+
+The runner launches a controller and a separate CUDA holder on the same PCI GPU.
+Both contexts initialize before the controller chooses a total-device usage
+target 128 MiB above baseline usage. The cache cap is 64 MiB (two synthetic 32 MiB
+main/MTP entries), with 128 MiB reserve. The holder allocates and touches 256 MiB.
+This crosses the configured usage target while leaving physical VRAM available;
+it does not attempt to cause OOM. The controller must trim the unpinned entry,
+retain and verify the pinned entry, then finish trimming when the pin is released.
+After the holder frees its allocation, the budget and both entries must recover.
+Each policy, LRU and frequency, verifies five full payloads. The checker requires
+NVML and fails if unavailable, with an 8-second deadline for observing each
+pressure/recovery transition. Every worker command has a runner timeout.
+
+The JSON records PCI identity, CUDA versions, child PIDs, checker/runner hashes,
+the actual device usage target and global memory/cache snapshots for all stages.
+The runner drains/exits its own children on success and closes their stdin on
+failure, killing only a child that fails to exit within three seconds. GPU buffers
+are freed on normal EOF/exit, including early cancellation. Both policies passed
+on RTX 5090, CUDA runtime/driver 13000/13000 (2026-10-04). This is real external
+allocation with synthetic cache payloads, not GLM inference, full memory exhaustion,
+speed measurement or control of allocations racing between two memory samples.
+Other active applications can prevent the expected target transitions and make
+the check fail. Runner protocol/cleanup tests: `python -m unittest tools.test_glm5next_memory_check`.
+
 `expert_transport.hpp` adds an owning transport adapter (P3.3a). Construct one
 `ExpertTransport` per host owner/device, then `begin(plan, sources, decode)` with
 native `ExpertKey` ranges and full offset-zero `ExpertSourceView` mappings. Each

@@ -372,6 +372,10 @@ result работают через оба API; токены и шаблон со
     в GLM controller; ошибки API, stale outputs, rebind и concurrency проверены
     fixtures, реальный NVML → controller → cache smoke прошёл на RTX 5090.
     DeepSeek compatibility include проверен. Внешнее pressure и GLM graph не проверены.
+  - [x] P3.5e: отдельный CUDA holder 256 МиБ и controller с кэшем 64 МиБ проверяют
+    реальное внешнее pressure, защиту main pin, trim MTP и восстановление после free.
+    LRU/frequency прошли на RTX 5090; 10 полных byte comparisons синтетических
+    матриц. JSON с targets/samples/PIDs/hashes сохранён. GLM graph/OOM не проверены.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.
