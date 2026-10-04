@@ -305,6 +305,35 @@ stages synchronize for comparison. This checks selected packed weights and cache
 lifetime, not dequantization, mixed-range cache planning, frequency admission on
 real weights, GLM graph integration, numerical logits or MTP execution.
 
+To check the native `ExpertDispatch` scope on the selected real GGUF ranges, use
+`--dispatch-check` instead of `--cache-check`:
+
+```text
+python -m tools.check_glm5next_transfer --gguf H:/GLM-5.3-Flash-GGUF/GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf --checker build-local/glm5next-transport/strata-glm5next-transfer-check.exe --dispatch-check --layers 3 11 45 --experts 0 1 2 3 4 5 6 287 --modes mmap native auto --chunk-bytes 262161 --timeout 120 --output docs/GLM53/GLM53_FLASH_IQ3_XXS_GPU_DISPATCH.json
+```
+
+`GLM_DISPATCH_RANGES_V1` carries the same complete keys as the cache manifest,
+requires distinct triples and exercises LRU/frequency with prefill/decode reader
+policies. Each consecutive gate/up/down triple provides A/C/D; B aliases C's bytes
+under generation 2. A cache of A+C bytes first holds A/B. The next plan C/A/D must
+evict B, preserve the later hit A, and deliver D through bypass. An all-hit C/A plan
+has no source views or source/H2D traffic. Cancellation after A in an A/D plan must
+release pins and leases; invalidation, generation 3 loading and zero-budget bypass
+then reuse the same transport. Alternating streams and guarded destinations are
+compared with independent stdio reads, with synchronization after each matrix.
+
+There are 14 byte comparisons per triple/policy pair: 24 triples × 2 admission
+policies × 2 reader policies × 3 I/O modes = 4032 comparisons per model. Both local
+profiles passed on RTX 5090, CUDA runtime/driver 13000/13000 (2026-10-04).
+Reports preserve file/header identities, checker hash, actual transfer counters
+and scenario results. Source/H2D counters include cancelled read-ahead; per-phase
+assertions require exact bytes for completed plans and zero for all-hit plans.
+Auto prefill may read resident pages through mmap; auto decode uses mmap. Native
+reads are not evidence of physical SSD I/O. Ring D2D excludes cache-to-destination
+copies. This is a serialized packed-byte check; generation changes are simulated
+keys, not model reload. It does not validate dequantization, numerical GLM outputs,
+graph cancellation, frequency rejection on real weights, or inference throughput.
+
 For the real oracle, use a **different** build directory. Substitute the verified
 local archive and its recorded hash in this command (not executed here):
 

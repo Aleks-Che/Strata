@@ -348,6 +348,11 @@ result работают через оба API; токены и шаблон со
     72 матрицы × 5 этапов × 3 режима × 2 модели = 2160 сравнений bytes;
     hits не добавляют source/H2D bytes. Это отдельный LRU cache на каждую матрицу,
     без GLM graph, численных kernels и настоящего model reload.
+  - [x] P3.4d: `--dispatch-check` проверяет связку ExpertDispatch/cache/transport
+    на реальных матрицах обоих профилей: mixed hit/miss/bypass, all-hit без sources,
+    отмена, invalidation/generation keys и zero budget. LRU/frequency × prefill/decode
+    × mmap/native/auto: 8064 byte comparisons на RTX 5090. GLM graph, численные
+    outputs и настоящий model reload не проверены; скорость не измерялась.
 - [ ] Перенести bounded read queue, совместное планирование трёх матриц, защиту
   нужных текущему плану entries, LRU и frequency admission, общий VRAM reserve.
   - [x] P3.5a: общий bounded frequency history с decay и opt-in допуск в отдельном

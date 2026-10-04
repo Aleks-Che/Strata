@@ -2,6 +2,7 @@
 // The Python inspector supplies ranges; this executable validates file bounds.
 #include "../common/expert_pipeline.hpp"
 #include "expert_cache.hpp"
+#include "expert_dispatch.hpp"
 #include <cstdio>
 #include <climits>
 #include <filesystem>
@@ -37,15 +38,18 @@ static std::string hex(const std::string &s) {
     return out;
 }
 struct Range {uint64_t offset;size_t bytes;std::string path;strata_glm::ExpertKey key{};};
-struct Plan {size_t chunk;int mode;std::vector<Range> ranges;bool cached=false;};
+struct Plan {size_t chunk;int mode;std::vector<Range> ranges;bool cached=false,dispatch=false;};
 static Plan parse(std::istream &input) {
     std::string version,chunk,mode,count;
     require(bool(input>>version>>chunk>>mode>>count) &&
-            (version=="GLM_RANGES_V1" || version=="GLM_CACHE_RANGES_V1"),"invalid range header");
+            (version=="GLM_RANGES_V1" || version=="GLM_CACHE_RANGES_V1" ||
+             version=="GLM_DISPATCH_RANGES_V1"),"invalid range header");
     const auto c=number(chunk),m=number(mode),n=number(count);
     require(c>=1 && c<=16*1024*1024 && m<=2 && n>=1 && n<=4096,"invalid plan limits");
     Plan plan{size_t(c),int(m),{}};
-    plan.cached=version=="GLM_CACHE_RANGES_V1";
+    plan.dispatch=version=="GLM_DISPATCH_RANGES_V1";
+    plan.cached=version=="GLM_CACHE_RANGES_V1" || plan.dispatch;
+    require(!plan.dispatch || n%3==0,"dispatch requires complete triples");
     std::string identity;
     if(plan.cached) {
         require(bool(input>>identity) && identity.size()==64 &&
@@ -82,6 +86,11 @@ static Plan parse(std::istream &input) {
     }
     std::string extra;
     require(!(input>>extra),"extra manifest fields");
+    if(plan.dispatch) {
+        std::set<strata_glm::ExpertKey> unique;
+        for(const auto &r:plan.ranges)
+            require(unique.insert(r.key).second,"duplicate dispatch key");
+    }
     return plan;
 }
 static void parser_tests() {
@@ -131,6 +140,21 @@ static void parser_tests() {
         require(rejected,"invalid cached manifest accepted");
     }
     std::puts("Cache manifest full keys, identity, branch/projection, shard, overflow and missing fields passed");
+    const auto dispatch_header="GLM_DISPATCH_RANGES_V1 262161 2 3 "+id+"\n";
+    std::string records;
+    for(const auto &projection:{"gate","up","down"})
+        records+=range+"mtp 45 287 "+projection+" Q3_K 2048 4096 "+hex("fixture with spaces.gguf")+"\n";
+    std::istringstream dispatch(dispatch_header+records);
+    require(parse(dispatch).dispatch,"dispatch manifest not selected");
+    for(const auto &bad:std::vector<std::string>{
+        "GLM_DISPATCH_RANGES_V1 1 0 1 "+id+"\n"+range+fields,
+        dispatch_header+range+fields+"\n"+range+fields+"\n"+range+fields,
+        dispatch_header+records+"extra"}) {
+        bool rejected=false;
+        try {std::istringstream broken(bad);parse(broken);}catch(const std::exception &) {rejected=true;}
+        require(rejected,"invalid dispatch manifest accepted");
+    }
+    std::puts("Dispatch manifest selection, complete triples, duplicate keys and trailing fields passed");
 }
 
 struct MappedSource {
@@ -173,6 +197,99 @@ struct Device {
     }
     ~Device() {cudaStreamSynchronize(stream);cudaFree(data);cudaStreamDestroy(stream);}
 };
+// Each consecutive triple supplies A, C, D. B uses C's actual bytes with a
+// distinct generation, giving a same-sized eviction victim even for mixed quants.
+// Serialized byte checks intentionally do not measure overlap or throughput.
+static void run_dispatch(const Plan &plan,
+                         const std::map<std::string,std::shared_ptr<MappedSource>> &sources,size_t largest) {
+    using namespace strata_glm;
+    constexpr size_t guard=37;
+    Device first(largest+2*guard),second(largest+2*guard);
+    std::vector<ExpertSourceView> views;
+    for(const auto &s:sources)for(uint64_t generation:{1,2,3})
+        views.push_back({plan.ranges[0].key.model,generation,
+                         std::filesystem::u8path(s.first).filename().u8string(),
+                         s.second->view,s.second->bytes,s.second});
+    for(size_t base=0;base<plan.ranges.size();base+=3) {
+        std::vector<std::vector<uint8_t>> expected;
+        for(size_t j=0;j<3;++j) {
+            const auto &r=plan.ranges[base+j];
+            expected.emplace_back(r.bytes+2*guard,0xA5);
+            sources.at(r.path)->baseline(r,expected.back().data()+guard);
+        }
+        for(bool frequency:{false,true})for(bool decode:{false,true}) {
+            const auto a=plan.ranges[base].key,c=plan.ranges[base+1].key,d=plan.ranges[base+2].key;
+            auto b=c;b.generation=2;
+            ExpertCache cache(size_t(a.bytes+c.bytes),{frequency,4096,131072});
+            ExpertTransport transport(0,plan.chunk,false,4,plan.mode);
+            size_t comparisons=0;
+            auto compare=[&](ExpertDispatch &dispatch,size_t index,size_t which) {
+                Device &device=comparisons%2?second:first;
+                const auto &want=expected[which];
+                cuda_ok(cudaMemsetAsync(device.data,0xA5,want.size(),device.stream));
+                dispatch.copy(index,device.data+guard,device.stream);
+                cuda_ok(cudaStreamSynchronize(device.stream));
+                std::vector<uint8_t> actual(want.size());
+                cuda_ok(cudaMemcpy(actual.data(),device.data,actual.size(),cudaMemcpyDeviceToHost));
+                require(actual==want,"dispatch GPU payload or guard mismatch");++comparisons;
+            };
+            auto sync=[&] {
+                // finish() releases leases and records events after the byte
+                // check; wait for those events before deterministic eviction.
+                cuda_ok(cudaStreamSynchronize(first.stream));cuda_ok(cudaStreamSynchronize(second.stream));
+            };
+            auto exercise=[&](std::vector<ExpertKey> keys,std::vector<size_t> indices,
+                              std::vector<ExpertKey> misses,bool all_hit=false) {
+                const auto before=transport.counters();
+                ExpertDispatch dispatch(cache,transport,std::move(keys),all_hit?std::vector<ExpertSourceView>{}:views,decode);
+                for(size_t i=0;i<indices.size();++i)compare(dispatch,i,indices[i]);
+                dispatch.finish();sync();
+                uint64_t bytes=0,chunks=0;
+                for(const auto &key:misses) {bytes+=key.bytes;chunks+=(key.bytes+plan.chunk-1)/plan.chunk;}
+                const auto after=transport.counters();
+                require(after.h2d_bytes-before.h2d_bytes==bytes && after.d2d_bytes-before.d2d_bytes==bytes &&
+                        after.file_bytes-before.file_bytes+after.mmap_bytes-before.mmap_bytes==bytes &&
+                        after.chunks-before.chunks==chunks && after.unused==before.unused,
+                        "dispatch phase transport counters mismatch");
+                if(all_hit)require(after.groups==before.groups,"all-hit dispatch submitted source jobs");
+            };
+            exercise({a,b},{0,1},{a,b});
+            exercise({c,a,d},{1,0,2},{c,d}); // C evicts B, A stays pinned, D bypasses.
+            auto counts=cache.counters();
+            require(counts.hits==1 && counts.misses==4 && counts.admissions==3 &&
+                    counts.evictions==1 && counts.bypasses==1 && cache.resident(a) && cache.resident(c) &&
+                    !cache.resident(b) && !cache.resident(d),"mixed dispatch cache counters/residency mismatch");
+            exercise({c,a},{1,0},{},true); // No source views, reads, H2D or groups.
+            {
+                ExpertDispatch dispatch(cache,transport,{a,d},views,decode);
+                compare(dispatch,0,0);dispatch.cancel();sync();
+                require(!transport.in_progress(),"cancel left active dispatch transport");
+            }
+            require(cache.invalidate(a.model,1)==2 && cache.resident_bytes()==0,
+                    "cancel/invalidation retained cache pins or leases");
+            auto aa=a,cc=c,dd=d;aa.generation=cc.generation=dd.generation=3;
+            exercise({aa,cc,dd},{0,1,2},{aa,cc,dd});
+            require(cache.set_budget(0) && cache.resident_bytes()==0,"dispatch left protected allocations");
+            exercise({a,c,d},{0,1,2},{a,c,d}); // All bypass; full payload still delivered.
+            counts=cache.counters();
+            require(comparisons==14 && counts.hits==4 && counts.misses==10 && counts.admissions==5 &&
+                    counts.evictions==3 && counts.bypasses==5 && counts.invalidations==2 &&
+                    counts.admission_rejects==0 && cache.resident_bytes()==0,"dispatch lifecycle mismatch");
+            const auto t=transport.counters();
+            const uint64_t delivered=3*a.bytes+4*c.bytes+3*d.bytes,source=t.file_bytes+t.mmap_bytes;
+            require(t.d2d_bytes==delivered && t.h2d_bytes>=delivered && source>=t.h2d_bytes &&
+                    source<=delivered+d.bytes,"cancel read-ahead counters out of bounds");
+            // Auto prefill uses mmap for resident pages and native reads for
+            // cold ones; earlier scenarios can warm the mapping. Decode uses mmap.
+            if(plan.mode==1)require(t.file_bytes==source,"native dispatch reader policy mismatch");
+            if(plan.mode==0 || (plan.mode==2 && decode))
+                require(t.mmap_bytes==source,"mmap dispatch reader policy mismatch");
+            std::printf("DISPATCH_OK %zu %d %d %zu %llu %llu %llu %llu %llu\n",base/3,int(frequency),int(decode),comparisons,
+                        (unsigned long long)t.h2d_bytes,(unsigned long long)t.d2d_bytes,
+                        (unsigned long long)t.file_bytes,(unsigned long long)t.mmap_bytes,(unsigned long long)t.unused);
+        }
+    }
+}
 static void run(const Plan &plan) {
     static_assert(sizeof(size_t)==8,"64-bit process required");
     std::map<std::string,std::shared_ptr<MappedSource>> sources;
@@ -188,6 +305,7 @@ static void run(const Plan &plan) {
     cudaDeviceProp props{};cuda_ok(cudaGetDeviceProperties(&props,0));
     int runtime=0,driver=0;cuda_ok(cudaRuntimeGetVersion(&runtime));cuda_ok(cudaDriverGetVersion(&driver));
     std::printf("GPU %s %d %d\n",hex(props.name).c_str(),runtime,driver);
+    if(plan.dispatch) {run_dispatch(plan,sources,largest);return;}
     constexpr size_t guard=37;
     Device device(largest+2*guard);
     std::unique_ptr<Device> hit_device;

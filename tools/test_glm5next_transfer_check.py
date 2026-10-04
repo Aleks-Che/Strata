@@ -217,6 +217,59 @@ class TransferCheckTests(unittest.TestCase):
         self.assertEqual((report['schema_version'], report['status']), (2, 'error'))
         self.assertIn('cache stage missing', report['error'])
 
+    def dispatch_output(self, mode='native'):
+        return ('GPU 46697874757265 13000 13000\n' + ''.join(
+            f'DISPATCH_OK 0 {frequency} {decode} 14 1020 1000 '
+            + ('1040 0' if mode == 'native' or (mode == 'auto' and not decode) else '0 1040')
+            + ' 1\n' for frequency in range(2) for decode in range(2)))
+
+    def run_dispatch(self, mode='native'):
+        return run_transport([sys.executable, str(self.script)], self.matrices,
+                             self.root, 64, mode, 5, 'a'*64, True)
+
+    def test_dispatch_modes_and_cancel_read_ahead(self):
+        for mode in ('native', 'mmap', 'auto'):
+            payload = manifest(self.matrices, self.root, 64, mode, 'a'*64, True)
+            self.assertTrue(payload.startswith(b'GLM_DISPATCH_RANGES_V1 '))
+            self.emitter(self.dispatch_output(mode), expected=payload)
+            result = self.run_dispatch(mode)
+            self.assertEqual(result['byte_comparisons'], 56)
+            self.assertEqual(len(result['scenarios']), 4)
+            self.assertEqual(result['scenarios'][0]['bypasses'], 5)
+        self.emitter(self.dispatch_output('auto').replace('1040 0', '520 520'))
+        self.assertEqual(self.run_dispatch('auto')['scenarios'][0]['mmap_bytes'], 520)
+
+    def test_dispatch_results_reject_missing_reordered_stages_and_bad_counters(self):
+        valid = self.dispatch_output()
+        for output in (self.output, valid+'extra\n', valid.replace(' 14 ', ' 13 ', 1),
+                       valid.replace('OK 0 0 0', 'OK 0 1 0'),
+                       valid.replace('1020 1000', '1020 999'),
+                       valid.replace('1040 0', '1101 0'),
+                       valid.replace('1040 0', '1000 0'),
+                       valid.replace('1040 0', '0 1040'),
+                       valid.replace(' 1\n', ' 3\n')):
+            with self.subTest(output=output):
+                self.emitter(output)
+                with self.assertRaises(ValueError):
+                    self.run_dispatch()
+
+    def test_dispatch_requires_distinct_triples_and_identity(self):
+        for matrices, identity in ((self.matrices[:2], 'a'*64),
+                                   ([self.matrices[0]]*3, 'a'*64), (self.matrices, None)):
+            with self.assertRaises(ValueError):
+                manifest(matrices, self.root, 64, 'native', identity, True)
+
+    def test_dispatch_report_and_mutually_exclusive_cli_modes(self):
+        gguf = self.model()
+        with patch('tools.check_glm5next_transfer.run_transport', return_value={'status': 'fixture'}) as run:
+            result = check(gguf, self.script, [1, 2], [0], ['auto'], 64, 5, dispatch_check=True)
+        self.assertTrue(run.call_args.kwargs['dispatch_check'])
+        self.assertEqual(len(result['cache_scenario']['stages']), 6)
+        self.assertEqual(result['cache_scenario']['policies'], ['lru', 'frequency'])
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            main(['--gguf', str(gguf), '--checker', str(self.script), '--cache-check',
+                  '--dispatch-check', '--output', str(self.root/'report.json')])
+
 
 if __name__ == '__main__':
     unittest.main()

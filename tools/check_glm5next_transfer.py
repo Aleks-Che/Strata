@@ -35,15 +35,18 @@ def digest(path, limit=None):
     return sha.hexdigest()
 
 
-def manifest(matrices, directory, chunk_bytes, mode, cache_identity=None):
+def manifest(matrices, directory, chunk_bytes, mode, cache_identity=None, dispatch_check=False):
     integer(chunk_bytes, 'chunk_bytes', 1)
     if chunk_bytes > 16 * 1024 * 1024 or mode not in MODES or not 1 <= len(matrices) <= 4096:
         raise ValueError('Invalid transfer manifest limits or mode')
     lines = [f'GLM_RANGES_V1 {chunk_bytes} {MODES[mode]} {len(matrices)}']
+    if dispatch_check and (cache_identity is None or len(matrices) % 3 or len(set(matrices)) != len(matrices)):
+        raise ValueError('Dispatch requires identity and distinct complete triples')
     if cache_identity is not None:
         if not re.fullmatch(r'[0-9a-f]{64}', cache_identity):
             raise ValueError('Cache identity must be a SHA-256 hex string')
-        lines = [f'GLM_CACHE_RANGES_V1 {chunk_bytes} {MODES[mode]} {len(matrices)} {cache_identity}']
+        protocol = 'GLM_DISPATCH_RANGES_V1' if dispatch_check else 'GLM_CACHE_RANGES_V1'
+        lines = [f'{protocol} {chunk_bytes} {MODES[mode]} {len(matrices)} {cache_identity}']
     chunks = 0
     for m in matrices:
         integer(m.file_offset, 'file_offset')
@@ -74,14 +77,15 @@ def manifest(matrices, directory, chunk_bytes, mode, cache_identity=None):
     return ('\n'.join(lines) + '\n').encode('ascii')
 
 
-def run_transport(command, matrices, directory, chunk_bytes, mode, timeout, cache_identity=None):
+def run_transport(command, matrices, directory, chunk_bytes, mode, timeout, cache_identity=None, dispatch_check=False):
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('timeout must be finite and positive')
-    payload = manifest(matrices, directory, chunk_bytes, mode, cache_identity)
+    payload = manifest(matrices, directory, chunk_bytes, mode, cache_identity, dispatch_check)
     result = subprocess.run(command, input=payload, capture_output=True, timeout=timeout, check=True)
     lines = result.stdout.decode('ascii').splitlines()
     cached = cache_identity is not None
-    if len(lines) != len(matrices) + (3 if cached else 2):
+    expected_lines = 1 + len(matrices)//3*4 if dispatch_check else len(matrices) + (3 if cached else 2)
+    if len(lines) != expected_lines:
         raise ValueError('Transfer checker must return every matrix and final counters')
     gpu = re.fullmatch(r'GPU ([0-9a-f]+) ([0-9]+) ([0-9]+)', lines[0])
     if not gpu:
@@ -89,6 +93,34 @@ def run_transport(command, matrices, directory, chunk_bytes, mode, timeout, cach
     name = bytes.fromhex(gpu[1]).decode('utf-8')
     if not name or int(gpu[2]) <= 0 or int(gpu[3]) <= 0:
         raise ValueError('Invalid CUDA device record')
+    if dispatch_check:
+        scenarios = []
+        for group in range(len(matrices)//3):
+            a, c, d = matrices[group*3:group*3+3]
+            delivered = 3*a.bytes + 4*c.bytes + 3*d.bytes
+            for frequency in range(2):
+                for decode in range(2):
+                    line = lines[1+group*4+frequency*2+decode]
+                    if not re.fullmatch(r'DISPATCH_OK(?: [0-9]+){9}', line):
+                        raise ValueError('Malformed dispatch result')
+                    g, f, dec, comparisons, h2d, d2d, native, mmap, unused = map(int, line.split()[1:])
+                    source = native + mmap
+                    if ((g, f, dec, comparisons) != (group, frequency, decode, 14) or
+                            d2d != delivered or not delivered <= h2d <= source <= delivered+d.bytes or
+                            (mode == 'native' and native != source) or
+                            ((mode == 'mmap' or (mode == 'auto' and decode)) and mmap != source) or
+                            unused > (d.bytes+chunk_bytes-1)//chunk_bytes):
+                        raise ValueError('Dispatch stages, counters or reader policy disagree with plan')
+                    scenarios.append({'group': group, 'policy': 'frequency' if frequency else 'lru',
+                                      'decode': bool(decode), 'byte_comparisons': comparisons,
+                                      'h2d_bytes': h2d, 'ring_d2d_bytes': d2d, 'native_bytes': native,
+                                      'mmap_bytes': mmap, 'unused_prefetched_chunks': unused,
+                                      'hits': 4, 'misses': 10, 'admissions': 5, 'bypasses': 5,
+                                      'evictions': 3, 'invalidations': 2})
+        return {'mode': mode, 'status': 'pass', 'matrix_count': len(matrices), 'gpu': name,
+                'cuda_runtime': int(gpu[2]), 'cuda_driver': int(gpu[3]), 'scenarios': scenarios,
+                'byte_comparisons': sum(s['byte_comparisons'] for s in scenarios),
+                'stderr_tail': result.stderr[-8192:].decode('utf-8', errors='replace')}
     for i, m in enumerate(matrices):
         expected = f'CACHE_OK {i} {m.bytes} 5 1 4 2 1' if cached else f'OK {i} {m.bytes}'
         if lines[i + 1] != expected:
@@ -119,10 +151,12 @@ def run_transport(command, matrices, directory, chunk_bytes, mode, timeout, cach
             'stderr_tail': result.stderr[-8192:].decode('utf-8', errors='replace')}
 
 
-def check(gguf, checker, layers, experts, modes, chunk_bytes, timeout, cache_check=False):
+def check(gguf, checker, layers, experts, modes, chunk_bytes, timeout, cache_check=False, *, dispatch_check=False):
     gguf, checker = Path(gguf).resolve(), Path(checker).resolve()
     if not layers or not experts or not modes or len(set(modes)) != len(modes):
         raise ValueError('Require layers, experts and distinct modes')
+    if cache_check and dispatch_check:
+        raise ValueError('Choose cache or dispatch check')
     report = inspect_model(gguf, tensor_details=True)
     matrices = [m for layer in dict.fromkeys(layers) for m in plan_expert_reads(report, layer, experts)]
     shards = []
@@ -134,8 +168,9 @@ def check(gguf, checker, layers, experts, modes, chunk_bytes, timeout, cache_che
     binary_hash = digest(checker)
     # Identifies this observed file set for the isolated checker. Not a full
     # payload digest or a production loader/session fingerprint.
-    identity = hashlib.sha256(json.dumps(shards, sort_keys=True).encode('utf-8')).hexdigest() if cache_check else None
-    runs = [run_transport([str(checker)], matrices, gguf.parent, chunk_bytes, mode, timeout, identity) for mode in modes]
+    identity = hashlib.sha256(json.dumps(shards, sort_keys=True).encode('utf-8')).hexdigest() if cache_check or dispatch_check else None
+    options = {'dispatch_check': True} if dispatch_check else {}
+    runs = [run_transport([str(checker)], matrices, gguf.parent, chunk_bytes, mode, timeout, identity, **options) for mode in modes]
     for s in shards:
         stat = Path(s['path']).stat()
         if (stat.st_size, stat.st_mtime_ns) != (s['bytes'], s['mtime_ns']):
@@ -143,13 +178,23 @@ def check(gguf, checker, layers, experts, modes, chunk_bytes, timeout, cache_che
     if digest(checker) != binary_hash:
         raise ValueError('Checker changed during transfer validation')
     cache_info = {}
-    if cache_check:
+    if cache_check or dispatch_check:
         cache_info = {'cache_identity': identity,
                       'cache_identity_scope': 'SHA-256 of observed shard paths, sizes, mtimes and header hashes; not full weights',
                       'cache_scenario': {'policy': 'lru', 'budget': 'one matrix, recreated per range',
                                          'stages': ['cold_generation_1', 'hit_on_second_stream',
                                                     'evict_with_generation_2', 'reload_generation_1',
                                                     'invalidate_1_and_load_generation_3']}}
+        if dispatch_check:
+            cache_info['cache_scenario'] = {
+                'policies': ['lru', 'frequency'], 'reader_policies': ['prefill', 'decode'],
+                'budget': 'A+C bytes per consecutive triple; zero in last phase',
+                'stages': ['warm_A_and_B_generation_2_alias_of_C', 'mixed_C_A_D_evict_B_pin_A_bypass_D',
+                           'all_hit_C_A_without_sources', 'cancel_after_A_before_D',
+                           'invalidate_generation_1_load_generation_3', 'zero_budget_A_C_D'],
+                'byte_comparisons_per_triple_policy': 14,
+                'source_counters_include_cancel_read_ahead': True,
+                'ring_d2d_excludes_cache_to_destination': True}
     return {'status': 'pass', 'first_shard': str(gguf), 'shards': shards, **cache_info,
             'checker': str(checker), 'checker_sha256': binary_hash,
             'requested_layers': layers, 'requested_experts': experts, 'chunk_bytes': chunk_bytes,
@@ -166,7 +211,9 @@ def main(argv=None):
     parser.add_argument('--modes', choices=MODES, nargs='+', default=list(MODES))
     parser.add_argument('--chunk-bytes', type=int, default=262161)
     parser.add_argument('--timeout', type=float, default=120)
-    parser.add_argument('--cache-check', action='store_true', help='Check cache hits, forced eviction and generation reload for every range')
+    checks = parser.add_mutually_exclusive_group()
+    checks.add_argument('--cache-check', action='store_true', help='Check cache hits, forced eviction and generation reload for every range')
+    checks.add_argument('--dispatch-check', action='store_true', help='Check mixed cache/transport dispatch, cancellation and reload on consecutive triples')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(argv)
     if args.output.suffix.lower() != '.json':
@@ -175,13 +222,14 @@ def main(argv=None):
         if args.output.resolve() == source.resolve() or (args.output.exists() and source.exists()
                                                        and args.output.samefile(source)):
             parser.error('Output must not overwrite a source shard or checker')
-    result = {'schema_version': 2 if args.cache_check else 1, 'status': 'error',
-              'scope': ('Selected real packed bytes via shared GPU transport and isolated cache; no GLM graph, dequantization or inference'
+    result = {'schema_version': 3 if args.dispatch_check else 2 if args.cache_check else 1, 'status': 'error',
+              'scope': ('Selected real packed bytes via cache-aware dispatch; no GLM graph, dequantization or inference'
+                        if args.dispatch_check else 'Selected real packed bytes via shared GPU transport and isolated cache; no GLM graph, dequantization or inference'
                         if args.cache_check else 'Selected real packed bytes via shared GPU transport; no GLM graph, dequantization, cache or inference'),
               'physical_disk_reads_measured': False}
     try:
         result.update(check(args.gguf, args.checker, args.layers, args.experts,
-                            args.modes, args.chunk_bytes, args.timeout, args.cache_check))
+                            args.modes, args.chunk_bytes, args.timeout, args.cache_check, dispatch_check=args.dispatch_check))
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         result['error'] = f'{type(exc).__name__}: {exc}'
         if isinstance(exc, subprocess.CalledProcessError):
