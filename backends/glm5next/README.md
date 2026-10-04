@@ -52,8 +52,8 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains nine tests, including the native route planner, transport lifetime, range parser, GPU cache
-and the unchanged DeepSeek frequency-history regression through its compatibility include.
+On Windows the suite contains ten tests, including the native route planner, transport lifetime, range parser, GPU cache
+and unchanged DeepSeek frequency-history/VRAM-policy regressions through their compatibility includes.
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
 first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
@@ -91,6 +91,40 @@ checks 384 keys from independent fixture geometry plus malformed layouts/routes.
 The GPU byte test now gets its 24-matrix plans from this native planner, with
 duplicate router IDs and independent expected offsets; its 432 comparisons remain
 synthetic packed bytes, not model logits or a measured speedup.
+
+`expert_memory.hpp` adds an opt-in controller for one combined main/MTP cache per
+device (P3.5c). Pass the configured byte cap, the shared `StrataVramPolicy`, and a
+probe returning global free/total bytes for the cache's CUDA device. GLM accepts
+configured-byte mode 0 and total-device-usage mode 2; matrix-count mode 1 is not
+a byte limit for mixed quants. Reserve validation (minimum 128 MiB) and limit
+arithmetic match DeepSeek. Other allocations, including fixed weights, state,
+ring, workspace and other processes, count against available device memory.
+
+Construct the controller and call `refresh()` at dispatch boundaries, after
+allocating those buffers. The controller caps the cache by both the configured
+limit and the reserve-aware byte limit. It trims idle entries using the cache's
+existing events/pins/leases; retired allocations remain charged. Pending work
+can defer trimming. `Status` reports the sampled free/total, target, resident and
+deferred bytes, sample validity, trim result and sample/failure counts. It is a
+snapshot at refresh, not a live memory measurement or an atomic reservation.
+
+Admissions pause until the first valid sample. A failed, inconsistent or throwing
+probe leaves existing hits available but prevents new cache allocations/evictions
+for misses; dispatch still transports those weights through bypass. The cache's
+`paused_bypasses` counter distinguishes this case. A valid refresh resumes normal
+admission; a controller's destructor does not silently resume after probe failure.
+Returning to manual control requires explicit `set_budget` and
+`set_admission_enabled(true)` between dispatch scopes. The cache must outlive the
+controller and neither may be controlled concurrently or from another device.
+
+The probe is supplied by the future runtime; no live GLM global-memory sampler is
+connected yet. On WDDM it must use PCI-matched global NVML data, as DeepSeek does,
+and report failure when unavailable. Do not silently use the CUDA per-process
+view. Tests inject memory snapshots while allocating/checking real CUDA buffers:
+main/MTP pressure, pins, retired leases, pending events, invalid samples, recovery,
+total-device targets, and dispatch bypass payloads. These are synthetic component
+checks, not pressure from another application, a full GLM run or a speed result.
+Sampling frequency and pre-allocation workspace reservations remain runtime work.
 
 `expert_transport.hpp` adds an owning transport adapter (P3.3a). Construct one
 `ExpertTransport` per host owner/device, then `begin(plan, sources, decode)` with

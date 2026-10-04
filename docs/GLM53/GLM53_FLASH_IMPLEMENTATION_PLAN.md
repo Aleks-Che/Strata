@@ -363,6 +363,11 @@ result работают через оба API; токены и шаблон со
     entries текущего плана, чтобы ранний miss не вытеснил поздний hit. Проверены
     LRU/frequency, overlapping pins, trim, reload/invalidation и отмена. Реальный
     GLM graph должен связать эту защиту с consumer leases и планом miss/bypass.
+  - [x] P3.5c: общий с DeepSeek расчёт VRAM reserve и GLM cache controller с
+    configured cap/total-device target, deferred trim и паузой admission при
+    недоступном sample. Main/MTP, retired allocations, CUDA events и bypass bytes
+    проверены на GPU fixtures с подставными memory samples. Подключение реального
+    global-memory probe, период refresh и GLM runtime ещё не выполнены.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

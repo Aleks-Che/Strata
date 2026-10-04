@@ -21,6 +21,9 @@ add_test(NAME glm5next_expert_plan COMMAND glm5next_expert_plan_test)
 add_executable(deepseek4_expert_frequency_compat_test ../deepseek4/test_expert_frequency.cpp)
 target_compile_features(deepseek4_expert_frequency_compat_test PRIVATE cxx_std_17)
 add_test(NAME deepseek4_expert_frequency_compat COMMAND deepseek4_expert_frequency_compat_test)
+add_executable(deepseek4_vram_policy_compat_test ../deepseek4/test_vram_policy.cpp)
+target_compile_features(deepseek4_vram_policy_compat_test PRIVATE cxx_std_17)
+add_test(NAME deepseek4_vram_policy_compat COMMAND deepseek4_vram_policy_compat_test)
 # Exercise the shared native reader independently of the blocked llama/CUDA
 # build. Windows native I/O only; the existing non-Windows fallback is mmap.
 if(WIN32)

@@ -117,13 +117,14 @@ public:
     };
     struct Counters {
         uint64_t hits=0,misses=0,bypasses=0,evictions=0,invalidations=0;
-        uint64_t admissions=0,admission_rejects=0;
+        uint64_t admissions=0,admission_rejects=0,paused_bypasses=0;
     };
 private:
     struct Cached {std::shared_ptr<Entry> entry;uint64_t used;};
     std::map<ExpertKey,Cached> entries;
     std::shared_ptr<Accounting> accounting;
     size_t budget;
+    bool admission_enabled=true;
     uint64_t clock=0;
     Counters counts;
     std::unique_ptr<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>> frequency;
@@ -176,6 +177,11 @@ public:
     Counters counters() const {return counts;}
     size_t history_size() const {return frequency?frequency->size():0;}
     bool set_budget(size_t limit) {device_check();budget=limit;return room(0);}
+    int device() const {return accounting->device;}
+    size_t byte_budget() const {return budget;}
+    // A failed memory sample must not evict useful hits or admit new allocations.
+    // Change controls only between dispatch scopes, on the cache's host owner.
+    void set_admission_enabled(bool enabled) {device_check();admission_enabled=enabled;}
 
     // Planning probe only. Hold PlanPins before relying on residency across
     // later misses; this does not count an access or order a GPU consumer.
@@ -215,6 +221,7 @@ public:
         ++counts.misses;
         if(!source)throw std::invalid_argument("GLM cache miss requires a retained source owner");
         if(frequency)frequency->record(key);
+        if(!admission_enabled) {++counts.bypasses;++counts.paused_bypasses;return {};}
         if(key.bytes>budget || !room(size_t(key.bytes),&key)) {++counts.bypasses;return {};}
         auto entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source));
         try {

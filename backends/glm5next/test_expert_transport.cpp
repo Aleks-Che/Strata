@@ -1,6 +1,7 @@
 #include "expert_transport.hpp"
 #include "expert_plan.hpp"
 #include "expert_dispatch.hpp"
+#include "expert_memory.hpp"
 #include <cstdio>
 #include <functional>
 
@@ -195,6 +196,19 @@ static void test_dispatch(int mode,bool frequency) {
                 transport.counters().h2d_bytes==before_io.h2d_bytes+d.bytes,
                 "frequency-rejected matrix was not delivered via bypass");
     }
+    {
+        StrataVramPolicy policy;
+        ExpertMemoryController controller(cache,size_t(a.bytes+c.bytes),policy,
+                                         [](int,size_t &,size_t &){return false;});
+        require(!controller.refresh().sample_valid,"fixture probe unexpectedly available");
+        const auto before_pause=cache.counters();
+        const auto io=transport.counters();
+        run({d,a},true);
+        require(cache.counters().paused_bypasses==before_pause.paused_bypasses+1 &&
+                cache.counters().hits==before_pause.hits+1 && cache.resident(a) && cache.resident(c) &&
+                transport.counters().h2d_bytes==io.h2d_bytes+d.bytes,"paused admission lost bypass payload or cache hit");
+    }
+    cache.set_admission_enabled(true); // Explicit return to manual fixture control.
     Device dest(size_t(c.bytes));
     {
         ExpertDispatch cancelled(cache,transport,{c,d,a},views(source),false);
@@ -205,7 +219,7 @@ static void test_dispatch(int mode,bool frequency) {
     require(cache.set_budget(0) && cache.resident_bytes()==0,"dispatch cancel retained pins or leases");
     run({a,b},true); // Zero budget: every selected matrix still arrives via bypass.
     require(cache.resident_bytes()==0,"zero-budget dispatch allocated cache bytes");
-    std::printf("PASS dispatch mode=%d frequency=%d: mixed miss/hit/bypass, all-hit no I/O, cancellation and zero budget\n",mode,int(frequency));
+    std::printf("PASS dispatch mode=%d frequency=%d: mixed miss/hit/bypass, all-hit no I/O, paused admission, cancellation and zero budget\n",mode,int(frequency));
 }
 
 static void test_dispatch_errors() {

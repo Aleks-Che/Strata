@@ -50,3 +50,12 @@ with synthetic bytes; they do not require a model or GPU.
 The optional `STRATA_GLM_TRANSPORT_TESTS_CUDA` configuration also exercises this
 shared pipeline on GPU with eight GLM packed layouts. See the same GLM build
 instructions. This is byte transport validation; it does not execute GLM kernels.
+
+`vram_policy.hpp` shares the existing `StrataVramPolicy` byte-limit arithmetic
+between DeepSeek and the GLM cache controller. The DeepSeek header forwards here;
+its modes, validation and arithmetic are unchanged. The GLM test configuration
+runs the original `test_vram_policy.cpp` through that compatibility include.
+This header does not sample the GPU. Callers must supply trustworthy global
+free/total memory and account for all resident cache allocations, including
+retired allocations retained by consumers. See GLM's `expert_memory.hpp` for
+refresh and failed-sample admission handling.

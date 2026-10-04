@@ -1,4 +1,5 @@
 #include "expert_cache.hpp"
+#include "expert_memory.hpp"
 #include "../common/expert_pipeline.hpp"
 #include <cstdio>
 #include <functional>
@@ -376,6 +377,89 @@ static void test_pins_do_not_wait_for_upload() {
     std::puts("PASS: plan pins do not wait for upload; consumer lease preserves ready-event byte parity");
 }
 
+static void test_memory_controller(bool frequency) {
+    constexpr size_t mib=1ULL<<20,reserve=128*mib;
+    Stream stream;ExpertCache cache(128,{frequency,100000,32});
+    auto a=key(),b=a,c=a;b.branch=Branch::mtp;b.layer=45;c.expert++;
+    StrataVramPolicy policy;policy.reserve_mib=128;
+    size_t free=reserve+1024,total=1024*mib;bool available=true,throws=false;
+    ExpertMemoryController control(cache,128,policy,[&](int device,size_t &f,size_t &t) {
+        require(device==cache.device(),"probe got another device");
+        if(throws)throw std::runtime_error("fixture sample failure");
+        f=free;t=total;return available;
+    });
+    require(!load(cache,a,1,stream.value),"unsampled controller admitted weights");
+    auto state=control.refresh();
+    require(state.sample_valid && state.target==128 && state.trim_complete,"configured cap ignored");
+    {auto lease=load(cache,a,0x31,stream.value);}stream.sync();
+    auto held=load(cache,b,0x42,stream.value);stream.sync();auto pin=cache.protect_plan({a});
+    free=reserve-64;state=control.refresh();
+    require(state.target==64 && state.resident==128 && state.deferred==64 && !state.trim_complete,
+            "main/MTP pressure lost protected bytes or deferred trim accounting");
+    require(!load(cache,c,0,stream.value),"pressure admitted a new matrix");
+    bytes_equal(held,64,0x42,stream);
+    require(cache.invalidate(a.model,a.generation)==2,"combined cache generation invalidation");
+    state=control.refresh();
+    require(state.resident==128 && state.deferred==64,"retired pinned/leased allocations omitted from budget");
+    pin.release();free=reserve;state=control.refresh();
+    require(state.resident==64 && state.target==64 && state.trim_complete,"deferred pin trim did not recover");
+    held.release();stream.sync();
+    require(cache.resident_bytes()==0,"retired lease did not release bytes");
+    free=reserve+64;control.refresh();
+    {auto lease=load(cache,a,0x53,stream.value);}stream.sync();
+    const auto before=cache.counters();available=false;state=control.refresh();
+    require(!state.sample_valid && state.failed_samples==1 && state.resident==64,"unavailable sample status");
+    {auto hit=load(cache,a,0,stream.value);bytes_equal(hit,64,0x53,stream);}stream.sync();
+    require(!load(cache,c,0,stream.value) && cache.counters().paused_bypasses==before.paused_bypasses+1 &&
+            cache.counters().evictions==before.evictions,"sample failure evicted hit or admitted miss");
+    available=true;
+    for(int invalid=0;invalid<3;++invalid) {
+        total=invalid==0?0:1024*mib;free=invalid==1?total+1:total;
+        require(!control.refresh().sample_valid,"invalid/inconsistent global sample accepted");
+    }
+    throws=true;bool caught=false;
+    try {control.refresh();}catch(const std::runtime_error &) {caught=true;}
+    require(caught && !control.status().sample_valid && !load(cache,c,0,stream.value),"probe exception reopened admissions");
+    throws=false;total=1024*mib;free=reserve;
+    require(control.refresh().sample_valid,"fresh sample did not recover controller");
+    free=reserve-64;state=control.refresh();
+    require(state.target==0 && state.trim_complete && state.resident==0,"reserve pressure did not trim idle weights");
+    free=reserve+128;state=control.refresh();
+    {auto lease=load(cache,c,0x64,stream.value);bytes_equal(lease,64,0x64,stream);}stream.sync();
+    require(state.target==128 && cache.counters().paused_bypasses==3,"recovery or pause accounting");
+    std::printf("PASS: reserve cap, main/MTP, pins/retired leases, unavailable/malformed/throwing samples, trim and recovery (%s)\n",
+                frequency?"frequency":"lru");
+}
+
+static void test_memory_policy_and_pending() {
+    constexpr size_t mib=1ULL<<20;
+    Stream stream;ExpertCache cache(64);auto a=key();
+    StrataVramPolicy policy;policy.reserve_mib=128;policy.mode=2;policy.target_mib=256;
+    size_t free=768*mib+64;
+    ExpertMemoryController control(cache,128,policy,[&](int,size_t &f,size_t &t){f=free;t=1024*mib;return true;});
+    require(control.refresh().target==64,"total-device usage target ignored");
+    Gate gate(stream.value);auto owner=std::make_shared<int>(1);
+    auto lease=cache.get(a,owner,stream.value,[&](void *dest,size_t n,cudaStream_t s) {
+        cuda_ok(cudaLaunchHostFunc(s,block,&gate));cuda_ok(cudaMemsetAsync(dest,0x75,n,s));
+    });
+    lease.release();free=768*mib-64;
+    auto state=control.refresh();
+    require(state.target==0 && state.deferred==64 && !state.trim_complete && !gate.expired.load(),
+            "memory refresh waited for/freed pending GPU work");
+    gate.release.store(true);stream.sync();
+    require(control.refresh().resident==0,"pending allocation not trimmed after completion");
+    for(auto bad:std::vector<StrataVramPolicy>{{1,1,0,128},{0,0,0,0},{2,0,0,128}}) {
+        bool rejected=false;
+        try {ExpertMemoryController invalid(cache,128,bad,[](int,size_t &,size_t &){return true;});}
+        catch(const std::invalid_argument &) {rejected=true;}
+        require(rejected,"invalid memory controller policy accepted");
+    }
+    bool rejected=false;
+    try {ExpertMemoryController invalid(cache,128,policy,{});}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected,"missing global probe accepted");
+    std::puts("PASS: total-device usage target, pending events, invalid policies and missing probe");
+}
+
 int main() {
     try {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
@@ -385,6 +469,7 @@ int main() {
         test_pending_events(true);
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();
         test_pin_validation_and_lru();test_pins_do_not_wait_for_upload();
+        test_memory_controller(false);test_memory_controller(true);test_memory_policy_and_pending();
         return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }
