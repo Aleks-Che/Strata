@@ -169,6 +169,56 @@ static void test_reload_and_failure() {
     std::puts("PASS: reload generation, invalidated lease accounting, cache teardown and failed-upload recovery");
 }
 
+static void test_allocation_failure(bool frequency) {
+    Stream stream;cudaError_t failure=cudaErrorMemoryAllocation;int allocations=0,uploads=0;
+    ExpertCache cache(128,{frequency,100000,32},[&](void **ptr,size_t n) {
+        ++allocations;return failure==cudaSuccess?cudaMalloc(ptr,n):failure;
+    });
+    auto a=key(),b=a,c=a;++b.expert;c.expert+=2;
+    auto source=std::make_shared<int>(42);std::weak_ptr<int> weak=source;
+    auto bypass=cache.get(a,source,stream.value,[&](void *,size_t,cudaStream_t){++uploads;});
+    source.reset();
+    require(!bypass && weak.expired() && uploads==0 && cache.size()==0 && cache.resident_bytes()==0,
+            "failed allocation retained source, uploaded or admitted");
+    require(cache.counters().allocation_bypasses==1 && cache.counters().bypasses==1 &&
+            cache.counters().admissions==0,"allocation bypass counters");
+    failure=cudaSuccess;
+    {auto lease=load(cache,a,0x31,stream.value,&uploads);bytes_equal(lease,64,0x31,stream);}stream.sync();
+    {auto lease=load(cache,b,0x52,stream.value,&uploads);}stream.sync();
+    {
+        auto pins=cache.protect_plan({a});failure=cudaErrorMemoryAllocation;
+        auto missing=load(cache,c,0x73,stream.value,&uploads);
+        require(!missing && cache.resident(a) && !cache.resident(b) && !cache.resident(c) &&
+                cache.resident_bytes()==64 && cache.counters().evictions==1,
+                "allocation failure corrupted pins, residency or eviction accounting");
+        const auto attempts=allocations;
+        {auto hit=load(cache,a,0xFF,stream.value,&uploads);bytes_equal(hit,64,0x31,stream);}stream.sync();
+        require(allocations==attempts && uploads==2,"hit allocated or uploaded during OOM");
+        failure=cudaSuccess;
+        {auto recovered=load(cache,c,0x73,stream.value,&uploads);bytes_equal(recovered,64,0x73,stream);}stream.sync();
+    }
+    require(cache.counters().allocation_bypasses==2 && cache.counters().bypasses==2 && uploads==3,
+            "OOM recovery counters");
+    require(cache.set_budget(0),"allocation fixture could not trim");cache.set_budget(128);
+    failure=cudaErrorInvalidValue;bool caught=false;
+    try {auto lease=load(cache,b,0,stream.value,&uploads);}
+    catch(const std::runtime_error &e) {caught=std::string(e.what())==cudaGetErrorString(failure);}
+    require(caught && uploads==3 && cache.size()==0 && cache.resident_bytes()==0 &&
+            cache.counters().allocation_bypasses==2,"non-OOM allocation error swallowed");
+    failure=cudaSuccess;caught=false;
+    try {
+        cache.get(b,std::make_shared<int>(1),stream.value,[](void *dest,size_t n,cudaStream_t s) {
+            cuda_ok(cudaMemsetAsync(dest,0x99,n,s));
+            throw std::runtime_error(cudaGetErrorString(cudaErrorMemoryAllocation));
+        });
+    }catch(const std::runtime_error &) {caught=true;}
+    require(caught && cache.size()==0 && cache.resident_bytes()==0 &&
+            cache.counters().allocation_bypasses==2,"upload error misclassified as allocation bypass");
+    {auto recovered=load(cache,b,0x94,stream.value);bytes_equal(recovered,64,0x94,stream);}
+    std::printf("PASS: injected cache allocation OOM, pins/eviction, no upload/leak, recovery and fatal error propagation (%s)\n",
+                frequency?"frequency":"lru");
+}
+
 static void test_pipeline_upload() {
     Stream stream;constexpr size_t n=(1<<20)+17;
     ExpertCache cache(n);auto k=key();k.bytes=n;
@@ -465,6 +515,7 @@ int main() {
         cudaDeviceProp p{};cuda_ok(cudaGetDeviceProperties(&p,0));
         std::printf("GPU=%s; synthetic cache fixtures, no GLM inference\n",p.name);
         test_keys();test_lru_budget();test_pending_events();test_reload_and_failure();test_pipeline_upload();
+        test_allocation_failure(false);test_allocation_failure(true);
         test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
         test_pending_events(true);
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();

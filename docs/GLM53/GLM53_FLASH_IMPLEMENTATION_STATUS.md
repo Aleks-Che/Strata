@@ -13,12 +13,12 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure P3.5a/b/c/d/e и pipeline telemetry P3.6a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `d83283ea2dc9e52257cfa8a690ab803559101bd7`, ветка `dev`; P3.5e уже в HEAD, P3.6a — в рабочем дереве |
-| Последняя выполненная работа | P3.6a: CPU wait breakdown и staging telemetry общего pipeline; 12/12 CTest и отдельная DeepSeek CUDA pipeline regression прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d, cache policies/controller/probe/pressure/OOM bypass P3.5a/b/c/d/e/f и pipeline telemetry P3.6a DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `b540f1ea27deb82d1a98ac61d32afb6bff6f1244`, ветка `dev`; P3.6a уже в HEAD, P3.5f — в рабочем дереве |
+| Последняя выполненная работа | P3.5f: bypass при отказе cache allocation, отдельный counter, injected-error CUDA checks; чистая сборка и 12/12 CTest прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.6a завершён, требуется продолжение P0.3b |
-| Блокеры | P0.3b: запрос архива из Python получил `WinError 10013` в цикле 12 (P3.5c-01); в цикле 13 сеть не перепроверялась. CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
+| Активная задача / исполнитель | Нет; компонент P3.5f завершён, требуется продолжение P0.3b |
+| Блокеры | P0.3b: повторный запрос архива из Python получил `WinError 10013` в цикле 16 (P3.5f-01). CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
@@ -2046,6 +2046,53 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 - **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
   candidate/oracle/CUDA и сохранить tokenizer parity. После интеграции графа
   вывести эти counters в INFO/monitor и измерить H2D/compute по CUDA timeline.
+
+### P3.5f-01 — 2026-10-04, Asia/Yekaterinburg — Cache allocation OOM bypass
+
+- **Статус:** DONE в пределах компонента; общий P3 остаётся IN_PROGRESS.
+- **Исполнитель:** Codex, автоматический цикл 16.
+- **Пункт плана:** P3.5, работа byte cache при изменении доступной VRAM.
+- **Ревизия:** `b540f1ea27deb82d1a98ac61d32afb6bff6f1244`, ветка `dev`;
+  до начала дерево чистое. Изменения этого пункта оставлены в рабочем дереве.
+- **Изменение:** только `cudaErrorMemoryAllocation` от allocator матрицы кэша
+  возвращает empty lease без upload/admission и увеличивает `allocation_bypasses`
+  вместе с `bypasses`. Существующий dispatch переносит полную матрицу через bypass
+  в заранее выделенный destination. Последующие misses могут снова выделять память.
+  Planned hits сохраняют pins; уже удалённые LRU/frequency victims не восстанавливаются.
+  Non-OOM allocation, event и upload errors продолжают выбрасываться. CUDA last error
+  очищается только если равен `cudaErrorMemoryAllocation`. Retry, изменение бюджета
+  или CPU compute fallback не добавлены.
+- **Файлы:** `backends/glm5next/expert_cache.hpp`, `test_expert_cache.cpp`,
+  `test_expert_transport.cpp`, `README.md`; план, этот статус и
+  [CTest log](GLM53_FLASH_ALLOCATION_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\check-glm-native-plan.cmd > build-local/glm5next-allocation-build.log 2>&1`
+  — exit 0 после исправления начальной C2440 (неоднозначная перегрузка cudaMalloc
+  в default argument заменена lambda). Helper запускает x64 MSVC environment,
+  `cmake --build build-local/glm5next-transport --config Release --clean-first`, затем
+  `ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error`.
+  **12/12 CTest, 0 failed**, 3,91 с; RTX 5090, CUDA runtime/driver 13000/13000.
+  - Cache LRU/frequency: injected OOM без upload, admission и утечки source owner;
+    pins и eviction accounting, hit при отказе allocator, успешное восстановление.
+    `cudaErrorInvalidValue` и upload exception с текстом OOM не превращаются в bypass.
+  - Dispatch: 12 сочетаний mmap/native/auto × LRU/frequency × prefill/decode.
+    После OOM miss идут hit и успешный miss; полные bytes и guard regions совпадают,
+    source/H2D totals включают ровно два misses, hit не читает source повторно.
+    Проверены all-hit после восстановления, release pins/leases, propagation
+    non-OOM error, drain/cancel и успешный повторный запуск того же transport.
+  - Прежние CTest, включая NVML/DeepSeek include compatibility и 432 transport
+    matrix comparisons, прошли. `git diff --check` — exit 0.
+- **Блокер P0.3b перепроверен:** команда
+  `.venv\Scripts\python.exe -c "import urllib.request; r=urllib.request.urlopen('https://codeload.github.com/unslothai/llama.cpp/tar.gz/86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9', timeout=20); print(r.status); print(len(r.read(64)))"`
+  — exit 1, `URLError` с `PermissionError [WinError 10013]` при `sock.connect`.
+  Архив не получен, hash/build/oracle не выполнены.
+- **Ограничения:** allocation errors внедрены callback; физическая VRAM не
+  исчерпывалась, очистка реального CUDA OOM last-error этим fixture не проверена.
+  Buffers/transfers выполнялись на GPU, payloads синтетические. Event failure
+  не внедрялся. Полные GLM/Qwen/DeepSeek inference, реальные GGUF, внешнее pressure,
+  Linux/HIP/multi-GPU в этом цикле не запускались. Скорость GLM не измерена.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив Unsloth,
+  собрать candidate/oracle/CUDA и сохранить tokenizer parity.
 
 ## Шаблон следующей записи
 

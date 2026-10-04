@@ -376,6 +376,11 @@ result работают через оба API; токены и шаблон со
     реальное внешнее pressure, защиту main pin, trim MTP и восстановление после free.
     LRU/frequency прошли на RTX 5090; 10 полных byte comparisons синтетических
     матриц. JSON с targets/samples/PIDs/hashes сохранён. GLM graph/OOM не проверены.
+  - [x] P3.5f: отказ выделения cache matrix с `cudaErrorMemoryAllocation` переводит
+    miss в полный uncached transfer, с отдельным `allocation_bypasses` counter.
+    Иные ошибки остаются видимыми. Injected OOM, lifetime/accounting, pins,
+    recovery и dispatch byte parity проверены на RTX 5090 для LRU/frequency,
+    mmap/native/auto, prefill/decode. Физическое исчерпание VRAM и GLM graph не проверены.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

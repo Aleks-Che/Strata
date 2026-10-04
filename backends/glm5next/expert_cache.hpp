@@ -3,6 +3,7 @@
 #include "../common/expert_frequency.hpp"
 #include <cuda_runtime.h>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <map>
 #include <memory>
@@ -18,9 +19,18 @@ namespace strata_glm {
 // eviction. Queue all consumers on its stream before release/destruction.
 // A miss can bypass when all eviction candidates are leased or still in flight.
 class ExpertCache {
+public:
+    // Test seam: successful allocations must be cudaFree-compatible. On failure
+    // the callback must return a CUDA error without allocating or enqueueing work.
+    using Allocate=std::function<cudaError_t(void **,size_t)>;
+private:
     static void check(cudaError_t e) {
         if(e!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(e));
     }
+    struct AllocationFailure:std::runtime_error {
+        cudaError_t code;
+        explicit AllocationFailure(cudaError_t e):std::runtime_error(cudaGetErrorString(e)),code(e) {}
+    };
     struct Accounting {size_t bytes=0;int device;explicit Accounting(int d):device(d) {}};
     struct Entry {
         std::shared_ptr<Accounting> accounting;
@@ -29,9 +39,10 @@ class ExpertCache {
         size_t bytes;
         cudaEvent_t ready=nullptr;
         std::vector<cudaEvent_t> consumers;
-        Entry(std::shared_ptr<Accounting> a,size_t n,std::shared_ptr<const void> owner)
+        Entry(std::shared_ptr<Accounting> a,size_t n,std::shared_ptr<const void> owner,const Allocate &allocate)
             :accounting(std::move(a)),source(std::move(owner)),bytes(n) {
-            check(cudaMalloc(&data,bytes));
+            auto allocation=allocate(&data,bytes);
+            if(allocation!=cudaSuccess)throw AllocationFailure(allocation);
             auto status=cudaEventCreateWithFlags(&ready,cudaEventDisableTiming);
             if(status!=cudaSuccess) {cudaFree(data);check(status);}
             accounting->bytes+=bytes;
@@ -118,12 +129,14 @@ public:
     struct Counters {
         uint64_t hits=0,misses=0,bypasses=0,evictions=0,invalidations=0;
         uint64_t admissions=0,admission_rejects=0,paused_bypasses=0;
+        uint64_t allocation_bypasses=0;
     };
 private:
     struct Cached {std::shared_ptr<Entry> entry;uint64_t used;};
     std::map<ExpertKey,Cached> entries;
     std::shared_ptr<Accounting> accounting;
     size_t budget;
+    Allocate allocate;
     bool admission_enabled=true;
     uint64_t clock=0;
     Counters counts;
@@ -164,7 +177,9 @@ private:
     }
 public:
     explicit ExpertCache(size_t limit):ExpertCache(limit,Admission{}) {}
-    ExpertCache(size_t limit,Admission admission):budget(limit) {
+    ExpertCache(size_t limit,Admission admission,Allocate allocator=[](void **ptr,size_t n){return cudaMalloc(ptr,n);})
+        :budget(limit),allocate(std::move(allocator)) {
+        if(!allocate)throw std::invalid_argument("GLM cache requires an allocator");
         int device=-1;check(cudaGetDevice(&device));accounting=std::make_shared<Accounting>(device);
         if(admission.frequency)
             frequency=std::make_unique<StrataExpertFrequencyHistory<ExpertKey,ExpertKeyHash>>(
@@ -223,7 +238,17 @@ public:
         if(frequency)frequency->record(key);
         if(!admission_enabled) {++counts.bypasses;++counts.paused_bypasses;return {};}
         if(key.bytes>budget || !room(size_t(key.bytes),&key)) {++counts.bypasses;return {};}
-        auto entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source));
+        std::shared_ptr<Entry> entry;
+        try {entry=std::make_shared<Entry>(accounting,size_t(key.bytes),std::move(source),allocate);}
+        catch(const AllocationFailure &failure) {
+            if(failure.code!=cudaErrorMemoryAllocation)throw;
+            // A budget sample is not a reservation. Use the existing uncached
+            // transport if available memory changed before this allocation.
+            // Do not clear unrelated asynchronous CUDA errors or catch failures
+            // from event creation/upload. Already evicted entries stay evicted.
+            if(cudaPeekAtLastError()==cudaErrorMemoryAllocation)cudaGetLastError();
+            ++counts.bypasses;++counts.allocation_bypasses;return {};
+        }
         try {
             upload(entry->data,size_t(key.bytes),stream);
             check(cudaEventRecord(entry->ready,stream));

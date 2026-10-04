@@ -153,10 +153,14 @@ static void test_validation_and_finish() {
     require(!transport.in_progress(),"empty plan could not finish");
     std::puts("PASS: binding validation before submission, matrix/chunk limits, model/generation isolation, ordered transfer, incomplete finish and empty restart");
 }
-static void test_dispatch(int mode,bool frequency) {
+static void test_dispatch(int mode,bool frequency,bool decode) {
     auto source=std::make_shared<Source>();auto all=source->plan();
     const auto a=all[0],b=all[1],c=all[2],d=all[3];
-    ExpertCache cache(size_t(a.bytes+c.bytes),{frequency,100000,32});
+    cudaError_t next_allocation=cudaSuccess;int allocations=0;
+    ExpertCache cache(size_t(a.bytes+c.bytes),{frequency,100000,32},[&](void **ptr,size_t bytes) {
+        ++allocations;auto result=next_allocation;next_allocation=cudaSuccess;
+        return result==cudaSuccess?cudaMalloc(ptr,bytes):result;
+    });
     ExpertTransport transport(0,4093,false,4,mode);
     if(mode==1) {
         DWORD old=0;require(VirtualProtect(source->view,source->bytes.size(),PAGE_NOACCESS,&old)!=0,"dispatch native protection");
@@ -168,7 +172,7 @@ static void test_dispatch(int mode,bool frequency) {
         Device dest(total);std::vector<uint8_t> expected(total,0xA5),actual(total);
         for(size_t i=0;i<plan.size();++i)
             std::copy_n(source->bytes.data()+plan[i].offset,size_t(plan[i].bytes),expected.data()+offsets[i]);
-        ExpertDispatch dispatch(cache,transport,plan,supply_sources?views(source):std::vector<ExpertSourceView>{},false);
+        ExpertDispatch dispatch(cache,transport,plan,supply_sources?views(source):std::vector<ExpertSourceView>{},decode);
         for(size_t i=0;i<plan.size();++i)dispatch.copy(i,dest.data+offsets[i],dest.stream);
         dispatch.finish();require(dispatch.remaining()==0 && !transport.in_progress(),"dispatch did not finish miss plan");
         cuda_ok(cudaStreamSynchronize(dest.stream));
@@ -219,7 +223,30 @@ static void test_dispatch(int mode,bool frequency) {
     require(cache.set_budget(0) && cache.resident_bytes()==0,"dispatch cancel retained pins or leases");
     run({a,b},true); // Zero budget: every selected matrix still arrives via bypass.
     require(cache.resident_bytes()==0,"zero-budget dispatch allocated cache bytes");
-    std::printf("PASS dispatch mode=%d frequency=%d: mixed miss/hit/bypass, all-hit no I/O, paused admission, cancellation and zero budget\n",mode,int(frequency));
+    cache.invalidate(a.model,a.generation); // Reset frequency history for OOM fixture.
+    cache.set_budget(size_t(a.bytes+c.bytes));run({a},true);
+    const auto before_oom=cache.counters();const auto io=transport.counters();const auto attempts=allocations;
+    next_allocation=cudaErrorMemoryAllocation;
+    run({b,a,c},true); // Failed miss must consume exactly one range, preserving later hit/miss order.
+    const auto after_oom=cache.counters();const auto transferred=transport.counters();
+    require(after_oom.allocation_bypasses==before_oom.allocation_bypasses+1 &&
+            after_oom.bypasses==before_oom.bypasses+1 && after_oom.hits==before_oom.hits+1 &&
+            after_oom.admissions==before_oom.admissions+1 && allocations==attempts+2 &&
+            cache.resident(a) && cache.resident(c) && !cache.resident(b),"OOM dispatch cache decisions");
+    require(transferred.h2d_bytes-io.h2d_bytes==b.bytes+c.bytes &&
+            transferred.file_bytes-io.file_bytes+transferred.mmap_bytes-io.mmap_bytes==b.bytes+c.bytes,
+            "OOM dispatch omitted/duplicated source or H2D bytes");
+    run({a,c},false);
+    require(cache.set_budget(0),"OOM dispatch retained leases/pins");cache.set_budget(size_t(a.bytes+c.bytes));
+    next_allocation=cudaErrorInvalidValue;bool caught=false;
+    try {run({b,a},true);}catch(const std::runtime_error &e) {
+        caught=std::string(e.what())==cudaGetErrorString(cudaErrorInvalidValue);
+    }
+    require(caught && !transport.in_progress() && cache.resident_bytes()==0 &&
+            cache.counters().allocation_bypasses==after_oom.allocation_bypasses,
+            "fatal allocation did not propagate/cancel dispatch");
+    run({b,a},true); // Restart the cancelled pipeline after a non-OOM error.
+    std::printf("PASS dispatch mode=%d frequency=%d decode=%d: mixed miss/hit/bypass, all-hit no I/O, paused admission, cancellation, zero budget, injected OOM bytes/guards and fatal-error restart\n",mode,int(frequency),int(decode));
 }
 
 static void test_dispatch_errors() {
@@ -272,7 +299,7 @@ int main() {
         std::printf("GPU=%s; synthetic native plans; no GLM inference\n",p.name);
         for(int mode:{0,1,2})for(bool decode:{false,true})test_cancel_restart(mode,decode);
         test_destructor();test_validation_and_finish();
-        for(int mode:{0,1,2})for(bool frequency:{false,true})test_dispatch(mode,frequency);
+        for(int mode:{0,1,2})for(bool frequency:{false,true})for(bool decode:{false,true})test_dispatch(mode,frequency,decode);
         test_dispatch_errors();return 0;
     }catch(const std::exception &e) {std::fprintf(stderr,"FAIL: %s\n",e.what());return 1;}
 }

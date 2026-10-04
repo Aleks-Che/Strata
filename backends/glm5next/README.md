@@ -119,6 +119,25 @@ can defer trimming. `Status` reports the sampled free/total, target, resident an
 deferred bytes, sample validity, trim result and sample/failure counts. It is a
 snapshot at refresh, not a live memory measurement or an atomic reservation.
 
+P3.5f handles memory lost between that sample and cache allocation: only
+`cudaErrorMemoryAllocation` returned by the cache matrix allocator produces an
+empty lease and increments both `bypasses` and `allocation_bypasses`. No upload
+is submitted for that entry; `ExpertDispatch` delivers the complete matrix via
+its existing uncached transport into the already allocated destination. Planned
+hits remain pinned. Victims evicted to make room before allocation are not restored.
+Later misses can allocate normally; there is no automatic retry or budget change.
+Other allocation errors, event failures and upload exceptions still propagate.
+An expected CUDA last error is cleared only if it is `cudaErrorMemoryAllocation`.
+
+The optional third cache constructor argument is an allocation callback for
+failure injection; successful pointers must be compatible with `cudaFree`, and
+failure must leave no allocation/work behind. Default construction uses
+`cudaMalloc`. CUDA fixtures inject OOM and non-OOM allocation results while
+checking real device bytes, accounting, source lifetime, pins, recovery and
+fatal-error cancellation/restart. Dispatch checks cover mmap/native/auto,
+LRU/frequency and prefill/decode, including guards and exact source/H2D totals.
+These tests do not exhaust physical VRAM or verify recovery of a full GLM graph.
+
 Admissions pause until the first valid sample. A failed, inconsistent or throwing
 probe leaves existing hits available but prevents new cache allocations/evictions
 for misses; dispatch still transports those weights through bypass. The cache's
