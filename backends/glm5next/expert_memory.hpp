@@ -1,5 +1,6 @@
 #pragma once
 #include "expert_cache.hpp"
+#include "global_memory.hpp"
 #include "../common/vram_policy.hpp"
 #include <functional>
 
@@ -37,6 +38,8 @@ private:
         state.deferred=state.resident>state.target?state.resident-state.target:0;
     }
 public:
+    ExpertMemoryController(ExpertCache &c,size_t configured_cap,StrataVramPolicy p)
+        :ExpertMemoryController(c,configured_cap,p,make_global_memory_probe()) {}
     ExpertMemoryController(ExpertCache &c,size_t configured_cap,StrataVramPolicy p,Probe reader)
         :cache(c),cap(configured_cap),policy(p),probe(std::move(reader)) {
         // A matrix count is not a byte budget for mixed quantized matrices.

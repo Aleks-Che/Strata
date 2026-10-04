@@ -52,8 +52,8 @@ ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
 On Windows, initialize the x64 compiler environment above and place the CUDA
 runtime DLL directory on PATH. The opt-in GPU test fails if no CUDA device is
 available. Default protocol/reader-only builds still need neither CUDA nor GPU.
-On Windows the suite contains ten tests, including the native route planner, transport lifetime, range parser, GPU cache
-and unchanged DeepSeek frequency-history/VRAM-policy regressions through their compatibility includes.
+On Windows the suite contains twelve tests, including the native route planner, transport lifetime, range parser, GPU cache,
+global-memory reader and DeepSeek compatibility checks (frequency history, VRAM policy and memory sampling).
 The synthetic GPU test checks 432 matrix transfers
 in 18 cases: three mixed gate/up/down groups, eight distinct expert IDs including
 first/last, mmap/native/auto modes and prefill/decode reader policies. It uses
@@ -117,14 +117,27 @@ Returning to manual control requires explicit `set_budget` and
 `set_admission_enabled(true)` between dispatch scopes. The cache must outlive the
 controller and neither may be controlled concurrently or from another device.
 
-The probe is supplied by the future runtime; no live GLM global-memory sampler is
-connected yet. On WDDM it must use PCI-matched global NVML data, as DeepSeek does,
-and report failure when unavailable. Do not silently use the CUDA per-process
-view. Tests inject memory snapshots while allocating/checking real CUDA buffers:
+The three-argument controller constructor now supplies an owning live probe from
+`global_memory.hpp` (P3.5d). On Windows it uses the shared PCI-matched NVML reader,
+as DeepSeek does, and reports failure without CUDA per-process fallback. The
+four-argument constructor still accepts an injected probe. On non-Windows CUDA
+the factory queries the current device with `cudaMemGetInfo`; this path has not
+been tested here. Tests inject memory snapshots while allocating/checking real CUDA buffers:
 main/MTP pressure, pins, retired leases, pending events, invalid samples, recovery,
 total-device targets, and dispatch bypass payloads. These are synthetic component
 checks, not pressure from another application, a full GLM run or a speed result.
 Sampling frequency and pre-allocation workspace reservations remain runtime work.
+Windows reader tests also check missing symbols, failed initialization, PCI/handle
+errors, invalid NVML values, recovery after read failure, two simulated devices,
+400 serialized concurrent samples and balanced shutdown. Both the direct and
+DeepSeek include paths run a live probe/controller smoke test. On RTX 5090 with
+CUDA runtime/driver 13000/13000, the real probe returned valid global data and the
+controller admitted and verified a 64-byte fixture under a 1 MiB cap (2026-10-04).
+These smoke tests accept an unavailable live NVML result only when the outputs
+are zero and the controller keeps admissions paused; their log explicitly states
+which branch ran. This does not connect the absent GLM inference graph or test
+pressure from another application. A reader that failed initialization must be
+recreated; read failures re-resolve the PCI handle on the next sample.
 
 `expert_transport.hpp` adds an owning transport adapter (P3.3a). Construct one
 `ExpertTransport` per host owner/device, then `begin(plan, sources, decode)` with

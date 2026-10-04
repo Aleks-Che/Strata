@@ -13,12 +13,12 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d и cache policies/controller P3.5a/b/c DONE в пределах проверок журнала; P1, P4–P6 не начаты |
-| Последняя проверенная ревизия Strata | База `0ab7dd5601fff5a58a15ef0db0aa82b6d853f637`, ветка `dev`; P3.4d уже в HEAD, P3.5c — в рабочем дереве |
-| Последняя выполненная работа | P3.5c: reserve-aware cache controller с подставными memory samples; чистая сборка и 10/10 CTest на RTX 5090 прошли |
+| Общий статус | P0, P2 и P3 в работе: P0.1, статическая P0.2, scaffold P0.3a, P2.1a, runner P2.1b.1, P2.2–P2.4, P2.5a/b/c/d/e/f, P2.6, P3.1a/b, reference P3.2a, cache/dispatch P3.2b.1/.2, transport lifetime P3.3a, byte checks P3.4a/b/c/d и cache policies/controller/probe P3.5a/b/c/d DONE в пределах проверок журнала; P1, P4–P6 не начаты |
+| Последняя проверенная ревизия Strata | База `f2266a80fedaaefc3254a0599f3f24b5567f0274`, ветка `dev`; P3.5c уже в HEAD, P3.5d — в рабочем дереве |
+| Последняя выполненная работа | P3.5d: live global-memory probe подключён к cache controller; реальный NVML smoke на RTX 5090 и 12/12 CTest прошли |
 | Следующая задача | `P0.3b`: архив Unsloth с проверенным hash, сборка реальных llama/oracle/CUDA targets и проверка графов |
-| Активная задача / исполнитель | Нет; компонент P3.5c завершён, требуется продолжение P0.3b |
-| Блокеры | P0.3b: запрос архива из Python повторно получил `WinError 10013` в цикле 12 (P3.5c-01); локальный архив кандидата в просмотренных build-local/third_party не найден. CUDA component tests доступны; global-memory probe для GLM ещё не подключён |
+| Активная задача / исполнитель | Нет; компонент P3.5d завершён, требуется продолжение P0.3b |
+| Блокеры | P0.3b: запрос архива из Python получил `WinError 10013` в цикле 12 (P3.5c-01); в цикле 13 сеть не перепроверялась. CUDA component tests и NVML smoke доступны; GLM inference graph отсутствует |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
@@ -73,7 +73,7 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
 | P0. Совместимость и эталон | IN_PROGRESS | P0.1/P0.2 проверены на обеих моделях; scaffold P0.3a DONE, protocol CTest повторно прошёл | Реальная сборка кандидата, хеш архива, trace MTP off, GPU fixtures и tokenizer oracle |
 | P1. Основной GPU engine | TODO | Нет | Запуск с подгрузкой матриц, GPU-аудит, baseline и память |
 | P2. Токенизация и API | IN_PROGRESS | P2.1a/P2.1b.1/P2.2–P2.4/P2.5a,b,c,d,e,f/P2.6 DONE на fixtures/mock; повторная общая проверка 151 Python + 3 Node, 72 локальные проверки нового GGUF | Реальная tokenizer parity, template oracle, runtime backend selection и фактический INFO, HTTP и полная модель |
-| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, frequency admission P3.5a, plan protection P3.5b и memory controller P3.5c на fixtures; synthetic/real GGUF byte checks P3.4a/b/c/d | GLM graph/runtime-интеграция, global-memory probe/refresh, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
+| P3. Конвейер и кэш | IN_PROGRESS | Общий reader/pipeline, native planner P3.1b и transport lifetime P3.3a; cache/dispatch P3.2b.1/.2, frequency admission P3.5a, plan protection P3.5b и memory controller P3.5c на fixtures, live NVML probe P3.5d; synthetic/real GGUF byte checks P3.4a/b/c/d | GLM graph/runtime-интеграция, период refresh/внешнее pressure, численные cached outputs полной модели, отмена реального графа и измерение перекрытия |
 | P4. Сессии | TODO | Нет | Полный hybrid state, архивы, restore, A → B → A |
 | P5. Native MTP | TODO | В GGUF присутствуют веса; исполнения MTP нет | Draft/verify/rollback, sampling, сессии и A/B скорости |
 | P6. Замеры и выпуск профиля | TODO | Нет | Воспроизводимые замеры, регрессии Qwen/DeepSeek, setup и документация |
@@ -1859,6 +1859,70 @@ prompts и 72 проверки IDs/round-trip совпали с прежним P
   реальный tokenizer parity report. При GLM runtime-интеграции подключить global
   sampler, один main/MTP cache/controller на GPU и refresh в безопасных границах,
   затем проверить внешнее pressure, численные outputs и фактическую память.
+
+### P3.5d-01 — 2026-10-04, Asia/Yekaterinburg — Live global-memory probe
+
+- **Статус:** DONE для P3.5d; P3/P3.5 остаются IN_PROGRESS. Codex, цикл 13.
+  Ветка `dev`, база `f2266a80fedaaefc3254a0599f3f24b5567f0274`, исходное дерево
+  чистое; изменения не закоммичены. P0.3b/сеть не перепроверялись.
+- **Реализация:** Windows reader из DeepSeek вынесен в
+  `backends/common/device_memory.hpp`; прежний `device_memory.inc` включает его.
+  DLL загружается только из System32, NVML handle определяется через CUDA PCI
+  bus ID, не по совпадению CUDA/NVML ordinal. Самpler сериализует вызовы mutex,
+  сохраняет диагностическую стадию/API code, обнуляет outputs при failure,
+  сбрасывает handle после read error/invalid values для следующего rebind.
+  Partial symbols/init failure не вызывают shutdown чужой NVML initialization.
+  Успешный init балансируется shutdown, DLL освобождается при destruction.
+  NVML SDK/link dependency и CUDA per-process fallback под Windows не добавлены.
+- **GLM:** `global_memory.hpp` создаёт owning closure с shared reader;
+  новый трёхаргументный `ExpertMemoryController(cache, cap, policy)` использует
+  его по умолчанию. Прежний injected probe constructor сохранён. При отсутствии
+  NVML controller сохраняет paused admission из P3.5c. Инициализацию, завершившуюся
+  ошибкой, можно повторить пересозданием reader/controller; обычные read errors
+  повторяют PCI lookup при следующем sample. Non-Windows factory использует
+  cudaMemGetInfo только для уже выбранного device; этот путь не проверялся.
+- **Файлы:** общие reader и README; DeepSeek compatibility include; GLM probe,
+  controller, CMake, `test_global_memory.cpp`, README, план/статус и
+  [CTest log](GLM53_FLASH_GLOBAL_MEMORY_TESTS.txt).
+- **Проверки:** рабочая директория `C:\work\git\my-repos\Strata`.
+  `cmd /c build-local\check-glm-native-plan.cmd` — exit 0; выполнены:
+
+  ```text
+  cmake --build build-local/glm5next-transport --config Release --clean-first
+  ctest --test-dir build-local/glm5next-transport -C Release -V --no-tests=error
+  ```
+
+  Чистая сборка, **12/12 CTest**, без skips. Стенд RTX 5090, CUDA runtime/driver
+  **13000/13000**, прежние x64 MSVC/SDK и CUDA PATH из P3.1b-01. Полный локальный
+  build log: `build-local/glm5next-global-memory-build.log`.
+  - Два новых targets проверяют прямой include и `deepseek4/device_memory.inc`.
+    Fixtures: два разных PCI identity с разными данными, cached handle и rebind,
+    missing symbols, ошибки init/PCI/handle/read, null handle, total=0,
+    free > total/unsupported sentinel, recovery и balanced shutdown.
+    По 400 concurrent samples на target проверяют сериализацию lookup/read.
+  - **Реальный NVML был доступен** в обоих targets, `available=1`, stage/code=0.
+    В финальном запуске зафиксированы free **32 066 412 544 bytes**, total
+    **34 190 917 632 bytes**. Это мгновенный global sample, не память модели.
+    DeepSeek wrapper вернул такой же корректный sample.
+  - Production factory/default controller получил valid sample, target **1 МиБ**,
+    допустил **64 bytes** cache fixture, bytes проверены после CUDA upload;
+    `paused_bypasses=0`. Live smoke допускает unavailable результат лишь при
+    zero outputs/paused admission, но в этом запуске исполнилась available ветка.
+  Прежние cache/controller, dispatch, reader, planner, frequency/VRAM-policy
+  compatibility и 432 synthetic GPU byte comparisons прошли. Первичная сборка
+  выявила Win32 min/max macros в новом header; добавлен NOMINMAX до Windows headers,
+  финальная чистая сборка прошла. `git diff --check` — exit 0.
+- **Ограничения:** GLM graph/loader и периодические refresh ещё отсутствуют;
+  нет pressure от другого процесса, измерений inference RAM/VRAM/скорости или
+  внешнего CUDA timeline. Полный DeepSeek backend с nvcc и Qwen/DeepSeek inference,
+  реальные GGUF, Python suites, Linux/HIP и физический multi-GPU не запускались.
+  Наличие live NVML сегодня не отменяет необходимость failure handling: предыдущая
+  ошибка окружения не воспроизводилась в этом smoke. Reader сообщает snapshot,
+  не резервирует VRAM против одновременных allocations других процессов.
+- **Следующий шаг:** P0.3b → P2.1b.2: получить проверенный архив, собрать
+  candidate/oracle/CUDA и сохранить tokenizer parity. При runtime-интеграции
+  вызывать live controller между dispatch scopes после размещения workspace,
+  затем проверить внешнее pressure, численные GLM outputs и фактическую память.
 
 ## Шаблон следующей записи
 

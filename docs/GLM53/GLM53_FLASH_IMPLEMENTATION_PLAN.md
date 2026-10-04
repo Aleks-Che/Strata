@@ -366,8 +366,12 @@ result работают через оба API; токены и шаблон со
   - [x] P3.5c: общий с DeepSeek расчёт VRAM reserve и GLM cache controller с
     configured cap/total-device target, deferred trim и паузой admission при
     недоступном sample. Main/MTP, retired allocations, CUDA events и bypass bytes
-    проверены на GPU fixtures с подставными memory samples. Подключение реального
-    global-memory probe, период refresh и GLM runtime ещё не выполнены.
+    проверены на GPU fixtures с подставными memory samples. Live probe добавлен
+    в P3.5d; период refresh и GLM runtime ещё не подключены.
+  - [x] P3.5d: общий Windows PCI-matched NVML reader и owning live probe по умолчанию
+    в GLM controller; ошибки API, stale outputs, rebind и concurrency проверены
+    fixtures, реальный NVML → controller → cache smoke прошёл на RTX 5090.
+    DeepSeek compatibility include проверен. Внешнее pressure и GLM graph не проверены.
 - [ ] Сравнить mmap/native/auto; отдельно подобрать число читателей prefill/decode.
   Прогретый режим должен читать RAM, если страницы там есть. Native read или cache
   miss сами по себе не равны физическому обращению к SSD.

@@ -59,3 +59,14 @@ This header does not sample the GPU. Callers must supply trustworthy global
 free/total memory and account for all resident cache allocations, including
 retired allocations retained by consumers. See GLM's `expert_memory.hpp` for
 refresh and failed-sample admission handling.
+
+`device_memory.hpp` shares the Windows CUDA-to-NVML reader with DeepSeek and GLM.
+It loads `nvml.dll` from System32, maps the CUDA device's PCI bus ID to an NVML
+handle, and reports global free/total bytes. There is no per-process CUDA fallback
+on WDDM. Sampling and handle lookup are serialized. Read failures or invalid
+values discard the handle for rebinding; failed samples clear both output values.
+Initialization failures require recreating the reader to retry initialization.
+`diagnostic()` identifies the last stage and API error code. Destroying a reader
+balances its successful NVML initialization and unloads its DLL. No NVML SDK is
+needed. Injected API functions in tests validate failures and PCI identity without
+requiring NVML to fail on the test machine; live smoke checks use the real DLL.
