@@ -21,7 +21,8 @@ static json cache_stats() {
     const auto s=strata_step_sync_snapshot();
     return {{"hits",s.cache_hits},{"misses",s.cache_misses},{"evictions",s.cache_evictions},
         {"h2d_bytes",s.h2d_bytes},{"d2d_bytes",s.d2d_bytes},{"fill_bytes",s.cache_fill_bytes},
-        {"resident_bytes",s.cache_bytes},{"limit",s.cache_limit},{"oom",s.cache_oom}};
+        {"resident_bytes",s.cache_bytes},{"limit",s.cache_limit},{"oom",s.cache_oom},
+        {"allocations",s.cache_allocations},{"reuses",s.cache_reuses}};
 }
 struct Observer {
     uint64_t bytes = 0, ranges = 0;
@@ -226,6 +227,22 @@ int main(int argc, char ** argv) {
             catch(const std::runtime_error &){caught=true;}
             cases.push_back({{"name","request_phase_exception_unwind"},{"pass",caught && strata_step_request_phase(0)==0}});
         }
+        for (bool quant:{false,true}) for (int readers:{0,1,2}) {
+            const auto path=(directory/(quant?"step-mixed.gguf":"step-f32.gguf")).string();
+            auto model=load(path);auto ctx=context(model.get(),2048,17);
+            strata_step_sync_mode(2);strata_step_cache_begin(path.c_str(),0);
+            const auto reference=run(ctx.get(),513,17);
+            register_cache(model.get(),path,1024*1024);
+            strata_step_pipeline_config(readers,8,0);strata_step_cache_reuse(true);
+            Observer observer;strata_step_sync_observer(Observer::copy,&observer);strata_step_sync_reset();
+            auto c=compare(std::string(quant?"mixed":"f32")+"/reuse/readers="+std::to_string(readers),
+                           run(ctx.get(),513,17),reference);
+            const auto s=strata_step_sync_snapshot();
+            require(s.cache_reuses && s.cache_evictions && s.cache_bytes<=s.cache_limit &&
+                    observer.bytes==s.d2d_bytes+(readers?0:s.h2d_bytes),"reuse byte/accounting coverage failed");
+            c["cache"]=cache_stats();c["verified_gpu_bytes"]=observer.bytes;cases.push_back(c);
+            strata_step_sync_observer(nullptr,nullptr);strata_step_sync_release();
+        }
         // Deliberately force a model operation onto CPU. Admission must fail
         // before weights are copied or any compute split is submitted.
         auto model = load((directory/"step-f32.gguf").string(),false,true);
@@ -237,7 +254,7 @@ int main(int argc, char ** argv) {
         const auto s = strata_step_sync_snapshot();
         cases.push_back({{"name","reject_cpu_embedding_before_compute"},
             {"pass",rejected && s.rejected_cpu_nodes > 0 && s.compute_calls == 0 && s.h2d_bytes == 0}});
-        require(cases.size() == 111,"wrong runtime case count");
+        require(cases.size() == 117,"wrong runtime case count");
         bool pass = true; for (const auto & c : cases) pass &= c["pass"].get<bool>();
         report["status"] = pass ? "pass" : "fail";
     } catch (const std::exception & error) { report["error"] = error.what(); }

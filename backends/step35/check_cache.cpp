@@ -49,6 +49,38 @@ int main(int argc,char ** argv) {
         test("pinned_bytes_remain_charged",cache.resident_bytes()==65536 && cache.budget()==0);
         pins.reset();cache.trim(0);
         test("unpin_allows_trim",cache.resident_bytes()==0);
+        size_t allocation_calls=0;
+        ExpertCache reuse(65536,[&]{return sample;},[&](void ** ptr,size_t bytes){
+            ++allocation_calls;
+            return allocation_calls==1 ? cudaMalloc(ptr,bytes) : cudaErrorMemoryAllocation;
+        });
+        reuse.set_reuse_allocations(true);reuse.refresh();
+        reuse.get(a,1024);auto * original=reuse.admit(a,1024);
+        cuda_check(cudaMemset(original,0x31,1024));cuda_check(cudaDeviceSynchronize());
+        reuse.get(b,1536);auto * replacement=reuse.admit(b,1536);
+        test("reuse_equal_allocation_without_allocator",replacement==original && allocation_calls==1 &&
+             reuse.counters().reuses==1 && reuse.counters().allocations==1 && reuse.resident_bytes()==65536);
+        test("reuse_removes_old_identity",!reuse.contains(a,1024) && reuse.contains(b,1536));
+        cuda_check(cudaMemset(replacement,0x7a,1536));
+        std::vector<uint8_t> bytes(1536);
+        cuda_check(cudaMemcpy(bytes.data(),replacement,bytes.size(),cudaMemcpyDeviceToHost));
+        test("reuse_filled_bytes",std::all_of(bytes.begin(),bytes.end(),[](uint8_t v){return v==0x7a;}));
+        auto reuse_pins=reuse.protect({b});
+        for(int i=0;i<4;++i)reuse.get(a,1024);
+        test("reuse_respects_plan_pins",!reuse.admit(a,1024) && reuse.get(b,1536)==replacement);
+        reuse_pins.reset();
+        test("reuse_after_unpin",reuse.admit(a,1024)==replacement && reuse.counters().reuses==2);
+        refused=false;try{reuse.admit(a,1024);}catch(const std::runtime_error &){refused=true;}
+        test("duplicate_admission_preserves_resident",refused && reuse.get(a,1024)==replacement && reuse.resident_bytes()==65536);
+        sample.gpu_free=sample.gpu_total/20;reuse.refresh();
+        test("reuse_pressure_releases_all",reuse.resident_bytes()==0 && reuse.budget()==0);
+        sample.gpu_free=16*GiB;
+        ExpertCache mixed(131072,[&]{return sample;});mixed.set_reuse_allocations(true);mixed.refresh();
+        mixed.get(a,1024);mixed.admit(a,1024);mixed.get(b,1024);mixed.admit(b,1024);
+        MatrixKey large{1,1,0};mixed.get(large,70000);
+        test("reuse_different_size_allocates",mixed.admit(large,70000) && mixed.counters().reuses==0 &&
+             mixed.counters().allocations==3 && mixed.counters().evictions==2 && mixed.resident_bytes()==131072);
+        mixed.trim(0);test("reuse_trim_has_no_hidden_pool",mixed.resident_bytes()==0 && mixed.size()==0);
         report["status"]="pass";
     } catch(const std::exception & e) {report["error"]=e.what();}
     report["case_count"]=cases.size();report["cases"]=cases;

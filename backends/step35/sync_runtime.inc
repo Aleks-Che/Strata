@@ -58,6 +58,10 @@ extern "C" void strata_step_cache_register(const ggml_tensor * tensor,const char
 extern "C" void strata_step_cache_refresh() {if (step_cache) step_cache->refresh();}
 extern "C" void strata_step_cache_trim(size_t bytes) {if (step_cache) step_cache->trim(bytes);}
 extern "C" void strata_step_cache_prefill(bool enabled) {step_prefill_admission=enabled;}
+extern "C" void strata_step_cache_reuse(bool enabled) {
+    step_end_plan(false);
+    if (step_cache) step_cache->set_reuse_allocations(enabled);
+}
 extern "C" int strata_step_request_phase(int phase) {
     if (phase<0 || phase>2) throw std::invalid_argument("invalid Step request phase");
     const int previous=step_request_phase;step_request_phase=phase;return previous;
@@ -89,6 +93,7 @@ extern "C" strata_step_sync_stats strata_step_sync_snapshot() {
         auto c=step_cache->counters(); auto m=step_cache->memory();
         s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;s.cache_bypasses=c.bypasses;
         s.cache_oom=c.oom;s.cache_rejected=c.rejected;s.cache_bytes=step_cache->resident_bytes();s.cache_limit=step_cache->budget();
+        s.cache_allocations=c.allocations;s.cache_reuses=c.reuses;
         s.gpu_free=m.gpu_free;s.gpu_total=m.gpu_total;s.ram_free=m.ram_free;s.ram_total=m.ram_total;s.memory_samples=c.samples;
     }
     return s;

@@ -77,6 +77,9 @@ def run(args):
     if reference['status'] != 'pass' or Path(reference['model']).resolve() != args.model.resolve():
         raise ValueError('a passing reference for this exact model path is required')
     depths = [int(x) for x in args.depths.split(',')]
+    reuse_modes = args.cache_reuse.split(',')
+    if not reuse_modes or any(x not in ('off', 'on') for x in reuse_modes):
+        raise ValueError('cache-reuse must be off, on, or off,on')
     if any(x not in range(4) for x in depths) or (not args.draft and any(depths)):
         raise ValueError('depths must be 0..3; nonzero depth needs --draft')
     if max(depths)>args.active_heads or (args.draft_placement!='active-heads' and args.active_heads!=3):
@@ -86,6 +89,7 @@ def run(args):
                   model=str(args.model.resolve()), draft=str(args.draft.resolve()) if args.draft else None,
                   cache_mib=args.cache_mib, draft_placement=args.draft_placement,
                   active_heads=args.active_heads,
+                  cache_reuse=reuse_modes,
                   prefault_experts=args.prefault_experts,
                   ram_prefault_reserve_mib=args.ram_prefault_reserve_mib,
                   p_min=args.p_min, rounds=args.rounds, runs=[])
@@ -150,19 +154,23 @@ def run(args):
             save()
             # Warm every tested depth on both prompts (also the draft graphs),
             # then reverse order on alternate rounds. Keep warmup observations.
-            plan = [(-1, d) for d in depths] + [(r, d) for r in range(args.rounds)
-                                          for d in (depths if r % 2 == 0 else depths[::-1])]
-            for round_id, depth in plan:
+            configs = [(d, reuse) for d in depths for reuse in reuse_modes]
+            plan = [(-1, *c) for c in configs] + [(r, *c) for r in range(args.rounds)
+                                          for c in (configs if r % 2 == 0 else configs[::-1])]
+            for round_id, depth, reuse in plan:
                 for index, prompt in enumerate(reference['prompts'][:2]):
-                    payload = dict(tokens=prompt['ids'], predict=128, depth=depth, p_min=args.p_min)
+                    payload = dict(tokens=prompt['ids'], predict=128, depth=depth, p_min=args.p_min,
+                                   cache_reuse=reuse == 'on')
                     start = time.perf_counter()
                     process.stdin.write(json.dumps(payload)+'\n'); process.stdin.flush()
                     result = receive('RESULT ')
+                    if reuse == 'on' and result.get('cache_reuse') is not True:
+                        raise ValueError('engine did not enable requested allocation reuse')
                     result.update(round=round_id, prompt=index, client_seconds=time.perf_counter()-start)
                     result['exact_reference_ids'] = result['ids'] == reference['runs'][0]['requests'][index]['ids']
                     report['runs'].append(result)
                     save()
-                    print(f"round={round_id} depth={depth} prompt={index}: {result['decode_tokens_per_second']:.3f} tok/s, "
+                    print(f"round={round_id} depth={depth} reuse={reuse} prompt={index}: {result['decode_tokens_per_second']:.3f} tok/s, "
                           f"accepted={result['accepted']}/{result['proposed']}, exact={result['exact_reference_ids']}", flush=True)
                     if not result['exact_reference_ids']:
                         raise ValueError('greedy token mismatch; performance is not admitted')
@@ -203,6 +211,7 @@ def main():
     parser.add_argument('--ram-prefault-reserve-mib', type=int, default=24576,
                         help='additional startup reserve below the 95%% ceiling for pages needed by generation')
     parser.add_argument('--depths', default='0,1,2,3')
+    parser.add_argument('--cache-reuse', default='off', help='off/on or a comma-separated sweep, e.g. off,on')
     parser.add_argument('--p-min', type=float, default=0.6)
     parser.add_argument('--rounds', type=int, default=2)
     args = parser.parse_args()

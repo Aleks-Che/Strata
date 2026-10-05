@@ -302,6 +302,10 @@ reasoning не выдаётся за гарантированный лимит �
   → async H2D → consumer event. Router lookahead только после фактических IDs.
   STEP-06: shared async ring, ready/used events, router-derived plan и cache
   residency pins проверены. D2D/scratch bridge остаётся синхронным.
+  STEP-12: opt-in reuse allocation вытесненной незакреплённой записи того же
+  размера:23 cache checks,117 runtime cases и40 full-model responses PASS.
+  Paired decode gain: +5,45% без MTP, +11,64% с MTP2. В pipe/HTTP default ещё
+  не включён; результаты — `STEP37_FLASH_CACHE_REUSE.md/json`.
 - [ ] **P3.3:** события перед reuse host/device/scratch, 1/2 readers, chunks
   4/8/16 МиБ как измеряемые варианты; early host refill — отдельный opt-in тест.
   STEP-06: все конфигурации прошли fixture, throughput1/2readers измерен на8 МиБ;

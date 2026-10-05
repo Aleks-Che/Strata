@@ -15,10 +15,10 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4 TODO; P5 IN_PROGRESS (P5.1 DONE, P5.2–P5.5 частично); P6–P7 TODO |
-| Проверенная ревизия Strata | `3f757b0e7996c3bc0dd7859076cabdd3cc723f6d` перед STEP-11, дерево чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
-| Последняя выполненная работа | STEP-11: официальный Q8 MTP sidecar; 100 exact-reference requests, 60 с MTP; off/1/2/3 и RAM/VRAM trials; финальный shared-embedding MTP2: 9,146 → 10,602 токена/с |
-| Активная задача / исполнитель | Нет активного исполнителя; STEP-11 завершён в объёме offline greedy trials |
-| Следующая задача | STEP-12 / P5: длинные prompts, SWA512 rollback, stop/cancel и интеграция MTP в native pipe/HTTP. Остаток P2.5–P2.6 (web/MCP/unload/reload) также остаётся открытым |
+| Проверенная ревизия Strata | `c81b0c0b92d63e8c24aef24446dadb9d71dc178d` перед STEP-12, дерево было чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
+| Последняя выполненная работа | STEP-12: opt-in GPU allocation reuse; без MTP 9,363 →9,873 (+5,45%), с MTP2 10,355 →11,560 токена/с (+11,64%); 40 exact responses, 117 runtime и23 cache checks PASS |
+| Активная задача / исполнитель | Нет активного исполнителя; STEP-12 завершён в объёме offline cache/speed trials |
+| Следующая задача | STEP-13 / P3,P6: подключить reuse как opt-in native pipe и проверить длинные запросы, cancel/recovery и pressure перед сменой default. P5 SWA512 rollback/stop/cancel/MTP integration и остаток P2.5–P2.6 также остаются открытыми |
 | Основная модель | `H:\models\Step-3.7-Flash\UD-Q4_K_S` |
 | Входной файл | `Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf` |
 | Фактическая архитектура | GGUF `step35`; display name `Step-3.7-Flash`; 45 основных блоков, 42 MoE, 12 full + 33 SWA |
@@ -28,7 +28,7 @@
 | Step backend / профиль | Отдельный native `strata-step35`; experimental HTTP profile: `build-local/step35-cuda/step10-http-profile-8g/step37.json`, создаётся `tools/prepare_step35_profile.py`. Активный профиль приложения не заменён |
 | Step dependency pin | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`; Step patches дополнены `step-prefill-cache-admission`; отдельная сборка |
 | Step tokenizer / API | deepseek-v3 и exported tokenizer по 2190/2190 native checks; Step template 215/215; parser/request adapters и HTTP registration готовы. Native EOG [1,128007], PAD2 не EOG; JSON/SSE, stop strings и low/medium/high effort подключены |
-| Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. MTP2/shared embedding/p_min0.6: +15,9% decode в финальном контроле; native pipe/HTTP MTP пока не подключён |
+| Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. STEP-11: +15,9% decode от MTP; STEP-12: дополнительный paired reuse gain +11,64%, до11,560 токена/с. Это разные серии; native pipe/HTTP MTP пока не подключён |
 | Vision | Локального mmproj нет; отдельный P7 |
 | Измеренная скорость / runtime память Step | STEP-08: context4096, batch17, pipeline1/cacheauto/F32: prefill511 57,376 → 40,281 с; весь запрос511+16 60,137 → 43,550 с. Повторный короткий decode при prefill-off 8,505 токена/с; tradeoff и память ниже. Старый STEP-06 sync/pipeline comparison сохранён |
 | Блокеры | Для P0–P3 внешних блокеров не выявлено. Draft для P5 получен; остаются integration/state gates. Для P7 по-прежнему нет mmproj |
@@ -1203,3 +1203,42 @@ active-head catch-up PASS, guards CLI и `git diff --check` PASS. Исходны
 суммарными позициями и greedy. Нужны SWA512/full KV rollback обеих contexts,
 длинные prompts, stop/cancel, stochastic sampling и интеграция в pipe/HTTP.
 В рабочем приложении MTP остаётся выключенным.
+
+## STEP-12 — GPU allocation reuse (2026-10-05)
+
+Реализован opt-in reuse GPU-блока вытесняемой записи экспертного кэша. Размер
+allocation должен совпадать, запись не должна быть закреплена plan, предыдущее
+чтение завершено. Frequency admission, trim, growth checks и budget95 сохранены;
+отдельного свободного пула нет. В обычном runtime опция по умолчанию выключена,
+управление добавлено в offline checker через `--cache-reuse off,on`.
+
+На Windows/9950X/128GiB/RTX5090, context2048/batch17/F32/pipeline1/cachecap16384,
+два P1 prompts, warmup и четыре раунда с обратным порядком режимов:
+
+| Режим | Reuse off → on, токена/с | Прирост | Пара запросов с prefill |
+|---|---:|---:|---:|
+| Без загрузки draft | 9,363 →9,873 | +5,45% | 19,312 →18,402с |
+| Q8 MTP2/shared embedding/p_min0.6 | 10,355 →11,560 | +11,64% | 18,176 →16,742с |
+
+**40/40** responses exact, включая warmup;20 с MTP. Все четыре парных раунда
+показывают выигрыш. MTP acceptance92,55% сохранился. Новых allocations на decode
+в среднем622 →24,625 без MTP и1385,625 →51,750 с MTP. H2D-трафик практически
+тот же. В MTP серии контроль прогревался; последние два раунда дают +10,3%.
+Проценты не являются обещанием для произвольного диалога.
+
+Пики: RAM88,900/93,370GiB, VRAM30220/30234MiB для no-MTP/MTP2; guard95 не
+сработал. Дополнительное заполнение RAM не использовалось.23 CUDA cache checks,
+117 runtime cases (включая6 новых byte/bit-exact logits reuse вариантов) и24
+существующих Step Python tests PASS. Native `strata-step35.exe` имеет прежний
+SHA-256 `32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+
+Отчёт и команды: [STEP37_FLASH_CACHE_REUSE.md](STEP37_FLASH_CACHE_REUSE.md).
+Все IDs/timings, hashes и checks: [STEP37_FLASH_CACHE_REUSE.json](STEP37_FLASH_CACHE_REUSE.json).
+Raw: `build-local/step35-cuda/step12-speed/`. Проверенный probe сохранён как
+`strata-step35-mtp-check-cache-reuse-tested.exe` в `build-local/step35-cuda/bin/`.
+
+Следующий шаг — admission opt-in reuse в pipe/HTTP: длинные запросы,
+cancel/recovery и pressure. Затем выбирать default. Следующие performance
+кандидаты: объединение D2D-синхронизаций с event/lease защитой и early host refill;
+их дополнительный выигрыш пока не измерен. P5 state/SWA rollback и production
+MTP integration остаются отдельными обязательными этапами.

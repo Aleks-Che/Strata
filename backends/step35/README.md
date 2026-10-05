@@ -69,6 +69,24 @@ for longer requests or changing external memory pressure.
 Measurements and remaining MTP gates:
 [MTP trials](../../docs/Step-3.7-Flash/STEP37_FLASH_MTP_TRIALS.md).
 
+`--cache-reuse off,on` adds a paired sweep of cache allocation reuse. The
+checker alternates configuration order across rounds, preserving the expert
+cache between requests; every request still starts with fresh KV. A replacement
+may reuse an unpinned victim's allocation of the same charged size once its
+previous synchronous readers have completed. It keeps the admission policy,
+budget checks and trim behavior, with no spare allocation pool. This switch
+defaults to `off` and is exposed only by the offline probe. The native pipe and
+HTTP defaults do not enable it.
+
+The result includes `generation_io`: decode-only H2D bytes, source-copy CPU
+time, D2D wall time, consumer wait, cache hits/misses and allocation/reuse counts.
+These times overlap and must not be added as a GPU timeline. The existing
+top-level byte counters still cover prefill plus generation. Cache unit checks
+and the runtime fixture cover reuse, pinned entries, pressure trim, mixed
+allocation sizes and exact GPU bytes/logits through a 513-token prompt.
+Measured results and reproduction commands:
+[cache reuse trials](../../docs/Step-3.7-Flash/STEP37_FLASH_CACHE_REUSE.md).
+
 Progress and remaining gates:
 [plan](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_PLAN.md),
 [status](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_STATUS.md).

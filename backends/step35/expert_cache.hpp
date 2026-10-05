@@ -61,13 +61,17 @@ class ExpertCache {
 public:
     using Probe=std::function<MemorySample()>;
     using Allocate=std::function<cudaError_t(void **,size_t)>;
-    struct Counters { uint64_t hits=0,misses=0,evictions=0,bypasses=0,oom=0,rejected=0,samples=0; };
+    struct Counters {
+        uint64_t hits=0,misses=0,evictions=0,bypasses=0,oom=0,rejected=0,samples=0;
+        uint64_t allocations=0,reuses=0;
+    };
 private:
     struct Entry { void * data; size_t bytes,allocated; std::list<MatrixKey>::iterator order; size_t pins=0; };
     std::map<MatrixKey,Entry> entries;
     std::list<MatrixKey> order;
     StrataExpertFrequencyHistory<MatrixKey,MatrixHash> history{65536};
     size_t cap=0,limit=0,resident=0,growth=0;
+    bool reuse_allocations=false;
     Probe probe;
     Allocate allocate;
     MemorySample sample{};
@@ -157,9 +161,11 @@ public:
     }
     void * admit(const MatrixKey & key,size_t bytes) {
         check_device();
+        if (entries.count(key)) throw std::runtime_error("duplicate Step cache admission");
         if (growth>=64*1024*1024) refresh();
         const size_t charged=(bytes+65535)/65536*65536;
         if (!bytes || charged<bytes || charged>limit) {++counts.bypasses;return nullptr;}
+        void * data=nullptr;
         while (resident>limit-charged) {
             auto victim=entries.end();
             // Bounded scan of the oldest entries; shared decaying frequency
@@ -173,12 +179,25 @@ public:
             }
             if (victim==entries.end()) {++counts.bypasses;return nullptr;}
             if (history.score(key)<history.score(victim->first)) {++counts.rejected;return nullptr;}
+            // Reads are complete by the cache contract; plan-pinned hits were
+            // excluded above. Reuse only an equal-sized allocation when this
+            // single replacement fits the current budget. No retained pool and
+            // no extra residency. The caller must fill all bytes before lookup.
+            if (reuse_allocations && victim->second.allocated==charged && resident<=limit) {
+                data=victim->second.data;
+                resident-=charged;
+                order.erase(victim->second.order); entries.erase(victim);
+                ++counts.evictions; ++counts.reuses;
+                break;
+            }
             erase(victim);
         }
-        void * data=nullptr;
-        const auto error=allocate(&data,charged);
-        if (error==cudaErrorMemoryAllocation) {cudaGetLastError();++counts.oom;++counts.bypasses;return nullptr;}
-        cuda_check(error);
+        if (!data) {
+            ++counts.allocations;
+            const auto error=allocate(&data,charged);
+            if (error==cudaErrorMemoryAllocation) {cudaGetLastError();++counts.oom;++counts.bypasses;return nullptr;}
+            cuda_check(error);
+        }
         try {
             order.push_back(key);
             try {
@@ -194,5 +213,6 @@ public:
     MemorySample memory() const {return sample;}
     Counters counters() const {return counts;}
     void reset_counters() {counts={};}
+    void set_reuse_allocations(bool enabled) {check_device();reuse_allocations=enabled;}
 };
 } // namespace step35

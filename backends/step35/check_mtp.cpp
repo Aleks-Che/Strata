@@ -168,6 +168,8 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
     const auto * vocab = llama_model_get_vocab(llama_get_model(ctx));
     for (auto id : prompt) require(id >= 0 && id < llama_vocab_n_tokens(vocab), "invalid prompt token");
     clear(ctx); if (dft) clear(dft);
+    const bool cache_reuse=request.value("cache_reuse",false);
+    strata_step_cache_reuse(cache_reuse);
     llama_set_embeddings_nextn(ctx,depth > 0,false);
     common_speculative_ptr spec;
     if (depth) {
@@ -188,6 +190,7 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
     }
     if (spec) common_speculative_begin(spec.get(),0,prompt);
     const double prefill_ms = ms(start);
+    const auto prefill_stats = strata_step_sync_snapshot();
     phase.decode(); const auto generation = Clock::now();
     llama_tokens out{greedy(ctx,-1)}, history = prompt;
     double target_ms=0, draft_ms=0, catchup_ms=0;
@@ -224,7 +227,7 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
     }
     const double generation_ms = ms(generation);
     const auto stats = strata_step_sync_snapshot();
-    return json{{"ids",out},{"depth",depth},{"p_min",p_min},{"prefill_ms",prefill_ms},
+    return json{{"ids",out},{"depth",depth},{"p_min",p_min},{"cache_reuse",cache_reuse},{"prefill_ms",prefill_ms},
         {"generation_ms",generation_ms},{"request_ms",ms(start)},
         {"decode_tokens_per_second",out.size()*1000.0/generation_ms},
         {"prefill_target_ms",prefill_target_ms},{"prefill_draft_ms",prefill_draft_ms},
@@ -233,6 +236,15 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
         {"proposed_per_cycle",proposed_per_cycle},{"accepted_per_cycle",accepted_per_cycle},
         {"h2d_bytes",stats.h2d_bytes},{"source_bytes",stats.source_bytes},
         {"cache_bytes",stats.cache_bytes},{"cache_hits",stats.cache_hits},{"cache_misses",stats.cache_misses},
+        {"generation_io",{{"h2d_bytes",stats.h2d_bytes-prefill_stats.h2d_bytes},
+            {"source_ms",stats.source_ms-prefill_stats.source_ms},
+            {"d2d_ms",stats.d2d_ms-prefill_stats.d2d_ms},
+            {"pipeline_wait_us",stats.pipeline_wait_us-prefill_stats.pipeline_wait_us},
+            {"cache_allocations",stats.cache_allocations-prefill_stats.cache_allocations},
+            {"cache_reuses",stats.cache_reuses-prefill_stats.cache_reuses},
+            {"cache_evictions",stats.cache_evictions-prefill_stats.cache_evictions},
+            {"cache_hits",stats.cache_hits-prefill_stats.cache_hits},
+            {"cache_misses",stats.cache_misses-prefill_stats.cache_misses}}},
         {"finish",llama_vocab_is_eog(vocab,out.back()) ? "eog" : "length"}};
 }
 

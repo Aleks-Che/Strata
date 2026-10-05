@@ -14,6 +14,7 @@ struct strata_step_sync_stats {
     double d2d_ms;
     uint64_t pipeline_groups, pipeline_chunks, pipeline_unused_bytes, pipeline_device_bytes;
     uint64_t pipeline_wait_us, pipeline_slot_wait_us, pipeline_submit_us, pipeline_read_peak;
+    uint64_t cache_allocations, cache_reuses;
 };
 // mode0: unmodified scheduler; mode1: native selected-copy oracle + GPU audit;
 // mode2: bounded synchronous pinned staging + GPU audit. One owning thread.
@@ -29,6 +30,8 @@ void strata_step_cache_register(const ggml_tensor *, const char * shard, uint64_
 void strata_step_cache_refresh();
 void strata_step_cache_trim(size_t bytes);
 void strata_step_cache_prefill(bool enabled);
+// Opt-in experiment; owning thread, between requests, no outstanding plan.
+void strata_step_cache_reuse(bool enabled);
 // Owning thread only. 0=idle, 1=prefill (including its tail), 2=decode.
 // Returns the previous phase for exception-safe scopes.
 int strata_step_request_phase(int phase);
