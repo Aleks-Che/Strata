@@ -15,6 +15,61 @@ static void stage_size(const char *value) {
 #endif
 }
 
+static bool mixed_arena(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPlan plan,
+                        StrataExpertFinish finish,StrataExpertStats stats,bool match,bool protect) {
+#ifdef _WIN32
+    _putenv_s("STRATA_EXPERT_CACHE_MATCH_SIZE",match?"1":"0");
+#else
+    setenv("STRATA_EXPERT_CACHE_MATCH_SIZE",match?"1":"0",1);
+#endif
+    auto *gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    auto *host_ctx=ggml_init({ggml_tensor_overhead()*4,nullptr,true});
+    auto *dev_ctx=ggml_init({ggml_tensor_overhead()*4,nullptr,true});
+    const size_t widths[]={1<<20,3<<19,3<<18,3<<19};
+    ggml_tensor *source[4],*dest[4];
+    for(int i=0;i<4;++i) {
+        source[i]=ggml_new_tensor_3d(host_ctx,GGML_TYPE_I8,widths[i],1,2);
+        dest[i]=ggml_new_tensor_3d(dev_ctx,GGML_TYPE_I8,widths[i],1,2);
+    }
+    auto *host=ggml_backend_alloc_ctx_tensors(host_ctx,cpu);
+    auto *device=ggml_backend_alloc_ctx_tensors(dev_ctx,gpu);
+    std::vector<uint8_t> expected[4];
+    for(int i=0;i<4;++i) {
+        expected[i].resize(widths[i]*2);
+        for(size_t j=0;j<expected[i].size();++j)expected[i][j]=uint8_t(i*37+j*3+(j>>11));
+        ggml_backend_tensor_set(source[i],expected[i].data(),0,expected[i].size());
+    }
+    bool ok=true;
+    auto transfer=[&](int i,bool preserve=false) {
+        StrataExpertSlice slices[2]={{source[i]->data,widths[i]+512,true},
+                                     {source[1]->data,widths[1]+512,true}};
+        plan(gpu,slices,preserve?2:1);
+        copy(gpu,source[i],dest[i],0,0,1);finish(gpu);ggml_backend_synchronize(gpu);
+        std::vector<uint8_t> actual(widths[i]+512);
+        ggml_backend_tensor_get(dest[i],actual.data(),0,actual.size());
+        ok &= std::memcmp(actual.data(),expected[i].data(),actual.size())==0;
+    };
+    // A 4 MiB arena: 1 MiB + 1.5 MiB + 0.75 MiB, plus expert-edge padding.
+    // The new 1.5 MiB matrix fits with one same-size eviction. Strict LRU
+    // needs two. A protected matching matrix must never be evicted; with it
+    // retained, fragmentation requires a bypass even after freeing the others.
+    transfer(0);transfer(1);transfer(2);
+    StrataExpertCounters before,after;stats(gpu,&before);
+    transfer(3,protect);stats(gpu,&after);
+    ok &= after.evictions-before.evictions==uint64_t(match&&!protect?1:2);
+    ok &= after.bypass-before.bypass==uint64_t(protect?1:0);
+    before=after;
+    transfer(protect?1:2);stats(gpu,&after);
+    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    if(match&&!protect) {
+        before=after;transfer(0);stats(gpu,&after);
+        ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    }
+    ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
+    ggml_free(dev_ctx);ggml_free(host_ctx);ggml_backend_free(gpu);
+    return ok;
+}
+
 int main() {
 #ifdef _WIN32
     _putenv_s("STRATA_EXPERT_CACHE_MIB","4");
@@ -109,6 +164,12 @@ int main() {
     ggml_backend_free(draft_gpu);
     budget(4);stats(gpu,&before);check(9,9,1);stats(gpu,&after);
     ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    ok &= mixed_arena(cpu,copy,plan,finish,stats,false,false);
+    ok &= mixed_arena(cpu,copy,plan,finish,stats,true,false);
+    // Only the pipeline retains a multi-matrix plan; the synchronous path
+    // consumes one matrix at a time and does not need a protected set.
+    if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0)
+        ok &= mixed_arena(cpu,copy,plan,finish,stats,true,true);
     // Changing policy converts the fixed arena once. Thereafter individual
     // matrices can be freed without discarding the remaining hot entries.
     StrataVramPolicy policy;policy.mode=1;policy.matrices=3;policy.reserve_mib=128;

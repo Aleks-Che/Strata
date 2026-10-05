@@ -97,6 +97,7 @@ def main():
     ap.add_argument("--gpu-expert-layers", type=int, default=0, help="Keep the last N layers' routed experts in VRAM; size depends on quantization")
     ap.add_argument("--expert-cache-mib", type=int, default=0, help="GPU LRU budget for individual expert matrices")
     ap.add_argument("--expert-cache-policy", choices=("lru", "frequency"), default="lru", help="Frequency admission keeps repeatedly used matrices over one-use weights; access counts decay")
+    ap.add_argument("--expert-cache-match-size", type=int, choices=(0, 1), default=0, help="Prefer same-size victims near the LRU tail of the fixed GPU cache; reduces arena fragmentation")
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
     ap.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0, help="Background mmap reads, four staging slots and a separate H2D stream; needs expert-stage-mib > 0")
     ap.add_argument("--expert-readers", type=int, choices=range(1, 5), default=2, help="Bounded reader concurrency; uses the existing four staging slots")
@@ -147,6 +148,7 @@ def main():
                     "--gpu-layers", "99", "--gpu-expert-layers", str(args.gpu_expert_layers), "--conversation-cache-mib", "2048",
                     "--expert-cache-mib", str(args.expert_cache_mib), "--expert-stage-mib", str(args.expert_stage_mib),
                     "--expert-cache-policy", args.expert_cache_policy,
+                    "--expert-cache-match-size", str(args.expert_cache_match_size),
                     "--expert-pipeline", str(args.expert_pipeline),
                     "--expert-readers", str(args.expert_readers), "--expert-read-mode", args.expert_read_mode,
                     "--conversation-cache-slots", "4", "--conversation-cache-min-free-mib", "8192"],

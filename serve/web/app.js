@@ -760,6 +760,8 @@ function renderAbout(eng, hw, st) {
     ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_vram_pipeline_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache and pipeline budgets` : null],
     ["Expert transfer pipeline", expertPipelineText(eng)],
     ["Expert cache policy", expertPolicyText(eng)],
+    ["Fixed expert cache replacement", eng.architecture === "deepseek4" ?
+      eng.expert_cache_match_size === 1 ? "Prefer matching matrix sizes" : "Least recently used" : null],
     ["Images", eng.images ? "on" : "off"],
     ["Experimental speed projection", projectionText(eng.cvec)],
   ]);

@@ -41,6 +41,7 @@ struct StrataExpertTransfer {
     std::unordered_set<const void *> protected_keys;
     StrataExpertReuseFence reuse_fence;
     std::unique_ptr<StrataExpertFrequency> frequency;
+    bool match_size=false;
 
     bool admits(const void *key,const StrataExpertTransfer &owner,const void *victim) {
         if(!frequency || !owner.frequency || frequency->score(key)>=owner.frequency->score(victim))return true;
@@ -98,6 +99,8 @@ struct StrataExpertTransfer {
         ggml_cuda_set_device(device);
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
         const char *policy=std::getenv("STRATA_EXPERT_CACHE_POLICY");
+        const char *match=std::getenv("STRATA_EXPERT_CACHE_MATCH_SIZE");
+        match_size=match && std::strcmp(match,"1")==0;
         if(policy && std::strcmp(policy,"frequency")==0)
             frequency=std::make_unique<StrataExpertFrequency>(std::max<size_t>(4096,capacity>>17));
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
@@ -195,7 +198,10 @@ struct StrataExpertTransfer {
                 if(remaining)free_blocks.emplace(offset+bytes,remaining);
                 return offset;
             }
-            auto candidate=evictable();
+            // An exact-size victim creates a usable hole in one eviction.
+            // Stay within the existing 64-entry LRU window, preserve planned
+            // readers, and apply frequency admission to the actual victim.
+            auto candidate=evictable(match_size?bytes:0);
             if(candidate==lru.rend())return SIZE_MAX;
             if(!admits(key,*this,*candidate))return SIZE_MAX;
             auto old=entries.find(*candidate);

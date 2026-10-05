@@ -41,6 +41,7 @@ struct Options {
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0;
     std::string expert_cache_policy="lru";
+    int expert_cache_match_size=0;
     int expert_pipeline=0;
     int expert_readers=2;
     std::string expert_read_mode="mmap";
@@ -61,6 +62,7 @@ static Options options(int argc, char **argv) {
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
                 "--expert-cache-policy lru|frequency (frequency gates LRU admission using decaying access counts)\n"
+                "--expert-cache-match-size 0 (0/1; prefer same-size victims in the fixed GPU arena)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
                 "--expert-readers 2 (1..4 bounded readers); --expert-read-mode mmap|file|auto\n"
@@ -92,6 +94,7 @@ static Options options(int argc, char **argv) {
         else if (k=="--gpu-expert-layers") o.gpu_expert_layers=integer(v);
         else if (k=="--expert-cache-mib") o.expert_cache_mib=integer(v);
         else if (k=="--expert-cache-policy") o.expert_cache_policy=v;
+        else if (k=="--expert-cache-match-size") o.expert_cache_match_size=integer(v);
         else if (k=="--expert-stage-mib") o.expert_stage_mib=integer(v);
         else if (k=="--expert-pipeline") o.expert_pipeline=integer(v);
         else if (k=="--expert-readers") o.expert_readers=integer(v);
@@ -108,6 +111,8 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
     if(o.expert_cache_policy!="lru" && o.expert_cache_policy!="frequency")
         throw std::runtime_error("expert-cache-policy must be lru/frequency");
+    if(o.expert_cache_match_size<0 || o.expert_cache_match_size>1)
+        throw std::runtime_error("expert-cache-match-size must be 0/1");
     if(o.expert_pipeline<0 || o.expert_pipeline>1 || (o.expert_pipeline && !o.expert_stage_mib))
         throw std::runtime_error("expert-pipeline must be 0/1 and requires expert-stage-mib > 0");
     if(o.expert_readers<1 || o.expert_readers>4 || (o.expert_read_mode!="mmap" && o.expert_read_mode!="file" && o.expert_read_mode!="auto"))
@@ -492,6 +497,7 @@ int main(int argc,char**argv) {
         _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH","1");
         _putenv_s("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str());
         _putenv_s("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str());
+        _putenv_s("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str());
         _putenv_s("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str());
         _putenv_s("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str());
         _putenv_s("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str());
@@ -500,6 +506,7 @@ int main(int argc,char**argv) {
         setenv("GGML_OP_OFFLOAD_MIN_BATCH","1",1);
         setenv("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str(),1);
         setenv("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str(),1);
+        setenv("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str(),1);
         setenv("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str(),1);
         setenv("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str(),1);
         setenv("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str(),1);
@@ -603,6 +610,7 @@ int main(int argc,char**argv) {
             <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
             <<" expert_cache_policy="<<o.expert_cache_policy
+            <<" expert_cache_match_size="<<o.expert_cache_match_size
             <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
             <<" expert_readers="<<(o.expert_pipeline?o.expert_readers:0)<<" expert_read_mode="<<o.expert_read_mode
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
