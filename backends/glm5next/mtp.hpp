@@ -17,6 +17,7 @@ class Mtp {
     llama_context * target;
     Context draft{nullptr,llama_free};
     int width,vocab,depth;
+    bool cache_only_catch_up=true;
     std::vector<float> pending;
     static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
     std::vector<float> features(llama_context * ctx,int count) {
@@ -29,14 +30,14 @@ class Mtp {
         }
         return rows;
     }
-    void draft_decode(const std::vector<llama_token> & ids,int pos,const std::vector<float> & hidden) {
+    void draft_decode(const std::vector<llama_token> & ids,int pos,const std::vector<float> & hidden,bool outputs=true) {
         require(hidden.size()==ids.size()*width,"MTP hidden/token count mismatch");
         auto b=llama_batch_init(int(ids.size()),width,1);
         b.token=static_cast<llama_token *>(std::malloc(ids.size()*sizeof(llama_token)));
         if (!b.token) {llama_batch_free(b);throw std::bad_alloc();}
         b.n_tokens=int(ids.size());
         for (int i=0;i<b.n_tokens;++i) {
-            b.token[i]=ids[i];b.pos[i]=pos+i;b.n_seq_id[i]=1;b.seq_id[i][0]=0;b.logits[i]=i+1==b.n_tokens;
+            b.token[i]=ids[i];b.pos[i]=pos+i;b.n_seq_id[i]=1;b.seq_id[i][0]=0;b.logits[i]=outputs && i+1==b.n_tokens;
         }
         std::copy(hidden.begin(),hidden.end(),b.embd);
         const int status=llama_decode(draft.get(),b);llama_batch_free(b);
@@ -48,7 +49,9 @@ class Mtp {
         std::vector<float> shifted(ids.size()*width);
         std::copy(pending.begin(),pending.end(),shifted.begin());
         if (ids.size()>1) std::copy_n(target_rows.begin(),(ids.size()-1)*width,shifted.begin()+width);
-        draft_decode(ids,pos,shifted);
+        // The next draft uses target features, not the discarded catch-up logits
+        // or hidden rows. With masked extraction, zero outputs means cache only.
+        draft_decode(ids,pos,shifted,!cache_only_catch_up);
         pending.assign(target_rows.end()-width,target_rows.end());
     }
 public:
@@ -59,11 +62,16 @@ public:
         :target(ctx),width(llama_model_n_embd_out(model)),vocab(llama_vocab_n_tokens(llama_model_get_vocab(model))),depth(count),pending(width,0) {
         require(count>=1 && count<=3 && batch>=count+1 && llama_n_rs_seq(ctx)>=uint32_t(count),"MTP requires depth 1..3, batch >= depth+1 and recurrent rollback slots");
         require(llama_model_n_layer_nextn(model)==1,"GLM MTP requires one native NextN block");
+        if (const char * value=std::getenv("STRATA_GLM_MTP_CACHE_ONLY")) {
+            require(std::string(value)=="0" || std::string(value)=="1","STRATA_GLM_MTP_CACHE_ONLY must be 0 or 1");
+            cache_only_catch_up=std::string(value)=="1";
+        }
         draft=context(model,size,batch,threads,0,true);
         llama_set_embeddings_nextn(target,true,false);
         llama_set_embeddings_nextn(draft.get(),true,true);
     }
     void set_depth(int n) {require(n>=1 && n<=3 && uint32_t(n)<=llama_n_rs_seq(target),"invalid MTP depth");depth=n;}
+    bool uses_cache_only_catch_up() const {return cache_only_catch_up;}
     void reset() {clear(draft.get());std::fill(pending.begin(),pending.end(),0);counters={};}
     void prefill(const std::vector<llama_token> & ids,int start,int count,int position) {
         auto h=features(target,count);

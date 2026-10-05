@@ -63,6 +63,7 @@ struct RuntimeMemory::Impl {
     cudaEvent_t scratch_released=nullptr,copy_ready=nullptr;
     int event_copy=0; // 0 host waits; 1 per range; 2 one fence per expert tensor.
     int decode_readers=1;
+    int read_mode=0; // 0 mmap; 1 native cached file I/O; 2 native cold prefill.
     bool write_combined=false;
     uint64_t main_cache_decay=4096;
     bool pool_reclaim=false;
@@ -72,6 +73,9 @@ struct RuntimeMemory::Impl {
     cudaMemPool_t pool=nullptr;
     std::shared_ptr<ExpertSlabAllocator> slab;
     size_t slab_mib=0;
+    bool slab_compact=false;
+    uint64_t slab_compact_skipped=0;
+    double slab_compact_ms=0;
     std::filesystem::path profile_path;
     nlohmann::json profile_identity;
     WarmProfile warm_profile;
@@ -218,6 +222,11 @@ struct RuntimeMemory::Impl {
             slab_mib=std::stoul(value);
             require(slab_mib==0 || (slab_mib>=4 && slab_mib<=256),"STRATA_GLM_CACHE_SLAB_MIB must be 0 or 4..256");
         }
+        if (const auto * value=std::getenv("STRATA_GLM_CACHE_COMPACT")) {
+            require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_CACHE_COMPACT must be 0 or 1");
+            slab_compact=*value=='1';
+            require(!slab_compact || slab_mib,"cache compaction requires a slab allocator");
+        }
         if (slab_mib) {
             policy.reserve_mib+=2; // Same physical margin as the slab growth check.
             slab=std::make_shared<ExpertSlabAllocator>(slab_mib*MiB,[this](size_t bytes) {
@@ -245,6 +254,20 @@ struct RuntimeMemory::Impl {
         } else cache=std::make_unique<ExpertCache>(0,admission);
         cache->set_branch_budgets(std::numeric_limits<size_t>::max(),mtp_cache_mib*MiB);
         if (pipeline_enabled) {
+            if (const auto * value=std::getenv("STRATA_GLM_EXPERT_READ_MODE")) {
+                require(std::strlen(value)==1 && value[0]>='0' && value[0]<='2',"STRATA_GLM_EXPERT_READ_MODE must be 0, 1 or 2");
+                read_mode=value[0]-'0';
+            }
+            if(read_mode) {
+#ifdef _WIN32
+                // Refuse a silently mixed experiment: every expert tensor must
+                // be covered by the loader's exact file/mapping registration.
+                for(const auto &item:tensors)require(bool(strata_expert_file::find(item.first->data,ggml_nbytes(item.first))),
+                    "native expert reads require registered model mappings");
+#else
+                require(false,"native GLM expert reads currently require Windows");
+#endif
+            }
             if (const auto * value=std::getenv("STRATA_GLM_DECODE_READERS")) {
                 require(std::strlen(value)==1 && value[0]>='1' && value[0]<='4',"STRATA_GLM_DECODE_READERS must be 1..4");
                 decode_readers=value[0]-'0';
@@ -266,7 +289,7 @@ struct RuntimeMemory::Impl {
                 trace=std::make_unique<GpuTrace>(std::stoi(n));
                 observer=[this](cudaStream_t stream,bool begin,size_t) {trace->record(stream,nullptr,begin);};
             }
-            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,write_combined,std::max(2,decode_readers),0,std::move(observer),decode_readers);
+            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,write_combined,std::max(2,decode_readers),read_mode,std::move(observer),decode_readers);
         }
         if (vram_percent) controller=std::make_unique<ExpertMemoryController>(*cache,total,policy,
             [this](int device,size_t &free,size_t &total) {
@@ -434,6 +457,15 @@ struct RuntimeMemory::Impl {
         }
         profile_save_ms+=milliseconds(start);
     }
+    void compact_cache() {
+        if(!slab_compact || !slab)return;
+        require(!dispatch && (!transport || !transport->in_progress()),"cache compaction requires idle transport");
+        const auto s=slab->status();
+        if(s.reserved-s.slot_bytes<64*MiB)return;
+        const auto started=Clock::now();
+        if(!cache->relocate_idle([this](const auto &allocations){slab->compact(allocations,stream);}))++slab_compact_skipped;
+        slab_compact_ms+=milliseconds(started);
+    }
     void warm_ram() {
         if(!ram_percent)return;
         require(!dispatch && (!transport || !transport->in_progress()),"host warmup requires an idle expert transport");
@@ -535,6 +567,9 @@ struct RuntimeMemory::Impl {
             {"cache_resident_bytes",cache?cache->resident_bytes():0},{"cache_budget_bytes",cache?cache->byte_budget():0},
             {"cache_d2d_bytes",d2d_bytes},{"cuda_memory_pool",pool!=nullptr}};
         result["expert_cache_slab_mib"]=slab_mib;
+        result["expert_cache_compact"]=slab_compact;
+        result["cache_compact_ms"]=slab_compact_ms;
+        result["cache_compact_skipped"]=slab_compact_skipped;
         result["ram_warm_mode"]=ram_warm_mode;result["ram_diagnostics"]=ram_diagnostics;
         result["ram_warm_skipped_gpu_bytes"]=ram_skipped_gpu_bytes;
         result["ram_host_scan"]={{"rotation_allowed",ram_rotation_allowed},{"rotation_checks",ram_rotation_checks},
@@ -549,7 +584,8 @@ struct RuntimeMemory::Impl {
             result["cache_slab"]={{"reserved_bytes",s.reserved},{"requested_bytes",s.requested},
                 {"slot_bytes",s.slot_bytes},{"unused_bytes",s.reserved-s.requested},{"blocks",s.blocks},
                 {"allocations",s.allocations},{"block_allocations",s.block_allocations},
-                {"reuses",s.reuses},{"growth_denied",s.growth_denied},{"partial_blocks",s.partial_blocks}};
+                {"reuses",s.reuses},{"growth_denied",s.growth_denied},{"partial_blocks",s.partial_blocks},
+                {"compactions",s.compactions},{"moved_bytes",s.moved_bytes},{"released_bytes",s.released_bytes}};
         }
         if (pool) {
             uint64_t reserved=0,used=0;
@@ -572,6 +608,7 @@ struct RuntimeMemory::Impl {
         result["expert_pipeline"]=pipeline_enabled;
         result["expert_copy_events"]=event_copy;
         result["expert_decode_readers"]=decode_readers;
+        result["expert_read_mode"]=read_mode==1?"native":read_mode==2?"auto":"mmap";
         result["expert_write_combined"]=int(write_combined);
         result["main_cache_decay"]=main_cache_decay;
         result["mtp_cache_decay"]=4096;
@@ -584,6 +621,7 @@ struct RuntimeMemory::Impl {
             const auto c=transport->counters();
             result["pipeline"]={{"groups",c.groups},{"chunks",c.chunks},{"source_bytes",c.file_bytes+c.mmap_bytes},
                 {"h2d_bytes",c.h2d_bytes},{"d2d_bytes",c.d2d_bytes},{"read_us",c.read_us},
+                {"file_bytes",c.file_bytes},{"mmap_bytes",c.mmap_bytes},
                 {"submit_us",c.submit_us},{"consumer_wait_us",c.consumer_wait_us},{"slot_wait_us",c.slot_wait_us},
                 {"unused_bytes",c.unused_bytes},{"pinned_bytes",c.pinned_bytes},{"device_ring_bytes",c.device_ring_bytes},
                 {"queued_peak",c.queued_peak},{"read_peak",c.read_peak}};
@@ -596,6 +634,7 @@ RuntimeMemory::RuntimeMemory(Model model,const std::string & path,int ram_percen
 RuntimeMemory::~RuntimeMemory()=default;
 void RuntimeMemory::warm() {impl->warm();}
 void RuntimeMemory::refresh() {
+    impl->compact_cache();
     impl->ram_limit();
     if (impl->controller) impl->controller->refresh();
 }

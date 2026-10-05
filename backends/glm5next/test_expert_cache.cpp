@@ -776,7 +776,7 @@ static void test_slab_allocator() {
     require(slab->status().reserved==0 && slab->status().requested==0 && slab->status().blocks==0,"empty slabs retained VRAM");
     require(slab->status().reuses>0 && slab->status().growth_denied==1,"slab reuse/growth counters incorrect");
     {
-        ExpertSlabAllocator tail(4*MiB,[](size_t n){return std::min(n,size_t(3*MiB));});
+        ExpertSlabAllocator tail(4*MiB,[=](size_t n){return std::min(n,size_t(3*MiB));});
         void *p=nullptr,*q=nullptr;cuda_ok(tail.allocate(&p,MiB+13));
         require(tail.status().partial_blocks==1 && tail.status().reserved==2*(MiB+256),"tail slab did not fit the physical allowance");
         cuda_ok(tail.allocate(&q,MiB+13));
@@ -801,6 +801,60 @@ static void test_slab_allocator() {
     held.release();stream.sync();
     require(slab->status().reserved==0,"retired final lease did not release slab");
     std::puts("PASS: mixed slab sizes/padding, guards, OOM, reuse, shrinking budget, outstanding lease and full physical release");
+}
+
+static void test_slab_compaction() {
+    constexpr size_t MiB=1ULL<<20,n=MiB+13;
+    Stream stream;
+    auto slab=std::make_shared<ExpertSlabAllocator>(4*MiB);
+    ExpertCache cache(32*MiB,ExpertCache::Admission{},
+        [slab](void **p,size_t bytes){return slab->allocate(p,bytes);},
+        [slab](void *p){return slab->release(p);});
+    std::vector<ExpertKey> keys;
+    for(int i=0;i<11;++i) {
+        auto k=key();k.generation+=i;k.bytes=i<9?n:2*MiB+17;keys.push_back(k);
+        {auto lease=load(cache,k,uint8_t(i+1),stream.value);}stream.sync();
+    }
+    for(int i:{0,3,6})require(cache.invalidate(keys[i].model,keys[i].generation)==1,"compaction fixture invalidation");
+    const auto before=slab->status();const auto accesses=cache.counters();const auto bytes=cache.resident_bytes();
+    bool called=false;
+    auto compact=[&](const auto &owners){called=true;slab->compact(owners,stream.value);};
+    auto held=load(cache,keys[1],0,stream.value);
+    require(!cache.relocate_idle(compact) && !called,"compaction moved a leased allocation");
+    held.release();stream.sync();
+    auto pins=cache.protect_plan({keys[2]});
+    require(!cache.relocate_idle(compact) && !called,"compaction moved a pinned allocation");
+    pins.release();
+    {
+        Gate gate(stream.value);
+        auto pending=load(cache,keys[2],0,stream.value);
+        cuda_ok(cudaLaunchHostFunc(stream.value,block,&gate));pending.release();
+        require(!cache.relocate_idle(compact) && !called && !gate.expired.load(),"compaction waited for/moved pending CUDA work");
+        gate.release.store(true);stream.sync();
+    }
+    bool rejected=false;
+    try {slab->compact({},stream.value);}catch(const std::invalid_argument &) {rejected=true;}
+    require(rejected && slab->status().reserved==before.reserved,"incomplete owners mutated slabs");
+    auto counts=cache.counters();
+    require(cache.relocate_idle(compact) && called,"idle compaction not called");
+    const auto after=slab->status();
+    require(after.reserved+3*(MiB+256)==before.reserved && after.blocks+1==before.blocks &&
+        after.moved_bytes==2*n && after.requested==before.requested && after.slot_bytes==before.slot_bytes,
+        "compaction did not free one fragmented block without changing payload");
+    require(cache.resident_bytes()==bytes && cache.counters().hits==counts.hits && cache.counters().misses==counts.misses &&
+        cache.counters().evictions==accesses.evictions,"compaction fabricated cache accesses or evictions");
+    for(int i=0;i<11;++i)if(i!=0 && i!=3 && i!=6) {
+        auto hit=load(cache,keys[i],0,stream.value);bytes_equal(hit,keys[i].bytes,uint8_t(i+1),stream);
+    }
+    stream.sync();
+    require(cache.relocate_idle(compact) && slab->status().compactions==1,"packed cache copied again");
+    // A retired lease is absent from entries but still owns an allocator slot.
+    auto retired=load(cache,keys[10],0,stream.value);cache.invalidate(keys[10].model,keys[10].generation);
+    called=false;require(!cache.relocate_idle(compact) && !called,"compaction ignored retired lease");
+    retired.release();stream.sync();
+    require(cache.relocate_idle(compact),"retired release did not allow compaction");
+    require(cache.set_budget(0) && slab->status().reserved==0,"compacted pointers not released correctly");
+    std::puts("PASS: slab compaction byte parity, no uploads/evictions, active/pending/retired ownership guards and full release");
 }
 
 static void test_separate_decay_periods() {
@@ -844,6 +898,7 @@ int main() {
         test_separate_decay_periods();
         test_warm_frequency_hints();
         test_slab_allocator();
+        test_slab_compaction();
         test_frequency_history();test_frequency_admission();test_frequency_mixed_sizes();test_frequency_pipeline_bypass();
         test_pending_events(true);
         test_plan_pins(false);test_plan_pins(true);test_pin_reload_and_teardown();

@@ -22,6 +22,7 @@ public:
     struct Status {
         size_t reserved=0,requested=0,slot_bytes=0,blocks=0;
         uint64_t allocations=0,block_allocations=0,reuses=0,growth_denied=0,partial_blocks=0;
+        uint64_t compactions=0,moved_bytes=0,released_bytes=0;
     };
 private:
     struct Block {
@@ -53,6 +54,70 @@ public:
     ExpertSlabAllocator(const ExpertSlabAllocator&)=delete;
     ExpertSlabAllocator &operator=(const ExpertSlabAllocator&)=delete;
     Status status() const {auto s=counts;s.blocks=blocks.size();return s;}
+    // Caller supplies every live allocation and proves that none has an active
+    // lease or queued CUDA consumer. Only existing holes are used: no new VRAM
+    // or RAM weight copies. Plan/validate first, copy, then publish new pointers.
+    void compact(const std::vector<std::pair<void **,size_t>> &allocations,cudaStream_t stream) {
+        auto check=[](cudaError_t e){if(e!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(e));};
+        check(device_check());
+        std::map<uintptr_t,std::pair<void **,size_t>> owners;
+        for(const auto &a:allocations)
+            if(!a.first || !*a.first || !owners.emplace(uintptr_t(*a.first),a).second)
+                throw std::invalid_argument("invalid/duplicate slab relocation owner");
+        struct Plan {Block *block;std::vector<size_t> requested,free;};
+        struct Move {void *from,*to;void **owner;size_t bytes;};
+        std::vector<Plan> plans;plans.reserve(blocks.size());
+        std::vector<Move> moves;
+        std::map<size_t,std::vector<size_t>> classes;
+        size_t live=0;
+        for(auto &item:blocks) {
+            auto &b=*item.second;
+            for(size_t i=0;i<b.requested.size();++i)if(b.requested[i]) {
+                const auto found=owners.find(item.first+i*b.stride);
+                if(found==owners.end() || found->second.second!=b.requested[i])
+                    throw std::invalid_argument("incomplete/mismatched slab relocation owners");
+                ++live;
+            }
+            classes[b.stride].push_back(plans.size());plans.push_back({&b,b.requested,b.free});
+            plans.back().free.reserve(b.requested.size()); // release() never needs to allocate.
+        }
+        if(live!=owners.size())throw std::invalid_argument("foreign slab relocation owner");
+        for(auto &group:classes) {
+            auto &indices=group.second;
+            std::sort(indices.begin(),indices.end(),[&](size_t a,size_t b) {
+                // Fullest blocks first; move survivors out of sparse tail blocks.
+                return plans[a].free.size()!=plans[b].free.size()?plans[a].free.size()<plans[b].free.size():a<b;
+            });
+            size_t left=0,right=indices.size();
+            while(left+1<right) {
+                auto &dst=plans[indices[left]],&src=plans[indices[right-1]];
+                if(dst.free.empty()) {++left;continue;}
+                if(src.free.size()==src.requested.size()) {--right;continue;}
+                size_t from=src.requested.size();while(!src.requested[--from]){}
+                const auto to=dst.free.back(),bytes=src.requested[from];dst.free.pop_back();
+                auto *old=static_cast<uint8_t *>(src.block->data)+from*src.block->stride;
+                auto *next=static_cast<uint8_t *>(dst.block->data)+to*dst.block->stride;
+                moves.push_back({old,next,owners.at(uintptr_t(old)).first,bytes});
+                src.requested[from]=0;src.free.push_back(from);dst.requested[to]=bytes;
+            }
+        }
+        if(moves.empty())return;
+        try {
+            for(const auto &m:moves)check(cudaMemcpyAsync(m.to,m.from,m.bytes,cudaMemcpyDeviceToDevice,stream));
+            check(cudaStreamSynchronize(stream));
+        }catch(...) {cudaStreamSynchronize(stream);throw;}
+        // All remaining host operations before block release are non-throwing.
+        for(auto &p:plans) {p.block->requested.swap(p.requested);p.block->free.swap(p.free);}
+        for(const auto &m:moves) {*m.owner=m.to;counts.moved_bytes+=m.bytes;}
+        ++counts.compactions;
+        for(auto it=blocks.begin();it!=blocks.end();) {
+            auto &b=*it->second;
+            if(b.free.size()==b.requested.size()) {
+                check(cudaFree(b.data));counts.reserved-=b.bytes;counts.released_bytes+=b.bytes;
+                it=blocks.erase(it);
+            }else ++it;
+        }
+    }
     cudaError_t allocate(void **out,size_t bytes) {
         if(!out)return cudaErrorInvalidValue;
         *out=nullptr;

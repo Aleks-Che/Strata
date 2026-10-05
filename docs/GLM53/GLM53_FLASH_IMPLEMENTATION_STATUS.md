@@ -14,18 +14,20 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `b0b1bba933e449fec2a7e8218330fe3cde4c14fd` + P3.3g в рабочем дереве; source/binary hashes и команды в HOST_VALIDATION |
-| Последняя выполненная работа | P3.3g: опциональный разовый RAM warmup с учётом GPU cache и диагностика резидентности; 21 поисковый + 24 финальных запроса, полные logits bit-exact, pipe/API. Повторный прогрев между запросами удалён; новый разовый режим оставлен выключенным |
-| Следующая задача | По запросу пользователя вернуться к MTP: повторить off/1/2/3 на slabs16, затем отдельно проверить draft cache-only catch-up и стоимость short-batch verify; внешний разбор ниже. Размещение CPU/GPU-копий, hard faults/I/O, P4, длинный контекст и причина единичного BF16 fixture failure остаются открыты |
-| Активная задача / исполнитель | Исследование внешних MTP-реализаций завершено / Codex; новые inference-тесты и перенос кода в этом исследовании не выполнялись |
+| Последняя проверенная ревизия Strata | `5e133826288bcf20b3548dd800e08dbee9c96d4e` + P5.3b/P3.3h в рабочем дереве; source/binary hashes и команды в COMPACTION_VALIDATION |
+| Последняя выполненная работа | P3.3h: native file reader для реального GLM, Windows paging/disk telemetry, idle GPU slab compaction; 59 benchmark responses, 35 CTest, 83 Python, 9 native pipe cases. Скорость не улучшилась устойчиво; новые опции выключены. В reader2 обнаружены большие задержки при малом дисковом I/O и множестве transition faults |
+| Следующая задача | Проверить CPU-копии GPU-resident весов и стоимость HARDWS maximum при targets95: working set находится около cap, pipeline read может занимать десятки секунд при малом disk I/O. Нужны process-only fault attribution и управляемое размещение CPU страниц; повторные RAM scans уже отклонены. Затем short-batch verify/MTP, P4 и длинный контекст |
+| Активная задача / исполнитель | Нет; P3.3h завершён / Codex |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
 | GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели. Локальный профиль: pipeline on, events2, MTP off, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned warmup и новый RAM warmup off; обновлён только backend patch identity. MTP cache ceiling 512 МиБ действует только при включении MTP |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | P3.3g: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off, greedy; pipeline + slabs16, global targets95. RAM warm0/1; native/API/logits отдельно с warm1 |
-| Измеренная скорость GLM / память | P3.3g на одной итоговой сборке: RAM warm0/1 — 11,244/11,436 ток/с после четырёх warmup; пять повторов, разница 1,71%. Полный warm-ответ 7,84/7,77 с. Медиана старта до READY 68,25/95,90 с. Общий выигрыш не подтверждён; новый режим локально выключен. Ранее P3.3e: 9,865 → 11,764 ток/с после slab allocator |
+| Последняя проверенная конфигурация запуска GLM | P3.3h: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off, greedy; mmap/native, readers1/2, compaction off/on, slabs16, targets95. Native seeded/cancel/recovery с compaction on проверены; F32/HTTP ранее в P5.3b |
+| Измеренная скорость GLM / память | P3.3h: повторяемый B native/mmap — 10,379/12,822 ток/с (4 warmup + 3 timed). Чередование A/B, 6 warmup + по 3 timed: контроль 9,450/10,022; compaction 8,539/9,137; reader2 7,535/2,487. Slab holes уменьшены, устойчивого ускорения нет. Defaults mmap/reader1/MTP off сохранены. Подробности в COMPACTION_BENCHMARK |
+
+Последний эксперимент без MTP: [P3.3h, чтение RAM и уплотнение кэша](GLM53_FLASH_COMPACTION.md).
 
 **Исследование MTP, 2026-10-05:** найдены опубликованные ускорения Unsloth,
 SparkLab и SGLang; прочитан новый llama.cpp PR #29928 и сопоставлен с локальным
@@ -33,6 +35,10 @@ SparkLab и SGLang; прочитан новый llama.cpp PR #29928 и сопо�
 суммы draft/verify/repair timers. Это разбор прежних логов до slabs16, не новый
 замер. Рабочий профиль MTP off сохранён. [Источники и порядок экспериментов](GLM53_FLASH_MTP_EXTERNAL_RESEARCH.md),
 [таймеры и SHA-256](GLM53_FLASH_MTP_EXTERNAL_RESEARCH.json).
+
+Последующее внедрение cache-only catch-up и новые измерения на этом ПК:
+[P5.3b](GLM53_FLASH_MTP_CACHE_ONLY.md). Устойчивого выигрыша для включения MTP
+по умолчанию не получено; подробности и ограничения записаны в отчёте.
 
 Дополнительно к перечисленным выше компонентам выполнены **P0.3b.1 и P2.1b.2**:
 [build record](GLM53_FLASH_CANDIDATE_BUILD.json),
@@ -3178,6 +3184,55 @@ logits bit-exact, 9 native pipe и 8 HTTP cases, cancel/recovery/unload, exit0.
 [pipe](GLM53_FLASH_HOST_PIPE.json), [HTTP](GLM53_FLASH_HOST_API.json),
 [manifest](GLM53_FLASH_HOST_VALIDATION.json).
 
+### P5.3b — 2026-10-05 — MTP catch-up без расчёта неиспользуемых выходов
+
+**Статус:** DONE для механизма; устойчивое ускорение MTP не подтверждено.
+Исполнитель: Codex. Ревизия `5e133826288bcf20b3548dd800e08dbee9c96d4e` + рабочие изменения.
+
+Перенесена идея cache-only catch-up/prefill из llama.cpp PR #29928.
+Сокращённый NextN-граф сохраняет MLA latent, indexer key/gate и completed
+pooled keys; query, attention output, FFN и LM head не выполняются.
+Генерация черновика сохраняет полный граф. Pin Unsloth прежний; модельный TU
+создаётся отдельно с проверкой SHA-256. `STRATA_GLM_MTP_CACHE_ONLY=0` возвращает
+прежний catch-up; default1 действует только при включённом MTP.
+
+**Проверки:** 22/22 candidate CTest, 83 Python; дополнительно повторён новый
+cache-state CTest после уточнения build dependencies, основной exe не изменился.
+90 synthetic state comparisons и последующие draft logits/hidden — bit-exact,
+включая sparse pooling и rollback. Полный IQ3_XXS: сохранённые 9 912 320 F32
+logits, MTP1/2/3, forced rejection, seeded sample-and-match и recovery совпали
+бит-в-бит. 9 native pipe и 8 HTTP cases прошли с новым MTP1, включая
+OpenAI/Anthropic JSON/SSE, cancel/disconnect/recovery/unload. Exit0, тестовый
+сервер остановлен. HTTP validator получил явные timeout options для медленного
+первого ответа; рабочие defaults не менялись.
+
+**Скорость:** 49 запросов sweep + 39 повторных + 26 на другом prompt; все
+114 ответов совпали с references. На повторе A (39 prompt + 64 generated,
+восемь warmup, пять timed) off/full MTP1/cache-only MTP1 дали
+**11,002 / 11,191 / 11,363 ток/с**. Repair: **154,67 → 17,43 мс**, но общая
+прибавка к прежнему MTP1 лишь 1,54%. Полный warm-ответ нового MTP1 быстрее off
+на 1,15%. На кодовом B (49 + 64) off/new MTP1 дали **8,799 / 8,333 ток/с**;
+сильный разброс сопровождается задержками подготовки весов. При H2D
+86,5–89,4 ГиБ время чтения рабочих потоков отличалось 7,33–78,69 с за запрос.
+Это не отдельное измерение дискового I/O. Стенд: Windows / 9950X / RTX5090
+32 ГиБ / RAM128 ГиБ, ctx2048/batch16/threads4, pipeline/slabs16, targets95.
+
+**Решение:** рабочий MTP off сохранён; cache-only включён для ручного MTP.
+Обновлён backend patch identity. Проверка заголовка Unsloth UD-IQ1_S показала,
+что её MTP routed experts тоже Q2_K/Q3_K; замена блока сэкономит лишь 17,984 МиБ.
+Полная IQ1-модель и отдельный Q4_K MTP не скачивались.
+
+**Осталось:** разделить CPU-подготовку, H2D, kernels и hard/soft faults,
+проверить размещение CPU/GPU-копий; затем short-batch verify. Реальный длинный
+контекст, P4 reuse, Linux/HIP и полные Qwen/DeepSeek в этой работе не проверялись.
+
+**Артефакты:** [реализация и ограничения](GLM53_FLASH_MTP_CACHE_ONLY.md),
+[benchmark](GLM53_FLASH_MTP_CACHE_ONLY_BENCHMARK.json),
+[точность](GLM53_FLASH_MTP_CACHE_ONLY_CHECK.json),
+[pipe](GLM53_FLASH_MTP_CACHE_ONLY_PIPE.json), [HTTP](GLM53_FLASH_MTP_CACHE_ONLY_API.json),
+[manifest](GLM53_FLASH_MTP_CACHE_ONLY_VALIDATION.json),
+[проверка IQ1 MTP](GLM53_FLASH_MTP_IQ1_HEADER_CHECK.json).
+
 ## Шаблон следующей записи
 
 Скопировать блок в подтверждённый журнал, убрать угловые скобки и заполнить только
@@ -3212,3 +3267,33 @@ logits bit-exact, 9 native pipe и 8 HTTP cases, cancel/recovery/unload, exit0.
 Эту формулировку можно использовать только если перечисленные проверки действительно
 выполнены и указанный JSON сохранён. Одного успешного запуска на полной модели
 недостаточно для утверждения о проверке ошибочных файлов.
+
+### P3.3h — 2026-10-05 — Чтение RAM, Windows faults и уплотнение GPU slabs
+
+**Статус:** DONE для опциональных механизмов и измерений; ускорения defaults нет.
+Исполнитель: Codex. Ревизия `5e133826288bcf20b3548dd800e08dbee9c96d4e` + рабочие изменения.
+
+Подключены реальные mappings GLM к общему native reader с hash-guard loader patch.
+Добавлены отдельные file/mmap byte counters, опциональные системные PDH counters,
+чередование saved prompts в benchmark. Idle compaction переносит веса внутри
+существующих slabs, освобождает пустые блоки и сохраняет cache metadata; lease,
+pin, retired owner или незавершённое CUDA событие запрещают перенос.
+
+Пилоты native/mmap на B дали 10,379/12,822 ток/с. Итоговое чередование A/B на
+одной сборке: контроль 9,450/10,022, compaction 8,539/9,137, reader2 7,535/2,487.
+На A медиана пустых GPU slots уменьшена с 461 до 44 МиБ, но скорость не выросла.
+При reader2 зарегистрированы десятки секунд read time, миллионы transition
+faults и малое дисковое I/O; требуется дальнейшая атрибуция процессу/working-set cap.
+Ни reader2, ни compaction, ни native read не включены по умолчанию.
+
+**Проверки:** 59 benchmark responses совпали с references; 22 candidate +
+13 transport CTest, 83 Python, 9 native pipe cases с compaction on, seeded repeat,
+cancel/recovery и exit0. В pipe log три уплотнения, 74,0623 мс суммарно, без
+пропусков. Полные F32 logits/HTTP не повторялись; граф/арифметика не изменены.
+Linux/HIP, длинный контекст и полные Qwen/DeepSeek не проверены. Все собственные
+процессы завершены; после проверки GPU 1966 МиБ, utilization0.
+
+**Результаты:** [описание](GLM53_FLASH_COMPACTION.md),
+[benchmark](GLM53_FLASH_COMPACTION_BENCHMARK.json),
+[pipe](GLM53_FLASH_COMPACTION_PIPE.json),
+[manifest](GLM53_FLASH_COMPACTION_VALIDATION.json).

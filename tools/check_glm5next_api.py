@@ -6,6 +6,7 @@ The child runs the normal server main; stdin QUIT triggers its Ctrl+C cleanup.
 import argparse
 import http.client
 import json
+import math
 import os
 from pathlib import Path
 import socket
@@ -36,13 +37,18 @@ def main():
     ap.add_argument('--reference',type=Path,required=True)
     ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--port',type=int,default=8081)
+    ap.add_argument('--startup-timeout',type=float,default=120,help='seconds allowed for cold model startup')
+    ap.add_argument('--request-timeout',type=float,default=240,help='HTTP socket timeout in seconds for cold model requests')
     a=ap.parse_args()
+    if any(not math.isfinite(t) or t<=0 for t in (a.startup_timeout,a.request_timeout)):
+        ap.error('timeouts must be positive and finite')
     # Never send test messages to a pre-existing local server.
     with socket.socket() as probe: probe.bind(('127.0.0.1',a.port))
     reference=json.loads(a.reference.read_text(encoding='utf-8'))
     expected=reference['output_text'].split('</think>',1)[1]
-    report={'status':'error','cases':[],'profile':str(a.profile.resolve())}
-    def connect(): return http.client.HTTPConnection('127.0.0.1',a.port,timeout=240)
+    report={'status':'error','cases':[],'profile':str(a.profile.resolve()),
+            'startup_timeout_seconds':a.startup_timeout,'request_timeout_seconds':a.request_timeout}
+    def connect(): return http.client.HTTPConnection('127.0.0.1',a.port,timeout=a.request_timeout)
     def request(path,payload=None):
         c=connect()
         try:
@@ -74,7 +80,7 @@ def main():
                 assert p.poll() is None,'server exited during startup'
                 try: return json.loads(request('/health')).get('status')=='ok'
                 except OSError: return False
-            wait_for(ready,120)
+            wait_for(ready,a.startup_timeout)
             report['models']=json.loads(request('/v1/models'))
             metrics=json.loads(request('/metrics')); report['engine']=metrics['engine']
             assert report['engine']['architecture']=='glm5next' and report['engine']['gpu_only']==1

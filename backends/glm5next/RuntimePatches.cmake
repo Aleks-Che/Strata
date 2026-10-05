@@ -42,6 +42,26 @@ ${wait_before}
     string(REPLACE "                    // try async copy, but if not possible,"
       "                    if (strata_glm_sync_active && ggml_backend_buffer_is_host(input->buffer) &&\n                        ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&\n                        strstr(input->name, \"_exps.weight\")) {\n                        GGML_LOG_ERROR(\"STRATA_GLM refusing full expert tensor copy: %s\\n\", input->name);\n                        return GGML_STATUS_FAILED;\n                    }\n                    // try async copy, but if not possible,"
       source_text "${source_text}")
+  elseif(relative STREQUAL "src/llama-mmap.cpp")
+    # Register the exact offset-zero mapping/descriptor, including split GGUFs.
+    # A reopened handle belongs to each queued read; the model owns the view.
+    string(PREPEND source_text "#include \"../common/expert_file.hpp\"\n")
+    set(map_anchor "        if (prefetch > 0) {\n#if _WIN32_WINNT >= 0x602")
+    string(FIND "${source_text}" "${map_anchor}" map_found)
+    if(map_found EQUAL -1)
+      message(FATAL_ERROR "GLM Windows mapping registration boundary not found")
+    endif()
+    string(REPLACE "${map_anchor}" "        try {
+            strata_expert_file::add(addr, size, file->file_id());
+        } catch (...) {
+            UnmapViewOfFile(addr);
+            CloseHandle(hMapping);
+            throw;
+        }
+
+${map_anchor}" source_text "${source_text}")
+    string(REPLACE "            if (addr) {\n                if (!UnmapViewOfFile(addr)) {"
+      "            if (addr) {\n                strata_expert_file::remove(addr);\n                if (!UnmapViewOfFile(addr)) {" source_text "${source_text}")
   else()
     string(REPLACE "const size_t prefetch_size = prefetch && use_mmap ? -1 : 0;"
       "const size_t prefetch_size = 0; // Strata: fault expert ranges only on demand."
@@ -68,10 +88,13 @@ ${wait_before}
   get_filename_component(original_dir "${original}" DIRECTORY)
   set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
     INCLUDE_DIRECTORIES "${original_dir};${CMAKE_CURRENT_SOURCE_DIR}"
-    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc")
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
 endfunction()
 glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)
 glm_runtime_source(llama src/llama-model-loader.cpp
   5ef07476310d4678df18a61a6ec0a1ebcbb58c7534ac3c624b9fe0f315a4ab01 strata-glm-loader.cpp)
+glm_runtime_source(llama src/llama-mmap.cpp
+  3ca6869dfccbdbbafad0802e1a3d7db52174347d36174a982c1a662d7034b9c6 strata-glm-mmap.cpp)
 string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages")
+string(APPEND glm_candidate_patches ",optional-native-expert-reads,optional-idle-slab-compaction")

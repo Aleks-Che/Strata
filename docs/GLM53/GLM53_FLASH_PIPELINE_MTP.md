@@ -510,6 +510,7 @@ engine/server завершились с exit0.
 | `--expert-chunk-mib 1..16` | Размер каждого из четырёх pinned/device slots |
 | `--mtp 0..3` | Off / число native draft-токенов |
 | `--mtp-cache-mib 0..32768` | MTP ceiling внутри общего VRAM budget; 0 означает bypass |
+| `STRATA_GLM_MTP_CACHE_ONLY=0/1` | Полный / сокращённый проход при заполнении draft-кэша; без переменной 1. Обычный draft сохраняет полный расчёт; [реализация и проверки](GLM53_FLASH_MTP_CACHE_ONLY.md) |
 | `STRATA_GLM_COPY_EVENTS=0/1/2` | Host waits / events на диапазон / events на матрицу; локальный профиль использует 2 |
 | `STRATA_GLM_DECODE_READERS=1..4` | Число потоков подготовки экспертов при decode; без переменной 1, prefill использует max(2, decode readers) |
 | `STRATA_GLM_WRITE_COMBINED=0/1` | Обычный / write-combined pinned ring; без переменной 0, объём ring не меняется |
@@ -543,3 +544,10 @@ Qwen/DeepSeek модели в этой работе не проверялись.
 `index_share_for_mtp_iteration=true` (проверено 2026-10-04). Выбранный кандидат
 пересчитывает draft indexer; повторное использование его выборки между draft
 итерациями остаётся отдельной оптимизацией. Наличие флага не объявляется её реализацией.
+
+## Чтение RAM и уплотнение кэша, 2026-10-05
+
+Следующий эксперимент без MTP: [P3.3h](GLM53_FLASH_COMPACTION.md).
+Native read, idle slab compaction и два decode readers проверены на IQ3_XXS;
+новые опции оставлены выключенными, mmap/reader1 сохранены. Добавлены Windows
+page/disk counters: задержки подготовки весов возникают и при малом дисковом I/O.

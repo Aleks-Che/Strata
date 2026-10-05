@@ -418,6 +418,13 @@ result работают через оба API; токены и шаблон со
     выигрыш не подтверждён; новый режим выключен. Повторный scan и VirtualUnlock
     отклонены. 20 candidate CTest, 83 Python, полные logits bit-exact,
     9 native pipe / 8 HTTP cases. [Ограничения](GLM53_FLASH_HOST_VALIDATION.json).
+  - [x] P3.3h: реальные GLM mappings подключены к native file reader; добавлены
+    системные paging/disk counters и уплотнение idle GPU slabs без новых VRAM
+    allocations или чтения RAM. 59 ответов по двум references, 22 candidate /
+    13 transport CTest, 83 Python, 9 native pipe cases. Ни native read, ни
+    compaction, ни reader2 не дали устойчивого ускорения; defaults сохранены.
+    Выявлены большие задержки подготовки весов при малом дисковом I/O и большом
+    числе transition faults. [Измерения и ограничения](GLM53_FLASH_COMPACTION.md).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить
@@ -532,9 +539,11 @@ result работают через оба API; токены и шаблон со
 
 В локальном `blk.45` есть NextN projection/norms, DSA и MoE. Использовать их;
 DSpark DeepSeek не совместим с hidden states и архитектурой GLM.
-Upstream MTP PR на дату исследования имеет статус Draft и добавляет отдельную
-ветку draft-mtp, включая повторное использование индексатора между draft-итерациями.
-[PR #27917](https://github.com/ggml-org/llama.cpp/pull/27917).
+Исходная upstream-ссылка — [PR #27917](https://github.com/ggml-org/llama.cpp/pull/27917).
+На 2026-10-05 изучен заменяющий его [PR #29928](https://github.com/ggml-org/llama.cpp/pull/29928);
+источники, ограничения и сопоставление с нашей веткой сохранены в
+[исследовании](GLM53_FLASH_MTP_EXTERNAL_RESEARCH.md). Обновление pin и MTP index
+sharing не входят в перенос сокращённого catch-up.
 
 - [ ] Подключить MTP выбранной совместимой ветки с проверкой feature tensors,
   общим embedding/output там, где это предусмотрено моделью, и без дублирования
@@ -564,6 +573,13 @@ Upstream MTP PR на дату исследования имеет статус D
     длины подключены. Forced first/middle/all, seeded sampling, отмена/clean next
     прошли на полном GGUF; stop branches отдельно проверены на native fixture.
     Сохранение сессий и real tool-call/EOS coverage остаются отдельными проверками.
+  - [x] P5.3b: catch-up/prefill черновика заполняют MLA/indexer/pooled-key cache
+    без неиспользуемых attention/FFN/logits. Прежний путь доступен через
+    `STRATA_GLM_MTP_CACHE_ONLY=0`. 90 synthetic state comparisons и следующие
+    draft logits/hidden совпали бит-в-бит; full GGUF MTP1/2/3, forced rejection,
+    seeded sampling и recovery также сохранили logits. 114 benchmark responses,
+    9 pipe и 8 HTTP cases прошли. Устойчивое общее ускорение не подтверждено,
+    рабочий MTP off сохранён. [Проверки и замеры](GLM53_FLASH_MTP_CACHE_ONLY.md).
 - [ ] Реализовать откат всех ветвей состояния на точное число принятых токенов,
   включая KDA и pooled indexer. Проверить reject-first, reject-middle, accept-all,
   отмену раунда и сохранение сессии после каждого случая.

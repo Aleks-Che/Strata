@@ -30,6 +30,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--profile', type=Path, required=True)
     ap.add_argument('--reference', type=Path, required=True)
+    ap.add_argument('--second-reference', type=Path, help='Alternate requests with a second saved prompt/continuation')
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--depths', default='0,1,2,3')
     ap.add_argument('--repeats', type=int, default=3)
@@ -38,11 +39,15 @@ def main():
     ap.add_argument('--chunk-mib', type=int, default=4)
     ap.add_argument('--copy-events', type=int, choices=(0, 1, 2), help='0: host waits; 1: events per range; 2: events per tensor')
     ap.add_argument('--decode-readers', type=int, choices=(1, 2, 3, 4))
+    ap.add_argument('--read-mode', type=int, choices=(0, 1, 2), help='0 mmap; 1 native cached reads; 2 native cold prefill')
+    ap.add_argument('--paging-counters', action='store_true', help='Windows machine-wide paging/disk deltas per request')
     ap.add_argument('--write-combined', type=int, choices=(0, 1))
     ap.add_argument('--main-cache-decay', type=int)
     ap.add_argument('--pool-reclaim', type=int, choices=(0, 1))
     ap.add_argument('--memory-pool', type=int, choices=(0, 1))
     ap.add_argument('--cache-slab-mib', type=int, help='0 disables packed cache; otherwise 4..256 MiB per slab')
+    ap.add_argument('--cache-compact', type=int, choices=(0, 1), help='Compact idle expert slabs between requests')
+    ap.add_argument('--cache-only', type=int, choices=(0, 1), help='MTP catch-up: full control / cache-only graph')
     a = ap.parse_args()
     depths = [int(x) for x in a.depths.split(',')]
     if a.repeats < 2 or a.warmups < 1 or not depths or any(x not in range(4) for x in depths):
@@ -52,14 +57,22 @@ def main():
     if a.cache_slab_mib is not None and a.cache_slab_mib != 0 and not 4 <= a.cache_slab_mib <= 256:
         ap.error('cache slab must be 0 or 4..256 MiB')
     cfg = json.loads(a.profile.read_text(encoding='utf-8'))
+    paging = None
+    if a.paging_counters:
+        from tools.windows_memory_counters import PagingCounters
+        paging = PagingCounters()
+        paging.sample()  # Fail before loading the model if PDH is unavailable.
     reference = json.loads(a.reference.read_text(encoding='utf-8'))
-    ids, expected = reference['prompt_ids'], reference['generated_ids']
+    references = [reference]
+    if a.second_reference:
+        references.append(json.loads(a.second_reference.read_text(encoding='utf-8')))
     a.output.parent.mkdir(parents=True, exist_ok=True)
     report = {'status': 'running', 'configuration': cfg, 'reference': str(a.reference.resolve()),
               'binary_sha256': hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest(),
               'warmup_requests': a.warmups, 'timed_requests': a.repeats,
               'timing': '(output tokens - 1) * 1000 / DONE.decode_ms; excludes load/warmup/prefill, includes target sampling, draft, verify, repair and pipe writes',
-              'scope': 'one saved prompt, sequential engines, OS file cache not cleared', 'variants': []}
+              'second_reference': str(a.second_reference.resolve()) if a.second_reference else None,
+              'scope': 'saved prompts in round-robin order, sequential engines, OS file cache not cleared', 'variants': []}
     def save():
         a.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     save()
@@ -68,11 +81,14 @@ def main():
         variant['env'] = dict(cfg.get('env') or {})
         for name, value in (('STRATA_GLM_COPY_EVENTS', a.copy_events),
                             ('STRATA_GLM_DECODE_READERS', a.decode_readers),
+                            ('STRATA_GLM_EXPERT_READ_MODE', a.read_mode),
                             ('STRATA_GLM_WRITE_COMBINED', a.write_combined),
                             ('STRATA_GLM_MAIN_CACHE_DECAY', a.main_cache_decay),
                             ('STRATA_GLM_POOL_RECLAIM', a.pool_reclaim),
                             ('STRATA_GLM_MEMORY_POOL', a.memory_pool),
-                            ('STRATA_GLM_CACHE_SLAB_MIB', a.cache_slab_mib)):
+                            ('STRATA_GLM_CACHE_SLAB_MIB', a.cache_slab_mib),
+                            ('STRATA_GLM_CACHE_COMPACT', a.cache_compact),
+                            ('STRATA_GLM_MTP_CACHE_ONLY', a.cache_only)):
             if value is not None:
                 variant['env'][name] = str(value)
         for flag, value in (('--expert-pipeline', 1), ('--expert-chunk-mib', a.chunk_mib),
@@ -94,6 +110,8 @@ def main():
                 assert engine.info['expert_copy_events'] == a.copy_events
             if a.decode_readers is not None:
                 assert engine.info['expert_decode_readers'] == a.decode_readers
+            if a.read_mode is not None:
+                assert engine.info['expert_read_mode'] == ('mmap', 'native', 'auto')[a.read_mode]
             if a.write_combined is not None:
                 assert engine.info['expert_write_combined'] == a.write_combined
             if a.main_cache_decay is not None:
@@ -104,12 +122,28 @@ def main():
                 assert engine.info['expert_memory_pool'] == a.memory_pool
             if a.cache_slab_mib is not None:
                 assert engine.info['expert_cache_slab_mib'] == a.cache_slab_mib
+            if a.cache_compact is not None:
+                assert engine.info['expert_cache_compact'] == a.cache_compact
+            if a.cache_only is not None:
+                assert engine.info['mtp_cache_only'] == (a.cache_only if depth else 0)
             for i in range(a.repeats + a.warmups):
-                tokens = [t for t in engine.generate(ids, len(expected), {'temperature': 0}, threading.Event()) if t is not None]
+                ref = references[i % len(references)]
+                ids, expected = ref['prompt_ids'], ref['generated_ids']
+                paging_before = paging.sample() if paging else None
+                start = time.perf_counter(); first = None; tokens = []
+                for token in engine.generate(ids, len(expected), {'temperature': 0}, threading.Event()):
+                    if token is not None:
+                        if first is None:
+                            first = time.perf_counter() - start
+                        tokens.append(token)
+                wall = time.perf_counter() - start
                 done = dict(engine.last)
                 assert done['finish'] == 'length' and len(tokens) == len(expected), done
-                run = {'warmup': i < a.warmups, 'tokens': tokens, 'equals_reference': tokens == expected, 'done': done,
+                run = {'warmup': i < a.warmups, 'prompt_index': i % len(references), 'tokens': tokens, 'equals_reference': tokens == expected, 'done': done,
+                       'first_token_seconds': first, 'request_wall_seconds': wall,
                        'tokens_per_second': (len(tokens) - 1) * 1000 / done['decode_ms']}
+                if paging:
+                    run['system_paging_delta'] = paging.difference(paging_before, paging.sample())
                 result['runs'].append(run)
                 print(f"MTP {depth}, run {i}: {run['tokens_per_second']:.3f} tok/s, reference={run['equals_reference']}", flush=True)
                 save()
@@ -132,6 +166,8 @@ def main():
     report['fastest_matching_depth'] = max(valid, key=lambda v: v['median_tokens_per_second'])['depth'] if valid else None
     report['status'] = 'pass' if len(valid) == len(depths) else 'incomplete_or_mismatch'
     save()
+    if paging:
+        paging.close()
     return 0 if report['status'] == 'pass' else 1
 
 

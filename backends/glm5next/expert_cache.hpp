@@ -245,6 +245,22 @@ public:
     size_t size() const {return entries.size();}
     Counters counters() const {return counts;}
     size_t history_size() const {return (frequency?frequency->size():0)+(mtp_frequency?mtp_frequency->size():0);}
+    // The allocator may relocate completed, unshared entries synchronously.
+    // Reject the entire operation if a lease/pin, retired allocation or CUDA
+    // consumer still owns an address. No waits, eviction or frequency changes.
+    // Callback must leave stored pointers valid on failure and finish all copies
+    // before updating the supplied pointer slots. One cache host owner only.
+    template<class Relocate> bool relocate_idle(Relocate relocate) {
+        device_check();size_t current=0;
+        std::vector<std::pair<void **,size_t>> allocations;allocations.reserve(entries.size());
+        for(auto &item:entries) {
+            auto &entry=item.second.entry;
+            if(entry.use_count()!=1 || !entry->idle())return false;
+            current+=entry->bytes;allocations.push_back({&entry->data,entry->bytes});
+        }
+        if(current!=accounting->bytes)return false; // Retired leases/pins.
+        relocate(allocations);return true;
+    }
     std::vector<std::pair<ExpertKey,unsigned>> warm_entries() const {
         device_check();std::vector<std::pair<ExpertKey,unsigned>> result;
         for(const auto &item:entries) {
