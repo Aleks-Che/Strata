@@ -1,0 +1,390 @@
+{
+  "status": "pass",
+  "scope": "synthetic Step resident/native-selected/pinned-selected byte and logit parity",
+  "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "patch_set": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand",
+  "case_count": 27,
+  "cases": [
+    {
+      "name": "f32/kv=f32/batch=1/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f32/batch=1/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 339738624,
+        "h2d_bytes": 339738624,
+        "ranges": 162,
+        "chunks": 162,
+        "staging_bytes": 16777216,
+        "compute_calls": 27,
+        "gpu_nodes": 3834,
+        "expert_nodes": 162,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 12.462099999999992,
+        "h2d_ms": 9.616600000000007
+      },
+      "verified_gpu_bytes": 339738624
+    },
+    {
+      "name": "f32/kv=f32/batch=4/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f32/batch=4/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 163577856,
+        "h2d_bytes": 163577856,
+        "ranges": 78,
+        "chunks": 78,
+        "staging_bytes": 16777216,
+        "compute_calls": 13,
+        "gpu_nodes": 1846,
+        "expert_nodes": 78,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 5.959299999999998,
+        "h2d_ms": 4.2235000000000005
+      },
+      "verified_gpu_bytes": 163577856
+    },
+    {
+      "name": "f32/kv=f32/batch=17/native_vs_resident",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f32/batch=17/pinned_vs_native",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 499384320,
+        "h2d_bytes": 499384320,
+        "ranges": 234,
+        "chunks": 234,
+        "staging_bytes": 16777216,
+        "compute_calls": 39,
+        "gpu_nodes": 5538,
+        "expert_nodes": 234,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 18.315799999999996,
+        "h2d_ms": 13.699499999999992
+      },
+      "verified_gpu_bytes": 499384320
+    },
+    {
+      "name": "f32/kv=f16/batch=1/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f16/batch=1/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 339738624,
+        "h2d_bytes": 339738624,
+        "ranges": 162,
+        "chunks": 162,
+        "staging_bytes": 16777216,
+        "compute_calls": 27,
+        "gpu_nodes": 3834,
+        "expert_nodes": 162,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 12.169799999999999,
+        "h2d_ms": 9.552
+      },
+      "verified_gpu_bytes": 339738624
+    },
+    {
+      "name": "f32/kv=f16/batch=4/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f16/batch=4/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 163577856,
+        "h2d_bytes": 163577856,
+        "ranges": 78,
+        "chunks": 78,
+        "staging_bytes": 16777216,
+        "compute_calls": 13,
+        "gpu_nodes": 1846,
+        "expert_nodes": 78,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 5.8221000000000025,
+        "h2d_ms": 4.5256
+      },
+      "verified_gpu_bytes": 163577856
+    },
+    {
+      "name": "f32/kv=f16/batch=17/native_vs_resident",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "f32/kv=f16/batch=17/pinned_vs_native",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 499384320,
+        "h2d_bytes": 499384320,
+        "ranges": 234,
+        "chunks": 234,
+        "staging_bytes": 16777216,
+        "compute_calls": 39,
+        "gpu_nodes": 5538,
+        "expert_nodes": 234,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 18.470200000000002,
+        "h2d_ms": 13.433400000000006
+      },
+      "verified_gpu_bytes": 499384320
+    },
+    {
+      "name": "mixed/kv=f32/batch=1/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f32/batch=1/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 47775744,
+        "h2d_bytes": 47775744,
+        "ranges": 162,
+        "chunks": 162,
+        "staging_bytes": 16777216,
+        "compute_calls": 27,
+        "gpu_nodes": 3834,
+        "expert_nodes": 162,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 0.6742,
+        "h2d_ms": 6.293800000000003
+      },
+      "verified_gpu_bytes": 47775744
+    },
+    {
+      "name": "mixed/kv=f32/batch=4/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f32/batch=4/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 23003136,
+        "h2d_bytes": 23003136,
+        "ranges": 78,
+        "chunks": 78,
+        "staging_bytes": 16777216,
+        "compute_calls": 13,
+        "gpu_nodes": 1846,
+        "expert_nodes": 78,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 0.36990000000000006,
+        "h2d_ms": 2.3353000000000006
+      },
+      "verified_gpu_bytes": 23003136
+    },
+    {
+      "name": "mixed/kv=f32/batch=17/native_vs_resident",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f32/batch=17/pinned_vs_native",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 70225920,
+        "h2d_bytes": 70225920,
+        "ranges": 234,
+        "chunks": 234,
+        "staging_bytes": 16777216,
+        "compute_calls": 39,
+        "gpu_nodes": 5538,
+        "expert_nodes": 234,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 1.0665999999999984,
+        "h2d_ms": 8.274499999999998
+      },
+      "verified_gpu_bytes": 70225920
+    },
+    {
+      "name": "mixed/kv=f16/batch=1/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f16/batch=1/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 47775744,
+        "h2d_bytes": 47775744,
+        "ranges": 162,
+        "chunks": 162,
+        "staging_bytes": 16777216,
+        "compute_calls": 27,
+        "gpu_nodes": 3834,
+        "expert_nodes": 162,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 0.6876999999999996,
+        "h2d_ms": 6.286700000000003
+      },
+      "verified_gpu_bytes": 47775744
+    },
+    {
+      "name": "mixed/kv=f16/batch=4/native_vs_resident",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f16/batch=4/pinned_vs_native",
+      "pass": true,
+      "elements": 1728,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 23003136,
+        "h2d_bytes": 23003136,
+        "ranges": 78,
+        "chunks": 78,
+        "staging_bytes": 16777216,
+        "compute_calls": 13,
+        "gpu_nodes": 1846,
+        "expert_nodes": 78,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 0.3636000000000004,
+        "h2d_ms": 2.666200000000001
+      },
+      "verified_gpu_bytes": 23003136
+    },
+    {
+      "name": "mixed/kv=f16/batch=17/native_vs_resident",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "mixed/kv=f16/batch=17/pinned_vs_native",
+      "pass": true,
+      "elements": 33344,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 70225920,
+        "h2d_bytes": 70225920,
+        "ranges": 234,
+        "chunks": 234,
+        "staging_bytes": 16777216,
+        "compute_calls": 39,
+        "gpu_nodes": 5538,
+        "expert_nodes": 234,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 1.0590999999999993,
+        "h2d_ms": 8.431299999999998
+      },
+      "verified_gpu_bytes": 70225920
+    },
+    {
+      "name": "wide_f32/kv=f32/batch=1/native_vs_resident",
+      "pass": true,
+      "elements": 576,
+      "max_abs": 0.0,
+      "bit_exact_required": true
+    },
+    {
+      "name": "wide_f32/kv=f32/batch=1/pinned_vs_native",
+      "pass": true,
+      "elements": 576,
+      "max_abs": 0.0,
+      "bit_exact_required": true,
+      "transport": {
+        "source_bytes": 1019215872,
+        "h2d_bytes": 1019215872,
+        "ranges": 54,
+        "chunks": 108,
+        "staging_bytes": 16777216,
+        "compute_calls": 9,
+        "gpu_nodes": 1278,
+        "expert_nodes": 54,
+        "rejected_cpu_nodes": 0,
+        "rejected_full_copies": 0,
+        "source_ms": 42.84149999999999,
+        "h2d_ms": 20.570600000000006
+      },
+      "verified_gpu_bytes": 1019215872
+    },
+    {
+      "name": "reject_cpu_embedding_before_compute",
+      "pass": true
+    }
+  ]
+}

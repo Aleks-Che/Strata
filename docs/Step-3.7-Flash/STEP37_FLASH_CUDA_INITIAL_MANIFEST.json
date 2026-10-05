@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "scope": "first unpatched run, 75 completed cases before unsupported padded sigmoid; not a pass",
+  "source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=none\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\nmmf_original_sha256=\nmmf_generated_sha256=\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_version=13.0.48\ncuda_architectures=120a\nkernel_check_enabled=ON\nscope=isolated vocabulary oracle and optional matrix/router fixtures, not a Strata inference engine\n",
+  "source_sha256": {
+    "backends/step35/check_kernels.cpp": "cad51540e4a4d20aa676ba9d43fa556b9c1452eb32c616dc55c53c69b4ed37d6",
+    "backends/step35/CMakeLists.txt": "6640a74c08ab76e4ccb1cdbd668c33d3d0bf3d7713d780f61bb97b9d2eebb523"
+  },
+  "binary_sha256": "74026b2d047838628c94cc29c17442d12558f1f1dc1c00f259a2c41fda0e24d4"
+}

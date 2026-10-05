@@ -1,0 +1,79 @@
+{
+  "status": "pass",
+  "scope": "real CUDA ring wrap, tail guards, plan mismatch and cancellation/restart",
+  "case_count": 18,
+  "cases": [
+    {
+      "name": "readers=1/chunk=4/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=4/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=4/cancel_restart_fresh_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=4/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=4/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=4/cancel_restart_fresh_source",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=8/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=8/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=8/cancel_restart_fresh_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=8/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=8/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=8/cancel_restart_fresh_source",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=16/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=16/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=1/chunk=16/cancel_restart_fresh_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=16/tail_guard_parity",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=16/reject_mismatched_source",
+      "pass": true
+    },
+    {
+      "name": "readers=2/chunk=16/cancel_restart_fresh_source",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,428 @@
+{
+  "runs": [
+    {
+      "readers": 0,
+      "chunk_mib": 8,
+      "decode_tokens_per_second_A_B_A_B": [
+        4.453963114529676,
+        4.813280058769373,
+        6.3622385918219635,
+        5.923101516778982
+      ],
+      "prefill_ms_A_B_A_B": [
+        16417.3818,
+        4878.4687,
+        4098.319,
+        4114.7386
+      ],
+      "cache_resident_bytes_A_B_A_B": [
+        10713759744,
+        10532683776,
+        10650255360,
+        10656546816
+      ],
+      "decode_hit_fraction_A_B_A_B": [
+        0.6387952979934112,
+        0.46024904214559387,
+        0.584681042228212,
+        0.5031928480204342
+      ],
+      "pipeline_consumer_wait_us_A_B_A_B": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pipeline_slot_wait_us_A_B_A_B": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sampled_global_gpu_used_bytes": 31786532864,
+      "sampled_global_ram_used_bytes": 115208929280,
+      "process_peak_working_set_bytes": 74528948224,
+      "controller_last_samples_max_gpu_total_minus_free_bytes": 32210751488
+    },
+    {
+      "readers": 1,
+      "chunk_mib": 8,
+      "decode_tokens_per_second_A_B_A_B": [
+        5.71432144804787,
+        6.2166257410235755,
+        8.289040273177994,
+        6.826292962853832
+      ],
+      "prefill_ms_A_B_A_B": [
+        10737.9106,
+        3800.2229,
+        2781.9523,
+        2605.2103
+      ],
+      "cache_resident_bytes_A_B_A_B": [
+        10599137280,
+        10596122624,
+        10581245952,
+        10575151104
+      ],
+      "decode_hit_fraction_A_B_A_B": [
+        0.636942198262953,
+        0.4403963692756796,
+        0.5824910152740341,
+        0.501311348294107
+      ],
+      "pipeline_consumer_wait_us_A_B_A_B": [
+        3584835,
+        2758101,
+        303098,
+        560548
+      ],
+      "pipeline_slot_wait_us_A_B_A_B": [
+        246049,
+        1138358,
+        901076,
+        1586378
+      ],
+      "sampled_global_gpu_used_bytes": 31694258176,
+      "sampled_global_ram_used_bytes": 110517006336,
+      "process_peak_working_set_bytes": 74546061312,
+      "controller_last_samples_max_gpu_total_minus_free_bytes": 32212123648
+    },
+    {
+      "readers": 1,
+      "chunk_mib": 8,
+      "decode_tokens_per_second_A_B_A_B": [
+        4.723852496012356,
+        4.958255986914583,
+        6.4498979291483085,
+        6.074154111203938
+      ],
+      "prefill_ms_A_B_A_B": [
+        11826.2271,
+        4489.5835,
+        3614.3147,
+        3475.5519
+      ],
+      "cache_resident_bytes_A_B_A_B": [
+        10596057088,
+        10595860480,
+        10583998464,
+        10584195072
+      ],
+      "decode_hit_fraction_A_B_A_B": [
+        0.6382899071578317,
+        0.4274197226783434,
+        0.5853361784965558,
+        0.5013683634373289
+      ],
+      "pipeline_consumer_wait_us_A_B_A_B": [
+        3357728,
+        3118666,
+        446226,
+        637727
+      ],
+      "pipeline_slot_wait_us_A_B_A_B": [
+        426175,
+        1645465,
+        1150721,
+        2098791
+      ],
+      "sampled_global_gpu_used_bytes": 31681675264,
+      "sampled_global_ram_used_bytes": 110182354944,
+      "process_peak_working_set_bytes": 74546069504,
+      "controller_last_samples_max_gpu_total_minus_free_bytes": 32212287488
+    },
+    {
+      "readers": 0,
+      "chunk_mib": 8,
+      "decode_tokens_per_second_A_B_A_B": [
+        3.1760716630592576,
+        3.825771784815237,
+        6.38583545547899,
+        6.427322153447251
+      ],
+      "prefill_ms_A_B_A_B": [
+        20363.7008,
+        6442.9839,
+        3607.7228,
+        3431.064
+      ],
+      "cache_resident_bytes_A_B_A_B": [
+        10674372608,
+        10677125120,
+        10677583872,
+        10674700288
+      ],
+      "decode_hit_fraction_A_B_A_B": [
+        0.637915543575921,
+        0.4227444809341361,
+        0.5852987421383647,
+        0.5002166575442437
+      ],
+      "pipeline_consumer_wait_us_A_B_A_B": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pipeline_slot_wait_us_A_B_A_B": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "sampled_global_gpu_used_bytes": 31681675264,
+      "sampled_global_ram_used_bytes": 113906851840,
+      "process_peak_working_set_bytes": 74528935936,
+      "controller_last_samples_max_gpu_total_minus_free_bytes": 32212484096
+    }
+  ],
+  "aggregates": {
+    "0": {
+      "first": {
+        "decode_tokens_per_second": 4.034448565576019,
+        "sum_request_wall_seconds": 117.70956270000897,
+        "request_count": 4
+      },
+      "repeat": {
+        "decode_tokens_per_second": 6.242442951512191,
+        "sum_request_wall_seconds": 60.35614930000156,
+        "request_count": 4
+      }
+    },
+    "1": {
+      "first": {
+        "decode_tokens_per_second": 5.380908724944405,
+        "sum_request_wall_seconds": 83.07441970001673,
+        "request_count": 4
+      },
+      "repeat": {
+        "decode_tokens_per_second": 6.718013128806719,
+        "sum_request_wall_seconds": 54.34731339995051,
+        "request_count": 4
+      }
+    }
+  },
+  "scope": "same auto cache, two short prompts A/B/A/B, pipeline readers 0/1/1/0; no file-cache purge",
+  "model_report_sha256": "aae91f1e35e8d0c09036ff8736d66f8beb2a7dec8c3eb3d17f64377c5f824491",
+  "initial_reader_comparison": {
+    "runs": [
+      {
+        "readers": 0,
+        "chunk_mib": 8,
+        "decode_tokens_per_second_A_B_A_B": [
+          4.481549494553936,
+          5.067202668764015,
+          6.685898759572772,
+          6.489740525851588
+        ],
+        "prefill_ms_A_B_A_B": [
+          16548.5446,
+          4636.4196,
+          3536.1647,
+          3320.5087
+        ],
+        "cache_resident_bytes_A_B_A_B": [
+          10785914880,
+          10785980416,
+          10792075264,
+          10786177024
+        ],
+        "decode_hit_fraction_A_B_A_B": [
+          0.639207097933513,
+          0.4436006203247583,
+          0.5813117699910153,
+          0.5046638387155629
+        ],
+        "pipeline_consumer_wait_us_A_B_A_B": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pipeline_slot_wait_us_A_B_A_B": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sampled_global_gpu_used_bytes": 31685869568,
+        "sampled_global_ram_used_bytes": 110394703872,
+        "process_peak_working_set_bytes": 74529079296,
+        "controller_last_samples_max_gpu_total_minus_free_bytes": 32213172224
+      },
+      {
+        "readers": 1,
+        "chunk_mib": 8,
+        "decode_tokens_per_second_A_B_A_B": [
+          5.5409057839957745,
+          5.8836669203406275,
+          7.517689868938439,
+          7.445722798975229
+        ],
+        "prefill_ms_A_B_A_B": [
+          10350.6177,
+          3775.6245,
+          2946.5947,
+          2742.7656
+        ],
+        "cache_resident_bytes_A_B_A_B": [
+          10758717440,
+          10758651904,
+          10756030464,
+          10762059776
+        ],
+        "decode_hit_fraction_A_B_A_B": [
+          0.6395440251572327,
+          0.4296433132640029,
+          0.5886118598382749,
+          0.5051655719759168
+        ],
+        "pipeline_consumer_wait_us_A_B_A_B": [
+          3210002,
+          2571647,
+          293719,
+          434928
+        ],
+        "pipeline_slot_wait_us_A_B_A_B": [
+          336887,
+          1469459,
+          1144620,
+          1952197
+        ],
+        "sampled_global_gpu_used_bytes": 31681675264,
+        "sampled_global_ram_used_bytes": 110352130048,
+        "process_peak_working_set_bytes": 74547085312,
+        "controller_last_samples_max_gpu_total_minus_free_bytes": 32212889600
+      },
+      {
+        "readers": 2,
+        "chunk_mib": 8,
+        "decode_tokens_per_second_A_B_A_B": [
+          5.731556516207685,
+          5.408386049452366,
+          7.025456183747544,
+          6.545855061496653
+        ],
+        "prefill_ms_A_B_A_B": [
+          8771.4028,
+          3798.1479,
+          3142.8236,
+          3150.6206
+        ],
+        "cache_resident_bytes_A_B_A_B": [
+          10755833856,
+          10737156096,
+          10750066688,
+          10719920128
+        ],
+        "decode_hit_fraction_A_B_A_B": [
+          0.6407981431566337,
+          0.4387657361795293,
+          0.5839510332434861,
+          0.5005929574895092
+        ],
+        "pipeline_consumer_wait_us_A_B_A_B": [
+          1421018,
+          2911358,
+          451322,
+          877074
+        ],
+        "pipeline_slot_wait_us_A_B_A_B": [
+          1462894,
+          4591547,
+          2706835,
+          4486025
+        ],
+        "sampled_global_gpu_used_bytes": 31681675264,
+        "sampled_global_ram_used_bytes": 113974079488,
+        "process_peak_working_set_bytes": 74546368512,
+        "controller_last_samples_max_gpu_total_minus_free_bytes": 32211718144
+      },
+      {
+        "readers": 0,
+        "chunk_mib": 8,
+        "decode_tokens_per_second_A_B_A_B": [
+          4.46268595865037,
+          5.067297201523965,
+          6.818661580614129,
+          6.760826484460682
+        ],
+        "prefill_ms_A_B_A_B": [
+          17596.7051,
+          4656.913,
+          3458.4422,
+          3173.3198
+        ],
+        "cache_resident_bytes_A_B_A_B": [
+          10761666560,
+          10770907136,
+          10762125312,
+          10668670976
+        ],
+        "decode_hit_fraction_A_B_A_B": [
+          0.6389450434261755,
+          0.444376026272578,
+          0.5835017969451932,
+          0.5052910052910053
+        ],
+        "pipeline_consumer_wait_us_A_B_A_B": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pipeline_slot_wait_us_A_B_A_B": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sampled_global_gpu_used_bytes": 31687966720,
+        "sampled_global_ram_used_bytes": 110208729088,
+        "process_peak_working_set_bytes": 74529320960,
+        "controller_last_samples_max_gpu_total_minus_free_bytes": 32219594752
+      }
+    ],
+    "aggregates": {
+      "0": {
+        "first": {
+          "decode_tokens_per_second": 4.824203034896136,
+          "sum_request_wall_seconds": 101.64346829999704,
+          "request_count": 4
+        },
+        "repeat": {
+          "decode_tokens_per_second": 6.6708054090540125,
+          "sum_request_wall_seconds": 55.633615799975814,
+          "request_count": 4
+        }
+      },
+      "1": {
+        "first": {
+          "decode_tokens_per_second": 5.749033317500084,
+          "sum_request_wall_seconds": 38.560497799975565,
+          "request_count": 2
+        },
+        "repeat": {
+          "decode_tokens_per_second": 7.472804808608976,
+          "sum_request_wall_seconds": 24.509666500001913,
+          "request_count": 2
+        }
+      },
+      "2": {
+        "first": {
+          "decode_tokens_per_second": 5.526348889394926,
+          "sum_request_wall_seconds": 37.99228559999028,
+          "request_count": 2
+        },
+        "repeat": {
+          "decode_tokens_per_second": 6.719511625895029,
+          "sum_request_wall_seconds": 27.224107000016375,
+          "request_count": 2
+        }
+      }
+    }
+  },
+  "repeat_decode_speed_ratio": 1.076183343762769,
+  "repeat_request_wall_speed_ratio": 1.110563623556349
+}

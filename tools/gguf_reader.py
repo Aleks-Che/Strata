@@ -134,6 +134,11 @@ class GGUFFile:
             (et,) = struct.unpack("<I", fh.read(4))
             (count,) = struct.unpack("<Q", fh.read(8))
             ename, esize = GGUF_META[et]
+            # Check before allocating/reading: a corrupt count can otherwise ask
+            # Python for terabytes even when the file is only a few bytes long.
+            minimum = 8 if ename == "string" else esize
+            if minimum is None or count > (self._file_size - fh.tell()) // minimum:
+                raise ValueError(f"{self.path.name}: truncated GGUF array")
             if ename == "string":
                 return [self._str(fh) for _ in range(count)]
             fmt = {"u8": "B", "i8": "b", "u16": "H", "i16": "h", "u32": "I", "i32": "i",

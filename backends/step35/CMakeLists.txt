@@ -1,0 +1,241 @@
+cmake_minimum_required(VERSION 3.24)
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR OR CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "Configure Step as a standalone project in a separate build directory")
+endif()
+project(strata_step35 LANGUAGES C CXX)
+option(STRATA_STEP_CUDA "Build the candidate with CUDA; tokenizer still loads vocabulary only" OFF)
+option(STRATA_STEP_KERNEL_CHECK "Build synthetic Step matrix/router CUDA checks" OFF)
+option(STRATA_STEP_GRAPH_CHECK "Build synthetic native Step graph/full-SWA state checks" OFF)
+option(STRATA_STEP_RUNTIME "Build Step pipe engine and synchronous selected-copy checks" OFF)
+option(STRATA_STEP_STRICT_F32 "Respect NVIDIA_TF32_OVERRIDE=0 in the candidate's custom F32 MMF dispatch" OFF)
+option(STRATA_STEP_ROUTED_STRIDES "Fix physical row indexing in synchronous CUDA MUL_MAT_ID gather" OFF)
+if(STRATA_STEP_KERNEL_CHECK AND NOT STRATA_STEP_CUDA)
+  message(FATAL_ERROR "STRATA_STEP_KERNEL_CHECK requires STRATA_STEP_CUDA=ON")
+endif()
+if((STRATA_STEP_GRAPH_CHECK OR STRATA_STEP_RUNTIME) AND (NOT STRATA_STEP_CUDA OR NOT STRATA_STEP_STRICT_F32 OR NOT STRATA_STEP_ROUTED_STRIDES))
+  message(FATAL_ERROR "Step graph checks require CUDA and both validated correctness patches")
+endif()
+if((STRATA_STEP_STRICT_F32 OR STRATA_STEP_ROUTED_STRIDES) AND NOT STRATA_STEP_CUDA)
+  message(FATAL_ERROR "Step CUDA correctness patches require STRATA_STEP_CUDA=ON")
+endif()
+set(STRATA_STEP_ARCHIVE "" CACHE FILEPATH "Local archive of the audited Step candidate")
+set(STRATA_STEP_SOURCE_SHA "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9")
+set(STRATA_STEP_ARCHIVE_SHA256 "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99")
+if(NOT EXISTS "${STRATA_STEP_ARCHIVE}" OR IS_DIRECTORY "${STRATA_STEP_ARCHIVE}")
+  message(FATAL_ERROR "Set STRATA_STEP_ARCHIVE to the local ${STRATA_STEP_SOURCE_SHA}.tar.gz archive")
+endif()
+file(SHA256 "${STRATA_STEP_ARCHIVE}" actual_hash)
+if(NOT actual_hash STREQUAL STRATA_STEP_ARCHIVE_SHA256)
+  message(FATAL_ERROR "Step archive SHA-256 mismatch; review a new candidate separately")
+endif()
+if(FETCHCONTENT_SOURCE_DIR_STEP35_CANDIDATE)
+  message(FATAL_ERROR "Use the verified archive, not FETCHCONTENT_SOURCE_DIR_STEP35_CANDIDATE")
+endif()
+include(FetchContent)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_BINARY_DIR}/_deps" CACHE PATH "Private Step dependency" FORCE)
+FetchContent_Declare(step35_candidate URL "${STRATA_STEP_ARCHIVE}"
+  URL_HASH "SHA256=${STRATA_STEP_ARCHIVE_SHA256}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_GetProperties(step35_candidate)
+if(NOT step35_candidate_POPULATED)
+  FetchContent_Populate(step35_candidate)
+endif()
+set(step_source "${step35_candidate_SOURCE_DIR}")
+file(SHA256 "${step_source}/src/models/step35.cpp" step_loader_hash)
+if(NOT step_loader_hash STREQUAL "4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3")
+  message(FATAL_ERROR "Step loader differs from the audited candidate")
+endif()
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
+set(GGML_CUDA ${STRATA_STEP_CUDA} CACHE BOOL "" FORCE)
+set(GGML_BACKEND_DL OFF CACHE BOOL "" FORCE)
+set(GGML_NATIVE ON CACHE BOOL "" FORCE)
+set(GGML_CUDA_FA_ALL_QUANTS OFF CACHE BOOL "" FORCE)
+if(STRATA_STEP_CUDA)
+  enable_language(CUDA)
+endif()
+add_subdirectory("${step_source}" llama EXCLUDE_FROM_ALL)
+set(step_patch_set "none")
+if(STRATA_STEP_STRICT_F32)
+  include(StrictF32.cmake)
+endif()
+if(STRATA_STEP_ROUTED_STRIDES)
+  include(RoutedStrides.cmake)
+endif()
+if(STRATA_STEP_RUNTIME)
+  find_package(CUDAToolkit REQUIRED)
+  add_executable(strata-step35-cache-check check_cache.cpp)
+  target_compile_features(strata-step35-cache-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-cache-check PRIVATE "${step_source}/vendor")
+  target_link_libraries(strata-step35-cache-check PRIVATE CUDA::cudart_static)
+  set_target_properties(strata-step35-cache-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  add_test(NAME step35_cache_budget COMMAND strata-step35-cache-check "${CMAKE_BINARY_DIR}/cache-budget-report.json")
+  add_executable(strata-step35-pipeline-check check_pipeline.cpp)
+  target_compile_features(strata-step35-pipeline-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-pipeline-check PRIVATE "${step_source}/vendor")
+  target_link_libraries(strata-step35-pipeline-check PRIVATE CUDA::cudart_static)
+  set_target_properties(strata-step35-pipeline-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  add_test(NAME step35_pipeline_ring COMMAND strata-step35-pipeline-check "${CMAKE_BINARY_DIR}/pipeline-ring-report.json")
+  set_tests_properties(step35_pipeline_ring PROPERTIES TIMEOUT 90)
+  add_executable(strata-step35-pressure-holder pressure_holder.cpp)
+  target_compile_features(strata-step35-pressure-holder PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-pressure-holder PRIVATE "${step_source}/vendor")
+  target_link_libraries(strata-step35-pressure-holder PRIVATE CUDA::cudart_static)
+  set_target_properties(strata-step35-pressure-holder PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  include(RuntimePatches.cmake)
+endif()
+add_executable(strata-step35-tokenizer tokenizer_oracle.cpp)
+target_compile_features(strata-step35-tokenizer PRIVATE cxx_std_17)
+target_include_directories(strata-step35-tokenizer PRIVATE "${step_source}/vendor")
+target_link_libraries(strata-step35-tokenizer PRIVATE llama)
+target_compile_definitions(strata-step35-tokenizer PRIVATE
+  STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}"
+  STRATA_STEP_ARCHIVE_SHA256="${STRATA_STEP_ARCHIVE_SHA256}"
+  STRATA_STEP_PATCH_SET="${step_patch_set}")
+set_target_properties(strata-step35-tokenizer PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+enable_testing()
+add_test(NAME step35_oracle_version COMMAND strata-step35-tokenizer --version)
+set_tests_properties(step35_oracle_version PROPERTIES TIMEOUT 15)
+if(WIN32 AND STRATA_STEP_CUDA)
+  get_filename_component(step_oracle_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+  set_tests_properties(step35_oracle_version PROPERTIES ENVIRONMENT_MODIFICATION
+    "PATH=path_list_prepend:${step_oracle_cuda_bin}/x64;PATH=path_list_prepend:${step_oracle_cuda_bin}")
+endif()
+add_executable(strata-step35-template template_oracle.cpp "${step_source}/common/json.cpp"
+  "${step_source}/common/unicode.cpp"
+  "${step_source}/common/jinja/lexer.cpp" "${step_source}/common/jinja/parser.cpp"
+  "${step_source}/common/jinja/runtime.cpp" "${step_source}/common/jinja/value.cpp"
+  "${step_source}/common/jinja/string.cpp" "${step_source}/common/jinja/caps.cpp")
+target_compile_features(strata-step35-template PRIVATE cxx_std_17)
+target_include_directories(strata-step35-template PRIVATE "${step_source}/common" "${step_source}/vendor")
+target_link_libraries(strata-step35-template PRIVATE ggml-base)
+target_compile_definitions(strata-step35-template PRIVATE
+  STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}" STRATA_STEP_ARCHIVE_SHA256="${STRATA_STEP_ARCHIVE_SHA256}")
+if(MSVC)
+  target_compile_options(strata-step35-template PRIVATE /utf-8 /bigobj)
+endif()
+set_target_properties(strata-step35-template PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+add_test(NAME step35_template_version COMMAND strata-step35-template --version)
+set_tests_properties(step35_template_version PROPERTIES TIMEOUT 15)
+if(STRATA_STEP_KERNEL_CHECK)
+  add_executable(strata-step35-kernels-check check_kernels.cpp)
+  target_compile_features(strata-step35-kernels-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-kernels-check PRIVATE "${step_source}/vendor")
+  target_link_libraries(strata-step35-kernels-check PRIVATE llama)
+  target_compile_definitions(strata-step35-kernels-check PRIVATE
+    STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}"
+    STRATA_STEP_ARCHIVE_SHA256="${STRATA_STEP_ARCHIVE_SHA256}"
+    STRATA_STEP_PATCH_SET="${step_patch_set}")
+  set_target_properties(strata-step35-kernels-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  add_test(NAME step35_cuda_kernels COMMAND strata-step35-kernels-check --output "${CMAKE_BINARY_DIR}/step-kernel-report.json")
+  set_tests_properties(step35_cuda_kernels PROPERTIES TIMEOUT 180 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0")
+  if(WIN32)
+    get_filename_component(step_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+    set_tests_properties(step35_cuda_kernels PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${step_cuda_bin}/x64;PATH=path_list_prepend:${step_cuda_bin}")
+  endif()
+endif()
+set(step_cuda_arch "")
+if(STRATA_STEP_GRAPH_CHECK)
+  add_executable(strata-step35-graph-check check_graph.cpp)
+  target_compile_features(strata-step35-graph-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-graph-check PRIVATE "${step_source}/src" "${step_source}/vendor")
+  target_link_libraries(strata-step35-graph-check PRIVATE llama)
+  target_compile_definitions(strata-step35-graph-check PRIVATE
+    STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}"
+    STRATA_STEP_ARCHIVE_SHA256="${STRATA_STEP_ARCHIVE_SHA256}"
+    STRATA_STEP_PATCH_SET="${step_patch_set}")
+  set_property(SOURCE check_graph.cpp APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/synthetic_step.hpp;${CMAKE_CURRENT_SOURCE_DIR}/session_snapshot.hpp")
+  set_target_properties(strata-step35-graph-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  add_test(NAME step35_native_graph COMMAND strata-step35-graph-check "${CMAKE_BINARY_DIR}/graph-fixture")
+  set_tests_properties(step35_native_graph PROPERTIES TIMEOUT 300 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0")
+  if(WIN32)
+    get_filename_component(step_graph_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+    set_tests_properties(step35_native_graph PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${step_graph_cuda_bin}/x64;PATH=path_list_prepend:${step_graph_cuda_bin}")
+  endif()
+endif()
+if(STRATA_STEP_CUDA)
+  get_target_property(step_cuda_arch ggml-cuda CUDA_ARCHITECTURES)
+endif()
+if(STRATA_STEP_RUNTIME)
+  add_executable(strata-step35 main.cpp)
+  add_executable(strata-step35-shards-check check_shards.cpp)
+  target_compile_features(strata-step35-shards-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-shards-check PRIVATE "${step_source}/src" "${step_source}/vendor")
+  target_link_libraries(strata-step35-shards-check PRIVATE llama CUDA::cudart_static)
+  set_target_properties(strata-step35-shards-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  target_compile_features(strata-step35 PRIVATE cxx_std_17)
+  target_include_directories(strata-step35 PRIVATE "${step_source}/src" "${step_source}/vendor")
+  target_link_libraries(strata-step35 PRIVATE llama)
+  target_compile_definitions(strata-step35 PRIVATE
+    STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}" STRATA_STEP_PATCH_SET="${step_patch_set}")
+  set_target_properties(strata-step35 PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  set_property(SOURCE main.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/tokenizer_protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/cache_registry.hpp")
+  add_executable(strata-step35-runtime-check check_runtime.cpp)
+  target_compile_features(strata-step35-runtime-check PRIVATE cxx_std_17)
+  target_include_directories(strata-step35-runtime-check PRIVATE "${step_source}/src" "${step_source}/vendor")
+  target_link_libraries(strata-step35-runtime-check PRIVATE llama)
+  target_compile_definitions(strata-step35-runtime-check PRIVATE
+    STRATA_STEP_SOURCE_SHA="${STRATA_STEP_SOURCE_SHA}" STRATA_STEP_PATCH_SET="${step_patch_set}")
+  set_target_properties(strata-step35-runtime-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  set_property(SOURCE check_runtime.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/synthetic_step.hpp;${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h")
+  add_test(NAME step35_sync_runtime COMMAND strata-step35-runtime-check "${CMAKE_BINARY_DIR}/runtime-fixture")
+  set_tests_properties(step35_sync_runtime PROPERTIES TIMEOUT 180 ENVIRONMENT "NVIDIA_TF32_OVERRIDE=0;GGML_OP_OFFLOAD_MIN_BATCH=1")
+  if(WIN32)
+    get_filename_component(step_runtime_cuda_bin "${CMAKE_CUDA_COMPILER}" DIRECTORY)
+    set_tests_properties(step35_sync_runtime PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${step_runtime_cuda_bin}/x64;PATH=path_list_prepend:${step_runtime_cuda_bin}")
+    set_tests_properties(step35_cache_budget PROPERTIES TIMEOUT 30 ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${step_runtime_cuda_bin}/x64;PATH=path_list_prepend:${step_runtime_cuda_bin}")
+  endif()
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  add_test(NAME step35_pipe_lifecycle COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_step35_engine.py"
+    --engine "$<TARGET_FILE:strata-step35>" --fixture "${CMAKE_BINARY_DIR}/runtime-fixture/step-mixed.gguf"
+    --output-dir "${CMAKE_BINARY_DIR}/pipe-fixture")
+  set_tests_properties(step35_pipe_lifecycle PROPERTIES TIMEOUT 120 DEPENDS step35_sync_runtime)
+  foreach(step_readers IN ITEMS 1 2)
+    add_test(NAME step35_pipe_pipeline_${step_readers} COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_step35_engine.py"
+      --engine "$<TARGET_FILE:strata-step35>" --fixture "${CMAKE_BINARY_DIR}/runtime-fixture/step-mixed.gguf"
+      --output-dir "${CMAKE_BINARY_DIR}/pipe-pipeline-${step_readers}" --pipeline-readers ${step_readers} --cache-mib 64)
+    set_tests_properties(step35_pipe_pipeline_${step_readers} PROPERTIES TIMEOUT 120 DEPENDS step35_sync_runtime)
+    if(WIN32)
+      set_tests_properties(step35_pipe_pipeline_${step_readers} PROPERTIES ENVIRONMENT_MODIFICATION
+        "PATH=path_list_prepend:${step_runtime_cuda_bin}/x64;PATH=path_list_prepend:${step_runtime_cuda_bin}")
+    endif()
+  endforeach()
+  if(WIN32)
+    set_tests_properties(step35_pipe_lifecycle PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${step_runtime_cuda_bin}/x64;PATH=path_list_prepend:${step_runtime_cuda_bin}")
+  endif()
+  foreach(step_readers IN ITEMS 0 1 2)
+    add_test(NAME step35_pipe_prefill_off_${step_readers} COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_step35_engine.py"
+      --engine "$<TARGET_FILE:strata-step35>" --fixture "${CMAKE_BINARY_DIR}/runtime-fixture/step-mixed.gguf"
+      --output-dir "${CMAKE_BINARY_DIR}/pipe-prefill-off-${step_readers}" --pipeline-readers ${step_readers}
+      --cache-mib 64 --cache-prefill off)
+    set_tests_properties(step35_pipe_prefill_off_${step_readers} PROPERTIES TIMEOUT 120 DEPENDS step35_sync_runtime)
+    if(WIN32)
+      set_tests_properties(step35_pipe_prefill_off_${step_readers} PROPERTIES ENVIRONMENT_MODIFICATION
+        "PATH=path_list_prepend:${step_runtime_cuda_bin}/x64;PATH=path_list_prepend:${step_runtime_cuda_bin}")
+    endif()
+  endforeach()
+endif()
+file(WRITE "${CMAKE_BINARY_DIR}/step-source-build.txt"
+  "requested_revision=${STRATA_STEP_SOURCE_SHA}\narchive_sha256=${STRATA_STEP_ARCHIVE_SHA256}\n"
+  "patches_applied_by_harness=${step_patch_set}\nstep35_cpp_sha256=${step_loader_hash}\n"
+  "mmf_original_sha256=${step_mmf_original_sha256}\nmmf_generated_sha256=${step_mmf_generated_sha256}\n"
+  "dispatch_original_sha256=${step_dispatch_original_sha256}\ndispatch_generated_sha256=${step_dispatch_generated_sha256}\n"
+  "cxx=${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\n"
+  "cuda_enabled=${STRATA_STEP_CUDA}\ncuda_version=${CMAKE_CUDA_COMPILER_VERSION}\n"
+  "cuda_architectures=${step_cuda_arch}\nkernel_check_enabled=${STRATA_STEP_KERNEL_CHECK}\n"
+  "graph_check_enabled=${STRATA_STEP_GRAPH_CHECK}\n"
+  "runtime_enabled=${STRATA_STEP_RUNTIME}\n"
+  "scope=isolated Step oracles/checkers and optional experimental native pipe engine; no HTTP profile\n")

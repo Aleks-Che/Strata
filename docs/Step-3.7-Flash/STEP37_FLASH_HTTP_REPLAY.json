@@ -1,0 +1,60 @@
+{
+  "status": "pass",
+  "scope": "final Step HTTP parser factory, saved STEP-09 native IDs and exported tokenizer; no GPU rerun",
+  "prompt_checks": 3,
+  "parser_checks": [
+    {
+      "name": "P1_A",
+      "chunks": "tokens",
+      "exact": true
+    },
+    {
+      "name": "P1_A",
+      "chunks": "characters",
+      "exact": true
+    },
+    {
+      "name": "P1_A",
+      "chunks": "whole",
+      "exact": true
+    },
+    {
+      "name": "tool_call",
+      "chunks": "tokens",
+      "exact": true
+    },
+    {
+      "name": "tool_call",
+      "chunks": "characters",
+      "exact": true
+    },
+    {
+      "name": "tool_call",
+      "chunks": "whole",
+      "exact": true
+    },
+    {
+      "name": "tool_continuation",
+      "chunks": "tokens",
+      "exact": true
+    },
+    {
+      "name": "tool_continuation",
+      "chunks": "characters",
+      "exact": true
+    },
+    {
+      "name": "tool_continuation",
+      "chunks": "whole",
+      "exact": true
+    }
+  ],
+  "pack_hashes": {
+    "chat_template.jinja": "f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633",
+    "merges.txt": "47b0b7ca8188ae704a386ba5879d8669ca0321d96d0680f9e14d0379111a4af6",
+    "tokenizer.json": "d44b88fd99281895fd9ac59d7fa145f2f66605378ae78dfaf51ad6709af0cf1e",
+    "token_type.json": "1f45542d92d66922b2d5b448546181ee0898b433ec5fcef0ed9000a1dae43a35",
+    "vocab.json": "24caa2e5da8bdf43478b8cced7c76334aaed74235127fe3afc00a92cebfea3b6"
+  },
+  "export_matches_2190_checked_pack": true
+}

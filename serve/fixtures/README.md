@@ -166,3 +166,69 @@ an incomplete tool call verifies cleanup with monitoring on/off and a subsequent
 successful request. The engine generator closes while the engine lock is held;
 incomplete tools are not executed. These are in-memory disconnect simulations,
 not socket watcher or native engine STOP/drain validation.
+
+## Step-3.7-Flash fixture and adapter
+
+`step37_chat_template.jinja` is the exact 5723-byte UTF-8 GGUF template extracted
+on 2026-10-05 from
+`H:/models/Step-3.7-Flash/UD-Q4_K_S/Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf`.
+Its SHA-256 is `f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633`.
+Do not reformat it. It is a test fixture, not a runtime fallback.
+
+`serve.step35.StepTemplate` takes the extracted template path and the model's
+`bos_token`/`eos_token` explicitly. It checks the template hash, uses Step's
+`fromjson` filter, converts tool argument JSON objects without mutating history,
+and wraps bare function schemas. Text blocks retain the embedded template's
+space separator. Unsupported media blocks are rejected. The shared Qwen and
+GLM renderers are unchanged.
+
+OpenAI/Anthropic normalizers preserve call/result IDs and reasoning. Low, medium
+and high effort are passed literally; no default effort instruction is inserted
+when absent. The prompt still ends in `<think>`. Disabled thinking, hard budgets,
+`clear_thinking` and unrelated template overrides are rejected. Step's template
+automatically removes reasoning before the last real user query and replays the
+current tool turn. It keeps tool results in arrival order; IDs do not cause the
+GLM-style reordering. Anthropic text after a tool-use block starts a new assistant
+message so that block order survives normalization.
+
+`StepOutputParser` streams reasoning/content and buffers each tool block until
+its closing `</tool_call>`. It emits only complete validated `tool_call` events,
+including with `stream_tools=True`; early tool-name/argument events are not
+implemented. Malformed/truncated blocks remain exact text. XML values lose at
+most one framing newline on either side. Declared strings retain their content,
+including JSON-looking strings. Other declared base types must match decoded
+values. Step's native scalar spellings `True`, `False`, `None` and their JSON
+equivalents are supported; nested arrays/objects use JSON. Duplicate XML arguments are rejected. Request argument objects and declared
+JSON values reject duplicate JSON members. This is base-type conversion, not full
+JSON Schema validation of required fields, ranges, `$ref`, etc. Without a declared
+type, non-JSON values remain strings; a union containing `string` also preserves
+the literal because the raw format cannot distinguish all nullable strings.
+
+Raw strings are not XML-escaped by the embedded template. Literal tags are kept
+unless they form its structural delimiter: `</parameter>` followed by whitespace
+and `<parameter=` or `</function>`. That sequence is inherently ambiguous.
+Tool markup inside reasoning never becomes a call. `finish()` flushes held text
+and is idempotent.
+
+Checks: `python -m unittest serve.test_step35`; native template/token-ID comparison
+via `tools/check_step35_template.py --runtime-adapter`. STEP-09 tested 215 native
+comparisons, 3415 parser fragmentation sequences, and 148 total tests including
+Qwen/GLM/DeepSeek regressions. A real model smoke produced one typed weather call
+and a final answer after a local result stub; no external tool was invoked.
+All three actual prompts matched the native template/tokenizer oracles, and the
+P1 control retained exact F32 logits. Final adapter sources also replayed those
+saved prompts/outputs after input-validation hardening.
+
+STEP-10 registers this module only for explicit `architecture: step35` profiles.
+`tools/prepare_step35_profile.py` exports a new isolated profile; setup's default
+model choice is unchanged. EOG resolves directly from reviewed control-token
+spellings and metadata (native 1/128007, PAD2 excluded). Missing or altered
+control tokens/templates are rejected before engine startup.
+
+`serve.test_step35_http` covers both APIs over loopback JSON/SSE, Unicode,
+EOG/PAD, stop strings, length/tool finish reasons, a local MCP stub, settings and
+disconnects with a clean subsequent request. Step's stop filter matches raw
+generated text across chunks, before tool parsing. Anthropic returns the matched
+`stop_sequence`; OpenAI reports `stop`. Hard thinking budgets are unsupported;
+low/medium/high effort changes the prompt, not a guaranteed thinking-token cap.
+Browser interaction and external MCP cancellation remain separate gates.

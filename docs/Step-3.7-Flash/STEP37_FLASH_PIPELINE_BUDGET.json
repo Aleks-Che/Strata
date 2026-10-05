@@ -1,0 +1,63 @@
+{
+  "status": "pass",
+  "scope": "real CUDA cache allocations with deterministic memory/allocator probes",
+  "case_count": 14,
+  "cases": [
+    {
+      "name": "cold_miss",
+      "pass": true
+    },
+    {
+      "name": "allocated_and_hit",
+      "pass": true
+    },
+    {
+      "name": "frequency_rejects_cold",
+      "pass": true
+    },
+    {
+      "name": "eviction_replaces_colder",
+      "pass": true
+    },
+    {
+      "name": "trim_releases_all",
+      "pass": true
+    },
+    {
+      "name": "external_pressure_trims",
+      "pass": true
+    },
+    {
+      "name": "ram_pressure_refused",
+      "pass": true
+    },
+    {
+      "name": "invalid_sample_closed",
+      "pass": true
+    },
+    {
+      "name": "unaccounted_residency_refused",
+      "pass": true
+    },
+    {
+      "name": "allocation_oom_bypass",
+      "pass": true
+    },
+    {
+      "name": "generation_identity",
+      "pass": true
+    },
+    {
+      "name": "planned_hit_blocks_eviction",
+      "pass": true
+    },
+    {
+      "name": "pinned_bytes_remain_charged",
+      "pass": true
+    },
+    {
+      "name": "unpin_allows_trim",
+      "pass": true
+    }
+  ]
+}

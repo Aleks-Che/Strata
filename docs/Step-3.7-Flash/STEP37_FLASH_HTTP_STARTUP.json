@@ -1,0 +1,76 @@
+{
+  "status": "pass",
+  "command": [
+    "C:\\Users\\Aleks\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "serve.server",
+    "--engine",
+    "strata",
+    "--config",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\step35-cuda\\step10-http-profile-8g\\step37.json",
+    "--lazy",
+    "--port",
+    "65404"
+  ],
+  "scope": "production CLI lazy startup, HTTP metadata and web asset; no browser interaction",
+  "health": {
+    "status": "ok",
+    "max_context": 4096,
+    "model": "step-3.7-flash",
+    "images": false,
+    "api_key": false,
+    "loaded": false,
+    "service": "strata",
+    "reasoning": {
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "high",
+      "clear_thinking": false,
+      "replay_reasoning": true
+    },
+    "architecture": "step35"
+  },
+  "models": {
+    "object": "list",
+    "data": [
+      {
+        "id": "step-3.7-flash",
+        "object": "model",
+        "status": {
+          "value": "unloaded"
+        },
+        "meta": {
+          "n_ctx": 4096
+        },
+        "architecture": {
+          "input_modalities": [
+            "text"
+          ],
+          "output_modalities": [
+            "text"
+          ]
+        }
+      }
+    ]
+  },
+  "settings": {
+    "shared": false,
+    "defaults": {},
+    "reasoning": {
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "high",
+      "clear_thinking": false,
+      "replay_reasoning": true
+    }
+  },
+  "web_asset_bytes": 24692
+}

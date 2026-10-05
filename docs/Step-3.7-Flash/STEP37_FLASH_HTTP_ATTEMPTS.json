@@ -1,0 +1,100 @@
+{
+  "status": "complete",
+  "attempts": [
+    {
+      "path": "build-local\\step35-cuda\\step10-http-model\\http-model-report.json",
+      "raw_report_sha256": "59f770bca8a82ea513ea7366c99a8607ba5ebec14ac889bfc109d4c78c18648d",
+      "status": "error",
+      "completed_reference_requests": 0,
+      "cancellations": 0,
+      "cache_limit_mib": 14421,
+      "memory_guard_error": null,
+      "memory": {
+        "samples": 6,
+        "ram_total_gib": 125.5550422668457,
+        "ram_used_peak_gib": 26.30225372314453,
+        "ram_used_peak_percent": 20.948783297164287,
+        "vram_used_peak_mib": 13564.0,
+        "vram_used_peak_percent": 41.59842978501549,
+        "process_working_set_peak_gib": 6.987213134765625
+      },
+      "note": "Incorrect harness assumption that READY cannot accept session-id; no generation."
+    },
+    {
+      "path": "build-local\\step35-cuda\\step10-http-model-r2\\http-model-report.json",
+      "raw_report_sha256": "8374fdc117c1e5b936b4e9311461c94a9b890205118c8bc6d4544e6f0443e4f2",
+      "status": "error",
+      "completed_reference_requests": 9,
+      "cancellations": 3,
+      "cache_limit_mib": 14427,
+      "memory_guard_error": null,
+      "memory": {
+        "samples": 473,
+        "ram_total_gib": 125.5550422668457,
+        "ram_used_peak_gib": 118.92094421386719,
+        "ram_used_peak_percent": 94.71618348956558,
+        "vram_used_peak_mib": 30693.0,
+        "vram_used_peak_percent": 94.13009476492778,
+        "process_working_set_peak_gib": 95.02633285522461
+      },
+      "note": "All 9 exact responses and 3 cancellations completed; harness queried engine.proc after close() cleared it."
+    },
+    {
+      "path": "build-local\\step35-cuda\\step10-http-model-r3\\http-model-report.json",
+      "raw_report_sha256": "e4f1093ebf1b670df89acbcba59634d557750328e4e3905ee338e8de388bda5e",
+      "status": "error",
+      "completed_reference_requests": 4,
+      "cancellations": 0,
+      "cache_limit_mib": 17121,
+      "memory_guard_error": "95% global RAM/VRAM ceiling crossed; stopped only this test process",
+      "memory": {
+        "samples": 177,
+        "ram_total_gib": 125.5550422668457,
+        "ram_used_peak_gib": 119.38802337646484,
+        "ram_used_peak_percent": 95.08819496291203,
+        "vram_used_peak_mib": 30221.0,
+        "vram_used_peak_percent": 92.68255282608028,
+        "process_working_set_peak_gib": 91.64214706420898
+      },
+      "note": "Global memory monitor stopped this test engine at >95% RAM; auto cache17121 MiB."
+    },
+    {
+      "path": "build-local\\step35-cuda\\step10-http-model-r4\\http-model-report.json",
+      "raw_report_sha256": "ec4a272c83afa59d39017f81ab99134746fc7da7e356ca4745576244394f9526",
+      "status": "error",
+      "completed_reference_requests": 8,
+      "cancellations": 2,
+      "cache_limit_mib": 14336,
+      "memory_guard_error": "95% global RAM/VRAM ceiling crossed; stopped only this test process",
+      "memory": {
+        "samples": 326,
+        "ram_total_gib": 125.5550422668457,
+        "ram_used_peak_gib": 119.44515991210938,
+        "ram_used_peak_percent": 95.1337021242438,
+        "vram_used_peak_mib": 30217.0,
+        "vram_used_peak_percent": 92.67028552151379,
+        "process_working_set_peak_gib": 95.02665710449219
+      },
+      "note": "Global memory monitor stopped this test engine at >95% RAM; cache14336 MiB. Old harness then waited for phase timeout."
+    },
+    {
+      "path": "build-local\\step35-cuda\\step10-http-model-r5\\http-model-report.json",
+      "raw_report_sha256": "6f6899cf9918e9ba1ba7c6abfd5ed17157eef90ebdbf71bac5e9fbcf50aa5243",
+      "status": "pass",
+      "completed_reference_requests": 9,
+      "cancellations": 3,
+      "cache_limit_mib": 8192,
+      "memory_guard_error": null,
+      "memory": {
+        "samples": 464,
+        "ram_total_gib": 125.5550422668457,
+        "ram_used_peak_gib": 118.40803909301758,
+        "ram_used_peak_percent": 94.30767331618718,
+        "vram_used_peak_mib": 28931.0,
+        "vram_used_peak_percent": 88.72634710338271,
+        "process_working_set_peak_gib": 95.02288818359375
+      },
+      "note": "Complete pass with cache8192 MiB, exact responses and native process exit0."
+    }
+  ]
+}

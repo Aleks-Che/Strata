@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "scope": "CPU vocabulary oracle and static loader validation only; GPU/inference not tested",
+  "build_directory": "C:\\work\\git\\my-repos\\Strata\\build-local\\step35-oracle",
+  "source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=none\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\ncxx=MSVC 19.44.35222.0\ncuda_enabled=OFF\ncuda_version=\ncuda_architectures=\nscope=isolated vocabulary oracle, not a Strata inference engine\n",
+  "harness_source_sha256": {
+    "backends/step35/CMakeLists.txt": "6630485c349a910fe2d85155790d1804c112c1e8331581cbd3cf2e0edff3cd3f",
+    "backends/step35/tokenizer_oracle.cpp": "dcbaae61f64716f7dcffd0f5ad7862f583d11777bfa044f5587e29a09d215a5f",
+    "tools/step35_loader_contract.py": "3534672bd916016617c7ed3e5d92aa6db185088963259945fbda93cd2a6b78a5",
+    "tools/setup_step35.py": "3515d2612cafc241049b14746a74b65bb841ac751840880a2f0655f037d0985e",
+    "tools/gguf_reader.py": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+    "tools/strata_tokenizer.py": "0281c73c9af0773c9e314de71d9e85341f12c13e184a82fdc134efc537142181",
+    "tools/check_step35_tokenizer.py": "2c3fde3009619e7375283cb9928c6748042a0b18ded037df4a083c6c7770ea22",
+    "tools/test_setup_step35.py": "eca6459a89cc299d6c9fb3363eb6067c1b41a9d7e1d1f048edd350ccda3a8768",
+    "tools/test_step35_tokenizer.py": "7fba1c432ad75f15afdecb298d73128830c146ba7aea8858e7d19d9f97a793af"
+  },
+  "candidate_source_sha256": {
+    "src/models/step35.cpp": "4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3",
+    "src/llama-model.cpp": "1795fc14531bcd1e2a0d0b49737fb67ce510de1e882008dacfd76893cb7590c0",
+    "src/llama-graph.cpp": "d6136776500e4b3c8fcfe242795f61920b898d1341ba85f57a482442114baa56",
+    "src/llama-vocab.cpp": "44d24d267c9ff3595fa1da82996331af6ec82eb56ef44c4316f469fe89e96abb",
+    "src/llama-arch.cpp": "38d07db54421d255cd68fca7ee4e0166ca7890fe98d36dbb4d0b2e09ec6d7e44"
+  },
+  "binary": "build-local/step35-oracle/bin/strata-step35-tokenizer.exe",
+  "binary_sha256": "a7aa6143d5cbc301ecfda2ff671f51caeec7d767a3bcdcb61d933cb4ffb6a2c7",
+  "ctest": {
+    "passed": 1,
+    "failed": 0,
+    "scope": "--version only"
+  },
+  "python_suite": {
+    "passed": 125,
+    "failed": 0
+  },
+  "known_existing_profile_failures": {
+    "tests_run": 4,
+    "failed": 2,
+    "report": "STEP37_FLASH_EXISTING_FAILURES.json"
+  }
+}

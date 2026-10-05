@@ -1,0 +1,138 @@
+{
+  "status": "pass",
+  "scope": "synthetic pipe lifecycle, sampling, isolation and cancellation",
+  "cases": [
+    {
+      "name": "greedy_16",
+      "pass": true
+    },
+    {
+      "name": "A_B_A_greedy",
+      "pass": true
+    },
+    {
+      "name": "seeded_sampling_repeat",
+      "pass": true
+    },
+    {
+      "name": "reject/",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 0 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 2048 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 64",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 -1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 1,",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 1,,2",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 temperature=nan 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 seed=4294967296 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 top_p=0 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 unknown=1 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 session=bad 1",
+      "pass": true
+    },
+    {
+      "name": "reject/ENC 2 00",
+      "pass": true
+    },
+    {
+      "name": "reject/ENC 1 gg",
+      "pass": true
+    },
+    {
+      "name": "stop_during_prefill",
+      "pass": true
+    },
+    {
+      "name": "fresh_state_after_cancel_and_errors",
+      "pass": true
+    },
+    {
+      "name": "session_key_isolation",
+      "pass": true
+    },
+    {
+      "name": "quit_during_request",
+      "pass": true
+    }
+  ],
+  "info": [
+    "INFO engine=step35-native architecture=step35 backend=llama.cpp gpu_only=1 mtp=0 spec=0 speculative=none expert_storage=mmap expert_compute=gpu expert_pipeline=0 expert_readers=0 expert_chunk_mib=8 expert_cache_mib=0 memory_target_percent=95 expert_stage_mib=16 expert_copy=pinned-sync kv=f32 flash_attention=0 tf32=0 conversation_cache=0",
+    "READY 2048 stop session-id"
+  ],
+  "exit_code": 0,
+  "greedy_ids": [
+    17,
+    60,
+    17,
+    60,
+    16,
+    28,
+    43,
+    10,
+    60,
+    2,
+    10,
+    60,
+    2,
+    10,
+    60,
+    2
+  ],
+  "sampled_ids": [
+    42,
+    40,
+    24,
+    46,
+    5,
+    53,
+    54,
+    60,
+    2,
+    14,
+    60,
+    43,
+    33,
+    37,
+    41,
+    3
+  ],
+  "case_count": 22,
+  "engine_sha256": "0187b423b9ebe10832696403cff12e1561dd9dab750845080e744643ae724b00",
+  "fixture_sha256": "fe28cdb38d25c0db721edb25b3d901f16f82f6ef751254df03e41aca1ff2fd3c"
+}

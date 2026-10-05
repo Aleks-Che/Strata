@@ -1,0 +1,1511 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "scope": "embedded-template byte parity, native token IDs, BOS/generation-prefix; no API or generation",
+  "runtime_adapter": true,
+  "case_count": 215,
+  "mismatch_count": 0,
+  "gguf": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf",
+  "template_sha256": "f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633",
+  "jinja2_version": "3.1.4",
+  "oracle_provenance": {
+    "architecture": "step35",
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "renderer": "native-jinja-with-tool-json-normalization"
+  },
+  "oracle_sha256": "1a6b4b7e9e7a1f805abebe5cee07d4788df3f3f7d0642830cc4b1e4cf6061ebc",
+  "tokenizer_provenance": {
+    "architecture": "step35",
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand,step-bounded-expert-cache,step-router-lookahead-pipeline,step-prefill-cache-admission"
+  },
+  "tokenizer_oracle_sha256": "ba40482699ea6cdcb3a13e993d18235ee906dc095d72a6b13c01d72c83e6b1f1",
+  "cases": [
+    {
+      "name": "user/gen=False/effort=None",
+      "pass": true,
+      "bytes": 78,
+      "render_sha256": "db3bf680bd05081d48107f3727af92bc80104f8d137b7875ace04c9b96792d5b",
+      "token_count": 12
+    },
+    {
+      "name": "user/gen=False/effort=low",
+      "pass": true,
+      "bytes": 124,
+      "render_sha256": "65fc5aa50c965abd81dd635752de5e7bab22f7a12c5a30225d7451c2153687a8",
+      "token_count": 22
+    },
+    {
+      "name": "user/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 127,
+      "render_sha256": "2c684a3623eb203b061e03ed9b276bd271bfbab9c1fde752b66a302f34d43701",
+      "token_count": 22
+    },
+    {
+      "name": "user/gen=False/effort=high",
+      "pass": true,
+      "bytes": 125,
+      "render_sha256": "d2740a6b21d0b42bd582b4ce4d50ffc4b9202f661c0182666e4db630901f1767",
+      "token_count": 22
+    },
+    {
+      "name": "user/gen=True/effort=None",
+      "pass": true,
+      "bytes": 108,
+      "render_sha256": "7f251cc7481278c680b3e2fd4bed305a5b81046ebef0b5ff0759ccc3bad12215",
+      "token_count": 18
+    },
+    {
+      "name": "user/gen=True/effort=low",
+      "pass": true,
+      "bytes": 154,
+      "render_sha256": "60ad71072ced46352027eb834562973ed7896c435246fc549b2ff29c5d8a32b6",
+      "token_count": 28
+    },
+    {
+      "name": "user/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 157,
+      "render_sha256": "9dce97386a944ed73f3ad2a8764193c8ddbb7ef121cbd2396bc270b527a583af",
+      "token_count": 28
+    },
+    {
+      "name": "user/gen=True/effort=high",
+      "pass": true,
+      "bytes": 155,
+      "render_sha256": "a69af39fea3b91fc6e435fc682fa9882c9e06fb205eb9d6a1563009c6fbf75b3",
+      "token_count": 28
+    },
+    {
+      "name": "system/gen=False/effort=None",
+      "pass": true,
+      "bytes": 130,
+      "render_sha256": "d68e5e7144ea472e92da097a51e547cf28a48fc5484877f4185908751377f99a",
+      "token_count": 23
+    },
+    {
+      "name": "system/gen=False/effort=low",
+      "pass": true,
+      "bytes": 146,
+      "render_sha256": "264d4864f27743406531a8dbc029085f80b40179697cbb26c353c88993cc501b",
+      "token_count": 28
+    },
+    {
+      "name": "system/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 149,
+      "render_sha256": "21c0c8823f2c65132aa4c89c0e68b9609f1ab98a6a821f391bc0fed56adf4e25",
+      "token_count": 28
+    },
+    {
+      "name": "system/gen=False/effort=high",
+      "pass": true,
+      "bytes": 147,
+      "render_sha256": "473f6251012df4032713111fe01d65206086ed0ecee3d541bde313be07395476",
+      "token_count": 28
+    },
+    {
+      "name": "system/gen=True/effort=None",
+      "pass": true,
+      "bytes": 160,
+      "render_sha256": "0d731e47613510ff2e761d65ce6cf0249c6d32001ca40997b55e2d22d9745d74",
+      "token_count": 29
+    },
+    {
+      "name": "system/gen=True/effort=low",
+      "pass": true,
+      "bytes": 176,
+      "render_sha256": "50e1c7bef1977407eccd014eca50a9bbcb9e518af247c3064560ad204fffbde3",
+      "token_count": 34
+    },
+    {
+      "name": "system/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 179,
+      "render_sha256": "6826c1dc4c4c95bbc37eb0e9ebb28dc0f1e2028df2e8cdb1b30a7dced500b3d9",
+      "token_count": 34
+    },
+    {
+      "name": "system/gen=True/effort=high",
+      "pass": true,
+      "bytes": 177,
+      "render_sha256": "af6090ec8093a0b2630a1601d417e3b423707ee9804c553e8bb2872b752d7e46",
+      "token_count": 34
+    },
+    {
+      "name": "history/gen=False/effort=None",
+      "pass": true,
+      "bytes": 160,
+      "render_sha256": "bdc46990f5c7bd59f256612c6073f77fcfeb956180b0e0a183669bfab356f46b",
+      "token_count": 27
+    },
+    {
+      "name": "history/gen=False/effort=low",
+      "pass": true,
+      "bytes": 206,
+      "render_sha256": "62e6d01a295575f8217b9eb7acfee4fac53390ed5e2cccb20d41fbb486728151",
+      "token_count": 37
+    },
+    {
+      "name": "history/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 209,
+      "render_sha256": "f62e9ea1a292eb89950b47eceff457fe0d493c43db3f3d96f430f8bcf30d30fa",
+      "token_count": 37
+    },
+    {
+      "name": "history/gen=False/effort=high",
+      "pass": true,
+      "bytes": 207,
+      "render_sha256": "c7dbdc5a02a29c0f0c9fb2d68f2d418a492c30294685731caba1ceeb59c2a46d",
+      "token_count": 37
+    },
+    {
+      "name": "history/gen=True/effort=None",
+      "pass": true,
+      "bytes": 190,
+      "render_sha256": "8d4ecd4d38750acb50902df5ceb59fd12211774f6ee81228866cb195937ee10a",
+      "token_count": 33
+    },
+    {
+      "name": "history/gen=True/effort=low",
+      "pass": true,
+      "bytes": 236,
+      "render_sha256": "1c9b46ae91346d3ce2b611119b028ebfacc491eb641e8014177fecc13cee0c92",
+      "token_count": 43
+    },
+    {
+      "name": "history/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 239,
+      "render_sha256": "cd28dfe1c7fce7491722e68c9a33b02b66de03428e2478ce0885f96d5b708291",
+      "token_count": 43
+    },
+    {
+      "name": "history/gen=True/effort=high",
+      "pass": true,
+      "bytes": 237,
+      "render_sha256": "1ec7d684223a65e721260fa0d982664ee7d2d0e89bf6c1ff2a01e834d2cc69b5",
+      "token_count": 43
+    },
+    {
+      "name": "reasoning_field/gen=False/effort=None",
+      "pass": true,
+      "bytes": 151,
+      "render_sha256": "6214284e84c7bbebdbefa202879253646dba6df64c1bd07a87e0996a173cd494",
+      "token_count": 28
+    },
+    {
+      "name": "reasoning_field/gen=False/effort=low",
+      "pass": true,
+      "bytes": 197,
+      "render_sha256": "ff6163f95db854aa93d5d7f91461acdaa2a946db6f7a39e7e923479c3e1e5c13",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_field/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 200,
+      "render_sha256": "896f4444ce25491e58b0917790f53629bd92cd71981f161e96ef99759e39ff9b",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_field/gen=False/effort=high",
+      "pass": true,
+      "bytes": 198,
+      "render_sha256": "5db9395852a179c05c564720e3f8887c60ac1c23b7d4fde68ff9cefd2092b4b3",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_field/gen=True/effort=None",
+      "pass": true,
+      "bytes": 181,
+      "render_sha256": "3de83d9ddb3c4fa8f4bdaaaaa8c564f61e8f03c4211d936fc3358a6303cdd6cb",
+      "token_count": 34
+    },
+    {
+      "name": "reasoning_field/gen=True/effort=low",
+      "pass": true,
+      "bytes": 227,
+      "render_sha256": "21240d74f6a527fdf97aaaf728854487dbc4366f1724046a52940c5bc3e442d0",
+      "token_count": 44
+    },
+    {
+      "name": "reasoning_field/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 230,
+      "render_sha256": "f7a5e090e2342181bd0a74d54d0afc0a830486a2b1a303ea53b03c77a82582bd",
+      "token_count": 44
+    },
+    {
+      "name": "reasoning_field/gen=True/effort=high",
+      "pass": true,
+      "bytes": 228,
+      "render_sha256": "0de90cb4775678171b10e9cd1eaa18f7ceeda53d3ecd4ee2e662c9808ec4cabc",
+      "token_count": 44
+    },
+    {
+      "name": "reasoning_inline/gen=False/effort=None",
+      "pass": true,
+      "bytes": 151,
+      "render_sha256": "6214284e84c7bbebdbefa202879253646dba6df64c1bd07a87e0996a173cd494",
+      "token_count": 28
+    },
+    {
+      "name": "reasoning_inline/gen=False/effort=low",
+      "pass": true,
+      "bytes": 197,
+      "render_sha256": "ff6163f95db854aa93d5d7f91461acdaa2a946db6f7a39e7e923479c3e1e5c13",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_inline/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 200,
+      "render_sha256": "896f4444ce25491e58b0917790f53629bd92cd71981f161e96ef99759e39ff9b",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_inline/gen=False/effort=high",
+      "pass": true,
+      "bytes": 198,
+      "render_sha256": "5db9395852a179c05c564720e3f8887c60ac1c23b7d4fde68ff9cefd2092b4b3",
+      "token_count": 38
+    },
+    {
+      "name": "reasoning_inline/gen=True/effort=None",
+      "pass": true,
+      "bytes": 181,
+      "render_sha256": "3de83d9ddb3c4fa8f4bdaaaaa8c564f61e8f03c4211d936fc3358a6303cdd6cb",
+      "token_count": 34
+    },
+    {
+      "name": "reasoning_inline/gen=True/effort=low",
+      "pass": true,
+      "bytes": 227,
+      "render_sha256": "21240d74f6a527fdf97aaaf728854487dbc4366f1724046a52940c5bc3e442d0",
+      "token_count": 44
+    },
+    {
+      "name": "reasoning_inline/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 230,
+      "render_sha256": "f7a5e090e2342181bd0a74d54d0afc0a830486a2b1a303ea53b03c77a82582bd",
+      "token_count": 44
+    },
+    {
+      "name": "reasoning_inline/gen=True/effort=high",
+      "pass": true,
+      "bytes": 228,
+      "render_sha256": "0de90cb4775678171b10e9cd1eaa18f7ceeda53d3ecd4ee2e662c9808ec4cabc",
+      "token_count": 44
+    },
+    {
+      "name": "old_reasoning/gen=False/effort=None",
+      "pass": true,
+      "bytes": 165,
+      "render_sha256": "26cd10770528d367fd42cb1053a28a97493625f16ef142235ae41ead31b975df",
+      "token_count": 30
+    },
+    {
+      "name": "old_reasoning/gen=False/effort=low",
+      "pass": true,
+      "bytes": 211,
+      "render_sha256": "abee79a089a37642388c858af8e4a5400d584d70c1010c5119d9203d8e00d946",
+      "token_count": 40
+    },
+    {
+      "name": "old_reasoning/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 214,
+      "render_sha256": "1e79956d74a4214122a840ade6bb379abf025928ebb8e9dfa39332f55426e5c1",
+      "token_count": 40
+    },
+    {
+      "name": "old_reasoning/gen=False/effort=high",
+      "pass": true,
+      "bytes": 212,
+      "render_sha256": "4da04fbeab5b5eb82ae83ddd3bfee30eabfa1bf84a5ae685e6f8c3626d0db382",
+      "token_count": 40
+    },
+    {
+      "name": "old_reasoning/gen=True/effort=None",
+      "pass": true,
+      "bytes": 195,
+      "render_sha256": "2e7b50304ade5d650c4c7a602f632310bfadacea8568b94c3517eaa2959c6d53",
+      "token_count": 36
+    },
+    {
+      "name": "old_reasoning/gen=True/effort=low",
+      "pass": true,
+      "bytes": 241,
+      "render_sha256": "b66f5db0b127bb65fee58ceb9f790176a64f834ef04f2dee97e298cd94bc9f29",
+      "token_count": 46
+    },
+    {
+      "name": "old_reasoning/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 244,
+      "render_sha256": "8ee7e4fbb53a3b116e9d2fcea46b4b359962aad137223510f6e3d1299a93ec38",
+      "token_count": 46
+    },
+    {
+      "name": "old_reasoning/gen=True/effort=high",
+      "pass": true,
+      "bytes": 242,
+      "render_sha256": "18d373d65fec9e089160ae4692929c112f09b892200b0467f3d201fab6497a2e",
+      "token_count": 46
+    },
+    {
+      "name": "reasoning_empty/gen=False/effort=None",
+      "pass": true,
+      "bytes": 139,
+      "render_sha256": "ab236137f9c7b0c6f63690b7c135c8a036ff292356a1e5f8269c855386ef6dbf",
+      "token_count": 23
+    },
+    {
+      "name": "reasoning_empty/gen=False/effort=low",
+      "pass": true,
+      "bytes": 185,
+      "render_sha256": "72aa22ccdeba098441168fc2b32ed6eb7ed21e58d467e471e51712cdfa1c0525",
+      "token_count": 33
+    },
+    {
+      "name": "reasoning_empty/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 188,
+      "render_sha256": "b12d3bd5bfbc76a3d5a9eebbb967930c4efc1129befd227f4c9aa175adbc67e8",
+      "token_count": 33
+    },
+    {
+      "name": "reasoning_empty/gen=False/effort=high",
+      "pass": true,
+      "bytes": 186,
+      "render_sha256": "6dc0c031b3f8795642a3077fc4115561221a936d4188fbe2e72888070cc2eb48",
+      "token_count": 33
+    },
+    {
+      "name": "reasoning_empty/gen=True/effort=None",
+      "pass": true,
+      "bytes": 169,
+      "render_sha256": "0ddcadfd4160c32af5a82353d7604e491a325c1e4925e48010f690318bfc0715",
+      "token_count": 29
+    },
+    {
+      "name": "reasoning_empty/gen=True/effort=low",
+      "pass": true,
+      "bytes": 215,
+      "render_sha256": "08d53c422601c17870a330302a321d8d16e1ec0b6320d27604982f1c47703408",
+      "token_count": 39
+    },
+    {
+      "name": "reasoning_empty/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 218,
+      "render_sha256": "f2e11f1f8bed2261021b278f7dfcd46f205e433a3552b182703b855c26aad894",
+      "token_count": 39
+    },
+    {
+      "name": "reasoning_empty/gen=True/effort=high",
+      "pass": true,
+      "bytes": 216,
+      "render_sha256": "18dec99c23619bcf9106414357f812c62030f37717ddb39ffe720e8bc99ef2a2",
+      "token_count": 39
+    },
+    {
+      "name": "null_assistant/gen=False/effort=None",
+      "pass": true,
+      "bytes": 129,
+      "render_sha256": "f4f1ee4b3f2c04e0fa00583ed5445b1719c6b8f4ee8d7a51d46cb961ae061f00",
+      "token_count": 22
+    },
+    {
+      "name": "null_assistant/gen=False/effort=low",
+      "pass": true,
+      "bytes": 175,
+      "render_sha256": "1b05d6b69043a5fc1a35dd0c515895c30b193d0c1471a60a1b59217c55cc9fa2",
+      "token_count": 32
+    },
+    {
+      "name": "null_assistant/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 178,
+      "render_sha256": "e9a4bac05c5435e6f7e35f4cbc650882dbf33214529d2c8dfb6faa41803a83b7",
+      "token_count": 32
+    },
+    {
+      "name": "null_assistant/gen=False/effort=high",
+      "pass": true,
+      "bytes": 176,
+      "render_sha256": "17afd421d15de51783f1cb4c8e3b30143d7de76a1695e641adf80ef8048ec164",
+      "token_count": 32
+    },
+    {
+      "name": "null_assistant/gen=True/effort=None",
+      "pass": true,
+      "bytes": 159,
+      "render_sha256": "d13a0101cf5acebf5a71508c371308002862bf72c9387a8208668f3f83d22e79",
+      "token_count": 28
+    },
+    {
+      "name": "null_assistant/gen=True/effort=low",
+      "pass": true,
+      "bytes": 205,
+      "render_sha256": "aa040e4726c96995d48a736a8e700156972a3a4e2fe557e96897d0467634c1e2",
+      "token_count": 38
+    },
+    {
+      "name": "null_assistant/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 208,
+      "render_sha256": "f400c346dd4e31945ecfc25c2f52e9cb42df6118b254082db505ef7bce9b9b50",
+      "token_count": 38
+    },
+    {
+      "name": "null_assistant/gen=True/effort=high",
+      "pass": true,
+      "bytes": 206,
+      "render_sha256": "80fcbb388b7774156051b4f639f33535859b513d1673f5a1792d00f2b1fb3bf8",
+      "token_count": 38
+    },
+    {
+      "name": "mapping_text/gen=False/effort=None",
+      "pass": true,
+      "bytes": 60,
+      "render_sha256": "ea9efb814ff3dc55305dc8a3e5067c0d34850931eae7265ff3eb5f5760d6938e",
+      "token_count": 7
+    },
+    {
+      "name": "mapping_text/gen=False/effort=low",
+      "pass": true,
+      "bytes": 106,
+      "render_sha256": "3ddf7760ebd58e1a720f39333101e4636f4207cdb4bb0398357f47afb28f72b4",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_text/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 109,
+      "render_sha256": "deda77687d3eba7b70b4f31cdc353dc23b77b66e17caeb1cfe094e40b8084e3d",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_text/gen=False/effort=high",
+      "pass": true,
+      "bytes": 107,
+      "render_sha256": "a020314d4a3eb6d356520e8b86cd51463ef11045496e4a83b02b54199c336b89",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_text/gen=True/effort=None",
+      "pass": true,
+      "bytes": 90,
+      "render_sha256": "9fe7429c1b95a23c9c888fce724c0c172f7cc2207d730a62ed295fa86da665c5",
+      "token_count": 13
+    },
+    {
+      "name": "mapping_text/gen=True/effort=low",
+      "pass": true,
+      "bytes": 136,
+      "render_sha256": "6090e73aa5d83fc2fe4db677dc4164e856cfa20065a3ae94dbad33ec4d1e0ea5",
+      "token_count": 23
+    },
+    {
+      "name": "mapping_text/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 139,
+      "render_sha256": "0dd1eeca3693b0ed0120d2a27893c303bed8edd06a951335c275292969b70057",
+      "token_count": 23
+    },
+    {
+      "name": "mapping_text/gen=True/effort=high",
+      "pass": true,
+      "bytes": 137,
+      "render_sha256": "3727e79208686b4e67e26c8143f82116aeaf86b448c0a408481b3ea458050090",
+      "token_count": 23
+    },
+    {
+      "name": "mapping_value/gen=False/effort=None",
+      "pass": true,
+      "bytes": 60,
+      "render_sha256": "ea9efb814ff3dc55305dc8a3e5067c0d34850931eae7265ff3eb5f5760d6938e",
+      "token_count": 7
+    },
+    {
+      "name": "mapping_value/gen=False/effort=low",
+      "pass": true,
+      "bytes": 106,
+      "render_sha256": "3ddf7760ebd58e1a720f39333101e4636f4207cdb4bb0398357f47afb28f72b4",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_value/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 109,
+      "render_sha256": "deda77687d3eba7b70b4f31cdc353dc23b77b66e17caeb1cfe094e40b8084e3d",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_value/gen=False/effort=high",
+      "pass": true,
+      "bytes": 107,
+      "render_sha256": "a020314d4a3eb6d356520e8b86cd51463ef11045496e4a83b02b54199c336b89",
+      "token_count": 17
+    },
+    {
+      "name": "mapping_value/gen=True/effort=None",
+      "pass": true,
+      "bytes": 90,
+      "render_sha256": "9fe7429c1b95a23c9c888fce724c0c172f7cc2207d730a62ed295fa86da665c5",
+      "token_count": 13
+    },
+    {
+      "name": "mapping_value/gen=True/effort=low",
+      "pass": true,
+      "bytes": 136,
+      "render_sha256": "6090e73aa5d83fc2fe4db677dc4164e856cfa20065a3ae94dbad33ec4d1e0ea5",
+      "token_count": 23
+    },
+    {
+      "name": "mapping_value/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 139,
+      "render_sha256": "0dd1eeca3693b0ed0120d2a27893c303bed8edd06a951335c275292969b70057",
+      "token_count": 23
+    },
+    {
+      "name": "mapping_value/gen=True/effort=high",
+      "pass": true,
+      "bytes": 137,
+      "render_sha256": "3727e79208686b4e67e26c8143f82116aeaf86b448c0a408481b3ea458050090",
+      "token_count": 23
+    },
+    {
+      "name": "text_parts/gen=False/effort=None",
+      "pass": true,
+      "bytes": 64,
+      "render_sha256": "b304577a9a036f9f39e8e1dd2468146a112f0cbe011f1529eb78454ba1a10402",
+      "token_count": 8
+    },
+    {
+      "name": "text_parts/gen=False/effort=low",
+      "pass": true,
+      "bytes": 110,
+      "render_sha256": "1b9ac4525f365a2879a0e68f628fb0853655c42fdcdbbc86a88a229c72b763ff",
+      "token_count": 18
+    },
+    {
+      "name": "text_parts/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 113,
+      "render_sha256": "77ee91f87a21a816c0101cf67cd6081a4d46c7d9f922f4ae652820f0f47443b7",
+      "token_count": 18
+    },
+    {
+      "name": "text_parts/gen=False/effort=high",
+      "pass": true,
+      "bytes": 111,
+      "render_sha256": "ea11475b73b2d3e3809dcd23a6251e445f24950648d7fad84de91f0f6e3f01a4",
+      "token_count": 18
+    },
+    {
+      "name": "text_parts/gen=True/effort=None",
+      "pass": true,
+      "bytes": 94,
+      "render_sha256": "793d62067c786fc60ea99fe2e22ce9a2789c95f1da59e4f1a3435bfa295c6d1d",
+      "token_count": 14
+    },
+    {
+      "name": "text_parts/gen=True/effort=low",
+      "pass": true,
+      "bytes": 140,
+      "render_sha256": "9b39d069d152c2889ec78fbd6fd81044a811468bb5cc4c4e0387c1fd254e0ac9",
+      "token_count": 24
+    },
+    {
+      "name": "text_parts/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 143,
+      "render_sha256": "35c46f37be6156a0182cb0bb1884ac70b4122acb89be77d4c56bf4862fa5dfb3",
+      "token_count": 24
+    },
+    {
+      "name": "text_parts/gen=True/effort=high",
+      "pass": true,
+      "bytes": 141,
+      "render_sha256": "ca1f705d322a91fa9f5f733b74dde27e699e8b1978792c40f10bdfe71b74fea9",
+      "token_count": 24
+    },
+    {
+      "name": "empty_text/gen=False/effort=None",
+      "pass": true,
+      "bytes": 57,
+      "render_sha256": "06221bcd2c9b484fe1186a09bd593745be7776dc3f36a2200a537487f0cbffd6",
+      "token_count": 6
+    },
+    {
+      "name": "empty_text/gen=False/effort=low",
+      "pass": true,
+      "bytes": 103,
+      "render_sha256": "e7cbbbf5eb5c11aaac70778364880d4b5aa3aff5d678c2ad601097e454b67ba9",
+      "token_count": 16
+    },
+    {
+      "name": "empty_text/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 106,
+      "render_sha256": "eadd8b13f77c113544c9bad3ab32c100e17eb7c985bbb1108f67a949e8de8900",
+      "token_count": 16
+    },
+    {
+      "name": "empty_text/gen=False/effort=high",
+      "pass": true,
+      "bytes": 104,
+      "render_sha256": "cb6b709987efde0c0783d1ed82fa51955fdaf87ae50af9bcb331eb623f718374",
+      "token_count": 16
+    },
+    {
+      "name": "empty_text/gen=True/effort=None",
+      "pass": true,
+      "bytes": 87,
+      "render_sha256": "32104071a1cf5d5fa6fa5173aa67e4828f36bd84e2ca9859c66dcde08b162850",
+      "token_count": 12
+    },
+    {
+      "name": "empty_text/gen=True/effort=low",
+      "pass": true,
+      "bytes": 133,
+      "render_sha256": "900344e165f0019d16bee6015d0fe3f2e2bd8ff992eb7762e667703440bbedec",
+      "token_count": 22
+    },
+    {
+      "name": "empty_text/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 136,
+      "render_sha256": "14b00198034618c0dc1f39898f9f69f7d6f3f06bf464c22784e148a9d6ef97fc",
+      "token_count": 22
+    },
+    {
+      "name": "empty_text/gen=True/effort=high",
+      "pass": true,
+      "bytes": 134,
+      "render_sha256": "73d7b23e1e2e5e29063f34f57dc5a5af753bcd93254560ff32ff88e79b814446",
+      "token_count": 22
+    },
+    {
+      "name": "unicode_whitespace/gen=False/effort=None",
+      "pass": true,
+      "bytes": 83,
+      "render_sha256": "f73b2d5b70f431a57b9ccb123466c2a9ce8fd12c1ef7019864dc0c93f6f68d1c",
+      "token_count": 22
+    },
+    {
+      "name": "unicode_whitespace/gen=False/effort=low",
+      "pass": true,
+      "bytes": 129,
+      "render_sha256": "f21389ceb420c7fc0f24c93b116a9e4611112ba998bd5a0f03f3beb9816f61f1",
+      "token_count": 32
+    },
+    {
+      "name": "unicode_whitespace/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 132,
+      "render_sha256": "d34c80916611fb0e4d810eb20ae6ede302badcb4413b55d2ac088e886d0349e4",
+      "token_count": 32
+    },
+    {
+      "name": "unicode_whitespace/gen=False/effort=high",
+      "pass": true,
+      "bytes": 130,
+      "render_sha256": "051596982d382cc2243d7fab7ccc0d17bdf8a166800f7c3333e07cf210747aa6",
+      "token_count": 32
+    },
+    {
+      "name": "unicode_whitespace/gen=True/effort=None",
+      "pass": true,
+      "bytes": 113,
+      "render_sha256": "a915b6fb032b0c8b8c51d115a06084658dc6ac45acb555310f44d762ad11170c",
+      "token_count": 28
+    },
+    {
+      "name": "unicode_whitespace/gen=True/effort=low",
+      "pass": true,
+      "bytes": 159,
+      "render_sha256": "78b09ac410cf5f8d61c33ef43e7fb7278c20aa7fd8cb9e064fd41e16c80b2a30",
+      "token_count": 38
+    },
+    {
+      "name": "unicode_whitespace/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 162,
+      "render_sha256": "dd31168097f3bd08e5e8e3a5148a296c1cf50ce58aa234df7653f5c737d0c80e",
+      "token_count": 38
+    },
+    {
+      "name": "unicode_whitespace/gen=True/effort=high",
+      "pass": true,
+      "bytes": 160,
+      "render_sha256": "ee05f935c4d5db948b495d7594058588979d13fc63bc429dfa828f16a3eeec05",
+      "token_count": 38
+    },
+    {
+      "name": "observation/gen=False/effort=None",
+      "pass": true,
+      "bytes": 119,
+      "render_sha256": "f8cfab4c224d62c78a1da81a96828917972024186df6810f9681429dcf7c1876",
+      "token_count": 18
+    },
+    {
+      "name": "observation/gen=False/effort=low",
+      "pass": true,
+      "bytes": 165,
+      "render_sha256": "04882cd404f26a5d40713a21e75a09fe376399351211f024c6d5990dbdf02b0f",
+      "token_count": 28
+    },
+    {
+      "name": "observation/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 168,
+      "render_sha256": "5ad7a786b83d6e196688b53295c0c4211261952fe4f854e9d81ce199b5af56e1",
+      "token_count": 28
+    },
+    {
+      "name": "observation/gen=False/effort=high",
+      "pass": true,
+      "bytes": 166,
+      "render_sha256": "38f23d982141e19cc912c9849822637b4eb92c3a3cebd158f5a8167e49e0d933",
+      "token_count": 28
+    },
+    {
+      "name": "observation/gen=True/effort=None",
+      "pass": true,
+      "bytes": 149,
+      "render_sha256": "7d64fa0e3eddc5ff7ee114fc46f279fea978021f81c71b3c743be12532997885",
+      "token_count": 24
+    },
+    {
+      "name": "observation/gen=True/effort=low",
+      "pass": true,
+      "bytes": 195,
+      "render_sha256": "56634e5c87897f648665e61b25fc587fa34c1a0c3341bebc17b3f5b7bc428be7",
+      "token_count": 34
+    },
+    {
+      "name": "observation/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 198,
+      "render_sha256": "f60ef9e0edf46885e050040862c597f301caab5a107e4fab4b7e20d95e9f7e4a",
+      "token_count": 34
+    },
+    {
+      "name": "observation/gen=True/effort=high",
+      "pass": true,
+      "bytes": 196,
+      "render_sha256": "b8a37a5258cde9737f3981f7ce4bf8669161a460438a9e00757241a9b7e4a242",
+      "token_count": 34
+    },
+    {
+      "name": "later_system/gen=False/effort=None",
+      "pass": true,
+      "bytes": 124,
+      "render_sha256": "5b39caff05151a876cec291dfd4af6d0c43686fa914a23480e025eb4ba9c2346",
+      "token_count": 19
+    },
+    {
+      "name": "later_system/gen=False/effort=low",
+      "pass": true,
+      "bytes": 170,
+      "render_sha256": "d190ead7019bf80314bf0711f6e4bdde2f872ea8d0b15e7e884532bc7d37c11c",
+      "token_count": 29
+    },
+    {
+      "name": "later_system/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 173,
+      "render_sha256": "aa2bb4d81e9603eb6fa49a927975dcc30229e8e5e6f5dcb2d5678098d6c04068",
+      "token_count": 29
+    },
+    {
+      "name": "later_system/gen=False/effort=high",
+      "pass": true,
+      "bytes": 171,
+      "render_sha256": "cb4034bf7de69c5a3c2a7c41c98e58ea0098bf314d51eb0010ef2846bf5c997e",
+      "token_count": 29
+    },
+    {
+      "name": "later_system/gen=True/effort=None",
+      "pass": true,
+      "bytes": 154,
+      "render_sha256": "f6fd88325196f2533d7ad41392f672c8b1fca10187e38f50dda6c454ff3d0267",
+      "token_count": 25
+    },
+    {
+      "name": "later_system/gen=True/effort=low",
+      "pass": true,
+      "bytes": 200,
+      "render_sha256": "fa70afe14ba35c6878e466a6751b56f15544421be46c182321d480c708d50ed1",
+      "token_count": 35
+    },
+    {
+      "name": "later_system/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 203,
+      "render_sha256": "8abb1008c4bff1a6299041466c7dd5ff0b960d58414d1e67af8ac58af0d74a1d",
+      "token_count": 35
+    },
+    {
+      "name": "later_system/gen=True/effort=high",
+      "pass": true,
+      "bytes": 201,
+      "render_sha256": "1bb29e0f7e544e0d03bd119b23fb0e2607d317a806666c5243c0aa0426f7a02f",
+      "token_count": 35
+    },
+    {
+      "name": "tools_available/gen=False/effort=None",
+      "pass": true,
+      "bytes": 943,
+      "render_sha256": "1d4115c6cfa63833098bf0f087937403fa8ec2ef194c7214f5e6d3e2d3d7709c",
+      "token_count": 219
+    },
+    {
+      "name": "tools_available/gen=False/effort=low",
+      "pass": true,
+      "bytes": 959,
+      "render_sha256": "23a5a05c3a8716163d9e8105e891ffaedbf5a05dece783b89d063f70e6e66a4f",
+      "token_count": 224
+    },
+    {
+      "name": "tools_available/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 962,
+      "render_sha256": "2878858379e6fad1f4df95083216744bd206d595cb7c72b90c1655f0eb69f29e",
+      "token_count": 224
+    },
+    {
+      "name": "tools_available/gen=False/effort=high",
+      "pass": true,
+      "bytes": 960,
+      "render_sha256": "fa5897d97b664e50058d3bd843834adaceb66fda68b75e7e5da217eb37a51806",
+      "token_count": 224
+    },
+    {
+      "name": "tools_available/gen=True/effort=None",
+      "pass": true,
+      "bytes": 973,
+      "render_sha256": "edab7d048f59e7a814422d949a3d59b67e7fbd648ace0a66c7bc3ad81592dcef",
+      "token_count": 225
+    },
+    {
+      "name": "tools_available/gen=True/effort=low",
+      "pass": true,
+      "bytes": 989,
+      "render_sha256": "a1d93964f20e50dc0fd57917650ac5ded774f94709054e1459cd2bd92b839587",
+      "token_count": 230
+    },
+    {
+      "name": "tools_available/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 992,
+      "render_sha256": "254ed29eec61d6e3e726eac48fa4c7e214ee920aa5e8f953cad8671f0ffc0cdb",
+      "token_count": 230
+    },
+    {
+      "name": "tools_available/gen=True/effort=high",
+      "pass": true,
+      "bytes": 990,
+      "render_sha256": "92de621c6d65ee484ad56ef2beb8eb8114ef5dc5f918351b464e708633e393f0",
+      "token_count": 230
+    },
+    {
+      "name": "tools_system/gen=False/effort=None",
+      "pass": true,
+      "bytes": 959,
+      "render_sha256": "2e6a5f7ce6a1891abc8036b301dcb1f4bca7c42c1fb1a508647cf24bfca15ee5",
+      "token_count": 223
+    },
+    {
+      "name": "tools_system/gen=False/effort=low",
+      "pass": true,
+      "bytes": 975,
+      "render_sha256": "0eee2998db8c9c50bff4d303127af82c9fb964ea8a8cc00a444b54ade4142bca",
+      "token_count": 228
+    },
+    {
+      "name": "tools_system/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 978,
+      "render_sha256": "fc226380ab82c6258a81f0503ce34c5d5a46c7dae3169a50eeac131f5faad7dd",
+      "token_count": 228
+    },
+    {
+      "name": "tools_system/gen=False/effort=high",
+      "pass": true,
+      "bytes": 976,
+      "render_sha256": "efa5fa63e5f817306bed57e2aa0efc69ee85f3c57c214fe11dc1e2ba073297a4",
+      "token_count": 228
+    },
+    {
+      "name": "tools_system/gen=True/effort=None",
+      "pass": true,
+      "bytes": 989,
+      "render_sha256": "b8065295dc00959e829dd43b52c91105e38ca874df979a284bae83b2cb1c20f8",
+      "token_count": 229
+    },
+    {
+      "name": "tools_system/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1005,
+      "render_sha256": "e69168b8ffb0ec800fdedc9ba0fd0cd46f9e3f5f69a796bcba42f0a1c7639c96",
+      "token_count": 234
+    },
+    {
+      "name": "tools_system/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1008,
+      "render_sha256": "4752b912296f09b20c59502fa2f0da01de2fa02f7a6d4b370526a981390dac83",
+      "token_count": 234
+    },
+    {
+      "name": "tools_system/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1006,
+      "render_sha256": "dd8c1a9278d57b6ee8b2d5100895b1216ae73a8b9f97f1a1c57375d6806d259d",
+      "token_count": 234
+    },
+    {
+      "name": "call_object/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1367,
+      "render_sha256": "65e83a9f02d65ce1f5caaa943f8c8558ed4438888195291115de98c3cce711e5",
+      "token_count": 337
+    },
+    {
+      "name": "call_object/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1383,
+      "render_sha256": "a41c0dc5e2bb70c9acddda328163f83e5192625ad7f55ccc771b5158efbd0eea",
+      "token_count": 342
+    },
+    {
+      "name": "call_object/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1386,
+      "render_sha256": "cf6255a4c9ff5ec96316c8181fe3b6401587a1854d2c529f8194dcb4b6bb8f1f",
+      "token_count": 342
+    },
+    {
+      "name": "call_object/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1384,
+      "render_sha256": "3359c3ffe1085d528484e2191f8e47f09753b262bdb732376c5fba9808435b87",
+      "token_count": 342
+    },
+    {
+      "name": "call_object/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1397,
+      "render_sha256": "8e4e8a022ca8c8fa0eba3179a0428c67890a0625b7b59ab1fe899efe688ce9ff",
+      "token_count": 343
+    },
+    {
+      "name": "call_object/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1413,
+      "render_sha256": "c44abf0a676402ed8ecf6d2e265794755576ea7219e2ed5b71f017b17b18140c",
+      "token_count": 348
+    },
+    {
+      "name": "call_object/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1416,
+      "render_sha256": "cfa0056c6b31aefae376bb1f0a8891f3aec81fafe5f7f03106e392a7a6eedbf8",
+      "token_count": 348
+    },
+    {
+      "name": "call_object/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1414,
+      "render_sha256": "a082c98631bb2ae1b0675e75fb02dd3f3bb1f83f0eddfd63e9fbaaa8876d08fa",
+      "token_count": 348
+    },
+    {
+      "name": "tool_response_object/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1439,
+      "render_sha256": "761ac9aa5bcca8e7272454894164bb11910e6d32e9e95d759fc80690a6015552",
+      "token_count": 348
+    },
+    {
+      "name": "tool_response_object/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1455,
+      "render_sha256": "ffb46ef69e1aee866d468ff2ce1bbbcd28cec76f28c1477b4edc7e203d98e8ea",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_object/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1458,
+      "render_sha256": "bb93d5bcdf1d06764eac8e397bf07d8f9ab5ffb151ef64ee35ce10fd29c93973",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_object/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1456,
+      "render_sha256": "d2bb20ba75c169e22e7e1153252b52eaa5d895c5aa7d31f1418a14e174594a70",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_object/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1469,
+      "render_sha256": "f53265ec9427d110fef926a75e0ff82e0de731dca571efa16ffc9d5a7363027c",
+      "token_count": 354
+    },
+    {
+      "name": "tool_response_object/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1485,
+      "render_sha256": "5180275b2ace9a2b4661d7b8e2ff83e805045e98e05f5a1a20065f06404ef382",
+      "token_count": 359
+    },
+    {
+      "name": "tool_response_object/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1488,
+      "render_sha256": "25e23607135e68a9e2b7c63dfe493070bcd13a99ff1af134aae2bd993fc0c1b3",
+      "token_count": 359
+    },
+    {
+      "name": "tool_response_object/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1486,
+      "render_sha256": "62176c112d58f5b47eed23ae97c8abe7b36c65630087879117f799de1796396e",
+      "token_count": 359
+    },
+    {
+      "name": "tool_responses_object/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1527,
+      "render_sha256": "2f891ca0a5763a9c3604e761a956f618ffe2a0215554efbdf0ab9901bfabe2ae",
+      "token_count": 360
+    },
+    {
+      "name": "tool_responses_object/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1543,
+      "render_sha256": "faaaae20dd10ae93603f47999553c2b7f38a5f1bbeae0090b191fc3f3d2a3eee",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_object/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1546,
+      "render_sha256": "e28604609aaf1c998cb98fee39157519fdea8bd8fc7407eb87db1b61e3959993",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_object/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1544,
+      "render_sha256": "87afa6fc689675990f1eef618635d8ef8d4e1bf41f31cdba554178ff3c89a66c",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_object/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1557,
+      "render_sha256": "cf15ffb2744e773899198866676eb35d79d093e94a613c393be74a7723c3d15c",
+      "token_count": 366
+    },
+    {
+      "name": "tool_responses_object/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1573,
+      "render_sha256": "7455ec4a289a40c11c6638319c4f694f5a0924b46eba9c82510c76cedb6c432f",
+      "token_count": 371
+    },
+    {
+      "name": "tool_responses_object/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1576,
+      "render_sha256": "1241e1b0825bd061a250f0624f0482a9ebeae0188d031f2a2d9a09a5164b4222",
+      "token_count": 371
+    },
+    {
+      "name": "tool_responses_object/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1574,
+      "render_sha256": "4949e5c9a87ca0e4b2a8d9810cc452cc48cd904ddd20552760f9e33d9bf83caf",
+      "token_count": 371
+    },
+    {
+      "name": "call_json/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1367,
+      "render_sha256": "65e83a9f02d65ce1f5caaa943f8c8558ed4438888195291115de98c3cce711e5",
+      "token_count": 337
+    },
+    {
+      "name": "call_json/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1383,
+      "render_sha256": "a41c0dc5e2bb70c9acddda328163f83e5192625ad7f55ccc771b5158efbd0eea",
+      "token_count": 342
+    },
+    {
+      "name": "call_json/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1386,
+      "render_sha256": "cf6255a4c9ff5ec96316c8181fe3b6401587a1854d2c529f8194dcb4b6bb8f1f",
+      "token_count": 342
+    },
+    {
+      "name": "call_json/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1384,
+      "render_sha256": "3359c3ffe1085d528484e2191f8e47f09753b262bdb732376c5fba9808435b87",
+      "token_count": 342
+    },
+    {
+      "name": "call_json/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1397,
+      "render_sha256": "8e4e8a022ca8c8fa0eba3179a0428c67890a0625b7b59ab1fe899efe688ce9ff",
+      "token_count": 343
+    },
+    {
+      "name": "call_json/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1413,
+      "render_sha256": "c44abf0a676402ed8ecf6d2e265794755576ea7219e2ed5b71f017b17b18140c",
+      "token_count": 348
+    },
+    {
+      "name": "call_json/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1416,
+      "render_sha256": "cfa0056c6b31aefae376bb1f0a8891f3aec81fafe5f7f03106e392a7a6eedbf8",
+      "token_count": 348
+    },
+    {
+      "name": "call_json/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1414,
+      "render_sha256": "a082c98631bb2ae1b0675e75fb02dd3f3bb1f83f0eddfd63e9fbaaa8876d08fa",
+      "token_count": 348
+    },
+    {
+      "name": "tool_response_json/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1439,
+      "render_sha256": "761ac9aa5bcca8e7272454894164bb11910e6d32e9e95d759fc80690a6015552",
+      "token_count": 348
+    },
+    {
+      "name": "tool_response_json/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1455,
+      "render_sha256": "ffb46ef69e1aee866d468ff2ce1bbbcd28cec76f28c1477b4edc7e203d98e8ea",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_json/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1458,
+      "render_sha256": "bb93d5bcdf1d06764eac8e397bf07d8f9ab5ffb151ef64ee35ce10fd29c93973",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_json/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1456,
+      "render_sha256": "d2bb20ba75c169e22e7e1153252b52eaa5d895c5aa7d31f1418a14e174594a70",
+      "token_count": 353
+    },
+    {
+      "name": "tool_response_json/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1469,
+      "render_sha256": "f53265ec9427d110fef926a75e0ff82e0de731dca571efa16ffc9d5a7363027c",
+      "token_count": 354
+    },
+    {
+      "name": "tool_response_json/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1485,
+      "render_sha256": "5180275b2ace9a2b4661d7b8e2ff83e805045e98e05f5a1a20065f06404ef382",
+      "token_count": 359
+    },
+    {
+      "name": "tool_response_json/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1488,
+      "render_sha256": "25e23607135e68a9e2b7c63dfe493070bcd13a99ff1af134aae2bd993fc0c1b3",
+      "token_count": 359
+    },
+    {
+      "name": "tool_response_json/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1486,
+      "render_sha256": "62176c112d58f5b47eed23ae97c8abe7b36c65630087879117f799de1796396e",
+      "token_count": 359
+    },
+    {
+      "name": "tool_responses_json/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1527,
+      "render_sha256": "2f891ca0a5763a9c3604e761a956f618ffe2a0215554efbdf0ab9901bfabe2ae",
+      "token_count": 360
+    },
+    {
+      "name": "tool_responses_json/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1543,
+      "render_sha256": "faaaae20dd10ae93603f47999553c2b7f38a5f1bbeae0090b191fc3f3d2a3eee",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_json/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1546,
+      "render_sha256": "e28604609aaf1c998cb98fee39157519fdea8bd8fc7407eb87db1b61e3959993",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_json/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1544,
+      "render_sha256": "87afa6fc689675990f1eef618635d8ef8d4e1bf41f31cdba554178ff3c89a66c",
+      "token_count": 365
+    },
+    {
+      "name": "tool_responses_json/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1557,
+      "render_sha256": "cf15ffb2744e773899198866676eb35d79d093e94a613c393be74a7723c3d15c",
+      "token_count": 366
+    },
+    {
+      "name": "tool_responses_json/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1573,
+      "render_sha256": "7455ec4a289a40c11c6638319c4f694f5a0924b46eba9c82510c76cedb6c432f",
+      "token_count": 371
+    },
+    {
+      "name": "tool_responses_json/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1576,
+      "render_sha256": "1241e1b0825bd061a250f0624f0482a9ebeae0188d031f2a2d9a09a5164b4222",
+      "token_count": 371
+    },
+    {
+      "name": "tool_responses_json/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1574,
+      "render_sha256": "4949e5c9a87ca0e4b2a8d9810cc452cc48cd904ddd20552760f9e33d9bf83caf",
+      "token_count": 371
+    },
+    {
+      "name": "flat_call/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1049,
+      "render_sha256": "74d972b1b64683ad9b43e8427c49e91a2e09e62dee6bd71e13335e5c645cb24e",
+      "token_count": 240
+    },
+    {
+      "name": "flat_call/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1065,
+      "render_sha256": "e63f502f4a503ca12df10fb853dc28e0edd8b844bba05f3b382a4fc371922432",
+      "token_count": 245
+    },
+    {
+      "name": "flat_call/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1068,
+      "render_sha256": "9ffaeea1983f466df0ce1e4a780add61eefd082e694d32fc0f6c3905c16e542e",
+      "token_count": 245
+    },
+    {
+      "name": "flat_call/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1066,
+      "render_sha256": "9f9ed6d514ef051b4450bd83e6a4c16eb827a9016ec5fbeef6c19cb69c0a15d0",
+      "token_count": 245
+    },
+    {
+      "name": "flat_call/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1079,
+      "render_sha256": "d69d8f096ac3a4390393b7c62c37c93475993db99c2ca9d91808135b783875b3",
+      "token_count": 246
+    },
+    {
+      "name": "flat_call/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1095,
+      "render_sha256": "b000fe2c2aa622d79a3e536d1768a7961104a289ea98b3ceea6155716d3f972e",
+      "token_count": 251
+    },
+    {
+      "name": "flat_call/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1098,
+      "render_sha256": "373997e9399135119977cb96ced1bd34d83b33a3a107393ec580a3a9b608c45f",
+      "token_count": 251
+    },
+    {
+      "name": "flat_call/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1096,
+      "render_sha256": "8edfa230a348f9a3986343a7fd63af5b5dbea77e35a9fdbdb74de879da882a8c",
+      "token_count": 251
+    },
+    {
+      "name": "multiple_calls/gen=False/effort=None",
+      "pass": true,
+      "bytes": 1153,
+      "render_sha256": "f61e6703dba5507aa6b57e5720e50170c54b91a91e6c0b56527f2bcada278acc",
+      "token_count": 267
+    },
+    {
+      "name": "multiple_calls/gen=False/effort=low",
+      "pass": true,
+      "bytes": 1169,
+      "render_sha256": "b4c801acb60be6b1e6236e367a528545e73764c6bee417728c51b5ad1c70e4f2",
+      "token_count": 272
+    },
+    {
+      "name": "multiple_calls/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 1172,
+      "render_sha256": "5a45df325abb3c4f7c627bb00928d42c32bd8b343e102e902d44be8ac357b005",
+      "token_count": 272
+    },
+    {
+      "name": "multiple_calls/gen=False/effort=high",
+      "pass": true,
+      "bytes": 1170,
+      "render_sha256": "4260db569351b144e6836361d3aba8ed685dab7566e98d0e5fa2c57a70aa8de0",
+      "token_count": 272
+    },
+    {
+      "name": "multiple_calls/gen=True/effort=None",
+      "pass": true,
+      "bytes": 1183,
+      "render_sha256": "b19cf4d0a20b6ecdd1a03f960bf3c2f324ebf2d88498a388d8aefa5afc261842",
+      "token_count": 273
+    },
+    {
+      "name": "multiple_calls/gen=True/effort=low",
+      "pass": true,
+      "bytes": 1199,
+      "render_sha256": "64a2cea8c4d4c27e41425a2d94c9240d5bfaa6e8a76c27185c3b37b694038d20",
+      "token_count": 278
+    },
+    {
+      "name": "multiple_calls/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 1202,
+      "render_sha256": "e7368e2b31e2853d9dbe221e45b88026c0c13e6337e62211ccb51cb065991737",
+      "token_count": 278
+    },
+    {
+      "name": "multiple_calls/gen=True/effort=high",
+      "pass": true,
+      "bytes": 1200,
+      "render_sha256": "57419dc3620ff67920407ed6c6f85464ef40d93618b05b8ca687f7641220a52a",
+      "token_count": 278
+    },
+    {
+      "name": "user_tool_response/gen=False/effort=None",
+      "pass": true,
+      "bytes": 194,
+      "render_sha256": "54515ca1f6184b15694ba18f490ddeac60b821364156a81ec7704a519bfd38b5",
+      "token_count": 33
+    },
+    {
+      "name": "user_tool_response/gen=False/effort=low",
+      "pass": true,
+      "bytes": 240,
+      "render_sha256": "7297a2a32b33b39a955cf40ad1fefe81bca61fd3cac2c940a690fedd294aaac5",
+      "token_count": 43
+    },
+    {
+      "name": "user_tool_response/gen=False/effort=medium",
+      "pass": true,
+      "bytes": 243,
+      "render_sha256": "78d0abd600bcba076d214efc39e83824c4adc16e30ba898fe93c198d14520c4c",
+      "token_count": 43
+    },
+    {
+      "name": "user_tool_response/gen=False/effort=high",
+      "pass": true,
+      "bytes": 241,
+      "render_sha256": "1afc2c58cdead6092e972d2e86a90a7b8127c47f1e78fffd386ec600f55fc37b",
+      "token_count": 43
+    },
+    {
+      "name": "user_tool_response/gen=True/effort=None",
+      "pass": true,
+      "bytes": 224,
+      "render_sha256": "cf11ac2aab0d3aa66c5dc644c08b9d2c2d8bf277d5275f8f42055661f99967ad",
+      "token_count": 39
+    },
+    {
+      "name": "user_tool_response/gen=True/effort=low",
+      "pass": true,
+      "bytes": 270,
+      "render_sha256": "3aa1f5991e977dbdec9c901c084b4c7f62af7392f6b60f2b2056fa44b61d5d26",
+      "token_count": 49
+    },
+    {
+      "name": "user_tool_response/gen=True/effort=medium",
+      "pass": true,
+      "bytes": 273,
+      "render_sha256": "06fa7b19c668b3ebd8958246db5d20e89fbbc628b2aaaaf198ea91a65209422f",
+      "token_count": 49
+    },
+    {
+      "name": "user_tool_response/gen=True/effort=high",
+      "pass": true,
+      "bytes": 271,
+      "render_sha256": "cf520263726f914f707e988eedbb3c633a4cce46fcf63c4946bec33bfcdec309",
+      "token_count": 49
+    },
+    {
+      "name": "manual_single_user_prompt",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_0",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_1",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_2",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_3",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_4",
+      "pass": true
+    },
+    {
+      "name": "reject_invalid_tool_json_5",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,548 @@
+{
+  "status": "pass",
+  "hardware": "Windows / Ryzen 9 9950X / 128 GiB / RTX 5090 32 GiB",
+  "settings": {
+    "context": 4096,
+    "batch": 17,
+    "kv": "f32",
+    "cache": "auto",
+    "readers": 1,
+    "chunk_mib": 8,
+    "mtp": false,
+    "order": [
+      "on",
+      "off",
+      "off",
+      "on"
+    ],
+    "file_cache_purged": false
+  },
+  "scope": "Two runs per policy; identical request sequences. No statistical confidence interval.",
+  "timings": {
+    "A_cold": {
+      "on": {
+        "mean_prefill_seconds": 10.619,
+        "mean_request_wall_seconds": 20.280627649990493,
+        "weighted_decode_tokens_per_second": 5.504397117534172,
+        "mean_prefill_fill_bytes": 43216514816,
+        "mean_decode_fill_bytes": 14077115904,
+        "raw_prefill_seconds": [
+          10.8421,
+          10.3959
+        ],
+        "raw_request_wall_seconds": [
+          20.72908550000284,
+          19.832169799978146
+        ],
+        "prefill_hit_fractions": [
+          0.04196401341872522,
+          0.04391582799634035
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 9.272210000000001,
+        "mean_request_wall_seconds": 18.522678199995426,
+        "weighted_decode_tokens_per_second": 5.749760652652078,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 18991199488,
+        "raw_prefill_seconds": [
+          9.26368,
+          9.28074
+        ],
+        "raw_request_wall_seconds": [
+          18.36162830001558,
+          18.68372809997527
+        ],
+        "prefill_hit_fractions": [
+          0.0,
+          0.0
+        ]
+      },
+      "prefill_time_reduction_percent": 12.6828326584424,
+      "request_wall_reduction_percent": 8.66812152135682
+    },
+    "B": {
+      "on": {
+        "mean_prefill_seconds": 3.8688200000000004,
+        "mean_request_wall_seconds": 18.710343350001494,
+        "weighted_decode_tokens_per_second": 5.883245730677345,
+        "mean_prefill_fill_bytes": 2057367808,
+        "mean_decode_fill_bytes": 6198645248,
+        "raw_prefill_seconds": [
+          4.10318,
+          3.6344600000000002
+        ],
+        "raw_request_wall_seconds": [
+          19.701685100008035,
+          17.719001599994954
+        ],
+        "prefill_hit_fractions": [
+          0.19783402594131722,
+          0.19676363178441003
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 3.4172649999999996,
+        "mean_request_wall_seconds": 17.291777999984333,
+        "weighted_decode_tokens_per_second": 6.294407132758495,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 7018643200,
+        "raw_prefill_seconds": [
+          3.36637,
+          3.4681599999999997
+        ],
+        "raw_request_wall_seconds": [
+          17.195901699975366,
+          17.3876542999933
+        ],
+        "prefill_hit_fractions": [
+          0.19814884775217226,
+          0.1982747764765143
+        ]
+      },
+      "prefill_time_reduction_percent": 11.67164665195074,
+      "request_wall_reduction_percent": 7.581717360718809
+    },
+    "medium": {
+      "on": {
+        "mean_prefill_seconds": 57.376149999999996,
+        "mean_request_wall_seconds": 60.1374364499934,
+        "weighted_decode_tokens_per_second": 5.459268515887119,
+        "mean_prefill_fill_bytes": 105363696128,
+        "mean_decode_fill_bytes": 2737254144,
+        "raw_prefill_seconds": [
+          58.0124,
+          56.7399
+        ],
+        "raw_request_wall_seconds": [
+          60.913143099984154,
+          59.36172980000265
+        ],
+        "prefill_hit_fractions": [
+          0.19366112024765406,
+          0.196285189126439
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 40.28135,
+        "mean_request_wall_seconds": 43.55032850000134,
+        "weighted_decode_tokens_per_second": 4.607876895223607,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 8673379328,
+        "raw_prefill_seconds": [
+          40.222300000000004,
+          40.3404
+        ],
+        "raw_request_wall_seconds": [
+          43.45642840000801,
+          43.644228599994676
+        ],
+        "prefill_hit_fractions": [
+          0.17160846151365644,
+          0.16867804972429137
+        ]
+      },
+      "prefill_time_reduction_percent": 29.79426120435058,
+      "request_wall_reduction_percent": 27.58200037972167
+    },
+    "A_after_context": {
+      "on": {
+        "mean_prefill_seconds": 3.020425,
+        "mean_request_wall_seconds": 10.393314549990464,
+        "weighted_decode_tokens_per_second": 7.220332379690906,
+        "mean_prefill_fill_bytes": 1696038400,
+        "mean_decode_fill_bytes": 6869689856,
+        "raw_prefill_seconds": [
+          3.0074699999999996,
+          3.03338
+        ],
+        "raw_request_wall_seconds": [
+          10.380371899984311,
+          10.406257199996617
+        ],
+        "prefill_hit_fractions": [
+          0.1995730405611467,
+          0.19591338822811832
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 2.645625,
+        "mean_request_wall_seconds": 10.016500300000189,
+        "weighted_decode_tokens_per_second": 7.2232331341424585,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 7641017856,
+        "raw_prefill_seconds": [
+          2.55009,
+          2.74116
+        ],
+        "raw_request_wall_seconds": [
+          9.964718000002904,
+          10.068282599997474
+        ],
+        "prefill_hit_fractions": [
+          0.20256175663311984,
+          0.19945105215004574
+        ]
+      },
+      "prefill_time_reduction_percent": 12.408849747965933,
+      "request_wall_reduction_percent": 3.625544557300253
+    },
+    "A_warm": {
+      "on": {
+        "mean_prefill_seconds": 2.53062,
+        "mean_request_wall_seconds": 8.605624899981194,
+        "weighted_decode_tokens_per_second": 8.773092164892088,
+        "mean_prefill_fill_bytes": 1449743616,
+        "mean_decode_fill_bytes": 6076238592,
+        "raw_prefill_seconds": [
+          2.5154,
+          2.54584
+        ],
+        "raw_request_wall_seconds": [
+          8.549038799974369,
+          8.66221099998802
+        ],
+        "prefill_hit_fractions": [
+          0.3108264714852089,
+          0.30991155840195184
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 2.23383,
+        "mean_request_wall_seconds": 8.514187799984938,
+        "weighted_decode_tokens_per_second": 8.505052482592724,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 6636668928,
+        "raw_prefill_seconds": [
+          2.2105300000000003,
+          2.25713
+        ],
+        "raw_request_wall_seconds": [
+          8.33789459997206,
+          8.690480999997817
+        ],
+        "prefill_hit_fractions": [
+          0.30838670326319,
+          0.30917962793534615
+        ]
+      },
+      "prefill_time_reduction_percent": 11.727955994973549,
+      "request_wall_reduction_percent": 1.0625271384586576
+    },
+    "A_after_cancel": {
+      "on": {
+        "mean_prefill_seconds": 2.40372,
+        "mean_request_wall_seconds": 8.30563180000172,
+        "weighted_decode_tokens_per_second": 9.034780632457828,
+        "mean_prefill_fill_bytes": 1258016512,
+        "mean_decode_fill_bytes": 5276889344,
+        "raw_prefill_seconds": [
+          2.38318,
+          2.4242600000000003
+        ],
+        "raw_request_wall_seconds": [
+          8.35815129999537,
+          8.25311230000807
+        ],
+        "prefill_hit_fractions": [
+          0.31716986886245807,
+          0.31186337297956696
+        ]
+      },
+      "off": {
+        "mean_prefill_seconds": 2.2018899999999997,
+        "mean_request_wall_seconds": 8.297419100010302,
+        "weighted_decode_tokens_per_second": 8.741243963954574,
+        "mean_prefill_fill_bytes": 0,
+        "mean_decode_fill_bytes": 6001021952,
+        "raw_prefill_seconds": [
+          2.1323499999999997,
+          2.2714299999999996
+        ],
+        "raw_request_wall_seconds": [
+          8.05375869999989,
+          8.541079500020714
+        ],
+        "prefill_hit_fractions": [
+          0.3025312595303446,
+          0.29954254345837145
+        ]
+      },
+      "prefill_time_reduction_percent": 8.396568651922864,
+      "request_wall_reduction_percent": 0.09888109886374563
+    }
+  },
+  "default_prefill_admission": "on",
+  "limits": [
+    "long run is an unpaired numerical check",
+    "one 511-token prompt workload",
+    "file cache and background apps were not controlled",
+    "no HTTP, sessions, MTP or forced OOM"
+  ],
+  "five_request_sequence_mean_wall_seconds": {
+    "on": 118.12734689995705,
+    "off": 97.89547279996623
+  },
+  "five_request_sequence_wall_reduction_percent": 17.12717218403741,
+  "memory_peaks": {
+    "global_gpu_used_mib": 30285.0,
+    "global_ram_used_gib": 110.50735855102539,
+    "process_peak_working_set_gib": 89.93673706054688,
+    "monitor_errors": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "numerical": {
+    "reference_comparisons": 28,
+    "complete_P1_answers": 24,
+    "medium_comparisons": 3,
+    "new_medium_control": 1,
+    "long_STEP07_comparisons": 1,
+    "cancel_recovery_pairs": 5,
+    "all_exact": true
+  },
+  "long_observation": {
+    "ids": [
+      671,
+      3967,
+      344,
+      13070,
+      362,
+      270,
+      3605,
+      294,
+      270,
+      17212,
+      2951,
+      377,
+      270,
+      4496,
+      10087,
+      16
+    ],
+    "done": "DONE 16 2591 215436 3715.79 length 0 0 0",
+    "finish": "length",
+    "prefill_ms": 215436.0,
+    "generation_wall_ms": 3715.79,
+    "ttft_seconds": 215.4396626999951,
+    "wall_seconds": 219.15539910001098,
+    "progress": [
+      "PP 17 2591",
+      "PP 34 2591",
+      "PP 51 2591",
+      "PP 68 2591",
+      "PP 85 2591",
+      "PP 102 2591",
+      "PP 119 2591",
+      "PP 136 2591",
+      "PP 153 2591",
+      "PP 170 2591",
+      "PP 187 2591",
+      "PP 204 2591",
+      "PP 221 2591",
+      "PP 238 2591",
+      "PP 255 2591",
+      "PP 272 2591",
+      "PP 289 2591",
+      "PP 306 2591",
+      "PP 323 2591",
+      "PP 340 2591",
+      "PP 357 2591",
+      "PP 374 2591",
+      "PP 391 2591",
+      "PP 408 2591",
+      "PP 425 2591",
+      "PP 442 2591",
+      "PP 459 2591",
+      "PP 476 2591",
+      "PP 493 2591",
+      "PP 510 2591",
+      "PP 527 2591",
+      "PP 544 2591",
+      "PP 561 2591",
+      "PP 578 2591",
+      "PP 595 2591",
+      "PP 612 2591",
+      "PP 629 2591",
+      "PP 646 2591",
+      "PP 663 2591",
+      "PP 680 2591",
+      "PP 697 2591",
+      "PP 714 2591",
+      "PP 731 2591",
+      "PP 748 2591",
+      "PP 765 2591",
+      "PP 782 2591",
+      "PP 799 2591",
+      "PP 816 2591",
+      "PP 833 2591",
+      "PP 850 2591",
+      "PP 867 2591",
+      "PP 884 2591",
+      "PP 901 2591",
+      "PP 918 2591",
+      "PP 935 2591",
+      "PP 952 2591",
+      "PP 969 2591",
+      "PP 986 2591",
+      "PP 1003 2591",
+      "PP 1020 2591",
+      "PP 1037 2591",
+      "PP 1054 2591",
+      "PP 1071 2591",
+      "PP 1088 2591",
+      "PP 1105 2591",
+      "PP 1122 2591",
+      "PP 1139 2591",
+      "PP 1156 2591",
+      "PP 1173 2591",
+      "PP 1190 2591",
+      "PP 1207 2591",
+      "PP 1224 2591",
+      "PP 1241 2591",
+      "PP 1258 2591",
+      "PP 1275 2591",
+      "PP 1292 2591",
+      "PP 1309 2591",
+      "PP 1326 2591",
+      "PP 1343 2591",
+      "PP 1360 2591",
+      "PP 1377 2591",
+      "PP 1394 2591",
+      "PP 1411 2591",
+      "PP 1428 2591",
+      "PP 1445 2591",
+      "PP 1462 2591",
+      "PP 1479 2591",
+      "PP 1496 2591",
+      "PP 1513 2591",
+      "PP 1530 2591",
+      "PP 1547 2591",
+      "PP 1564 2591",
+      "PP 1581 2591",
+      "PP 1598 2591",
+      "PP 1615 2591",
+      "PP 1632 2591",
+      "PP 1649 2591",
+      "PP 1666 2591",
+      "PP 1683 2591",
+      "PP 1700 2591",
+      "PP 1717 2591",
+      "PP 1734 2591",
+      "PP 1751 2591",
+      "PP 1768 2591",
+      "PP 1785 2591",
+      "PP 1802 2591",
+      "PP 1819 2591",
+      "PP 1836 2591",
+      "PP 1853 2591",
+      "PP 1870 2591",
+      "PP 1887 2591",
+      "PP 1904 2591",
+      "PP 1921 2591",
+      "PP 1938 2591",
+      "PP 1955 2591",
+      "PP 1972 2591",
+      "PP 1989 2591",
+      "PP 2006 2591",
+      "PP 2023 2591",
+      "PP 2040 2591",
+      "PP 2057 2591",
+      "PP 2074 2591",
+      "PP 2091 2591",
+      "PP 2108 2591",
+      "PP 2125 2591",
+      "PP 2142 2591",
+      "PP 2159 2591",
+      "PP 2176 2591",
+      "PP 2193 2591",
+      "PP 2210 2591",
+      "PP 2227 2591",
+      "PP 2244 2591",
+      "PP 2261 2591",
+      "PP 2278 2591",
+      "PP 2295 2591",
+      "PP 2312 2591",
+      "PP 2329 2591",
+      "PP 2346 2591",
+      "PP 2363 2591",
+      "PP 2380 2591",
+      "PP 2397 2591",
+      "PP 2414 2591",
+      "PP 2431 2591",
+      "PP 2448 2591",
+      "PP 2465 2591",
+      "PP 2482 2591",
+      "PP 2499 2591",
+      "PP 2516 2591",
+      "PP 2533 2591",
+      "PP 2550 2591",
+      "PP 2567 2591",
+      "PP 2584 2591",
+      "PP 2591 2591"
+    ],
+    "name": "long",
+    "key": "long",
+    "logits_sha256": "70d44eb5bda3eaad0516923fdec030000d8a4726cd7f08ea4cb96bca812c86c3",
+    "logits_bytes": 8249344,
+    "metrics": {
+      "prompt_tokens": 2591,
+      "generated": 16,
+      "prefill_ms": 215436.1116,
+      "generation_wall_ms": 3715.7857,
+      "decode_steps": 15,
+      "decode_forward_ms": 3706.1139,
+      "source_bytes": 3412043155968,
+      "h2d_bytes": 3412043155968,
+      "source_ms": 180266.34200005073,
+      "h2d_ms": 0.0,
+      "staging_bytes": 33554432,
+      "gpu_nodes": 377328,
+      "expert_nodes": 21168,
+      "cache_hits": 177642,
+      "cache_misses": 1156770,
+      "cache_evictions": 3624,
+      "cache_bypasses": 0,
+      "cache_oom": 0,
+      "cache_rejected": 4291,
+      "cache_bytes": 10441850880,
+      "cache_limit": 10442051584,
+      "d2d_bytes": 3936021545472,
+      "cache_fill_bytes": 10716002816,
+      "d2d_ms": 7624.784399998121,
+      "requested_bytes": 3935861334528,
+      "prefill_cache_fill_bytes": 0,
+      "decode_cache_fill_bytes": 10716002816,
+      "prefill_admission_skips": 1148846,
+      "prefill_admission_skip_bytes": 3388670285824,
+      "gpu_free": 1978863616,
+      "gpu_total": 34190917632,
+      "ram_free": 16341032960,
+      "ram_total": 134813700096,
+      "memory_samples": 320,
+      "prefill_source_bytes": 3388670285824,
+      "decode_source_bytes": 23372870144,
+      "prefill_h2d_bytes": 3388670285824,
+      "decode_h2d_bytes": 23372870144,
+      "prefill_cache_hits": 170446,
+      "decode_cache_hits": 7196,
+      "prefill_cache_misses": 1148846,
+      "decode_cache_misses": 7924,
+      "pipeline_groups": 7051,
+      "pipeline_chunks": 1156770,
+      "pipeline_unused_bytes": 0,
+      "pipeline_device_bytes": 33554432,
+      "pipeline_wait_us": 10638361,
+      "pipeline_slot_wait_us": 20569551,
+      "pipeline_submit_us": 7313406,
+      "pipeline_read_peak": 1,
+      "rejected_cpu_nodes": 0,
+      "finish": "length"
+    },
+    "exact": true
+  }
+}

@@ -739,6 +739,14 @@ def configured_template(cfg: dict, tok, tokenizer_path: Path):
     """Validate an architecture's tokenizer/template before starting its engine."""
     tpl = tokenizer_path / "chat_template.jinja"
     architecture = cfg.get("architecture")
+    if architecture == "step35":
+        from serve.step35 import StepTemplate
+        try:
+            StepTemplate.resolve_stop_ids(tok)
+            return StepTemplate(tpl, bos_token=tok.tokens[tok.special_ids["tokenizer.ggml.bos_token_id"]],
+                                eos_token=tok.tokens[tok.special_ids["tokenizer.ggml.eos_token_id"]])
+        except (ValueError, OSError, AttributeError) as exc:
+            raise SystemExit(f"Invalid Step tokenizer/template: {exc}") from exc
     if architecture == "deepseek4":
         from serve.deepseek import DeepSeekTemplate
         if tok.pre != "joyai-llm" or not tpl.exists():
@@ -921,7 +929,10 @@ class Service:
         self.reasoning_budget_tokens = 0                 # #123: the config's default thinking budget (0: none)
         self.anthropic_think_unasked = True               # #278: "anthropic_thinking": "on_request" -> False
         stop_keys = getattr(template, "stop_token_keys", None)
-        if stop_keys is not None:
+        resolve_stop_ids = getattr(template, "resolve_stop_ids", None)
+        if resolve_stop_ids is not None:
+            self.stop_ids = resolve_stop_ids(tokenizer)
+        elif stop_keys is not None:
             special_ids = getattr(tokenizer, "special_ids", {})
             stop_ids = []
             for key in stop_keys:
@@ -982,6 +993,8 @@ class Service:
             value = int(value)
         if isinstance(value, bool) or not isinstance(value, int):
             raise ValueError(f"reasoning_budget_tokens={value!r}: expected a whole number of tokens (0: no budget)")
+        if value > 0 and not getattr(self.template, "supports_reasoning_budget", True):
+            raise ValueError("This model does not support a hard reasoning budget; use reasoning_effort")
         return value if value > 0 else None
 
     def _vision_down(self) -> bool:
@@ -1494,7 +1507,9 @@ class Service:
             req_values = {k: v for k, v in (sampling or {}).items() if v is not None}
             sampling = {**defaults, **req_values}
         parser_type = getattr(self.template, "output_parser", OutputParser)
-        parser = parser_type(thinking=thinking, tools=tools, stream_tools=True)
+        parser_factory = getattr(self.template, "create_output_parser", None)
+        parser = (parser_factory(thinking, tools, sampling) if parser_factory else
+                  parser_type(thinking=thinking, tools=tools, stream_tools=True))
         detok, n, finish = Detokenizer(self.tok), 0, "length"
         timings, before = None, None                    # this request's timings; the engine's `last` before it
         raw_ids = []                                    # every generated id (STRATA_DEBUG: dump raw model text)
@@ -1561,6 +1576,9 @@ class Service:
                                     last_print = self._progress(last_print)
                                     for ev in evs:
                                         yield "event", ev
+                                    if getattr(parser, "stop_sequence", None) is not None:
+                                        finish = "stop_sequence"
+                                        break
                                     if budget and parser.state == "reasoning":
                                         thought += 1
                                         # at a clean point: no tag held back, no character split across tokens
@@ -1680,7 +1698,8 @@ class Service:
         for ev in parser.finish():
             yield "event", ev
         yield "done", {"finish": finish, "completion_tokens": n, "reused": (timings or {}).get("cache_n", 0),
-                       "timings": timings}
+                       "timings": timings,
+                       **({"stop_sequence": parser.stop_sequence} if finish == "stop_sequence" else {})}
 
 
 def request_timings(prompt_tokens: int, generated: int, last: dict) -> dict | None:
@@ -1852,7 +1871,7 @@ def openai_chunks(svc: Service, req: dict, ids, thinking, tools, max_new, cancel
         else:
             # a streamed call without its final tool_call is one the output ended inside: not "tool_calls" (#211)
             whole = calls and streamed.keys() <= finished
-            finish = "tool_calls" if whole and x["finish"] == "stop" else {"cancel": "stop"}.get(x["finish"], x["finish"])
+            finish = "tool_calls" if whole and x["finish"] == "stop" else {"cancel": "stop", "stop_sequence": "stop"}.get(x["finish"], x["finish"])
             last = chunk({}, finish)
             pt = x.get("prompt_tokens", len(ids))     # after MCP rounds: the last round's prompt
             last["usage"] = {"prompt_tokens": pt, "completion_tokens": x["completion_tokens"],
@@ -1989,11 +2008,11 @@ def anthropic_events(svc: Service, req: dict, ids, thinking, tools, max_new, can
             if open_kind is not None:
                 yield close()
             stop = "tool_use" if used_tool and streamed <= finished and x["finish"] == "stop" else \
-                {"stop": "end_turn", "length": "max_tokens", "cancel": "end_turn"}[x["finish"]]
+                {"stop": "end_turn", "stop_sequence": "stop_sequence", "length": "max_tokens", "cancel": "end_turn"}[x["finish"]]
             # the final counts, Anthropic's way: input_tokens leaves out what the conversation cache already held,
             # which is cache_read_input_tokens (message_start could only say the whole prompt)
             reused = min(x.get("reused") or 0, len(ids))
-            yield "message_delta", {"type": "message_delta", "delta": {"stop_reason": stop, "stop_sequence": None},
+            yield "message_delta", {"type": "message_delta", "delta": {"stop_reason": stop, "stop_sequence": x.get("stop_sequence")},
                                     "usage": {"input_tokens": len(ids) - reused, "cache_read_input_tokens": reused,
                                               "output_tokens": x["completion_tokens"]}}
             yield "message_stop", {"type": "message_stop"}
@@ -2025,6 +2044,7 @@ def anthropic_collect(events) -> dict:
                 blocks.pop()
         elif name == "message_delta":
             msg["stop_reason"] = e["delta"]["stop_reason"]
+            msg["stop_sequence"] = e["delta"].get("stop_sequence")
             msg["usage"].update(e["usage"])
     msg["content"] = blocks
     return msg

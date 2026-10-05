@@ -1,0 +1,16 @@
+{
+  "scope": "GLM profile tests after loading both changed shared Python modules from HEAD in memory; no checkout files reverted",
+  "head": "97e016de11754cccd1b5550232c6c198cdbe0723",
+  "head_module_sha256": {
+    "tools/gguf_reader.py": "cca0955e30a6a8ce2e2fd30022b10f5ffa879e0551016e01a2dcbe8152d3e62a",
+    "tools/strata_tokenizer.py": "83f343c8f96f79c66acfda0557dab36bd71db7ebb32ddcb5a6ccb0ca5b6724d2"
+  },
+  "tests_run": 4,
+  "failures": [
+    "serve.test_glm5next_profile.ProfileTests.test_memory_targets_reach_engine_arguments",
+    "serve.test_glm5next_profile.ProfileTests.test_profile_identity_and_no_overwrite"
+  ],
+  "errors": [],
+  "python_exit_code": 1,
+  "output": "test_bad_settings_create_nothing (serve.test_glm5next_profile.ProfileTests.test_bad_settings_create_nothing) ... ok\ntest_memory_targets_reach_engine_arguments (serve.test_glm5next_profile.ProfileTests.test_memory_targets_reach_engine_arguments) ... FAIL\ntest_profile_identity_and_no_overwrite (serve.test_glm5next_profile.ProfileTests.test_profile_identity_and_no_overwrite) ... FAIL\ntest_template_selection_and_failures (serve.test_glm5next_profile.ProfileTests.test_template_selection_and_failures) ... ok\n\n======================================================================\nFAIL: test_memory_targets_reach_engine_arguments (serve.test_glm5next_profile.ProfileTests.test_memory_targets_reach_engine_arguments)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\work\\git\\my-repos\\Strata\\serve\\test_glm5next_profile.py\", line 78, in test_memory_targets_reach_engine_arguments\n    self.assertEqual(cfg['args'][-4:],['--ram-target-percent','90','--vram-target-percent','95'])\nAssertionError: Lists differ: ['--mtp', '0', '--mtp-cache-mib', '512'] != ['--ram-target-percent', '90', '--vram-target-percent', '95']\n\nFirst differing element 0:\n'--mtp'\n'--ram-target-percent'\n\n- ['--mtp', '0', '--mtp-cache-mib', '512']\n+ ['--ram-target-percent', '90', '--vram-target-percent', '95']\n\n======================================================================\nFAIL: test_profile_identity_and_no_overwrite (serve.test_glm5next_profile.ProfileTests.test_profile_identity_and_no_overwrite)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\work\\git\\my-repos\\Strata\\serve\\test_glm5next_profile.py\", line 55, in test_profile_identity_and_no_overwrite\n    self.assertEqual(cfg['args'],['--native',report['first_shard'],'--max-context','2048','--batch-size','16','--threads','4'])\nAssertionError: Lists differ: ['--n[133 chars], '4', '--expert-pipeline', '0', '--expert-chu[48 chars]512'] != ['--n[133 chars], '4']\n\nFirst list contains 8 additional elements.\nFirst extra element 8:\n'--expert-pipeline'\n\n  ['--native',\n   'C:\\\\Users\\\\Aleks\\\\AppData\\\\Local\\\\Temp\\\\tmpj1dcvwn2\\\\model.gguf',\n   '--max-context',\n   '2048',\n   '--batch-size',\n   '16',\n   '--threads',\n-  '4',\n?     ^\n\n+  '4']\n?     ^\n\n-  '--expert-pipeline',\n-  '0',\n-  '--expert-chunk-mib',\n-  '4',\n-  '--mtp',\n-  '0',\n-  '--mtp-cache-mib',\n-  '512']\n\n----------------------------------------------------------------------\nRan 4 tests in 0.012s\n\nFAILED (failures=2)\n"
+}

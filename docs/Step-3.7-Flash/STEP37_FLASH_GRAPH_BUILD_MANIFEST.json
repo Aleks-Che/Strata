@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "scope": "P0.5 native synthetic graph/state and template oracles; no full-model inference or throughput",
+  "head": "97e016de11754cccd1b5550232c6c198cdbe0723",
+  "gpu": "NVIDIA GeForce RTX 5090, 581.80, 32607 MiB",
+  "source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\nmmf_original_sha256=08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1\nmmf_generated_sha256=c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68\ndispatch_original_sha256=eee8c85f32f45c47d0f84210d82109598c0dd32c73b3d4605972a62569af7034\ndispatch_generated_sha256=cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_version=13.0.48\ncuda_architectures=120a\nkernel_check_enabled=ON\ngraph_check_enabled=ON\nscope=isolated vocabulary/template oracles and optional CUDA kernel/graph fixtures, not a Strata inference engine\n",
+  "cpu_source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=none\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\nmmf_original_sha256=\nmmf_generated_sha256=\ndispatch_original_sha256=\ndispatch_generated_sha256=\ncxx=MSVC 19.44.35222.0\ncuda_enabled=OFF\ncuda_version=\ncuda_architectures=\nkernel_check_enabled=OFF\ngraph_check_enabled=OFF\nscope=isolated vocabulary/template oracles and optional CUDA kernel/graph fixtures, not a Strata inference engine\n",
+  "harness_source_sha256": {
+    "backends/step35/CMakeLists.txt": "557ddf8112b6f1896513eef5db06554166497f0bf2fc77d9d9893709a164909b",
+    "backends/step35/synthetic_step.hpp": "3e4d207dc2cc2f1681e33fd4a6a533176dfad2abb2df99a7243f7271fb79f7f1",
+    "backends/step35/check_graph.cpp": "07cca58bd5ba450243bf1acf644be234f7e25e7e7c49a401239fd2740e039851",
+    "backends/step35/session_snapshot.hpp": "09fe0d7ee4b810cc961c6bd00ed569af171fffbedf934baf418669d8f56bc601",
+    "backends/step35/template_oracle.cpp": "5c1038786b3f5dcfa92321e53616755d81130254fe8df9fdf3fc40a9da17a0b0",
+    "backends/step35/tokenizer_oracle.cpp": "6058c5cc39319fc925bbe01a075ba7ebee9dd5c085abc7b67b8d5edd52beaad6",
+    "backends/step35/check_kernels.cpp": "de7c51863292e59ae212660a0025153bbfe1d8ea97d585844dd198310e524026",
+    "backends/step35/StrictF32.cmake": "674b2908a8541e168edc6fd03802c2525ebb657b28f2e6891a5e776fb099f03c",
+    "backends/step35/RoutedStrides.cmake": "03e14140133b3ab4a8da15f932604c175c7cee12229eeb5d76176beaaa474385",
+    "tools/check_step35_template.py": "e2eb39208b16ba4d709035d94f57c7aa14fc81e708cc8356d75b1aec4a2bafe5"
+  },
+  "candidate_source_sha256": {
+    "src/models/step35.cpp": "4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3",
+    "src/llama-graph.cpp": "d6136776500e4b3c8fcfe242795f61920b898d1341ba85f57a482442114baa56",
+    "src/llama-kv-cache.cpp": "2f476174157b061a6c5cba61aac3ecac4096e4140dd28bd4c5d35be786db2d5a",
+    "src/llama-kv-cache.h": "096d76c64d46f35054ee46cfd21e50ccd7d38890d38a867239d0426da3ea9e41",
+    "src/llama-kv-cache-iswa.cpp": "567fe836543e1dd9cdd5b7cb3a91afd049c17c7010f0bddf9fe149b02b5243cb",
+    "src/llama-kv-cells.h": "84222d6b6769cda6aca288be9907aacba639aa101c5d914ce86f6ed3e61fdae2",
+    "common/json.cpp": "d8c556445cef8e7c93b0857f6ca7ae7ebd8295f169403ac66641b72f6b0598f2",
+    "common/unicode.cpp": "a07137a4fe6a657acf0d4b16ee5fa4ba388f7e9c8d3c98993410b28720b69b6d",
+    "common/jinja/lexer.cpp": "3d6774bc2dac477e10ddbee69eff403df36f5925c8512ccf8a249bde5c26dbd7",
+    "common/jinja/parser.cpp": "284c3dcc92cfcbdb3391f4b251bdc2bd5191899973bf665e9351aca3b795c724",
+    "common/jinja/runtime.cpp": "a51c57dce6838341d0d88d27b6e12078275ccd0cc394aab7f658cb1398778700",
+    "common/jinja/value.cpp": "cf2f6f137c3eadb0a61a88a7ca7fd0be161f6df38a5b661b3e89e1006dca48bd",
+    "common/jinja/string.cpp": "6b1b13dea3f94c4d542c15250f793abd638839733fd96a9da6704bfdab662e86",
+    "common/jinja/caps.cpp": "4ad7e2bdcdf55eb33c7d8549d7cc76d15d8ccbba33e0f57cff713e14b8e01174"
+  },
+  "generated_source_sha256": {
+    "strata-step35-mmf.cu": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "strata-step35-cuda.cu": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "binary_sha256": {
+    "bin/strata-step35-graph-check.exe": "da2091f3febd72956f9c09a3926f368437b46e6cdf0788b1379257d55c58a7ef",
+    "bin/strata-step35-template.exe": "c24effd2fe6fead22260d1dc4fd9a111043e1b0c182880a137f120a7a427614c",
+    "bin/strata-step35-tokenizer.exe": "58732c552d58fe9746950dbb5550796147d1580348de27ba1f00e190674c1be8",
+    "bin/strata-step35-kernels-check.exe": "b7d4cd51100ae4d707719faeeb3d5800d183652253b2687c3dfa79f05e7bda17"
+  },
+  "cpu_binary_sha256": {
+    "bin/strata-step35-tokenizer.exe": "f86d7cc1ad2710966a7c7dd26794fab846c608ff30a6437ef88a8afc9a4163d8",
+    "bin/strata-step35-template.exe": "a8144eaeb4d0f9c48fb54186daef04e60b66501886007becd3937af7682b3107"
+  },
+  "fixture_sha256": "dce9d89140cbd1b4a15c98789dee92568507dbf8d5fee956717633f000a95e71",
+  "ctest": {
+    "cuda": {
+      "passed": 4,
+      "failed": 0
+    },
+    "cpu": {
+      "passed": 2,
+      "failed": 0,
+      "scope": "version checks"
+    }
+  },
+  "step_python_tests": {
+    "passed": 21,
+    "failed": 0
+  },
+  "graph": {
+    "passed": 75,
+    "failed": 0
+  },
+  "template": {
+    "passed": 215,
+    "failed": 0
+  },
+  "cuda_kernel_recheck": {
+    "passed": 78,
+    "failed": 0,
+    "report_sha256": "e88acd5f4e35b6fb1ab748594b590ca3e8751cbd3fdb5e59b85cadfd6a6c345b"
+  },
+  "shared_modules": {
+    "tools/gguf_reader.py": {
+      "sha256": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+      "matches_STEP01": true
+    },
+    "tools/strata_tokenizer.py": {
+      "sha256": "0281c73c9af0773c9e314de71d9e85341f12c13e184a82fdc134efc537142181",
+      "matches_STEP01": true
+    }
+  },
+  "reports": {
+    "STEP37_FLASH_GRAPH_INITIAL_DIAGNOSTIC.json": "4b7df4752e71fe6ee96090b278aa6ceea2abaeb7231e639e2c4da51d3b66083d",
+    "STEP37_FLASH_GRAPH_NATIVE_STATE_CONTROL.json": "e1a8b7153dcfb221b8c0d72b1d3b1b596743e5bb1fc616dab6ba0b53a7a45530",
+    "STEP37_FLASH_GRAPH_TAIL_ROLLBACK_CONTROL.json": "379856017ea416533438d343ae52522cdeba311851e12c1978abee7b2ed8424f",
+    "STEP37_FLASH_GRAPH_VALIDATION.json": "5779a1fe67225249cdc90b5e4f9bee09ed91b4c291a6493aad4d5e50b2685260",
+    "STEP37_FLASH_TEMPLATE_NATIVE_CONTROL.json": "18c25b7424a4ed9981f2bf8c8e1efb34fa436c2dd08e0fd215a18d862a686e80",
+    "STEP37_FLASH_TEMPLATE_PARITY.json": "83bb77c7e770f628dce6979e3a8d0b613407c457547541232b588122769c53ca"
+  },
+  "commands": [
+    {
+      "command": "cmd /c build-local\\build-step35-cuda.cmd",
+      "exit_code": 0
+    },
+    {
+      "command": "ctest --test-dir build-local/step35-cuda --output-on-failure --no-tests=error",
+      "exit_code": 0
+    },
+    {
+      "command": "cmd /c build-local\\build-step35-oracle.cmd",
+      "exit_code": 0
+    },
+    {
+      "command": "python tools/check_step35_template.py --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --oracle build-local/step35-cuda/bin/strata-step35-template.exe --tokenizer-oracle build-local/step35-cuda/bin/strata-step35-tokenizer.exe --output docs/Step-3.7-Flash/STEP37_FLASH_TEMPLATE_PARITY.json",
+      "exit_code": 0
+    },
+    {
+      "command": "python -m unittest tools.test_setup_step35 tools.test_step35_tokenizer",
+      "exit_code": 0
+    }
+  ],
+  "limits": [
+    "F32 synthetic weights and KV; Flash Attention disabled.",
+    "KV checkpoints only: one append-only text sequence in the same live context.",
+    "Native compact sequence restore and tail removal are not accepted as exact rollback.",
+    "Template normalizes string tool arguments with native JSON before rendering; original Python input uses fromjson.",
+    "No full-model speed, memory peak, API, pipeline or MTP claims."
+  ]
+}

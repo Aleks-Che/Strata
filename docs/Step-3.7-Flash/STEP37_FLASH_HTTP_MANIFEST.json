@@ -1,0 +1,40 @@
+{
+  "status": "pass",
+  "step": "STEP-10",
+  "date": "2026-10-05",
+  "engine_changed": false,
+  "engine_sha256": "32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3",
+  "scope": "Step HTTP opt-in integration and experimental bounded profile",
+  "source_hashes": {
+    "serve/server.py": "bd2cf42530a4b8553c3c0a224b846a8ae94112def6f18c2b80604958fb35fb14",
+    "serve/step35.py": "c9c51edf09c08e03a365f37a9e97c4ff0880eae2545503245abd6e057adb36c6",
+    "serve/test_step35_http.py": "fb6a9ca361d685be9d4faecdb5bf1d5bdd538a031885947bb3ed01d65755ee25",
+    "tools/strata_tokenizer.py": "83155db6364f172bf47cbe0ee612bb441d9224208ed9751a7ac029b138080315",
+    "tools/check_step35_tokenizer.py": "8aa31f8b8cdeac851d6177c3690405c4c69ea25003611d29dd626d9a0df7e2a7",
+    "tools/prepare_step35_profile.py": "5dc23039dba3eca9d84235d873a3c9622f810d80565355d7f3200f4bd9205c95",
+    "tools/check_step35_http.py": "0e2232c06b7cdff9d6d362c674558ba0b0fc6d5c6e6964b30adfd453354cc2de",
+    "tools/test_step35_profile.py": "5b772ef84ef668ebee181779d5c3513271b234287a3525ff6bb74305b6fe4eae"
+  },
+  "report_hashes": {
+    "STEP37_FLASH_HTTP_MODEL.json": "917c6a156e29677a37d85b29204677330baf112a587a4a2ed3200fffa2b42877",
+    "STEP37_FLASH_HTTP_ATTEMPTS.json": "35bb291ae919e2c4b6227976c4441c05b601493bcd6be67a838e3ac29bfef09d",
+    "STEP37_FLASH_HTTP_TESTS.json": "783fcdb879abfd5007af49060eccb165ebd82c6bd83e0959816669c069a4b63a",
+    "STEP37_FLASH_HTTP_TOKENIZER.json": "9def9f3fb1272fea2b80a65b208ca2fb4cae050d462b16a47d37124c809f7cbe",
+    "STEP37_FLASH_HTTP_REPLAY.json": "8e1097ed389a3c73f84245e1c9de8a7d269ee9043bdf48d8c09839aa21e35423",
+    "STEP37_FLASH_HTTP_STARTUP.json": "c7d74a4be145289b7504f969ef1902d1df0155b4521b2a8d57d8865d65a64396"
+  },
+  "profile": "C:\\work\\git\\my-repos\\Strata\\build-local\\step35-cuda\\step10-http-profile-8g\\step37.json",
+  "profile_sha256": "ece8130e482e9f85c107c73bbe2cdb1f1c151465e128be7613332b8f1485dd10",
+  "regression_count": 232,
+  "final_targeted_count": 34,
+  "native_exported_tokenizer_checks": 2190,
+  "real_http_exact_responses": 9,
+  "real_http_disconnects": 3,
+  "open_gates": [
+    "interactive browser chat",
+    "external MCP cancellation",
+    "full-model HTTP unload/reload",
+    "long HTTP rollover cancellation",
+    "stronger runtime RAM margin for larger expert caches"
+  ]
+}

@@ -1,0 +1,5113 @@
+{
+  "status": "pass",
+  "scope": "real engine pipe/template/parser; local tool result stub, no HTTP or external tools",
+  "engine_sha256": "32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3",
+  "reference_sha256": "d589210be000c2c4fe3149496e6af15d658382a6a096fb3d338c0aa5e5f8193d",
+  "model": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf",
+  "template_sha256": "f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633",
+  "tokenizer_oracle_provenance": {
+    "architecture": "step35",
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand,step-bounded-expert-cache,step-router-lookahead-pipeline,step-prefill-cache-admission"
+  },
+  "tokenizer_oracle_sha256": "ba40482699ea6cdcb3a13e993d18235ee906dc095d72a6b13c01d72c83e6b1f1",
+  "template_oracle_sha256": "1a6b4b7e9e7a1f805abebe5cee07d4788df3f3f7d0642830cc4b1e4cf6061ebc",
+  "context": 4096,
+  "batch": 17,
+  "cache": "auto",
+  "readers": 1,
+  "prefill_admission": "off",
+  "kv": "f32",
+  "mtp": false,
+  "requests": [
+    {
+      "ids": [
+        5890,
+        40108,
+        4763,
+        77972,
+        6014,
+        26290,
+        14,
+        77205,
+        21295,
+        223,
+        20,
+        13,
+        20,
+        14,
+        4764,
+        4436,
+        407,
+        32860,
+        27985,
+        48258,
+        63396,
+        95338,
+        16,
+        25215,
+        44875,
+        368,
+        3209,
+        67555,
+        92446,
+        34653,
+        111408,
+        14,
+        83781,
+        223,
+        22,
+        16,
+        5967,
+        16147,
+        1667,
+        4655,
+        36241,
+        18465,
+        63396,
+        3025,
+        14,
+        18974,
+        8700,
+        1541,
+        37594,
+        603,
+        128799,
+        201,
+        22,
+        128007
+      ],
+      "done": "DONE 54 38 9331.46 9615.07 stop 0 0 0",
+      "finish": "stop",
+      "prefill_ms": 9331.46,
+      "generation_wall_ms": 9615.07,
+      "ttft_seconds": 9.33321949999663,
+      "wall_seconds": 18.948053499974776,
+      "progress": [
+        "PP 17 38",
+        "PP 34 38",
+        "PP 38 38"
+      ],
+      "name": "P1_A",
+      "prompt_ids": [
+        0,
+        128006,
+        27824,
+        201,
+        77666,
+        288,
+        28,
+        3157,
+        271,
+        128007,
+        201,
+        128006,
+        5265,
+        201,
+        5752,
+        658,
+        12293,
+        21295,
+        223,
+        20,
+        940,
+        223,
+        20,
+        33,
+        75818,
+        886,
+        48258,
+        63396,
+        95338,
+        16,
+        128007,
+        201,
+        128006,
+        624,
+        15059,
+        201,
+        128798,
+        201
+      ],
+      "prompt": "<｜begin▁of▁sentence｜><|im_start|>system\nReasoning: low\n\n<|im_end|>\n<|im_start|>user\nСколько будет 2 + 2? Ответь одной цифрой.<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Сколько будет 2 + 2? Ответь одной цифрой."
+        }
+      ],
+      "tools": null,
+      "logits_sha256": "595bec2f0e6576b490944431a9cd5cda93df5c5538343f39649e17230ed8775d",
+      "logits_bytes": 27841536,
+      "raw_text": "Пользователь спрашивает, сколько будет 2+2, просит ответить одной цифрой. Это простое арифметическое действие, результат 4. Нужно вывести только цифру, без лишнего.\n</think>\n4",
+      "parsed": {
+        "reasoning": "Пользователь спрашивает, сколько будет 2+2, просит ответить одной цифрой. Это простое арифметическое действие, результат 4. Нужно вывести только цифру, без лишнего.\n",
+        "content": "\n4",
+        "calls": []
+      },
+      "native_prompt_exact": true,
+      "token_boundary_parser_exact": true,
+      "P1_exact": true
+    },
+    {
+      "ids": [
+        671,
+        3967,
+        10059,
+        678,
+        304,
+        1347,
+        270,
+        64018,
+        65,
+        50219,
+        2019,
+        418,
+        3549,
+        8252,
+        28,
+        4593,
+        1281,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        1760,
+        3137,
+        31,
+        20,
+        14,
+        3394,
+        18314,
+        655,
+        57176,
+        16,
+        2359,
+        25512,
+        2507,
+        582,
+        8041,
+        554,
+        11446,
+        270,
+        9670,
+        16,
+        11146,
+        1499,
+        344,
+        3510,
+        14,
+        3475,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        4331,
+        5328,
+        342,
+        1309,
+        304,
+        1926,
+        270,
+        2019,
+        9045,
+        4387,
+        418,
+        1948,
+        8252,
+        16,
+        5715,
+        14,
+        2951,
+        377,
+        270,
+        10274,
+        1499,
+        14,
+        342,
+        1531,
+        3052,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        100580,
+        270,
+        9670,
+        339,
+        5718,
+        678,
+        1926,
+        270,
+        2019,
+        603,
+        128799,
+        201,
+        128008,
+        201,
+        30,
+        8701,
+        31,
+        12533,
+        1425,
+        65,
+        50219,
+        1018,
+        30,
+        41523,
+        31,
+        37399,
+        1018,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        28026,
+        1018,
+        20,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        5211,
+        18314,
+        655,
+        1018,
+        10634,
+        201,
+        1718,
+        41523,
+        1018,
+        1718,
+        8701,
+        1018,
+        128009,
+        128007
+      ],
+      "done": "DONE 146 299 46658.2 26258.3 stop 0 0 0",
+      "finish": "stop",
+      "prefill_ms": 46658.2,
+      "generation_wall_ms": 26258.3,
+      "ttft_seconds": 46.66177350000362,
+      "wall_seconds": 72.91981720001786,
+      "progress": [
+        "PP 17 299",
+        "PP 34 299",
+        "PP 51 299",
+        "PP 68 299",
+        "PP 85 299",
+        "PP 102 299",
+        "PP 119 299",
+        "PP 136 299",
+        "PP 153 299",
+        "PP 170 299",
+        "PP 187 299",
+        "PP 204 299",
+        "PP 221 299",
+        "PP 238 299",
+        "PP 255 299",
+        "PP 272 299",
+        "PP 289 299",
+        "PP 299 299"
+      ],
+      "name": "tool_call",
+      "prompt_ids": [
+        0,
+        128006,
+        27824,
+        201,
+        77666,
+        288,
+        28,
+        3157,
+        271,
+        5,
+        27193,
+        271,
+        3476,
+        611,
+        3278,
+        304,
+        270,
+        2502,
+        6177,
+        295,
+        26639,
+        31865,
+        8786,
+        979,
+        30,
+        86644,
+        1018,
+        24313,
+        4611,
+        3362,
+        582,
+        8701,
+        1760,
+        582,
+        8701,
+        3362,
+        28612,
+        2852,
+        3362,
+        582,
+        12533,
+        1425,
+        65,
+        50219,
+        1760,
+        582,
+        20855,
+        3362,
+        582,
+        25529,
+        260,
+        3277,
+        1950,
+        9670,
+        15340,
+        66910,
+        582,
+        46172,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        10325,
+        1760,
+        582,
+        68838,
+        3362,
+        28612,
+        37399,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        4463,
+        87928,
+        582,
+        28026,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        39648,
+        87928,
+        582,
+        5211,
+        18314,
+        655,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        36541,
+        4,
+        55695,
+        582,
+        24486,
+        3362,
+        20584,
+        37399,
+        1760,
+        582,
+        28026,
+        1760,
+        582,
+        5211,
+        18314,
+        655,
+        13747,
+        3831,
+        1778,
+        1718,
+        86644,
+        4697,
+        3575,
+        440,
+        7238,
+        304,
+        1926,
+        260,
+        2019,
+        68861,
+        20430,
+        295,
+        270,
+        2502,
+        8786,
+        418,
+        10195,
+        45449,
+        979,
+        128008,
+        201,
+        30,
+        8701,
+        31,
+        30357,
+        64334,
+        7907,
+        1018,
+        30,
+        41523,
+        31,
+        30357,
+        65,
+        41523,
+        65,
+        19,
+        1018,
+        5197,
+        65,
+        19,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        30357,
+        65,
+        41523,
+        65,
+        20,
+        1018,
+        2337,
+        344,
+        270,
+        1990,
+        362,
+        270,
+        1957,
+        10767,
+        201,
+        9336,
+        588,
+        19369,
+        201,
+        87372,
+        6243,
+        201,
+        1718,
+        41523,
+        1018,
+        1718,
+        8701,
+        1018,
+        128009,
+        271,
+        30,
+        5253,
+        52751,
+        15576,
+        1018,
+        13847,
+        6774,
+        1137,
+        15,
+        14478,
+        10699,
+        74366,
+        1605,
+        270,
+        12038,
+        8786,
+        28,
+        411,
+        11544,
+        818,
+        8701,
+        31,
+        1613,
+        1018,
+        7835,
+        1718,
+        8701,
+        32,
+        5603,
+        2231,
+        366,
+        49120,
+        2549,
+        223,
+        128008,
+        201,
+        7835,
+        128009,
+        31792,
+        27634,
+        201,
+        15,
+        18728,
+        8252,
+        74366,
+        366,
+        12038,
+        201,
+        1718,
+        5253,
+        52751,
+        15576,
+        32,
+        128007,
+        201,
+        128006,
+        5265,
+        201,
+        14885,
+        64018,
+        65,
+        50219,
+        4387,
+        418,
+        4593,
+        1281,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        1760,
+        3137,
+        31,
+        20,
+        14,
+        3394,
+        18314,
+        655,
+        57176,
+        16,
+        4147,
+        554,
+        11446,
+        270,
+        9670,
+        16,
+        11146,
+        1499,
+        344,
+        3510,
+        14,
+        3475,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        16,
+        128007,
+        201,
+        128006,
+        624,
+        15059,
+        201,
+        128798,
+        201
+      ],
+      "prompt": "<｜begin▁of▁sentence｜><|im_start|>system\nReasoning: low\n\n# Tools\n\nYou have access to the following functions in JSONSchema format:\n\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"lookup_weather\", \"description\": \"Return a local test weather forecast.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}, \"days\": {\"type\": \"integer\"}, \"include_wind\": {\"type\": \"boolean\"}}, \"required\": [\"city\", \"days\", \"include_wind\"]}}}\n</tools>\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...>\n...\n</function> block must be nested within <tool_call>\n...\n</tool_call> XML tags\n- Required parameters MUST be specified\n</IMPORTANT><|im_end|>\n<|im_start|>user\nUse lookup_weather once with city=\"Yekaterinburg\", days=2, include_wind=true. Do not guess the weather. Once data is available, give a one-sentence answer.<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use lookup_weather once with city=\"Yekaterinburg\", days=2, include_wind=true. Do not guess the weather. Once data is available, give a one-sentence answer."
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "lookup_weather",
+            "description": "Return a local test weather forecast.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "days": {
+                  "type": "integer"
+                },
+                "include_wind": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "city",
+                "days",
+                "include_wind"
+              ]
+            }
+          }
+        }
+      ],
+      "logits_sha256": "7632631348fe6690df9d815cbc3696c8c970cbaacd25ab4f447f96a677f8e210",
+      "logits_bytes": 75275264,
+      "raw_text": "The user wants me to use the lookup_weather function with specific parameters: city=\"Yekaterinburg\", days=2, include_wind=true. They explicitly say \"Do not guess the weather. Once data is available, give a one-sentence answer.\"\n\nSo I need to call the function exactly once with those parameters. Then, based on the returned data, I should provide a one-sentence answer summarizing the weather.\n\nLet me call the function.\n</think>\n<tool_call>\n<function=lookup_weather>\n<parameter=city>\nYekaterinburg\n</parameter>\n<parameter=days>\n2\n</parameter>\n<parameter=include_wind>\nTrue\n</parameter>\n</function>\n</tool_call>",
+      "parsed": {
+        "reasoning": "The user wants me to use the lookup_weather function with specific parameters: city=\"Yekaterinburg\", days=2, include_wind=true. They explicitly say \"Do not guess the weather. Once data is available, give a one-sentence answer.\"\n\nSo I need to call the function exactly once with those parameters. Then, based on the returned data, I should provide a one-sentence answer summarizing the weather.\n\nLet me call the function.\n",
+        "content": "\n",
+        "calls": [
+          {
+            "name": "lookup_weather",
+            "arguments": {
+              "city": "Yekaterinburg",
+              "days": 2,
+              "include_wind": true
+            }
+          }
+        ]
+      },
+      "native_prompt_exact": true,
+      "token_boundary_parser_exact": true
+    },
+    {
+      "ids": [
+        671,
+        2019,
+        10274,
+        260,
+        3277,
+        1950,
+        1529,
+        28,
+        894,
+        1465,
+        909,
+        261,
+        11484,
+        14,
+        2173,
+        223,
+        19,
+        28,
+        223,
+        25,
+        345,
+        14,
+        4521,
+        14,
+        2900,
+        4213,
+        29,
+        2173,
+        223,
+        20,
+        28,
+        223,
+        26,
+        345,
+        14,
+        4521,
+        14,
+        2900,
+        4213,
+        339,
+        8197,
+        342,
+        1309,
+        304,
+        3475,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        16,
+        342,
+        1531,
+        45706,
+        270,
+        9670,
+        15340,
+        362,
+        894,
+        1465,
+        909,
+        261,
+        11484,
+        1060,
+        270,
+        2894,
+        1234,
+        3137,
+        339,
+        82761,
+        3287,
+        28,
+        582,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        759,
+        611,
+        4521,
+        56178,
+        418,
+        13848,
+        2448,
+        223,
+        25,
+        15,
+        26,
+        2614,
+        37,
+        305,
+        2900,
+        4213,
+        1060,
+        270,
+        2894,
+        1234,
+        3137,
+        4331,
+        7230,
+        734,
+        834,
+        10175,
+        16,
+        342,
+        5922,
+        3052,
+        396,
+        603,
+        128799,
+        201,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        759,
+        3217,
+        4521,
+        56178,
+        418,
+        13848,
+        2448,
+        223,
+        25,
+        15,
+        26,
+        2614,
+        37,
+        305,
+        2900,
+        4213,
+        1060,
+        270,
+        2894,
+        1234,
+        3137,
+        16,
+        128007
+      ],
+      "done": "DONE 140 496 34614 21544.8 stop 0 0 0",
+      "finish": "stop",
+      "prefill_ms": 34614.0,
+      "generation_wall_ms": 21544.8,
+      "ttft_seconds": 34.62027620000299,
+      "wall_seconds": 56.16502179999952,
+      "progress": [
+        "PP 17 496",
+        "PP 34 496",
+        "PP 51 496",
+        "PP 68 496",
+        "PP 85 496",
+        "PP 102 496",
+        "PP 119 496",
+        "PP 136 496",
+        "PP 153 496",
+        "PP 170 496",
+        "PP 187 496",
+        "PP 204 496",
+        "PP 221 496",
+        "PP 238 496",
+        "PP 255 496",
+        "PP 272 496",
+        "PP 289 496",
+        "PP 306 496",
+        "PP 323 496",
+        "PP 340 496",
+        "PP 357 496",
+        "PP 374 496",
+        "PP 391 496",
+        "PP 408 496",
+        "PP 425 496",
+        "PP 442 496",
+        "PP 459 496",
+        "PP 476 496",
+        "PP 493 496",
+        "PP 496 496"
+      ],
+      "name": "tool_continuation",
+      "prompt_ids": [
+        0,
+        128006,
+        27824,
+        201,
+        77666,
+        288,
+        28,
+        3157,
+        271,
+        5,
+        27193,
+        271,
+        3476,
+        611,
+        3278,
+        304,
+        270,
+        2502,
+        6177,
+        295,
+        26639,
+        31865,
+        8786,
+        979,
+        30,
+        86644,
+        1018,
+        24313,
+        4611,
+        3362,
+        582,
+        8701,
+        1760,
+        582,
+        8701,
+        3362,
+        28612,
+        2852,
+        3362,
+        582,
+        12533,
+        1425,
+        65,
+        50219,
+        1760,
+        582,
+        20855,
+        3362,
+        582,
+        25529,
+        260,
+        3277,
+        1950,
+        9670,
+        15340,
+        66910,
+        582,
+        46172,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        10325,
+        1760,
+        582,
+        68838,
+        3362,
+        28612,
+        37399,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        4463,
+        87928,
+        582,
+        28026,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        39648,
+        87928,
+        582,
+        5211,
+        18314,
+        655,
+        3362,
+        28612,
+        4611,
+        3362,
+        582,
+        36541,
+        4,
+        55695,
+        582,
+        24486,
+        3362,
+        20584,
+        37399,
+        1760,
+        582,
+        28026,
+        1760,
+        582,
+        5211,
+        18314,
+        655,
+        13747,
+        3831,
+        1778,
+        1718,
+        86644,
+        4697,
+        3575,
+        440,
+        7238,
+        304,
+        1926,
+        260,
+        2019,
+        68861,
+        20430,
+        295,
+        270,
+        2502,
+        8786,
+        418,
+        10195,
+        45449,
+        979,
+        128008,
+        201,
+        30,
+        8701,
+        31,
+        30357,
+        64334,
+        7907,
+        1018,
+        30,
+        41523,
+        31,
+        30357,
+        65,
+        41523,
+        65,
+        19,
+        1018,
+        5197,
+        65,
+        19,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        30357,
+        65,
+        41523,
+        65,
+        20,
+        1018,
+        2337,
+        344,
+        270,
+        1990,
+        362,
+        270,
+        1957,
+        10767,
+        201,
+        9336,
+        588,
+        19369,
+        201,
+        87372,
+        6243,
+        201,
+        1718,
+        41523,
+        1018,
+        1718,
+        8701,
+        1018,
+        128009,
+        271,
+        30,
+        5253,
+        52751,
+        15576,
+        1018,
+        13847,
+        6774,
+        1137,
+        15,
+        14478,
+        10699,
+        74366,
+        1605,
+        270,
+        12038,
+        8786,
+        28,
+        411,
+        11544,
+        818,
+        8701,
+        31,
+        1613,
+        1018,
+        7835,
+        1718,
+        8701,
+        32,
+        5603,
+        2231,
+        366,
+        49120,
+        2549,
+        223,
+        128008,
+        201,
+        7835,
+        128009,
+        31792,
+        27634,
+        201,
+        15,
+        18728,
+        8252,
+        74366,
+        366,
+        12038,
+        201,
+        1718,
+        5253,
+        52751,
+        15576,
+        32,
+        128007,
+        201,
+        128006,
+        5265,
+        201,
+        14885,
+        64018,
+        65,
+        50219,
+        4387,
+        418,
+        4593,
+        1281,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        1760,
+        3137,
+        31,
+        20,
+        14,
+        3394,
+        18314,
+        655,
+        57176,
+        16,
+        4147,
+        554,
+        11446,
+        270,
+        9670,
+        16,
+        11146,
+        1499,
+        344,
+        3510,
+        14,
+        3475,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        16,
+        128007,
+        201,
+        128006,
+        624,
+        15059,
+        201,
+        128798,
+        201,
+        671,
+        3967,
+        10059,
+        678,
+        304,
+        1347,
+        270,
+        64018,
+        65,
+        50219,
+        2019,
+        418,
+        3549,
+        8252,
+        28,
+        4593,
+        1281,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        1760,
+        3137,
+        31,
+        20,
+        14,
+        3394,
+        18314,
+        655,
+        57176,
+        16,
+        2359,
+        25512,
+        2507,
+        582,
+        8041,
+        554,
+        11446,
+        270,
+        9670,
+        16,
+        11146,
+        1499,
+        344,
+        3510,
+        14,
+        3475,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        4331,
+        5328,
+        342,
+        1309,
+        304,
+        1926,
+        270,
+        2019,
+        9045,
+        4387,
+        418,
+        1948,
+        8252,
+        16,
+        5715,
+        14,
+        2951,
+        377,
+        270,
+        10274,
+        1499,
+        14,
+        342,
+        1531,
+        3052,
+        260,
+        834,
+        1715,
+        51015,
+        3287,
+        100580,
+        270,
+        9670,
+        339,
+        5718,
+        678,
+        1926,
+        270,
+        2019,
+        339,
+        128799,
+        271,
+        128008,
+        201,
+        30,
+        8701,
+        31,
+        12533,
+        1425,
+        65,
+        50219,
+        1018,
+        30,
+        41523,
+        31,
+        37399,
+        1018,
+        59,
+        1465,
+        909,
+        261,
+        11484,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        28026,
+        1018,
+        20,
+        201,
+        1718,
+        41523,
+        1018,
+        30,
+        41523,
+        31,
+        5211,
+        18314,
+        655,
+        1018,
+        10634,
+        201,
+        1718,
+        41523,
+        1018,
+        1718,
+        8701,
+        1018,
+        128009,
+        128007,
+        201,
+        128006,
+        72461,
+        64469,
+        201,
+        128010,
+        24049,
+        1950,
+        1529,
+        28,
+        894,
+        1465,
+        909,
+        261,
+        11484,
+        14,
+        2173,
+        223,
+        19,
+        28,
+        223,
+        25,
+        345,
+        14,
+        4521,
+        14,
+        2900,
+        4213,
+        29,
+        2173,
+        223,
+        20,
+        28,
+        223,
+        26,
+        345,
+        14,
+        4521,
+        14,
+        2900,
+        4213,
+        16,
+        128011,
+        128007,
+        201,
+        128006,
+        624,
+        15059,
+        201,
+        128798,
+        201
+      ],
+      "prompt": "<｜begin▁of▁sentence｜><|im_start|>system\nReasoning: low\n\n# Tools\n\nYou have access to the following functions in JSONSchema format:\n\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"lookup_weather\", \"description\": \"Return a local test weather forecast.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}, \"days\": {\"type\": \"integer\"}, \"include_wind\": {\"type\": \"boolean\"}}, \"required\": [\"city\", \"days\", \"include_wind\"]}}}\n</tools>\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...>\n...\n</function> block must be nested within <tool_call>\n...\n</tool_call> XML tags\n- Required parameters MUST be specified\n</IMPORTANT><|im_end|>\n<|im_start|>user\nUse lookup_weather once with city=\"Yekaterinburg\", days=2, include_wind=true. Do not guess the weather. Once data is available, give a one-sentence answer.<|im_end|>\n<|im_start|>assistant\n<think>\nThe user wants me to use the lookup_weather function with specific parameters: city=\"Yekaterinburg\", days=2, include_wind=true. They explicitly say \"Do not guess the weather. Once data is available, give a one-sentence answer.\"\n\nSo I need to call the function exactly once with those parameters. Then, based on the returned data, I should provide a one-sentence answer summarizing the weather.\n\nLet me call the function.\n\n</think>\n\n<tool_call>\n<function=lookup_weather>\n<parameter=city>\nYekaterinburg\n</parameter>\n<parameter=days>\n2\n</parameter>\n<parameter=include_wind>\nTrue\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>tool_response\n<tool_response>Local test result: Yekaterinburg, day 1: 7 C, clear, light wind; day 2: 8 C, clear, light wind.</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use lookup_weather once with city=\"Yekaterinburg\", days=2, include_wind=true. Do not guess the weather. Once data is available, give a one-sentence answer."
+        },
+        {
+          "role": "assistant",
+          "content": "\n",
+          "reasoning_content": "The user wants me to use the lookup_weather function with specific parameters: city=\"Yekaterinburg\", days=2, include_wind=true. They explicitly say \"Do not guess the weather. Once data is available, give a one-sentence answer.\"\n\nSo I need to call the function exactly once with those parameters. Then, based on the returned data, I should provide a one-sentence answer summarizing the weather.\n\nLet me call the function.\n",
+          "tool_calls": [
+            {
+              "id": "local_step_test",
+              "type": "function",
+              "function": {
+                "name": "lookup_weather",
+                "arguments": {
+                  "city": "Yekaterinburg",
+                  "days": 2,
+                  "include_wind": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "tool_call_id": "local_step_test",
+          "content": "Local test result: Yekaterinburg, day 1: 7 C, clear, light wind; day 2: 8 C, clear, light wind."
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "lookup_weather",
+            "description": "Return a local test weather forecast.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "days": {
+                  "type": "integer"
+                },
+                "include_wind": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "city",
+                "days",
+                "include_wind"
+              ]
+            }
+          }
+        }
+      ],
+      "logits_sha256": "e7fc5abaea2335c0456571e43b9a7df1a214160a195d55c095fe0aff84c51954",
+      "logits_bytes": 72181760,
+      "raw_text": "The function returned a local test result: Yekaterinburg, day 1: 7 C, clear, light wind; day 2: 8 C, clear, light wind.\n\nNow I need to give a one-sentence answer. I should summarize the weather forecast for Yekaterinburg over the next two days.\n\nPossible answer: \"Yekaterinburg will have clear skies with temperatures around 7-8°C and light wind over the next two days.\"\n\nThat's one sentence. I'll provide that.\n</think>\nYekaterinburg will experience clear skies with temperatures around 7-8°C and light wind over the next two days.",
+      "parsed": {
+        "reasoning": "The function returned a local test result: Yekaterinburg, day 1: 7 C, clear, light wind; day 2: 8 C, clear, light wind.\n\nNow I need to give a one-sentence answer. I should summarize the weather forecast for Yekaterinburg over the next two days.\n\nPossible answer: \"Yekaterinburg will have clear skies with temperatures around 7-8°C and light wind over the next two days.\"\n\nThat's one sentence. I'll provide that.\n",
+        "content": "\nYekaterinburg will experience clear skies with temperatures around 7-8°C and light wind over the next two days.",
+        "calls": []
+      },
+      "native_prompt_exact": true,
+      "token_boundary_parser_exact": true
+    }
+  ],
+  "info": [
+    "INFO engine=step35-native architecture=step35 backend=llama.cpp gpu_only=1 mtp=0 spec=0 speculative=none expert_storage=mmap expert_compute=gpu expert_pipeline=1 expert_readers=1 expert_chunk_mib=8 expert_cache_mib=13989 memory_target_percent=95 expert_cache_prefill=off expert_stage_mib=32 expert_copy=pinned-pipeline kv=f32 flash_attention=0 tf32=0 conversation_cache=0",
+    "READY 4096 stop session-id"
+  ],
+  "ready_seconds": 2.4679800999874715,
+  "exit_code": 0,
+  "memory_samples": [
+    {
+      "seconds": 0.059824800002388656,
+      "process_rss": 2146304,
+      "process_peak_wset": 2150400,
+      "process_private": 1441792,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 112256491520,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7017070592
+      }
+    },
+    {
+      "seconds": 0.5785816000134218,
+      "process_rss": 411774976,
+      "process_peak_wset": 411779072,
+      "process_private": 8315248640,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 111826354176,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7017070592
+      }
+    },
+    {
+      "seconds": 1.0958426000142936,
+      "process_rss": 2484469760,
+      "process_peak_wset": 2484469760,
+      "process_private": 8315248640,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 109722533888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7017070592
+      }
+    },
+    {
+      "seconds": 1.6081864000007045,
+      "process_rss": 4448903168,
+      "process_peak_wset": 4448907264,
+      "process_private": 8315248640,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 107772051456,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7017070592
+      }
+    },
+    {
+      "seconds": 2.171956600010162,
+      "process_rss": 6443126784,
+      "process_peak_wset": 6443130880,
+      "process_private": 8315248640,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 105780400128,
+      "gpu": {
+        "total": 34190917632,
+        "used": 14677966848
+      }
+    },
+    {
+      "seconds": 2.6906059000175446,
+      "process_rss": 7502094336,
+      "process_peak_wset": 7502098432,
+      "process_private": 10827182080,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 104534503424,
+      "gpu": {
+        "total": 34190917632,
+        "used": 14677966848
+      }
+    },
+    {
+      "seconds": 3.2037270000146236,
+      "process_rss": 8587206656,
+      "process_peak_wset": 8587210752,
+      "process_private": 11335639040,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 103652728832,
+      "gpu": {
+        "total": 34190917632,
+        "used": 14677966848
+      }
+    },
+    {
+      "seconds": 3.717745300004026,
+      "process_rss": 10773397504,
+      "process_peak_wset": 10773401600,
+      "process_private": 11336044544,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 101472972800,
+      "gpu": {
+        "total": 34190917632,
+        "used": 14677966848
+      }
+    },
+    {
+      "seconds": 4.284831900004065,
+      "process_rss": 12989636608,
+      "process_peak_wset": 12989640704,
+      "process_private": 11336339456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 99250704384,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 4.80338369999663,
+      "process_rss": 15374581760,
+      "process_peak_wset": 15374585856,
+      "process_private": 11336839168,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 96870916096,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 5.315566500008572,
+      "process_rss": 17530474496,
+      "process_peak_wset": 17530478592,
+      "process_private": 11337183232,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 94687162368,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 5.829366399993887,
+      "process_rss": 19728158720,
+      "process_peak_wset": 19728162816,
+      "process_private": 11337670656,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 92502392832,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 6.4278789999953005,
+      "process_rss": 21983866880,
+      "process_peak_wset": 21983870976,
+      "process_private": 11171246080,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 90292875264,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 6.9502825000090525,
+      "process_rss": 24350916608,
+      "process_peak_wset": 24350920704,
+      "process_private": 11171590144,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 87851167744,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 7.461775000003399,
+      "process_rss": 26477105152,
+      "process_peak_wset": 26477109248,
+      "process_private": 11172077568,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 85737390080,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 7.988170500000706,
+      "process_rss": 28723818496,
+      "process_peak_wset": 28723822592,
+      "process_private": 11172335616,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 83492147200,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 8.554377499996917,
+      "process_rss": 30944714752,
+      "process_peak_wset": 30944718848,
+      "process_private": 11172921344,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 81267847168,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 9.073168700007955,
+      "process_rss": 33007992832,
+      "process_peak_wset": 33007996928,
+      "process_private": 11205234688,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 79196663808,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 9.588378600019496,
+      "process_rss": 34874884096,
+      "process_peak_wset": 34874888192,
+      "process_private": 11211948032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 77347696640,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 10.103073200007202,
+      "process_rss": 36627791872,
+      "process_peak_wset": 36627795968,
+      "process_private": 11223511040,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 75511631872,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17118003200
+      }
+    },
+    {
+      "seconds": 10.67506670000148,
+      "process_rss": 38429405184,
+      "process_peak_wset": 38429409280,
+      "process_private": 11229782016,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 73642307584,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17105420288
+      }
+    },
+    {
+      "seconds": 11.192850999999791,
+      "process_rss": 40383086592,
+      "process_peak_wset": 40383090688,
+      "process_private": 11236405248,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 71704186880,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17105420288
+      }
+    },
+    {
+      "seconds": 11.707489599997643,
+      "process_rss": 41855201280,
+      "process_peak_wset": 41855205376,
+      "process_private": 11252449280,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 70225416192,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17105420288
+      }
+    },
+    {
+      "seconds": 12.232935600011842,
+      "process_rss": 42806423552,
+      "process_peak_wset": 42806427648,
+      "process_private": 11443478528,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 69312380928,
+      "gpu": {
+        "total": 34190917632,
+        "used": 17105420288
+      }
+    },
+    {
+      "seconds": 12.801932200003648,
+      "process_rss": 43326611456,
+      "process_peak_wset": 43326615552,
+      "process_private": 16351674368,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 68817190912,
+      "gpu": {
+        "total": 34190917632,
+        "used": 22548578304
+      }
+    },
+    {
+      "seconds": 13.350796900020214,
+      "process_rss": 44518936576,
+      "process_peak_wset": 44518940672,
+      "process_private": 20489515008,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 67674488832,
+      "gpu": {
+        "total": 34190917632,
+        "used": 22548578304
+      }
+    },
+    {
+      "seconds": 13.864076300000306,
+      "process_rss": 45580800000,
+      "process_peak_wset": 45580804096,
+      "process_private": 24072679424,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 66561282048,
+      "gpu": {
+        "total": 34190917632,
+        "used": 22548578304
+      }
+    },
+    {
+      "seconds": 14.378662000002805,
+      "process_rss": 46257049600,
+      "process_peak_wset": 46257053696,
+      "process_private": 25977257984,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 65854521344,
+      "gpu": {
+        "total": 34190917632,
+        "used": 22548578304
+      }
+    },
+    {
+      "seconds": 14.95079080000869,
+      "process_rss": 46956470272,
+      "process_peak_wset": 46956474368,
+      "process_private": 25973190656,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 65174773760,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 15.467216000019107,
+      "process_rss": 47947620352,
+      "process_peak_wset": 47947624448,
+      "process_private": 25973198848,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 64191938560,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 15.99548870002036,
+      "process_rss": 48611352576,
+      "process_peak_wset": 48611356672,
+      "process_private": 25775792128,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 63244234752,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 16.51889680000022,
+      "process_rss": 49266282496,
+      "process_peak_wset": 49266286592,
+      "process_private": 25784123392,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 62603321344,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 17.101233800000045,
+      "process_rss": 50053918720,
+      "process_peak_wset": 50053922816,
+      "process_private": 25796775936,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 61781938176,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 17.644148599996697,
+      "process_rss": 51244761088,
+      "process_peak_wset": 51244765184,
+      "process_private": 25801031680,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 60642123776,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 18.165719900018303,
+      "process_rss": 52115955712,
+      "process_peak_wset": 52115959808,
+      "process_private": 25801011200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 59618357248,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 18.691162000002805,
+      "process_rss": 52903555072,
+      "process_peak_wset": 52903559168,
+      "process_private": 25801154560,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 58975047680,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 19.264749399997527,
+      "process_rss": 53584994304,
+      "process_peak_wset": 53584998400,
+      "process_private": 25893548032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 58311221248,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 19.782358600001317,
+      "process_rss": 54487515136,
+      "process_peak_wset": 54487519232,
+      "process_private": 25893548032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 57392046080,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 20.32188590001897,
+      "process_rss": 55283961856,
+      "process_peak_wset": 55283965952,
+      "process_private": 25843167232,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 56584826880,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 20.842550500005018,
+      "process_rss": 56289091584,
+      "process_peak_wset": 56289095680,
+      "process_private": 25847898112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 55616593920,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 21.425186700013,
+      "process_rss": 56804827136,
+      "process_peak_wset": 56804831232,
+      "process_private": 25864667136,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 55079202816,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31674335232
+      }
+    },
+    {
+      "seconds": 21.945567799994024,
+      "process_rss": 57300668416,
+      "process_peak_wset": 57302220800,
+      "process_private": 25863114752,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 54490329088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31674335232
+      }
+    },
+    {
+      "seconds": 22.462631000002148,
+      "process_rss": 57477844992,
+      "process_peak_wset": 57477849088,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 54459813888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31674335232
+      }
+    },
+    {
+      "seconds": 22.981085700012045,
+      "process_rss": 57810792448,
+      "process_peak_wset": 57810796544,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 54136045568,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31674335232
+      }
+    },
+    {
+      "seconds": 23.574607500020647,
+      "process_rss": 58174230528,
+      "process_peak_wset": 58174234624,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 53713743872,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31713132544
+      }
+    },
+    {
+      "seconds": 24.09722180000972,
+      "process_rss": 58694516736,
+      "process_peak_wset": 58694520832,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 53189308416,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31713132544
+      }
+    },
+    {
+      "seconds": 24.626284800004214,
+      "process_rss": 59397267456,
+      "process_peak_wset": 59397271552,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 52513431552,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31713132544
+      }
+    },
+    {
+      "seconds": 25.155391800013604,
+      "process_rss": 60350267392,
+      "process_peak_wset": 60350271488,
+      "process_private": 25598611456,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 51555983360,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31713132544
+      }
+    },
+    {
+      "seconds": 25.72240620001685,
+      "process_rss": 61185282048,
+      "process_peak_wset": 61185286144,
+      "process_private": 25598857216,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 50713317376,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31633440768
+      }
+    },
+    {
+      "seconds": 26.2376823000086,
+      "process_rss": 61638729728,
+      "process_peak_wset": 61638733824,
+      "process_private": 25599070208,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 50245435392,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31633440768
+      }
+    },
+    {
+      "seconds": 26.759430200007046,
+      "process_rss": 62057906176,
+      "process_peak_wset": 62057910272,
+      "process_private": 25599148032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 49846435840,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31633440768
+      }
+    },
+    {
+      "seconds": 27.27479830000084,
+      "process_rss": 62430629888,
+      "process_peak_wset": 62430633984,
+      "process_private": 25599148032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 49475465216,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31633440768
+      }
+    },
+    {
+      "seconds": 27.844930499995826,
+      "process_rss": 62921846784,
+      "process_peak_wset": 62921850880,
+      "process_private": 25599283200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 48990806016,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31520194560
+      }
+    },
+    {
+      "seconds": 28.362850300007267,
+      "process_rss": 63475040256,
+      "process_peak_wset": 63475044352,
+      "process_private": 25599283200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 48399073280,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31520194560
+      }
+    },
+    {
+      "seconds": 28.87797299999511,
+      "process_rss": 64094457856,
+      "process_peak_wset": 64094461952,
+      "process_private": 25436016640,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 47756513280,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31520194560
+      }
+    },
+    {
+      "seconds": 29.39163230001577,
+      "process_rss": 64900141056,
+      "process_peak_wset": 64900145152,
+      "process_private": 25436450816,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 46930587648,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31520194560
+      }
+    },
+    {
+      "seconds": 29.976399000006495,
+      "process_rss": 65796624384,
+      "process_peak_wset": 65796628480,
+      "process_private": 25436450816,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 46138232832,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31536971776
+      }
+    },
+    {
+      "seconds": 30.493635399994673,
+      "process_rss": 66842169344,
+      "process_peak_wset": 66842173440,
+      "process_private": 25436450816,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 45099307008,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31536971776
+      }
+    },
+    {
+      "seconds": 31.01114570000209,
+      "process_rss": 67588255744,
+      "process_peak_wset": 67588259840,
+      "process_private": 25436532736,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 44340834304,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31536971776
+      }
+    },
+    {
+      "seconds": 31.524646800011396,
+      "process_rss": 68208074752,
+      "process_peak_wset": 68208078848,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 43732238336,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31536971776
+      }
+    },
+    {
+      "seconds": 32.10867650000728,
+      "process_rss": 68616769536,
+      "process_peak_wset": 68616773632,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 43311468544,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31540117504
+      }
+    },
+    {
+      "seconds": 32.623962400015444,
+      "process_rss": 69186449408,
+      "process_peak_wset": 69186453504,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 42765836288,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31540117504
+      }
+    },
+    {
+      "seconds": 33.15149069999461,
+      "process_rss": 69754109952,
+      "process_peak_wset": 69754114048,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 42217226240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31540117504
+      }
+    },
+    {
+      "seconds": 33.67548910001642,
+      "process_rss": 70366314496,
+      "process_peak_wset": 70366318592,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 41612668928,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31540117504
+      }
+    },
+    {
+      "seconds": 34.25181280000834,
+      "process_rss": 71132577792,
+      "process_peak_wset": 71132581888,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 40891932672,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31325159424
+      }
+    },
+    {
+      "seconds": 34.77048730000388,
+      "process_rss": 72008568832,
+      "process_peak_wset": 72008572928,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 39960735744,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31325159424
+      }
+    },
+    {
+      "seconds": 35.29886290000286,
+      "process_rss": 72886419456,
+      "process_peak_wset": 72886423552,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 39095623680,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31325159424
+      }
+    },
+    {
+      "seconds": 35.81505269999616,
+      "process_rss": 73365344256,
+      "process_peak_wset": 73365348352,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 38620688384,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31325159424
+      }
+    },
+    {
+      "seconds": 36.42089380000834,
+      "process_rss": 73878777856,
+      "process_peak_wset": 73878781952,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 38127095808,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31442599936
+      }
+    },
+    {
+      "seconds": 36.93692649999866,
+      "process_rss": 74455314432,
+      "process_peak_wset": 74455318528,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 37449838592,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31442599936
+      }
+    },
+    {
+      "seconds": 37.45114350001677,
+      "process_rss": 74987823104,
+      "process_peak_wset": 74987827200,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 36925272064,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31442599936
+      }
+    },
+    {
+      "seconds": 37.96451970000635,
+      "process_rss": 75761180672,
+      "process_peak_wset": 75761184768,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 36153528320,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31442599936
+      }
+    },
+    {
+      "seconds": 38.54717110001366,
+      "process_rss": 76678385664,
+      "process_peak_wset": 76678389760,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 35257593856,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31440502784
+      }
+    },
+    {
+      "seconds": 39.0661108000204,
+      "process_rss": 77294735360,
+      "process_peak_wset": 77294739456,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 34624991232,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31440502784
+      }
+    },
+    {
+      "seconds": 39.60273949999828,
+      "process_rss": 77751468032,
+      "process_peak_wset": 77751472128,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 34449727488,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31440502784
+      }
+    },
+    {
+      "seconds": 40.11932349999552,
+      "process_rss": 78340067328,
+      "process_peak_wset": 78340071424,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 33900228608,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31440502784
+      }
+    },
+    {
+      "seconds": 40.70250539999688,
+      "process_rss": 78947696640,
+      "process_peak_wset": 78947700736,
+      "process_private": 25436692480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 33313411072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31281119232
+      }
+    },
+    {
+      "seconds": 41.21785350001301,
+      "process_rss": 79847723008,
+      "process_peak_wset": 79847727104,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 32441610240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31281119232
+      }
+    },
+    {
+      "seconds": 41.73447290001786,
+      "process_rss": 80358424576,
+      "process_peak_wset": 80358428672,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 31881494528,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31281119232
+      }
+    },
+    {
+      "seconds": 42.26065169999492,
+      "process_rss": 80708661248,
+      "process_peak_wset": 80708665344,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 31540432896,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31281119232
+      }
+    },
+    {
+      "seconds": 42.84311450002133,
+      "process_rss": 81090723840,
+      "process_peak_wset": 81090727936,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 31136169984,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31269584896
+      }
+    },
+    {
+      "seconds": 43.36206919999677,
+      "process_rss": 81670905856,
+      "process_peak_wset": 81670909952,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 30573559808,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31269584896
+      }
+    },
+    {
+      "seconds": 43.88019870000426,
+      "process_rss": 82140180480,
+      "process_peak_wset": 82140184576,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 30104895488,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31269584896
+      }
+    },
+    {
+      "seconds": 44.3934785000165,
+      "process_rss": 82671190016,
+      "process_peak_wset": 82671194112,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 29559140352,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31269584896
+      }
+    },
+    {
+      "seconds": 44.965371099999174,
+      "process_rss": 83000209408,
+      "process_peak_wset": 83000213504,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 29221007360,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31349276672
+      }
+    },
+    {
+      "seconds": 45.52616430001217,
+      "process_rss": 83389140992,
+      "process_peak_wset": 83389145088,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 28845244416,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31349276672
+      }
+    },
+    {
+      "seconds": 46.057463000004645,
+      "process_rss": 83830345728,
+      "process_peak_wset": 83830349824,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 28335583232,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31349276672
+      }
+    },
+    {
+      "seconds": 46.58577619999414,
+      "process_rss": 84320145408,
+      "process_peak_wset": 84320149504,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 27857883136,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31349276672
+      }
+    },
+    {
+      "seconds": 47.15581700002076,
+      "process_rss": 84714258432,
+      "process_peak_wset": 84714262528,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 27465142272,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31394365440
+      }
+    },
+    {
+      "seconds": 47.67878370001563,
+      "process_rss": 85098131456,
+      "process_peak_wset": 85098135552,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 27075563520,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31394365440
+      }
+    },
+    {
+      "seconds": 48.20009840000421,
+      "process_rss": 85401620480,
+      "process_peak_wset": 85401624576,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 26710368256,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31394365440
+      }
+    },
+    {
+      "seconds": 48.72869050002191,
+      "process_rss": 85750710272,
+      "process_peak_wset": 85750714368,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 26188435456,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31394365440
+      }
+    },
+    {
+      "seconds": 49.310075000015786,
+      "process_rss": 86065823744,
+      "process_peak_wset": 86065827840,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 25843126272,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 49.82586569999694,
+      "process_rss": 86412337152,
+      "process_peak_wset": 86412341248,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 25468030976,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 50.35520320001524,
+      "process_rss": 86706630656,
+      "process_peak_wset": 86706634752,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 25189126144,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 50.88142819999484,
+      "process_rss": 87116869632,
+      "process_peak_wset": 87116873728,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 24747995136,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 51.46596420000424,
+      "process_rss": 87419539456,
+      "process_peak_wset": 87419543552,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 24436064256,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31414288384
+      }
+    },
+    {
+      "seconds": 51.98501520001446,
+      "process_rss": 87712538624,
+      "process_peak_wset": 87712542720,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 24168902656,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31414288384
+      }
+    },
+    {
+      "seconds": 52.5050506000116,
+      "process_rss": 87945281536,
+      "process_peak_wset": 87945285632,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 23905923072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31414288384
+      }
+    },
+    {
+      "seconds": 53.02120240000659,
+      "process_rss": 88260231168,
+      "process_peak_wset": 88260235264,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 23575875584,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31414288384
+      }
+    },
+    {
+      "seconds": 53.60471040001721,
+      "process_rss": 88622678016,
+      "process_peak_wset": 88622682112,
+      "process_private": 25436835840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 23240704000,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31411142656
+      }
+    },
+    {
+      "seconds": 54.126204100000905,
+      "process_rss": 89061691392,
+      "process_peak_wset": 89061695488,
+      "process_private": 25436979200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 22798635008,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31411142656
+      }
+    },
+    {
+      "seconds": 54.647423999995226,
+      "process_rss": 89312342016,
+      "process_peak_wset": 89312346112,
+      "process_private": 25436979200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 22524547072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31411142656
+      }
+    },
+    {
+      "seconds": 55.16586150001967,
+      "process_rss": 89621520384,
+      "process_peak_wset": 89621524480,
+      "process_private": 25436979200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 22178099200,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31411142656
+      }
+    },
+    {
+      "seconds": 55.75836639999761,
+      "process_rss": 89928024064,
+      "process_peak_wset": 89928028160,
+      "process_private": 25436979200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21861634048,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31415336960
+      }
+    },
+    {
+      "seconds": 56.27686149999499,
+      "process_rss": 90140151808,
+      "process_peak_wset": 90140155904,
+      "process_private": 25436979200,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21725450240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31415336960
+      }
+    },
+    {
+      "seconds": 56.804187400004594,
+      "process_rss": 90308186112,
+      "process_peak_wset": 90308190208,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21556064256,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31415336960
+      }
+    },
+    {
+      "seconds": 57.32990169999539,
+      "process_rss": 90583891968,
+      "process_peak_wset": 90583896064,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21270433792,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31415336960
+      }
+    },
+    {
+      "seconds": 57.914623000018764,
+      "process_rss": 90800226304,
+      "process_peak_wset": 90800230400,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21051236352,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 58.433709000004455,
+      "process_rss": 90975399936,
+      "process_peak_wset": 90975404032,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20907532288,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 58.95954000001075,
+      "process_rss": 91197911040,
+      "process_peak_wset": 91197915136,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20694437888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 59.49254970002221,
+      "process_rss": 91489640448,
+      "process_peak_wset": 91489644544,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20425138176,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31421628416
+      }
+    },
+    {
+      "seconds": 60.08788480001385,
+      "process_rss": 91784273920,
+      "process_peak_wset": 91784278016,
+      "process_private": 25437057024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20114317312,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31399608320
+      }
+    },
+    {
+      "seconds": 60.6150036000181,
+      "process_rss": 91929333760,
+      "process_peak_wset": 91929337856,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20477108224,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31399608320
+      }
+    },
+    {
+      "seconds": 61.14311790000647,
+      "process_rss": 92114182144,
+      "process_peak_wset": 92114186240,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20569198592,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31399608320
+      }
+    },
+    {
+      "seconds": 61.66928679999546,
+      "process_rss": 92310327296,
+      "process_peak_wset": 92310331392,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20830420992,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31399608320
+      }
+    },
+    {
+      "seconds": 62.2528729000187,
+      "process_rss": 92579561472,
+      "process_peak_wset": 92579565568,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20615434240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31072452608
+      }
+    },
+    {
+      "seconds": 62.77928899999824,
+      "process_rss": 92718039040,
+      "process_peak_wset": 92718043136,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20493529088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31072452608
+      }
+    },
+    {
+      "seconds": 63.30762400000822,
+      "process_rss": 92874211328,
+      "process_peak_wset": 92874215424,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20382744576,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31072452608
+      }
+    },
+    {
+      "seconds": 63.83446880002157,
+      "process_rss": 93028671488,
+      "process_peak_wset": 93028675584,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20213288960,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31072452608
+      }
+    },
+    {
+      "seconds": 64.41626610001549,
+      "process_rss": 93213917184,
+      "process_peak_wset": 93213921280,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 20046221312,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31054626816
+      }
+    },
+    {
+      "seconds": 64.93822040001396,
+      "process_rss": 93575405568,
+      "process_peak_wset": 93575409664,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 19693322240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31054626816
+      }
+    },
+    {
+      "seconds": 65.4652070000011,
+      "process_rss": 94020263936,
+      "process_peak_wset": 94020268032,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 19456278528,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31054626816
+      }
+    },
+    {
+      "seconds": 65.99824109999463,
+      "process_rss": 94426841088,
+      "process_peak_wset": 94426845184,
+      "process_private": 25436954624,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 19014017024,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31054626816
+      }
+    },
+    {
+      "seconds": 66.5753274000017,
+      "process_rss": 94694920192,
+      "process_peak_wset": 94694924288,
+      "process_private": 25437089792,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 18776088576,
+      "gpu": {
+        "total": 34190917632,
+        "used": 30995906560
+      }
+    },
+    {
+      "seconds": 67.09798180000507,
+      "process_rss": 94921781248,
+      "process_peak_wset": 94921785344,
+      "process_private": 25437089792,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 18567303168,
+      "gpu": {
+        "total": 34190917632,
+        "used": 30995906560
+      }
+    },
+    {
+      "seconds": 67.62240630001179,
+      "process_rss": 95133990912,
+      "process_peak_wset": 95133995008,
+      "process_private": 25437089792,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 18314117120,
+      "gpu": {
+        "total": 34190917632,
+        "used": 30995906560
+      }
+    },
+    {
+      "seconds": 68.13429960000212,
+      "process_rss": 95342059520,
+      "process_peak_wset": 95342063616,
+      "process_private": 25439338496,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 18096676864,
+      "gpu": {
+        "total": 34190917632,
+        "used": 30995906560
+      }
+    },
+    {
+      "seconds": 68.71096009999746,
+      "process_rss": 95440547840,
+      "process_peak_wset": 95440551936,
+      "process_private": 25439338496,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17974947840,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31032606720
+      }
+    },
+    {
+      "seconds": 69.22640680000768,
+      "process_rss": 95480631296,
+      "process_peak_wset": 95480635392,
+      "process_private": 26352664576,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17969000448,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31032606720
+      }
+    },
+    {
+      "seconds": 69.75053720001597,
+      "process_rss": 95533764608,
+      "process_peak_wset": 95533768704,
+      "process_private": 26352803840,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17913094144,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31032606720
+      }
+    },
+    {
+      "seconds": 70.26684440000099,
+      "process_rss": 95569129472,
+      "process_peak_wset": 95569133568,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17880145920,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31032606720
+      }
+    },
+    {
+      "seconds": 70.83646720001707,
+      "process_rss": 95622152192,
+      "process_peak_wset": 95622156288,
+      "process_private": 26369622016,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17844576256,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 71.35523240000475,
+      "process_rss": 95675174912,
+      "process_peak_wset": 95675179008,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17795911680,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 71.87066720001167,
+      "process_rss": 95745904640,
+      "process_peak_wset": 95745908736,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17703002112,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 72.39886320001096,
+      "process_rss": 95834284032,
+      "process_peak_wset": 95834288128,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17657253888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 72.97888840001542,
+      "process_rss": 96011022336,
+      "process_peak_wset": 96011026432,
+      "process_private": 26369622016,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17470799872,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 73.49816360001569,
+      "process_rss": 96143671296,
+      "process_peak_wset": 96143675392,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17320054784,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 74.02456550000352,
+      "process_rss": 96240861184,
+      "process_peak_wset": 96240865280,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17198555136,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 74.53908909999882,
+      "process_rss": 96285061120,
+      "process_peak_wset": 96285065216,
+      "process_private": 26373820416,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17169711104,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 75.12156790000154,
+      "process_rss": 96338083840,
+      "process_peak_wset": 96338087936,
+      "process_private": 26369622016,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17101721600,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31681675264
+      }
+    },
+    {
+      "seconds": 75.65309530001832,
+      "process_rss": 96382283776,
+      "process_peak_wset": 96382287872,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 17066942464,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31681675264
+      }
+    },
+    {
+      "seconds": 76.17313650000142,
+      "process_rss": 96444153856,
+      "process_peak_wset": 96444157952,
+      "process_private": 26369617920,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16995983360,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31681675264
+      }
+    },
+    {
+      "seconds": 76.69169140001759,
+      "process_rss": 96514871296,
+      "process_peak_wset": 96514875392,
+      "process_private": 26369617920,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16890814464,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31681675264
+      }
+    },
+    {
+      "seconds": 77.27158960001543,
+      "process_rss": 96603258880,
+      "process_peak_wset": 96603262976,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16795082752,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 77.79429620000883,
+      "process_rss": 96682811392,
+      "process_peak_wset": 96682815488,
+      "process_private": 26369617920,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16688402432,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 78.31992490001721,
+      "process_rss": 96762355712,
+      "process_peak_wset": 96762359808,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16698798080,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 78.84401640002034,
+      "process_rss": 96806555648,
+      "process_peak_wset": 96806559744,
+      "process_private": 26361221120,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16663707648,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 79.42608309999923,
+      "process_rss": 96833060864,
+      "process_peak_wset": 96833064960,
+      "process_private": 26361221120,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16597716992,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 79.9527575999964,
+      "process_rss": 96886108160,
+      "process_peak_wset": 96886112256,
+      "process_private": 26361217024,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16556150784,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 80.47580390001531,
+      "process_rss": 96886108160,
+      "process_peak_wset": 96886112256,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16579424256,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 80.99034620000748,
+      "process_rss": 96921485312,
+      "process_peak_wset": 96921489408,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16554352640,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 81.5591645000095,
+      "process_rss": 96948027392,
+      "process_peak_wset": 96948031488,
+      "process_private": 26365419520,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16514621440,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 82.07727750000777,
+      "process_rss": 96983379968,
+      "process_peak_wset": 96983384064,
+      "process_private": 26361221120,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16482009088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 82.59196650001104,
+      "process_rss": 97009897472,
+      "process_peak_wset": 97009901568,
+      "process_private": 26310836224,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16450600960,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 83.112489799998,
+      "process_rss": 97071828992,
+      "process_peak_wset": 97071833088,
+      "process_private": 26306629632,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16405946368,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 83.69768770001247,
+      "process_rss": 97124876288,
+      "process_peak_wset": 97124880384,
+      "process_private": 26306633728,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16340037632,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 84.21394300000975,
+      "process_rss": 97151381504,
+      "process_peak_wset": 97151385600,
+      "process_private": 26306629632,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16320532480,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 84.74187280001934,
+      "process_rss": 97195556864,
+      "process_peak_wset": 97195560960,
+      "process_private": 26294034432,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16224600064,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 85.26719670000602,
+      "process_rss": 97230897152,
+      "process_peak_wset": 97230901248,
+      "process_private": 26294026240,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16179490816,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 85.84065940001165,
+      "process_rss": 97283944448,
+      "process_peak_wset": 97283948544,
+      "process_private": 26302427136,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16170209280,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 86.35559829999693,
+      "process_rss": 97338499072,
+      "process_peak_wset": 97338503168,
+      "process_private": 26306617344,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16098435072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 86.87353100001928,
+      "process_rss": 97398812672,
+      "process_peak_wset": 97398816768,
+      "process_private": 26340229120,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 16055455744,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 87.39071259999764,
+      "process_rss": 97557884928,
+      "process_peak_wset": 97557889024,
+      "process_private": 26336030720,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15901417472,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 87.95884860001388,
+      "process_rss": 97646264320,
+      "process_peak_wset": 97646268416,
+      "process_private": 26331832320,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15806451712,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 88.47375460001058,
+      "process_rss": 97761144832,
+      "process_peak_wset": 97761148928,
+      "process_private": 26331828224,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15714521088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 88.99197440000717,
+      "process_rss": 97796485120,
+      "process_peak_wset": 97796489216,
+      "process_private": 26336022528,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15664701440,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 89.51648540000315,
+      "process_rss": 97883529216,
+      "process_peak_wset": 97883533312,
+      "process_private": 26340220928,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15571066880,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 90.09943699999712,
+      "process_rss": 97937883136,
+      "process_peak_wset": 97937887232,
+      "process_private": 26340220928,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15557820416,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 90.6231972000096,
+      "process_rss": 98026258432,
+      "process_peak_wset": 98026262528,
+      "process_private": 26340220928,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15449088000,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 91.1471902000194,
+      "process_rss": 98052800512,
+      "process_peak_wset": 98052804608,
+      "process_private": 26344419328,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15433404416,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 91.66299209999852,
+      "process_rss": 98123517952,
+      "process_peak_wset": 98123522048,
+      "process_private": 26344419328,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15384784896,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 92.23520520000602,
+      "process_rss": 98183315456,
+      "process_peak_wset": 98183319552,
+      "process_private": 26344419328,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15327477760,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 92.75165360001847,
+      "process_rss": 98247262208,
+      "process_peak_wset": 98247266304,
+      "process_private": 26344415232,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15272927232,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 93.28130500001134,
+      "process_rss": 98335596544,
+      "process_peak_wset": 98335600640,
+      "process_private": 26344415232,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15186632704,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 93.81085860001622,
+      "process_rss": 98397442048,
+      "process_peak_wset": 98397446144,
+      "process_private": 26344415232,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15285919744,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 94.38437010001508,
+      "process_rss": 98476957696,
+      "process_peak_wset": 98476961792,
+      "process_private": 26352812032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15198515200,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 94.90481290000025,
+      "process_rss": 98521133056,
+      "process_peak_wset": 98521137152,
+      "process_private": 26352812032,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15142232064,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 95.41984260000754,
+      "process_rss": 98581131264,
+      "process_peak_wset": 98582994944,
+      "process_private": 26351263744,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14970576896,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 95.94099630002165,
+      "process_rss": 98579779584,
+      "process_peak_wset": 98582994944,
+      "process_private": 26086764544,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15078494208,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 96.52248010001495,
+      "process_rss": 98579779584,
+      "process_peak_wset": 98582994944,
+      "process_private": 26086764544,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15040086016,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 97.04518479999388,
+      "process_rss": 98579779584,
+      "process_peak_wset": 98582994944,
+      "process_private": 26086764544,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15070265344,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 97.56828870001482,
+      "process_rss": 98580021248,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087010304,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15076737024,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 98.09638750000158,
+      "process_rss": 98580484096,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15080202240,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31680626688
+      }
+    },
+    {
+      "seconds": 98.68313160000253,
+      "process_rss": 98580537344,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15082545152,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 99.21749150002142,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15093055488,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 99.7486593000067,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15091331072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 100.27824949999922,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15079821312,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31677480960
+      }
+    },
+    {
+      "seconds": 100.86490050001885,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15104020480,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31672238080
+      }
+    },
+    {
+      "seconds": 101.38386329999776,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26087514112,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15110172672,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31672238080
+      }
+    },
+    {
+      "seconds": 101.91516380000394,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15070294016,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31672238080
+      }
+    },
+    {
+      "seconds": 102.43915469999774,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15049547776,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31672238080
+      }
+    },
+    {
+      "seconds": 103.03587980000884,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15102676992,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31670140928
+      }
+    },
+    {
+      "seconds": 103.58994210002129,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15110684672,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31670140928
+      }
+    },
+    {
+      "seconds": 104.11559329999727,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15099330560,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31670140928
+      }
+    },
+    {
+      "seconds": 104.64634450001176,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15105794048,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31670140928
+      }
+    },
+    {
+      "seconds": 105.22928150001098,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15095513088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 105.75044560001697,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15096451072,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 106.2742111000116,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15110848512,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 106.79624960001092,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15093563392,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 107.3780151999963,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15067254784,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31668043776
+      }
+    },
+    {
+      "seconds": 107.89771620000829,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15066423296,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31668043776
+      }
+    },
+    {
+      "seconds": 108.42744680002215,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15059443712,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31668043776
+      }
+    },
+    {
+      "seconds": 108.95481970001129,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15086911488,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31668043776
+      }
+    },
+    {
+      "seconds": 109.56573910001316,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15101153280,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 110.08421560001443,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15083122688,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 110.70745010001701,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15094099968,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 111.23220709999441,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15079550976,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31669092352
+      }
+    },
+    {
+      "seconds": 111.83003020001343,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15096053760,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31665946624
+      }
+    },
+    {
+      "seconds": 112.3492019000114,
+      "process_rss": 98580541440,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15089713152,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31665946624
+      }
+    },
+    {
+      "seconds": 112.90675340002053,
+      "process_rss": 98580746240,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15057240064,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31665946624
+      }
+    },
+    {
+      "seconds": 113.43682970001828,
+      "process_rss": 98581676032,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15045660672,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31665946624
+      }
+    },
+    {
+      "seconds": 114.01858760000323,
+      "process_rss": 98581684224,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15075430400,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 114.53766510001151,
+      "process_rss": 98581700608,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15071768576,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 115.06224719999591,
+      "process_rss": 98582056960,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15065251840,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 115.5905762000184,
+      "process_rss": 98582061056,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15065628672,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 116.16986170000746,
+      "process_rss": 98582061056,
+      "process_peak_wset": 98582994944,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15079768064,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 116.69271170001593,
+      "process_rss": 98590920704,
+      "process_peak_wset": 98590924800,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15064670208,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 117.21389360001194,
+      "process_rss": 98590924800,
+      "process_peak_wset": 98590928896,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15072542720,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 117.7434951000032,
+      "process_rss": 98590924800,
+      "process_peak_wset": 98590928896,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15063642112,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 118.31507140002213,
+      "process_rss": 98617430016,
+      "process_peak_wset": 98617434112,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14995181568,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 118.83840470001451,
+      "process_rss": 98617430016,
+      "process_peak_wset": 98617434112,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15005925376,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 119.36087190001854,
+      "process_rss": 98626265088,
+      "process_peak_wset": 98626269184,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15015092224,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 119.88795510001364,
+      "process_rss": 98626289664,
+      "process_peak_wset": 98626293760,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 15028809728,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 120.48011850001058,
+      "process_rss": 98635161600,
+      "process_peak_wset": 98635165696,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14868520960,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 121.00121350001427,
+      "process_rss": 98635161600,
+      "process_peak_wset": 98635165696,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14969233408,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 121.5254535000131,
+      "process_rss": 98635198464,
+      "process_peak_wset": 98635202560,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14946631680,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 122.05639850001899,
+      "process_rss": 98635198464,
+      "process_peak_wset": 98635202560,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14952001536,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 122.6832010000071,
+      "process_rss": 98635202560,
+      "process_peak_wset": 98635206656,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14969008128,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 123.2010790000204,
+      "process_rss": 98638176256,
+      "process_peak_wset": 98638180352,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14956363776,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 123.72088269999949,
+      "process_rss": 98670579712,
+      "process_peak_wset": 98670583808,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14933155840,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 124.24626820001868,
+      "process_rss": 98697097216,
+      "process_peak_wset": 98697101312,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14862372864,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 124.82985080001527,
+      "process_rss": 98723614720,
+      "process_peak_wset": 98723618816,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14835822592,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 125.36096630000975,
+      "process_rss": 98750144512,
+      "process_peak_wset": 98750148608,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14833434624,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 125.88759150000988,
+      "process_rss": 98829627392,
+      "process_peak_wset": 98829631488,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14763556864,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 126.41433490000782,
+      "process_rss": 98921099264,
+      "process_peak_wset": 98921103360,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14683086848,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 126.99395130001358,
+      "process_rss": 99050602496,
+      "process_peak_wset": 99050606592,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14562574336,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 127.51420340000186,
+      "process_rss": 99189092352,
+      "process_peak_wset": 99189096448,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14410010624,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 128.0653439000016,
+      "process_rss": 99507290112,
+      "process_peak_wset": 99507294208,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 14127038464,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 128.58885210001608,
+      "process_rss": 99775422464,
+      "process_peak_wset": 99775426560,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13830803456,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31650217984
+      }
+    },
+    {
+      "seconds": 129.1667354000092,
+      "process_rss": 99925630976,
+      "process_peak_wset": 99925635072,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13690032128,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31651266560
+      }
+    },
+    {
+      "seconds": 129.68324310000753,
+      "process_rss": 100146630656,
+      "process_peak_wset": 100146634752,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13441957888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31651266560
+      }
+    },
+    {
+      "seconds": 130.2122847000137,
+      "process_rss": 100190826496,
+      "process_peak_wset": 100190830592,
+      "process_private": 26083315712,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13380337664,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31651266560
+      }
+    },
+    {
+      "seconds": 130.7373912000039,
+      "process_rss": 100218904576,
+      "process_peak_wset": 100218908672,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13401804800,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31651266560
+      }
+    },
+    {
+      "seconds": 131.31797500001267,
+      "process_rss": 100236587008,
+      "process_peak_wset": 100236591104,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13367865344,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 131.83867630001623,
+      "process_rss": 100280786944,
+      "process_peak_wset": 100280791040,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13344231424,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 132.36460970001644,
+      "process_rss": 100289622016,
+      "process_peak_wset": 100289626112,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13327347712,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 132.89134420000482,
+      "process_rss": 100324966400,
+      "process_peak_wset": 100324970496,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13301178368,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 133.46235450002132,
+      "process_rss": 100360294400,
+      "process_peak_wset": 100360298496,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13251244032,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 133.97641080000903,
+      "process_rss": 100395622400,
+      "process_peak_wset": 100395626496,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13241454592,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 134.5012357000087,
+      "process_rss": 100413304832,
+      "process_peak_wset": 100413308928,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13207453696,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 135.01514450000832,
+      "process_rss": 100439810048,
+      "process_peak_wset": 100439814144,
+      "process_private": 26374565888,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13201489920,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 135.59978819999378,
+      "process_rss": 100475174912,
+      "process_peak_wset": 100475179008,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13117751296,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 136.128472100012,
+      "process_rss": 100528209920,
+      "process_peak_wset": 100528214016,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13065908224,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 136.6593617000035,
+      "process_rss": 100581244928,
+      "process_peak_wset": 100581249024,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13032120320,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 137.1839961000078,
+      "process_rss": 100590092288,
+      "process_peak_wset": 100590096384,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13010796544,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 137.7625143000041,
+      "process_rss": 100601053184,
+      "process_peak_wset": 100601057280,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13026557952,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 138.2810808000213,
+      "process_rss": 100625432576,
+      "process_peak_wset": 100625436672,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12988112896,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 138.80726200001664,
+      "process_rss": 100634267648,
+      "process_peak_wset": 100634271744,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 13000630272,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 139.32989670001552,
+      "process_rss": 100678455296,
+      "process_peak_wset": 100678459392,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12939182080,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 139.91521090001334,
+      "process_rss": 100678455296,
+      "process_peak_wset": 100678459392,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12935385088,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 140.43227000001934,
+      "process_rss": 100678455296,
+      "process_peak_wset": 100678459392,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12919496704,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 140.94810490001692,
+      "process_rss": 100704972800,
+      "process_peak_wset": 100704976896,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12878798848,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 141.4742358000076,
+      "process_rss": 100713807872,
+      "process_peak_wset": 100713811968,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12868083712,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 142.04400490000262,
+      "process_rss": 100713807872,
+      "process_peak_wset": 100713811968,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12890021888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 142.57148240000242,
+      "process_rss": 100713807872,
+      "process_peak_wset": 100713811968,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12889296896,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 143.10164900001837,
+      "process_rss": 100749152256,
+      "process_peak_wset": 100749156352,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12863082496,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 143.627427600004,
+      "process_rss": 100784504832,
+      "process_peak_wset": 100784508928,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12839972864,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 144.21161910000956,
+      "process_rss": 100855185408,
+      "process_peak_wset": 100855189504,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12756537344,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 144.72955800002092,
+      "process_rss": 100934713344,
+      "process_peak_wset": 100934717440,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12696997888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 145.24630369999795,
+      "process_rss": 100978925568,
+      "process_peak_wset": 100978929664,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12630228992,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 145.77345969999442,
+      "process_rss": 100987772928,
+      "process_peak_wset": 100987777024,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12636180480,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31679578112
+      }
+    },
+    {
+      "seconds": 146.36882740000146,
+      "process_rss": 101005443072,
+      "process_peak_wset": 101005447168,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12580356096,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 146.88495170001988,
+      "process_rss": 101023100928,
+      "process_peak_wset": 101023105024,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12558962688,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 147.40584789999411,
+      "process_rss": 101031936000,
+      "process_peak_wset": 101031940096,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12550799360,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 147.93551949999528,
+      "process_rss": 101031936000,
+      "process_peak_wset": 101031940096,
+      "process_private": 26378764288,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12575580160,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31675383808
+      }
+    },
+    {
+      "seconds": 148.5164955999935,
+      "process_rss": 101076148224,
+      "process_peak_wset": 101076152320,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12545896448,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 149.03877230000217,
+      "process_rss": 101102641152,
+      "process_peak_wset": 101102645248,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12522258432,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 149.56238839999423,
+      "process_rss": 101111476224,
+      "process_peak_wset": 101111480320,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12492812288,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 150.08787889999803,
+      "process_rss": 101146841088,
+      "process_peak_wset": 101146845184,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12446593024,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 150.66300709999632,
+      "process_rss": 101155663872,
+      "process_peak_wset": 101155667968,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12417167360,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 151.188507200015,
+      "process_rss": 101164498944,
+      "process_peak_wset": 101164503040,
+      "process_private": 26387169280,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12401614848,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 151.81087720001233,
+      "process_rss": 101191004160,
+      "process_peak_wset": 101191008256,
+      "process_private": 26382970880,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12098895872,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 152.32788090000395,
+      "process_rss": 101155835904,
+      "process_peak_wset": 101191008256,
+      "process_private": 13422645248,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 12109950976,
+      "gpu": {
+        "total": 34190917632,
+        "used": 31678529536
+      }
+    },
+    {
+      "seconds": 152.88643119999324,
+      "process_rss": 91396370432,
+      "process_peak_wset": 101191008256,
+      "process_private": 1795268608,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 21657956352,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7357857792
+      }
+    },
+    {
+      "seconds": 153.39743770001223,
+      "process_rss": 77781061632,
+      "process_peak_wset": 101191008256,
+      "process_private": 1795268608,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 35299532800,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7357857792
+      }
+    },
+    {
+      "seconds": 153.91696780000348,
+      "process_rss": 65039974400,
+      "process_peak_wset": 101191008256,
+      "process_private": 1795268608,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 48002908160,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7357857792
+      }
+    },
+    {
+      "seconds": 154.44094170001335,
+      "process_rss": 52212449280,
+      "process_peak_wset": 101191008256,
+      "process_private": 1697480704,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 60967354368,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7357857792
+      }
+    },
+    {
+      "seconds": 154.99949129999732,
+      "process_rss": 39137542144,
+      "process_peak_wset": 101191008256,
+      "process_private": 1697480704,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 74073649152,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7348420608
+      }
+    },
+    {
+      "seconds": 155.51766149999457,
+      "process_rss": 24931688448,
+      "process_peak_wset": 101191008256,
+      "process_private": 1468436480,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 88304549888,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7348420608
+      }
+    },
+    {
+      "seconds": 156.02920520000043,
+      "process_rss": 11815043072,
+      "process_peak_wset": 101191008256,
+      "process_private": 1370640384,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 101465092096,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7348420608
+      }
+    },
+    {
+      "seconds": 156.56229729999905,
+      "process_rss": 133476352,
+      "process_peak_wset": 101191008256,
+      "process_private": 251588608,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 113252577280,
+      "gpu": {
+        "total": 34190917632,
+        "used": 7348420608
+      }
+    }
+  ],
+  "monitor_error": null,
+  "metrics": [
+    {
+      "prompt_tokens": 38,
+      "generated": 54,
+      "prefill_ms": 9331.4638,
+      "generation_wall_ms": 9615.07,
+      "decode_steps": 53,
+      "decode_forward_ms": 9584.297299999997,
+      "source_bytes": 108059714048,
+      "h2d_bytes": 108059714048,
+      "source_ms": 14925.777999999977,
+      "h2d_ms": 0.0,
+      "staging_bytes": 33554432,
+      "gpu_nodes": 125776,
+      "expert_nodes": 7056,
+      "cache_hits": 33184,
+      "cache_misses": 36635,
+      "cache_evictions": 3088,
+      "cache_bypasses": 0,
+      "cache_oom": 0,
+      "cache_rejected": 13748,
+      "cache_bytes": 10261364736,
+      "cache_limit": 10263855104,
+      "d2d_bytes": 205940298240,
+      "cache_fill_bytes": 19149005312,
+      "d2d_ms": 2356.0614999999766,
+      "requested_bytes": 205938232320,
+      "prefill_cache_fill_bytes": 0,
+      "decode_cache_fill_bytes": 19149005312,
+      "prefill_admission_skips": 16395,
+      "prefill_admission_skip_bytes": 48359198208,
+      "gpu_free": 1981153280,
+      "gpu_total": 34190917632,
+      "ram_free": 54611374080,
+      "ram_total": 134813700096,
+      "memory_samples": 311,
+      "prefill_source_bytes": 48359198208,
+      "decode_source_bytes": 59700515840,
+      "prefill_h2d_bytes": 48359198208,
+      "decode_h2d_bytes": 59700515840,
+      "prefill_cache_hits": 0,
+      "decode_cache_hits": 33184,
+      "prefill_cache_misses": 16395,
+      "decode_cache_misses": 20240,
+      "pipeline_groups": 2291,
+      "pipeline_chunks": 36635,
+      "pipeline_unused_bytes": 0,
+      "pipeline_device_bytes": 33554432,
+      "pipeline_wait_us": 8111372,
+      "pipeline_slot_wait_us": 270452,
+      "pipeline_submit_us": 621335,
+      "pipeline_read_peak": 1,
+      "rejected_cpu_nodes": 0,
+      "finish": "stop"
+    },
+    {
+      "prompt_tokens": 299,
+      "generated": 146,
+      "prefill_ms": 46658.2039,
+      "generation_wall_ms": 26258.312,
+      "decode_steps": 145,
+      "decode_forward_ms": 26176.490899999997,
+      "source_bytes": 618832437760,
+      "h2d_bytes": 618832437760,
+      "source_ms": 59413.88699999814,
+      "h2d_ms": 0.0,
+      "staging_bytes": 33554432,
+      "gpu_nodes": 366098,
+      "expert_nodes": 20538,
+      "cache_hits": 83765,
+      "cache_misses": 209800,
+      "cache_evictions": 8511,
+      "cache_bypasses": 0,
+      "cache_oom": 0,
+      "cache_rejected": 74887,
+      "cache_bytes": 10608246784,
+      "cache_limit": 10608549888,
+      "d2d_bytes": 865908323328,
+      "cache_fill_bytes": 25443513856,
+      "d2d_ms": 4523.3157000000465,
+      "requested_bytes": 865889660928,
+      "prefill_cache_fill_bytes": 0,
+      "decode_cache_fill_bytes": 25443513856,
+      "prefill_admission_skips": 126287,
+      "prefill_admission_skip_bytes": 372499974656,
+      "gpu_free": 1978966016,
+      "gpu_total": 34190917632,
+      "ram_free": 15117062144,
+      "ram_total": 134813700096,
+      "memory_samples": 479,
+      "prefill_source_bytes": 372499974656,
+      "decode_source_bytes": 246332463104,
+      "prefill_h2d_bytes": 372499974656,
+      "decode_h2d_bytes": 246332463104,
+      "prefill_cache_hits": 21118,
+      "decode_cache_hits": 62647,
+      "prefill_cache_misses": 126287,
+      "decode_cache_misses": 83513,
+      "pipeline_groups": 6818,
+      "pipeline_chunks": 209800,
+      "pipeline_unused_bytes": 0,
+      "pipeline_device_bytes": 33554432,
+      "pipeline_wait_us": 26185130,
+      "pipeline_slot_wait_us": 2709246,
+      "pipeline_submit_us": 3100849,
+      "pipeline_read_peak": 1,
+      "rejected_cpu_nodes": 0,
+      "finish": "stop"
+    },
+    {
+      "prompt_tokens": 496,
+      "generated": 140,
+      "prefill_ms": 34613.9866,
+      "generation_wall_ms": 21544.8255,
+      "decode_steps": 139,
+      "decode_forward_ms": 21464.379800000006,
+      "source_bytes": 726871404544,
+      "h2d_bytes": 726871404544,
+      "source_ms": 39277.026999995614,
+      "h2d_ms": 0.0,
+      "staging_bytes": 33554432,
+      "gpu_nodes": 379574,
+      "expert_nodes": 21294,
+      "cache_hits": 132394,
+      "cache_misses": 246428,
+      "cache_evictions": 7253,
+      "cache_bypasses": 0,
+      "cache_oom": 0,
+      "cache_rejected": 62238,
+      "cache_bytes": 10629218304,
+      "cache_limit": 10632142848,
+      "d2d_bytes": 1117384892928,
+      "cache_fill_bytes": 21414318592,
+      "d2d_ms": 6000.536099999657,
+      "requested_bytes": 1117356306432,
+      "prefill_cache_fill_bytes": 0,
+      "decode_cache_fill_bytes": 21414318592,
+      "prefill_admission_skips": 176930,
+      "prefill_admission_skip_bytes": 521878058496,
+      "gpu_free": 1981521920,
+      "gpu_total": 34190917632,
+      "ram_free": 12101242880,
+      "ram_total": 134813700096,
+      "memory_samples": 421,
+      "prefill_source_bytes": 521878058496,
+      "decode_source_bytes": 204993346048,
+      "prefill_h2d_bytes": 521878058496,
+      "decode_h2d_bytes": 204993346048,
+      "prefill_cache_hits": 61780,
+      "decode_cache_hits": 70614,
+      "prefill_cache_misses": 176930,
+      "decode_cache_misses": 69498,
+      "pipeline_groups": 7074,
+      "pipeline_chunks": 246428,
+      "pipeline_unused_bytes": 0,
+      "pipeline_device_bytes": 33554432,
+      "pipeline_wait_us": 3571830,
+      "pipeline_slot_wait_us": 5134767,
+      "pipeline_submit_us": 3236404,
+      "pipeline_read_peak": 1,
+      "rejected_cpu_nodes": 0,
+      "finish": "stop"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "scope": "STEP-07 real shard bytes and context/bounded external pressure",
+  "head": "97e016de11754cccd1b5550232c6c198cdbe0723",
+  "hardware": {
+    "cpu": "Ryzen 9 9950X",
+    "ram": "128 GiB",
+    "gpu": "RTX 5090, 32607 MiB",
+    "driver": "581.80",
+    "os": "Windows"
+  },
+  "source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand,step-bounded-expert-cache,step-router-lookahead-pipeline\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\nmmf_original_sha256=08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1\nmmf_generated_sha256=c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68\ndispatch_original_sha256=eee8c85f32f45c47d0f84210d82109598c0dd32c73b3d4605972a62569af7034\ndispatch_generated_sha256=cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_version=13.0.48\ncuda_architectures=120a\nkernel_check_enabled=ON\ngraph_check_enabled=ON\nruntime_enabled=ON\nscope=isolated Step oracles/checkers and optional experimental native pipe engine; no HTTP profile\n",
+  "source_sha256": {
+    "backends/step35/CMakeLists.txt": "f708d1891b7a3db0c27a99f2f8f166cba149318884e18c52687c83cbaf723d58",
+    "backends/step35/check_shards.cpp": "30570b51ba0765e53d6015d21e64719227c4d46500ec31d95abfc9c38f9b9fc1",
+    "backends/step35/pressure_holder.cpp": "392208c2740b50a7cef312e4b5b95636af96b27511d36e1c2ed3d7618fdbb353",
+    "tools/check_step35_shards.py": "b40dd9a76b708639b07f378263381523f907b0399d92562a2f5c13b1efba3122",
+    "tools/check_step35_context.py": "ea307f0601d02b22e92f1d8a826e02b0d73be1f8c615f203f5738a8f48169a6a",
+    "tools/test_step35_shards.py": "2afdb74954e19bca10ad6e52a5e33889fa6a1907f62d6b650888f8cf06b3fda2"
+  },
+  "existing_step_runtime": {
+    "backends/step35/cache_registry.hpp": {
+      "sha256": "7f011e154f67198aa0734f084ce5ec31ae94a6ec0b9162fdb6031be9f072c864",
+      "matches_STEP06": true
+    },
+    "backends/step35/check_cache.cpp": {
+      "sha256": "b54741e90521372509d409014495250c8219f273586965b79af4488da426490d",
+      "matches_STEP06": true
+    },
+    "backends/step35/check_graph.cpp": {
+      "sha256": "07cca58bd5ba450243bf1acf644be234f7e25e7e7c49a401239fd2740e039851",
+      "matches_STEP06": true
+    },
+    "backends/step35/check_kernels.cpp": {
+      "sha256": "de7c51863292e59ae212660a0025153bbfe1d8ea97d585844dd198310e524026",
+      "matches_STEP06": true
+    },
+    "backends/step35/check_pipeline.cpp": {
+      "sha256": "7401ddc136a095960ad82a9f9b7cedf15f4ac4e7c6364283ee1f98d5f420e355",
+      "matches_STEP06": true
+    },
+    "backends/step35/check_runtime.cpp": {
+      "sha256": "d18bd3996606afc02f9ab6521a8f228394d057191f491f6281c467b32a4a92f9",
+      "matches_STEP06": true
+    },
+    "backends/step35/expert_cache.hpp": {
+      "sha256": "a74d0236b22f2995deb50c70e742d1689daf8b34961ebc5c23fe06205c2e4a86",
+      "matches_STEP06": true
+    },
+    "backends/step35/gpu_only_audit.inc": {
+      "sha256": "b15506df0e111919fbbb0883591cb9f99d3d79e6fa7ebe344c29e23e9cc403fe",
+      "matches_STEP06": true
+    },
+    "backends/step35/gpu_trace.hpp": {
+      "sha256": "04e74fd7fb728cdac4f7dba88409027acd6a7348a88bf2954536d02162139196",
+      "matches_STEP06": true
+    },
+    "backends/step35/main.cpp": {
+      "sha256": "3d942857d9011e732afaa761bd774edb0bfa9ec36d4b9d054a2ddfab0627d7eb",
+      "matches_STEP06": true
+    },
+    "backends/step35/pipeline_runtime.inc": {
+      "sha256": "8eecfcba2bee3d4bcb444b48eb4e07cbe04ac8551ba192385ac781e22a06d499",
+      "matches_STEP06": true
+    },
+    "backends/step35/pipeline_sched.inc": {
+      "sha256": "2c4614d95662bd8b439463c35b54fbfb9d3c9eb2414c728363f697425cd896dc",
+      "matches_STEP06": true
+    },
+    "backends/step35/protocol.hpp": {
+      "sha256": "3b32d2af3af898b57a0e47c0c2b70b697725285e5b99b8bcfcf1158e5dadbcfc",
+      "matches_STEP06": true
+    },
+    "backends/step35/RoutedStrides.cmake": {
+      "sha256": "03e14140133b3ab4a8da15f932604c175c7cee12229eeb5d76176beaaa474385",
+      "matches_STEP06": true
+    },
+    "backends/step35/runtime.hpp": {
+      "sha256": "2dc057ac113fbda05791d2345ddd2ab1c920e1086eee5b6d3aef3fae0f55b95c",
+      "matches_STEP06": true
+    },
+    "backends/step35/RuntimePatches.cmake": {
+      "sha256": "d8f167acd50f503744e14f4d6394ff5bb3b29ed1ca2d2205239537cc9656750c",
+      "matches_STEP06": true
+    },
+    "backends/step35/session_snapshot.hpp": {
+      "sha256": "09fe0d7ee4b810cc961c6bd00ed569af171fffbedf934baf418669d8f56bc601",
+      "matches_STEP06": true
+    },
+    "backends/step35/StrictF32.cmake": {
+      "sha256": "674b2908a8541e168edc6fd03802c2525ebb657b28f2e6891a5e776fb099f03c",
+      "matches_STEP06": true
+    },
+    "backends/step35/sync_runtime.h": {
+      "sha256": "05929dc5988b60eefff6ceee8f4ec9a0cf76a2d2906923d3d74eedce3ba18f41",
+      "matches_STEP06": true
+    },
+    "backends/step35/sync_runtime.inc": {
+      "sha256": "e7665c606b400209f60e7fb56f3a3149b13cdb50ac8e51a0b11e17f2a4c8a9cd",
+      "matches_STEP06": true
+    },
+    "backends/step35/synthetic_step.hpp": {
+      "sha256": "6e9169ba7f59e29af86040cb27259e13f2fa39af2fb5b245007644fde5982726",
+      "matches_STEP06": true
+    },
+    "backends/step35/template_oracle.cpp": {
+      "sha256": "5c1038786b3f5dcfa92321e53616755d81130254fe8df9fdf3fc40a9da17a0b0",
+      "matches_STEP06": true
+    },
+    "backends/step35/tokenizer_oracle.cpp": {
+      "sha256": "6058c5cc39319fc925bbe01a075ba7ebee9dd5c085abc7b67b8d5edd52beaad6",
+      "matches_STEP06": true
+    },
+    "backends/step35/tokenizer_protocol.hpp": {
+      "sha256": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a",
+      "matches_STEP06": true
+    }
+  },
+  "common_primitives": {
+    "backends/common/device_memory.hpp": {
+      "sha256": "76f22a1749957f2d82f3e5645aef10719d69bedc012054dcf27f85ae77687459",
+      "matches_STEP06": true
+    },
+    "backends/common/vram_policy.hpp": {
+      "sha256": "0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e",
+      "matches_STEP06": true
+    },
+    "backends/common/expert_frequency.hpp": {
+      "sha256": "065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+      "matches_STEP06": true
+    },
+    "backends/common/expert_pipeline.hpp": {
+      "sha256": "4075dfafe8c2ea4c0242f952470e2e95d908ff5840c177628a4baf5eee6cb930",
+      "matches_STEP06": true
+    },
+    "backends/common/expert_file.hpp": {
+      "sha256": "9bf0c0eb9b58019fa51aee28e24fa924703225d22ce26b8a8a9b8ec640b9092e",
+      "matches_STEP06": true
+    },
+    "backends/common/expert_slice.hpp": {
+      "sha256": "5f389e0ed854a6bf85481aec824a3fd19b9af88b6be7b452cc98b21696bd3595",
+      "matches_STEP06": true
+    }
+  },
+  "shared_modules": {
+    "tools/gguf_reader.py": {
+      "sha256": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+      "matches_STEP06": true
+    },
+    "tools/strata_tokenizer.py": {
+      "sha256": "0281c73c9af0773c9e314de71d9e85341f12c13e184a82fdc134efc537142181",
+      "matches_STEP06": true
+    }
+  },
+  "binary_sha256": {
+    "bin/strata-step35.exe": "0187b423b9ebe10832696403cff12e1561dd9dab750845080e744643ae724b00",
+    "bin/strata-step35-shards-check.exe": "45fed140ad21af0edae2f32e763b443094285acc18d873b9b5326ea43a42ff2c",
+    "bin/strata-step35-pressure-holder.exe": "261b5c42567c63006796e69de671a4133e24c8f95d3db6977463b0c210bc2c00"
+  },
+  "model_structural_fingerprint_sha256": "37305e11f45387f044806d639588fe6ef9d4b10eeaad1dc8ca0f02f9cdae6502",
+  "reports_sha256": {
+    "STEP37_FLASH_STEP07_CONTEXT.json": "1f0340f2e2100c70f9c23b224f74ef2c391ccf0f7a35beb7b82f9e2825d99cba",
+    "STEP37_FLASH_STEP07_SAMPLES.json": "3f1cb85e05e145afd625d3964863252c216bdfe601b037706b66afade8341946",
+    "STEP37_FLASH_STEP07_SHARDS.json": "8ff0e3d2fd2701f0a7e62caed36b745ee954113aeaaf02f1e395a41c278b7d8b",
+    "STEP37_FLASH_STEP07_SUMMARY.json": "6722eb5844150e21ebc5fea93833aa565987dcc4101f776822f80874ee627288"
+  },
+  "ctest": {
+    "passed": 10,
+    "failed": 0,
+    "log_sha256": "dc6e17429a4a5dfc255337900ea2b733c3aa73e49d27e822530c45a2bb052c9f"
+  },
+  "python": {
+    "existing_step_tests": 21,
+    "output_guard_test_methods": 1,
+    "output_guard_subcases": 4
+  },
+  "validation_logs": {
+    "step35-step07-build.log": "46aae0308c9cd43e1f0af41b67b7d20a4c9bf869a5f253b10b26eacc352b252f",
+    "step35-step07-ctest.log": "b26e24aa153f116cce321a146d6b223adb897330c0911fc52fce1cd3ca8c3b0e",
+    "step35-step07-python.log": "5014a97709cf95513249ee2a91f0b7b1099d7187a280e60ebb9d695df6722fe6",
+    "step35-step07-guards.log": "22b9e851724fbef737d7a366bb1d1857ea250ee999cce8cc130fc24f1fe1e12e"
+  },
+  "commands": [
+    "cmd /c build-local\\build-step35-cuda.cmd",
+    "python tools/check_step35_shards.py --checker build-local/step35-cuda/bin/strata-step35-shards-check.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --output-dir build-local/step35-cuda/step07-shards",
+    "python tools/check_step35_context.py --engine build-local/step35-cuda/bin/strata-step35.exe --holder build-local/step35-cuda/bin/strata-step35-pressure-holder.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --reference docs/Step-3.7-Flash/STEP37_FLASH_MODEL_VALIDATION.json --output-dir build-local/step35-cuda/step07-context",
+    "ctest --test-dir build-local/step35-cuda --output-on-failure --no-tests=error",
+    "python -m unittest tools.test_setup_step35 tools.test_step35_tokenizer",
+    "python -m unittest tools.test_step35_shards"
+  ],
+  "final_commands_exit_code": 0,
+  "preflight_note": "The initial 96-record prompt was rejected before model startup because it did not cross 2048 tokens. The executed 128-record prompt has 2591 tokens.",
+  "limits": [
+    "No engine numerical/transport changes; engine SHA matches STEP-06. No new throughput claim.",
+    "81 sampled matrices, not full checksums of all payloads; byte tests cover all three payload shards.",
+    "The long prompt contains repeated record text; it is a numerical/context test, not an answer-quality or representative performance benchmark.",
+    "Long-context checks use context4096 with2591 prompt tokens, not the maximum32768 setting.",
+    "Pressure is bounded128MiB VRAM and2GiB RAM, not forced startup OOM or resource exhaustion.",
+    "STOP occurs after the first prefill progress; cancellation after long-context rollover remains a separate test.",
+    "Global readings are samples, not atomic reservations; unrelated workload changes remain possible.",
+    "No HTTP/tools/sessions/MTP/default profile changes."
+  ]
+}

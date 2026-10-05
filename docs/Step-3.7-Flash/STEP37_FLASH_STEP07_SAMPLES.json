@@ -1,0 +1,740 @@
+{
+  "model": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf",
+  "model_structural_fingerprint_sha256": "37305e11f45387f044806d639588fe6ef9d4b10eeaad1dc8ca0f02f9cdae6502",
+  "payload_shards": [
+    1,
+    2,
+    3
+  ],
+  "samples": [
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 2719660928,
+      "bytes": 2949632,
+      "payload_sha256": "d498c224cf23ff2d2a9c31e280b27e93afbbc0c3b365e7652ffb0c56afd1c5e9"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 3144334208,
+      "bytes": 2949632,
+      "payload_sha256": "920fd26764741da05d817ac60fcd2199e9e2475a134e6b4128e5ddee9ad00e57"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 3566058368,
+      "bytes": 2949120,
+      "payload_sha256": "c8e36db5b600ebaf2b6a5d5d62bfecb5427f46c6106451781b3178d4371b9cba"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 26784401408,
+      "bytes": 2949632,
+      "payload_sha256": "497aff94afffcf5433c374accd151c3745e8ac93c77578da89f78e07ebbd6afb"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 27209074688,
+      "bytes": 2949632,
+      "payload_sha256": "ec47284f0bf8b29c24d31ec7fcf308fec362c473f4a031ec0cbdeea8dc41d9b6"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 27630798848,
+      "bytes": 2949120,
+      "payload_sha256": "800c64d41193dc7a7e243d82de7cc3b867348bbdbbcbd3d94362dec0c2739949"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 48199142400,
+      "bytes": 2949632,
+      "payload_sha256": "e56994449d02ca49332cf81d1733dba58f910ea4bce15026cb6dd5180c894175"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 48623815680,
+      "bytes": 2949632,
+      "payload_sha256": "16c27bb9f0690f65969027810575049a1e50750c90a3a72c9667502f552ef295"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 49045539840,
+      "bytes": 2949120,
+      "payload_sha256": "7185ccd50527a3301b6a377f0d040e6e137807be4ea706e39c40d41e23d2e5d0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 3579313024,
+      "bytes": 2949632,
+      "payload_sha256": "10a4531248bca2c1ed0a91610075b59c85f406cc0b3058d4b59d573d92492d95"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 4003986304,
+      "bytes": 2949632,
+      "payload_sha256": "4e589a141247481d4f2fc034200a02880d50d948952b9d955e45aa0c62528764"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 4425710464,
+      "bytes": 2949120,
+      "payload_sha256": "8dce6ec93248dd65c975d99e66ec736ed09802505e0d39f76819d43f5e94bf95"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 27644053504,
+      "bytes": 2949632,
+      "payload_sha256": "a86ddf03d1af49c912d8fcb285ea6d35a5a45cf3e10879c8e4697118d1f2f2c0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 28068726784,
+      "bytes": 2949632,
+      "payload_sha256": "994a7b5a2855befcb252bec28be8af20afcbc691c4bef56a12124fadc83746af"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 28490450944,
+      "bytes": 2949120,
+      "payload_sha256": "cdf612d38f819b5bae45c4dca713a17a46a442ba4bd1fad57af33021819490c6"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 49058794496,
+      "bytes": 2949632,
+      "payload_sha256": "5ec371345910bcfc1ea0cad184c6d970a2ef4a51f1ff738e0bb1727854491855"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 49483467776,
+      "bytes": 2949632,
+      "payload_sha256": "5ee735dce582b0b29d372101d25754830feada7533746fa081fe9fec406fa5e4"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 49905191936,
+      "bytes": 2949120,
+      "payload_sha256": "62909fa86d9760e06a7a958f5ec580e70068c087d235eef2471b7b4a4ab054f6"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 1864743808,
+      "bytes": 2949632,
+      "payload_sha256": "6e82497d15823cb5f6de9dad0997dd7c6fafef736785e88fd57f417205156403"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 2289417088,
+      "bytes": 2949632,
+      "payload_sha256": "0613a37d94675c816724e0ca538b577b28df2562df35c0361b0ea618a9e4829a"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.3.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 2711141248,
+      "bytes": 2949120,
+      "payload_sha256": "66f5e7f3d69eec060b28dce2a0d8a0cd980f7b1b7fce940e6dc9ca32ad56c36b"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 25929484288,
+      "bytes": 2949632,
+      "payload_sha256": "e1144654ed9c680eb39aae5303d12b1979ea05b6f41b094c44b50cf331aa3509"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 26354157568,
+      "bytes": 2949632,
+      "payload_sha256": "8a8b1143599c1cf12b44fa23f5e417d840ff97743f43590d17f9117155652295"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.12.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 26775881728,
+      "bytes": 2949120,
+      "payload_sha256": "b11ff29c62a95926b1b66ffbf35e191af5d47324fa2f6fb1a72f98ef89d66ceb"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 47344225280,
+      "bytes": 2949632,
+      "payload_sha256": "d4e04b6a6fa5cdc8de4495ad8c749adfe87fbc8af372ff4d2c0d9e015e679f06"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 47768898560,
+      "bytes": 2949632,
+      "payload_sha256": "18da8cc8d04fc9a481ce6ef4637ab7448d8f44d48978602ba68d00e1a0f37885"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00002-of-00004.gguf",
+      "shard": 1,
+      "tensor": "blk.20.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 48190622720,
+      "bytes": 2949120,
+      "payload_sha256": "9498d4b08fe7b6a2b7ab01f558e9099ca2fed78aafb9d0899a411010b40ffa16"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 912872768,
+      "bytes": 2949632,
+      "payload_sha256": "bb5e8428bfe69bc42611face2c40d920581f2dec6aa70fd2fd5c380166233329"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 1337546048,
+      "bytes": 2949632,
+      "payload_sha256": "a718d72d47c408e204150dc75b92255282ad761e0ad8b0ebbcbbc3e8d48b642e"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 1759270208,
+      "bytes": 2949120,
+      "payload_sha256": "d19d6410a88ca39f4c6e9fe6b431ab273bf82dd3a458f4e025c587c54797ddd0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 25013404096,
+      "bytes": 2949632,
+      "payload_sha256": "f8e0f318b73f59243b7cb295d16aeaea65f4da93b75184c873c5b67eeef537a7"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 25438077376,
+      "bytes": 2949632,
+      "payload_sha256": "d5ecf1354df2ee6dab8b0911ad5918617c4bc432152c1e423c5f7f2b113f6aed"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 25859801536,
+      "bytes": 2949120,
+      "payload_sha256": "994af8710015063d90198a2c2f3d2c54273cb087add68fb271fff895d8780077"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 49113935424,
+      "bytes": 2949632,
+      "payload_sha256": "5d556905a8b6ab6031f1159e5f7f46848c5e08c5ee1f92f8ef0bbde564ec32ed"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 49538608704,
+      "bytes": 2949632,
+      "payload_sha256": "e06db8a9d8ebb1343146ac89fd5f6747b047b49c828dc4b638ea8ffd98f51ba0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 49960332864,
+      "bytes": 2949120,
+      "payload_sha256": "544d58e90f59487dd3a38fe2b728b8b2402782dadff12de55b29df9bed6548bc"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 1772524864,
+      "bytes": 2949632,
+      "payload_sha256": "cb23552bdba9809b7998567a33dcc3060ab9811a9f16e75181d7283b38c8b7e8"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 2197198144,
+      "bytes": 2949632,
+      "payload_sha256": "3d08cb171d40aab43a4f06e8c817090a64a198fc852dc7544c822bf576894be9"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 2618922304,
+      "bytes": 2949120,
+      "payload_sha256": "ae2450c1231c13c07181d565c90bb426fab26438df24c68b2d900fe711e2643e"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 25873056192,
+      "bytes": 2949632,
+      "payload_sha256": "ee50c040009a448340b9ced670f73b349312fb8dc8fc05f3afbe2bcb4e74f6af"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 26297729472,
+      "bytes": 2949632,
+      "payload_sha256": "281e167b71d725c566f9fb82d6b99407b7eba0b9ca2489bfc71bcf2b00eba978"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 26719453632,
+      "bytes": 2949120,
+      "payload_sha256": "98c99e19bce5d256036a37e492c1a2bf94f7137aef87077ac730d015480e70a3"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.38.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 47287797184,
+      "bytes": 2949632,
+      "payload_sha256": "7dc7b9ee59b29ca76910f443522238e02ab6f66db5abb7f96b854662c75aeb90"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.38.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 47712470464,
+      "bytes": 2949632,
+      "payload_sha256": "7a91e2f561e8bde5317280e6bcaf3e55a843b78a673214b32327c3c59c589ecd"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.38.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 48134194624,
+      "bytes": 2949120,
+      "payload_sha256": "5748ad92b423b2e335c7413f3b51f69cbc3bfda869a17127ad482435254da4e7"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 57955648,
+      "bytes": 2949632,
+      "payload_sha256": "66b508f25c6b1763ae3d9049c9cac1c70eac817ab35e439bf56407835f0ed348"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 482628928,
+      "bytes": 2949632,
+      "payload_sha256": "ee38e87906931811f934a87e738194bef984abbdaa1c8e018f85b37f26ff5fbd"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.21.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 904353088,
+      "bytes": 2949120,
+      "payload_sha256": "c98e9766b8b615caf065a1da9344bb4664de0ad9d6726f478d35a8d81413a71f"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 24158486976,
+      "bytes": 2949632,
+      "payload_sha256": "3ca8976ded2dd308dbd54d16172a4d3e029e4297ee2c68f8cd3e57ec24a1025a"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 24583160256,
+      "bytes": 2949632,
+      "payload_sha256": "84dedf36ef4a6bde30f3f1159acb0c2dcdae479876abadb92ebfe71e701c5943"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.30.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 25004884416,
+      "bytes": 2949120,
+      "payload_sha256": "d6e6db7f4dbdc0b9b7a85d110057e012774d21ae6063692a41aa1d3c560488f7"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 48259018304,
+      "bytes": 2949632,
+      "payload_sha256": "900ff6e7cab1e0c31a2a0764d41771cbb5c1f271d199dc9b81e269f51fb95afa"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 48683691584,
+      "bytes": 2949632,
+      "payload_sha256": "82a67a81b98dc703829b438fa9a42816f4a2b03916315960d5e7171f7746bdca"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00003-of-00004.gguf",
+      "shard": 2,
+      "tensor": "blk.39.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 49105415744,
+      "bytes": 2949120,
+      "payload_sha256": "4c7f924d4602c6e632af9de8c041af447ef96adadb7c834159753470656ec4d6"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 1790353024,
+      "bytes": 2949632,
+      "payload_sha256": "d9c51dce13f44b01abbec45a9ec0eb800905403594fdf3ea8d411676dbecd349"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 2215026304,
+      "bytes": 2949632,
+      "payload_sha256": "70e219b645f301b422a788975207edc5d6e7ca51d17199c26cc32d3aa741ca34"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 2636750464,
+      "bytes": 2949120,
+      "payload_sha256": "3d38498e991d906861be1c2ab578d50cd592326e6a0ee50348b88f6700c02233"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 7161933696,
+      "bytes": 2949632,
+      "payload_sha256": "c1fa2fcaa956450f7b16dbeb5bef86a98e2953dc29bcd10e88dea4dec3106fca"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 7586606976,
+      "bytes": 2949632,
+      "payload_sha256": "f17f8163649d00f61818228886d9cdfc306ed6ed18ad562fb6be5f0c7de00019"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 8008331136,
+      "bytes": 2949120,
+      "payload_sha256": "1ce3bf6cdbd55eb73ba2228d7cc73b48f011ebb6d3ec140e8f571fd96b6d1cf6"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_gate_exps.weight",
+      "expert": 0,
+      "file_offset": 12497723520,
+      "bytes": 2949632,
+      "payload_sha256": "f81ca580539dfaa9ef0d93c4e33f4570d363c6e8aff8056299ec1db66c977525"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_gate_exps.weight",
+      "expert": 144,
+      "file_offset": 12922396800,
+      "bytes": 2949632,
+      "payload_sha256": "7920dfd180222f489bdbb7aba71000e80a7a69c74885fc258da07d400970e2c7"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_gate_exps.weight",
+      "expert": 287,
+      "file_offset": 13344120960,
+      "bytes": 2949120,
+      "payload_sha256": "2c6caa30879055741ecb3deb6f3a0853e061c1db43e2832424686403368b0535"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.39.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 5632,
+      "bytes": 2949632,
+      "payload_sha256": "1cb131455c5d80c64f182d8217626dbe96f9e47c398342993d70da5f1258cb7e"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.39.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 424678912,
+      "bytes": 2949632,
+      "payload_sha256": "a1dbce3c52e27bdb1450f12735a09350d7603e47297d65256ba3ccb43ab08f23"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.39.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 846403072,
+      "bytes": 2949120,
+      "payload_sha256": "463ac9d01ada114be08a8dde377ed1b93d1d644f39bce41233916f7e6935fb34"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 8021585792,
+      "bytes": 2949632,
+      "payload_sha256": "ea22315cf0935c377dc9d4c7c35180bd2e0390ff5cebd357945473f6d9b9d054"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 8446259072,
+      "bytes": 2949632,
+      "payload_sha256": "e6c5a1e2764073d8ff62e118f0023888bb88fc3667af283088c3cfe30c906986"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 8867983232,
+      "bytes": 2949120,
+      "payload_sha256": "0be142e45e2a0b36d3fb359e7b53d07e8b16641726eb40c22715b516b7386701"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_up_exps.weight",
+      "expert": 0,
+      "file_offset": 13357375616,
+      "bytes": 2949632,
+      "payload_sha256": "f5cd586ed9584335430a18590f88c3351e3332aa7ac090ab2cf6a2d6993f83e0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_up_exps.weight",
+      "expert": 144,
+      "file_offset": 13782048896,
+      "bytes": 2949632,
+      "payload_sha256": "b9d8381531283941faf000923c890999a2a164cd361a97cbd249125ea19440ae"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_up_exps.weight",
+      "expert": 287,
+      "file_offset": 14203773056,
+      "bytes": 2949120,
+      "payload_sha256": "8127408997d0a265335a13ae25f9c769e264cc5e2afa4486e0711dddadde25a1"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 935435904,
+      "bytes": 2949632,
+      "payload_sha256": "ac0b94720280909051ceb0b802d3fcac36e094b41178f163b2e3eafd2dd069a0"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 1360109184,
+      "bytes": 2949632,
+      "payload_sha256": "8735199eb8167aecf98d89f1ef88b8466de90739716b3292fc66e108d07110fe"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.40.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 1781833344,
+      "bytes": 2949120,
+      "payload_sha256": "f310589e8043f8c1f134eec077d065c5cdd4d1c1751489cb0da92bf243b6d8b7"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 6307016576,
+      "bytes": 2949632,
+      "payload_sha256": "1815fccc8a73264deb26eedc5d9b450920c841796ae1eb82963d9e3370b71930"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 6731689856,
+      "bytes": 2949632,
+      "payload_sha256": "bdc6e8abc8249c0a22a749b7f2826a239d4e39823afe4fdaeaadd5d735695173"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.42.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 7153414016,
+      "bytes": 2949120,
+      "payload_sha256": "1d5eb7012856392f7ad94355797d140cfad2c7731cf1ca29e8bfe9dd73a6c94a"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_down_exps.weight",
+      "expert": 0,
+      "file_offset": 11642806400,
+      "bytes": 2949632,
+      "payload_sha256": "bc6eba44b09a257eec0645e2dd9025816c23ac9c800df2fe01afb7b6e5bd9953"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_down_exps.weight",
+      "expert": 144,
+      "file_offset": 12067479680,
+      "bytes": 2949632,
+      "payload_sha256": "147e44916cd76ee892ca4ddcbc23f010b69f56b47647509618ef7c7de4f85eb2"
+    },
+    {
+      "path": "H:\\models\\Step-3.7-Flash\\UD-Q4_K_S\\Step-3.7-Flash-UD-Q4_K_S-00004-of-00004.gguf",
+      "shard": 3,
+      "tensor": "blk.44.ffn_down_exps.weight",
+      "expert": 287,
+      "file_offset": 12489203840,
+      "bytes": 2949120,
+      "payload_sha256": "3883e3db56f1164c986f2bc1b479bee25004f152f6906a6aa70b5c4b077a9459"
+    }
+  ]
+}

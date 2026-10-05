@@ -1,0 +1,7 @@
+{
+  "engine_sha256": "e8cccec1b2d43790437d612de855b889c5d16b197768b07c502ebd6ef60c9c2f",
+  "status": "pass",
+  "raw_model_report_sha256": "c62fc32d15bdb33a70dbd3a18c8428d829a5d14836bd4a93fb287ea3f9fa1c87",
+  "difference_from_final": "Initial engine INFO printed baseline staging size/copy label with pipeline enabled. Final engine reports ring capacity and pinned-pipeline. Runtime transport code unchanged; final ABBA rerun after the INFO correction and expanded fixture tests.",
+  "engine_copy": "build-local/step35-cuda/pipeline-initial/strata-step35-initial.exe"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "error",
+  "scope": "synthetic Step resident/native-selected/pinned-selected byte and logit parity",
+  "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "patch_set": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand",
+  "error": "unexpected Step expert tensors",
+  "case_count": 0,
+  "cases": []
+}

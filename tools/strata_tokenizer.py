@@ -77,7 +77,9 @@ GLM4_PATTERN = (
     r"|\s+"
 )
 
-# Ordered splits, as in the pinned llama.cpp LLAMA_VOCAB_PRE_TYPE_JOYAI_LLM.
+# Ordered splits, as in the pinned llama.cpp LLAMA_VOCAB_PRE_TYPE_JOYAI_LLM
+# and DEEPSEEK3_LLM (Step-3.7 GGUF uses deepseek-v3). Both share this exact
+# sequence in revision 86ebfef2; neither enables ignore_merges.
 # Joining these with | changes boundaries around numbers and CJK text.
 JOYAI_PATTERNS = (
     r"\p{N}{1,3}",
@@ -108,14 +110,14 @@ class Tokenizer:
             if parts[0] not in self.ids or parts[1] not in self.ids:
                 raise ValueError("merge %d names a token outside the vocabulary: %r" % (i, m))
             self.ranks[(parts[0], parts[1])] = i
-        if pre not in ("qwen35", "joyai-llm", "glm4"):
+        if pre not in ("qwen35", "joyai-llm", "glm4", "deepseek-v3"):
             raise ValueError(f"unsupported pre-tokenizer: {pre}")
         # Match the pinned GLM candidate: a complete pre-tokenized vocabulary
         # piece wins even when greedy merges cannot reach it. Other profiles
         # retain their merge rules; this is not a longest-substring lookup.
         self.ignore_merges = pre == "glm4"
         self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN35_PATTERN)
-        self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre == "joyai-llm" else None
+        self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre in ("joyai-llm", "deepseek-v3") else None
 
         # The literals matched directly instead of being run through BPE.  GGUF token types: 3 = CONTROL,
         # 4 = USER_DEFINED.  The two classes behave DIFFERENTLY and llama.cpp's own tokenizer settled which:
@@ -326,7 +328,7 @@ def extract(gguf_path, out_dir) -> dict:
         # declared `pre` type, and a C++ port that re-derived it would be free to get `\p{M}` wrong again.
         "pre_pattern": list(JOYAI_PATTERNS) if tk.pre == "joyai-llm" else tk._re.pattern,
         "pre_pattern_source": "llama.cpp " + (
-            "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9" if tk.pre == "glm4" else "3cf03257"
+            "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9" if tk.pre in ("glm4", "deepseek-v3") else "3cf03257"
         ) + " src/llama-vocab.cpp (" + tk.pre + ")",
     }
     (out / "vocab.json").write_text(json.dumps(tk.ids, ensure_ascii=False), encoding="utf-8")

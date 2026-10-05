@@ -1,0 +1,30 @@
+{
+  "engine_sha256": "abce9e87ea66aa8e52e3e473c60175cb400aed2ecbce226350a3a10721e0a412",
+  "source_sha256": {
+    "backends/step35/cache_registry.hpp": "7f011e154f67198aa0734f084ce5ec31ae94a6ec0b9162fdb6031be9f072c864",
+    "backends/step35/check_cache.cpp": "a06e1ed98891d32a2e4122b46468f2e85d28cbb1d0250578b732b96de01499bd",
+    "backends/step35/check_graph.cpp": "07cca58bd5ba450243bf1acf644be234f7e25e7e7c49a401239fd2740e039851",
+    "backends/step35/check_kernels.cpp": "de7c51863292e59ae212660a0025153bbfe1d8ea97d585844dd198310e524026",
+    "backends/step35/check_runtime.cpp": "ecc391a2d57ad7718a495091269da3d4965e78140f159c4dd40a4073ee5bf878",
+    "backends/step35/CMakeLists.txt": "13c40c810d1fa36f789b8fb6db6941d0ab7bc6339eabde84d2ecae55a0faa171",
+    "backends/step35/expert_cache.hpp": "3bd43c032ed3e0feee001485fb000ac8738e8a0baffe7880868ee1983804e2e2",
+    "backends/step35/gpu_only_audit.inc": "b15506df0e111919fbbb0883591cb9f99d3d79e6fa7ebe344c29e23e9cc403fe",
+    "backends/step35/main.cpp": "f676f39a8f86725c640df31df6a8a680357ca59651e1fc69835524be707c689c",
+    "backends/step35/protocol.hpp": "3b32d2af3af898b57a0e47c0c2b70b697725285e5b99b8bcfcf1158e5dadbcfc",
+    "backends/step35/README.md": "77ce21b8c4c6ef89b92fc2180f6cb7f21c519a6e658d13421a5754499fbe543d",
+    "backends/step35/RoutedStrides.cmake": "03e14140133b3ab4a8da15f932604c175c7cee12229eeb5d76176beaaa474385",
+    "backends/step35/runtime.hpp": "2dc057ac113fbda05791d2345ddd2ab1c920e1086eee5b6d3aef3fae0f55b95c",
+    "backends/step35/RuntimePatches.cmake": "d8115ca1d30d862d5a48f5f5b9dd0fd36e61814a4dfce878f1253ce8a896315f",
+    "backends/step35/session_snapshot.hpp": "09fe0d7ee4b810cc961c6bd00ed569af171fffbedf934baf418669d8f56bc601",
+    "backends/step35/StrictF32.cmake": "674b2908a8541e168edc6fd03802c2525ebb657b28f2e6891a5e776fb099f03c",
+    "backends/step35/sync_runtime.h": "034608c9a1db6d1ab49b67ed403aa093a1fa960db29cfc4b483b0636e89cdd62",
+    "backends/step35/sync_runtime.inc": "dbfea3c542147b3d9884079bd158bf7f490c1eb851c8d61c7c1b3a2326e7f8e5",
+    "backends/step35/synthetic_step.hpp": "6e9169ba7f59e29af86040cb27259e13f2fa39af2fb5b245007644fde5982726",
+    "backends/step35/template_oracle.cpp": "5c1038786b3f5dcfa92321e53616755d81130254fe8df9fdf3fc40a9da17a0b0",
+    "backends/step35/tokenizer_oracle.cpp": "6058c5cc39319fc925bbe01a075ba7ebee9dd5c085abc7b67b8d5edd52beaad6",
+    "backends/step35/tokenizer_protocol.hpp": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a",
+    "tools/check_step35_cache.py": "6e592786e133345491859be3d9be4881cfb79d7bc0cf77b0bb7dc267d7bc9a1a",
+    "tools/check_step35_engine.py": "2c4d6840f295a898513ba79cf61825b8169d280efc89f5d8f20f2ab3928ee095"
+  },
+  "scope": "initial ABBA build before extra identity/budget guard checks"
+}

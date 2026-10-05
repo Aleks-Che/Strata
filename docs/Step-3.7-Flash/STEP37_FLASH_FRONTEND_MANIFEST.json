@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "scope": "STEP-09 Step renderer/request adapter and streaming parser; native pipe tool dialogue, no Step HTTP registration",
+  "head": "97e016de11754cccd1b5550232c6c198cdbe0723",
+  "hardware": {
+    "cpu": "Ryzen 9 9950X",
+    "ram": "128 GiB",
+    "gpu": "RTX 5090, 32607 MiB",
+    "driver": "581.80",
+    "os": "Windows"
+  },
+  "source_sha256": {
+    "serve/step35.py": "9a35315254ec048384e4056e5feba744b13514fd7dc90edf026f19ed96140cd1",
+    "serve/test_step35.py": "2e512fb990001ab20e2f99f258f69a811fca8892c23093209c8686609fb9ded6",
+    "serve/fixtures/step37_chat_template.jinja": "f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633",
+    "tools/check_step35_template.py": "ed14adefefbdc950517b1cb2c4ccd68aabee0b1ba2431972636f66b99592b3c7",
+    "tools/check_step35_frontend.py": "a24fde81142d8256ba6f0ac3fb52c08b085cd2d3bd26ce36a0094bf21b1f584b"
+  },
+  "engine_sha256": "32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3",
+  "engine_matches_STEP08": true,
+  "unchanged_frontend_sha256": {
+    "serve/server.py": "0c28c975060ef918fbfe5146382c5d7ccfbed0c9396db51add15472c8aee975c",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "serve/glm5next.py": "c76b04bcabe774dbfce00fa148ad9b9b1665c3844c03ae2bd959e9da689163b1",
+    "serve/deepseek.py": "35c42a89fdd1b996f0da3ee3dea8fc7c7dcc2fa501c8c49af706b9208dd7963f"
+  },
+  "common_primitives_match_STEP08": true,
+  "shared_reader_tokenizer_match_STEP08": true,
+  "model_structural_fingerprint_sha256": "37305e11f45387f044806d639588fe6ef9d4b10eeaad1dc8ca0f02f9cdae6502",
+  "reports_sha256": {
+    "STEP37_FLASH_FRONTEND_TEMPLATE.json": "b535c44c648c187164d2ebf1edd1812d29a770be1378a2dfcaf34523bb0642a4",
+    "STEP37_FLASH_FRONTEND_TESTS.json": "9576dc0e3b8781b967a3513fa1e968aa6a60e110372c4c320332926745899905",
+    "STEP37_FLASH_FRONTEND_MODEL.json": "5a5ff55c1d86f96ce1a2da5ac90022934af9137d3d3006523b0ea7c846d381c6",
+    "STEP37_FLASH_FRONTEND_REPLAY.json": "ac408910ea61dd909a92484f6e344f3bb60af4f7917861451d12d8aaf9ab3516"
+  },
+  "validation": {
+    "tests": 148,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "Step_unit_tests": 22,
+    "parser_fragmentation_sequences": 3415,
+    "saved_template_hashes": 208,
+    "native_template_and_ID_checks": 215,
+    "native_model_requests": 3,
+    "P1_F32_logits_exact": true,
+    "actual_prompt_native_oracle_matches": 3,
+    "real_token_character_whole_parser_matches": 3,
+    "final_source_replay": true,
+    "external_tools_executed": false,
+    "Step_HTTP_tested": false
+  },
+  "commands": [
+    "python -X utf8 -m unittest serve.test_step35",
+    "python -X utf8 tools/check_step35_template.py --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --oracle build-local/step35-cuda/bin/strata-step35-template.exe --tokenizer-oracle build-local/step35-cuda/bin/strata-step35-tokenizer.exe --runtime-adapter --output docs/Step-3.7-Flash/STEP37_FLASH_FRONTEND_TEMPLATE.json",
+    "python -X utf8 tools/check_step35_frontend.py --engine build-local/step35-cuda/bin/strata-step35.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --reference docs/Step-3.7-Flash/STEP37_FLASH_MODEL_VALIDATION.json --template-oracle build-local/step35-cuda/bin/strata-step35-template.exe --tokenizer-oracle build-local/step35-cuda/bin/strata-step35-tokenizer.exe --output-dir build-local/step35-cuda/step09-frontend",
+    "Python unittest runner: exact modules/classes and per-test results in STEP37_FLASH_FRONTEND_TESTS.json",
+    "Final-source replay: exact scope and cases in STEP37_FLASH_FRONTEND_REPLAY.json",
+    "python -X utf8 -m py_compile serve/step35.py serve/test_step35.py tools/check_step35_template.py tools/check_step35_frontend.py",
+    "git -c safe.directory=C:/work/git/my-repos/Strata -c core.safecrlf=false diff --exit-code -- serve/server.py serve/frontend.py serve/glm5next.py serve/deepseek.py backends/common"
+  ],
+  "runtime_path_prefix": [
+    "build-local/cuda-13.0/bin",
+    "build-local/cuda-13.0/bin/x64"
+  ],
+  "final_validation_exit_codes": 0,
+  "logs_sha256": {
+    "step35-step09-model.log": "3e8a5e0317f4d0b5bd9c987db4a2f1cdb1898bcff43bdb45e8280234b5d98924",
+    "step35-step09-regression.log": "ccea711c098fe9dc5b50a2497b2dfd5a4f9b045b6aeea6bc2777e1eb7d8d3a38",
+    "step35-step09-template-final.log": "e0d4b9bad2eb4fa47bb22706109a8f10cac6a3f182554258f5418230f938cbef",
+    "step35-step09-template.log": "e0d4b9bad2eb4fa47bb22706109a8f10cac6a3f182554258f5418230f938cbef",
+    "step35-step09-tests.log": "4217d0584872f618465243bd196034181cd6f9e0f1dad998678b2cc39fcb8717",
+    "step35-step09-unit-initial.log": "c7355aa644e73578caa39adc459a6873ca72401a255237ce5b6917adad7959c9"
+  },
+  "limits": [
+    "API EOG resolver/capabilities/profile/HTTP not integrated",
+    "complete tool blocks buffered; no early tool argument deltas",
+    "base type conversion is not full JSON Schema validation",
+    "raw parameter delimiter sequences are ambiguous",
+    "real tool result was a local stub",
+    "final source replay follows duplicate-JSON/error-result validation hardening; no inference math change",
+    "no speed comparison or new CUDA build in this step"
+  ]
+}

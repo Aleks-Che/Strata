@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-05",
+  "scope": "STEP-04/P1.1-P1.3 isolated GPU native pipe and sync selected-copy; full GGUF admission, no cache/pipeline/MTP/HTTP",
+  "head": "97e016de11754cccd1b5550232c6c198cdbe0723",
+  "hardware": {
+    "cpu": "AMD Ryzen 9 9950X",
+    "ram": "128 GiB",
+    "gpu": "NVIDIA GeForce RTX 5090, 32607 MiB",
+    "driver": "581.80",
+    "os": "Windows"
+  },
+  "source_build_record": "requested_revision=86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9\narchive_sha256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99\npatches_applied_by_harness=cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,step-sync-selected-copy-gpu-audit-mmap-demand\nstep35_cpp_sha256=4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3\nmmf_original_sha256=08bfea71b2f25d273b82f53bbb2181c60b3e9bb22641d3c4ed93067ce4bb3de1\nmmf_generated_sha256=c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68\ndispatch_original_sha256=eee8c85f32f45c47d0f84210d82109598c0dd32c73b3d4605972a62569af7034\ndispatch_generated_sha256=cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f\ncxx=MSVC 19.44.35222.0\ncuda_enabled=ON\ncuda_version=13.0.48\ncuda_architectures=120a\nkernel_check_enabled=ON\ngraph_check_enabled=ON\nruntime_enabled=ON\nscope=isolated Step oracles/checkers and optional experimental native pipe engine; no HTTP profile\n",
+  "configure_and_build_script": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/step35 -B build-local/step35-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release \"-DSTRATA_STEP_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz\" -DSTRATA_STEP_CUDA=ON -DSTRATA_STEP_KERNEL_CHECK=ON -DSTRATA_STEP_GRAPH_CHECK=ON -DSTRATA_STEP_RUNTIME=ON -DSTRATA_STEP_STRICT_F32=ON -DSTRATA_STEP_ROUTED_STRIDES=ON -DCMAKE_CUDA_ARCHITECTURES=120 \"-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe\" \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/step35-cuda --config Release -j 4\nexit /b %errorlevel%\n\n\n\n\n",
+  "harness_source_sha256": {
+    "backends/step35/CMakeLists.txt": "1629239c1bb49d78bb97a92a36b0d43f04ae43d780f519251692b37d1da5d141",
+    "backends/step35/RoutedStrides.cmake": "03e14140133b3ab4a8da15f932604c175c7cee12229eeb5d76176beaaa474385",
+    "backends/step35/RuntimePatches.cmake": "cf7d8d2da54571944b48e24669cdf905e44ea73efe25a8c08b8e0edb4e0278e1",
+    "backends/step35/StrictF32.cmake": "674b2908a8541e168edc6fd03802c2525ebb657b28f2e6891a5e776fb099f03c",
+    "backends/step35/check_graph.cpp": "07cca58bd5ba450243bf1acf644be234f7e25e7e7c49a401239fd2740e039851",
+    "backends/step35/check_kernels.cpp": "de7c51863292e59ae212660a0025153bbfe1d8ea97d585844dd198310e524026",
+    "backends/step35/check_runtime.cpp": "b07dd38f3b857411921de0d3583973710d0077e1d87621d07eaacc9c80c6776d",
+    "backends/step35/gpu_only_audit.inc": "b15506df0e111919fbbb0883591cb9f99d3d79e6fa7ebe344c29e23e9cc403fe",
+    "backends/step35/main.cpp": "be50c29967887a30eef164cefc42f5f4828b4ee2eb0a529737e65ccea881ad3e",
+    "backends/step35/protocol.hpp": "3b32d2af3af898b57a0e47c0c2b70b697725285e5b99b8bcfcf1158e5dadbcfc",
+    "backends/step35/runtime.hpp": "e15eb7400d4f71c9076d8a9553259dffbee2c2f5fc622eaa32f32dfa512a25f2",
+    "backends/step35/session_snapshot.hpp": "09fe0d7ee4b810cc961c6bd00ed569af171fffbedf934baf418669d8f56bc601",
+    "backends/step35/sync_runtime.h": "5f97b8dbc22eceafb212d0aeab1f24e6a466d0498e2dd0c46063b36e164c6fe8",
+    "backends/step35/sync_runtime.inc": "6eac23d0fab471edb8274962b49e4e6071e55200c6ea9df1db1b9ad3a4bf8ad5",
+    "backends/step35/synthetic_step.hpp": "6e9169ba7f59e29af86040cb27259e13f2fa39af2fb5b245007644fde5982726",
+    "backends/step35/template_oracle.cpp": "5c1038786b3f5dcfa92321e53616755d81130254fe8df9fdf3fc40a9da17a0b0",
+    "backends/step35/tokenizer_oracle.cpp": "6058c5cc39319fc925bbe01a075ba7ebee9dd5c085abc7b67b8d5edd52beaad6",
+    "backends/step35/tokenizer_protocol.hpp": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a",
+    "tools/check_step35_engine.py": "17bd4650155a73ca9e12f08fc2062c5c47858a628adcec6f3b93192fba52cf79",
+    "tools/check_step35_model.py": "460fb7a9a14c98fc1d13041d047762ba0f3eac339e8aa292b96787399df9d8f3",
+    "tools/check_step35_template.py": "e2eb39208b16ba4d709035d94f57c7aa14fc81e708cc8356d75b1aec4a2bafe5",
+    "tools/check_step35_tokenizer.py": "0a8f3f768dc8c7f6bbf881f527ee8f84ae692183b9afa8a3d10e805293a7ffe0",
+    "tools/setup_step35.py": "3515d2612cafc241049b14746a74b65bb841ac751840880a2f0655f037d0985e",
+    "tools/step35_loader_contract.py": "3534672bd916016617c7ed3e5d92aa6db185088963259945fbda93cd2a6b78a5",
+    "tools/test_setup_step35.py": "eca6459a89cc299d6c9fb3363eb6067c1b41a9d7e1d1f048edd350ccda3a8768",
+    "tools/test_step35_tokenizer.py": "7bed04dfc2a539eb9bf1023972ea3461142e405a4590804140efeadfb629b7cb"
+  },
+  "candidate_source_sha256": {
+    "src/models/step35.cpp": "4c42074b6f859b5734572eb0b1f1f07c8b783e20bfeb3a357871c77a8255c8b3",
+    "src/llama-model-loader.cpp": "5ef07476310d4678df18a61a6ec0a1ebcbb58c7534ac3c624b9fe0f315a4ab01",
+    "ggml/src/ggml-backend.cpp": "a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041"
+  },
+  "generated_source_sha256": {
+    "strata-step35-mmf.cu": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "strata-step35-cuda.cu": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+    "strata-step35-backend.cpp": "9d8d7bd9bc1434e58c4ed7ae75eb8418dc7cd2e7cedd51b9930b75db48916618",
+    "strata-step35-loader.cpp": "9fe89986b738ac8b8616925e1ef9b28d6381f63387c9c752b852bd7472cfebf2"
+  },
+  "binary_sha256": {
+    "bin/strata-step35-graph-check.exe": "b4dd66f5e1cb40593b9388968cc5dc93ad148dcb478d19ae9552918c71d8ac00",
+    "bin/strata-step35-kernels-check.exe": "30d709668eaab4457c8f9ed04775979527b39497bfd3cac23f38eccd17274971",
+    "bin/strata-step35-runtime-check.exe": "dc534a9838472c0b4959989c431184e2af89f3025c8558d6fc7e043fdd277bd0",
+    "bin/strata-step35-template.exe": "014164f1c3c7134a76b86429065bd47a71aab2d0018b0e5e41c3d8e31b65c0cf",
+    "bin/strata-step35-tokenizer.exe": "f00c3908726acbaf142177373810f32a78ca3c809d6ca15f70926b060ff20bcc",
+    "bin/strata-step35.exe": "e844983bdfbb0754d39ec91bee828129a766a765ffae4f5f5882d3161d77354f"
+  },
+  "fixture_sha256": {
+    "graph-fixture/synthetic-step.gguf": "dce9d89140cbd1b4a15c98789dee92568507dbf8d5fee956717633f000a95e71",
+    "runtime-fixture/step-f32.gguf": "dce9d89140cbd1b4a15c98789dee92568507dbf8d5fee956717633f000a95e71",
+    "runtime-fixture/step-mixed.gguf": "fe28cdb38d25c0db721edb25b3d901f16f82f6ef751254df03e41aca1ff2fd3c",
+    "runtime-fixture/step-wide.gguf": "a2dea6fbf9e78da3e672aea3280ad622d072a2f23995db75f143e87883828324"
+  },
+  "model_structural_fingerprint_sha256": "37305e11f45387f044806d639588fe6ef9d4b10eeaad1dc8ca0f02f9cdae6502",
+  "model_fingerprint_scope": "canonical JSON of ordered split_no/file_bytes/header_sha256; changes to weight payload bytes are not detected",
+  "reports_sha256": {
+    "STEP37_FLASH_RUNTIME_INITIAL.json": "06c380aa38e23421518328aa7f5ba8e37a69a40d2248054c4f50c40c2cef1173",
+    "STEP37_FLASH_RUNTIME_VALIDATION.json": "5a18653706fd2cdaa4e0c851c458ab72167e442522d98f936bcaf234a929b82e",
+    "STEP37_FLASH_PIPE_VALIDATION.json": "979c34d726205de24d08b9be76304f0ad961b82fbbb70fa7538f529090bb364c",
+    "STEP37_FLASH_MODEL_SHORT.json": "cfb63fc52f4dde5460b8d01d427729128463c91675f9d5a5690b077319150af5",
+    "STEP37_FLASH_MODEL_VALIDATION.json": "d589210be000c2c4fe3149496e6af15d658382a6a096fb3d338c0aa5e5f8193d",
+    "STEP37_FLASH_MODEL_REQUESTS.json": "95838c250e968e1f36b81f905ab4837affc600b349155b3e45506e17fca1035b",
+    "STEP37_FLASH_RUNTIME_TOKENIZER.json": "185cb5123001c7391b4a0a8118e7e9433dea3730e2ec13a408e439054becc4d5",
+    "STEP37_FLASH_RUNTIME_TEMPLATE.json": "0a80d8f83e57335d77539adec2e1dde059102f1ede6a88aa5022772d721f4f31",
+    "STEP37_FLASH_RUNTIME_KERNELS.json": "06b380926737f37681c70df76025d91d2e065a3a3312ef71c00cfc8ab4f26ebb",
+    "STEP37_FLASH_RUNTIME_GRAPH.json": "d805af9386d4ed3353bcbb1a5d69af5c684dcf618fee6c181b75ebd48c51c930"
+  },
+  "raw_logits": {
+    "full-model-complete/native/prompt-0.f32": {
+      "sha256": "595bec2f0e6576b490944431a9cd5cda93df5c5538343f39649e17230ed8775d",
+      "bytes": 27841536
+    },
+    "full-model-complete/native/prompt-1.f32": {
+      "sha256": "16a364a3d04d4a7c9f1ac7fc0929c16a9d4bd89b495d4c1dd28bd3806775dd71",
+      "bytes": 45371392
+    },
+    "full-model-complete/pinned/prompt-0.f32": {
+      "sha256": "595bec2f0e6576b490944431a9cd5cda93df5c5538343f39649e17230ed8775d",
+      "bytes": 27841536
+    },
+    "full-model-complete/pinned/prompt-1.f32": {
+      "sha256": "16a364a3d04d4a7c9f1ac7fc0929c16a9d4bd89b495d4c1dd28bd3806775dd71",
+      "bytes": 45371392
+    }
+  },
+  "ctest": {
+    "passed": 6,
+    "failed": 0,
+    "last_test_log_sha256": "7eb49fb6c4874bb7458e9d121abb064c4642769677cb9ebce0592d4d9cf8c0df"
+  },
+  "python_step_suite": {
+    "passed": 21,
+    "failed": 0
+  },
+  "case_counts": {
+    "RUNTIME_VALIDATION": 27,
+    "PIPE_VALIDATION": 22,
+    "MODEL_REQUESTS": 5,
+    "RUNTIME_TOKENIZER": 2190,
+    "RUNTIME_TEMPLATE": 215,
+    "RUNTIME_KERNELS": 78,
+    "RUNTIME_GRAPH": 75
+  },
+  "shared_modules": {
+    "tools/gguf_reader.py": {
+      "sha256": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+      "matches_STEP01": true
+    },
+    "tools/strata_tokenizer.py": {
+      "sha256": "0281c73c9af0773c9e314de71d9e85341f12c13e184a82fdc134efc537142181",
+      "matches_STEP01": true
+    }
+  },
+  "measurements": [
+    {
+      "copy_mode": "native",
+      "ready_seconds": 2.2651424999930896,
+      "prompt_tokens": [
+        38,
+        34,
+        38
+      ],
+      "generated_tokens": [
+        54,
+        88,
+        54
+      ],
+      "decode_steps": [
+        53,
+        87,
+        53
+      ],
+      "decode_tokens_per_second": [
+        3.0053148766777817,
+        3.21967040685539,
+        4.63045678582521
+      ],
+      "prefill_ms": [
+        10176.5166,
+        4493.1702,
+        3442.6667
+      ],
+      "process_peak_working_set_bytes": 74484207616,
+      "sampled_global_used_ram_bytes": 99955912704,
+      "sampled_global_used_vram_bytes": 13080985600
+    },
+    {
+      "copy_mode": "pinned",
+      "ready_seconds": 2.2509691000159364,
+      "prompt_tokens": [
+        38,
+        34,
+        38
+      ],
+      "generated_tokens": [
+        54,
+        88,
+        54
+      ],
+      "decode_steps": [
+        53,
+        87,
+        53
+      ],
+      "decode_tokens_per_second": [
+        3.698065949186983,
+        4.054134078806885,
+        4.56901577641492
+      ],
+      "prefill_ms": [
+        9942.3839,
+        4512.6679,
+        3484.6619
+      ],
+      "process_peak_working_set_bytes": 74501689344,
+      "sampled_global_used_ram_bytes": 100630245376,
+      "sampled_global_used_vram_bytes": 13170114560
+    }
+  ],
+  "commands": [
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "cmd /c build-local\\build-step35-cuda.cmd",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "ctest --test-dir build-local/step35-cuda --output-on-failure --no-tests=error",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/setup_step35.py --model-dir H:/models/Step-3.7-Flash/UD-Q4_K_S --inspect --output build-local/step35-cuda/full-model-admission/inventory.json",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/check_step35_model.py --engine build-local/step35-cuda/bin/strata-step35.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --output-dir build-local/step35-cuda/full-model-admission --predict 32",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/check_step35_model.py --engine build-local/step35-cuda/bin/strata-step35.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --output-dir build-local/step35-cuda/full-model-complete --predict 128",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/check_step35_model.py --engine build-local/step35-cuda/bin/strata-step35.exe --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --output-dir build-local/step35-cuda/full-request-check --request-reference build-local/step35-cuda/full-model-complete/model-report.json",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/check_step35_tokenizer.py --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --oracle build-local/step35-cuda/bin/strata-step35-tokenizer.exe --output docs/Step-3.7-Flash/STEP37_FLASH_RUNTIME_TOKENIZER.json",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python tools/check_step35_template.py --gguf H:/models/Step-3.7-Flash/UD-Q4_K_S --oracle build-local/step35-cuda/bin/strata-step35-template.exe --tokenizer-oracle build-local/step35-cuda/bin/strata-step35-tokenizer.exe --output docs/Step-3.7-Flash/STEP37_FLASH_RUNTIME_TEMPLATE.json",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python -m py_compile tools/check_step35_model.py tools/check_step35_engine.py tools/check_step35_tokenizer.py",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "python -m unittest tools.test_setup_step35 tools.test_step35_tokenizer",
+      "exit_code": 0
+    },
+    {
+      "cwd": "C:/work/git/my-repos/Strata",
+      "command": "git -c safe.directory=C:/work/git/my-repos/Strata -c core.safecrlf=false diff --check",
+      "exit_code": 0
+    }
+  ],
+  "limitations": [
+    "Sequential native then pinned runs have different OS/file-cache state; no causal speedup claim.",
+    "Decode throughput excludes the first token sampled from prefill; short two-prompt baseline, not tuned defaults.",
+    "No CPU tensor math; native selected-copy reference shares the pinned graph/kernels. Independent scalar oracle is synthetic only.",
+    "Full model uses F32 KV and Flash Attention off; F16 KV validated on synthetic fixtures only.",
+    "Global memory sampling includes other processes and may miss spikes. External 95% test guard is not a runtime budget controller.",
+    "Native control source/H2D counters are uninstrumented zeros; pinned source bytes measure mmap/RAM reads, not SSD traffic.",
+    "No persistent expert cache, overlap, HTTP, runtime session restore, tools parser, MTP, vision or release profile.",
+    "Initial runtime check failed with zero cases; its error report is preserved and not counted as a passing check.",
+    "Existing GLM profile failures from STEP-01 remain outside this step; existing backends and profiles were not modified."
+  ]
+}

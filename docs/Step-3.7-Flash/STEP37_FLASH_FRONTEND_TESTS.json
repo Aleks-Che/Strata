@@ -1,0 +1,622 @@
+{
+  "status": "pass",
+  "tests": 148,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "parser_fragmentation_sequences": 3415,
+  "template_saved_native_hash_comparisons": 208,
+  "modules_or_classes": [
+    "serve.test_step35",
+    "serve.test_deepseek",
+    "serve.test_glm5next",
+    "serve.test_glm5next_requests",
+    "serve.test_glm5next_service",
+    "serve.test_glm5next_settings",
+    "serve.test_glm5next_info",
+    "serve.test_glm5next_handlers",
+    "serve.test_glm5next_mcp",
+    "serve.test_server.ToolCallTerminators",
+    "serve.test_server.UnfinishedToolCall",
+    "serve.test_server.ClientShapes",
+    "serve.test_server.ThinkingBudget",
+    "serve.test_server.ClientHangUp",
+    "tools.test_setup_step35",
+    "tools.test_step35_tokenizer",
+    "tools.test_step35_shards"
+  ],
+  "cases": [
+    {
+      "name": "serve.test_step35.StepParserTests.test_bad_typed_values_never_execute",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_each_truncated_call_prefix_is_literal_and_never_announced",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_literal_tags_in_string",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_malformed_calls_preserve_all_text",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_reasoning_text_and_multiple_calls",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_schema_types_and_python_scalars",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_template_parser_continuation_roundtrip",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_think_markers_and_calls_inside_thought",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_unknown_schema_infers_scalars_and_preserves_text",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepParserTests.test_utf8_byte_fragments_and_partial_final_tags",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_anthropic_mixed_blocks_keep_order",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_invalid_tool_schema_and_mapping_error_result",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_no_effort_is_not_thinking_off",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_openai_preserves_ids_effort_and_history",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_reject_invalid_calls_and_ids",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepRequestTests.test_reject_unsupported_effort_budget_and_media",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_all_saved_native_template_oracle_hashes",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_bad_templates_options_and_arguments_rejected",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_bare_tools_normalize_and_fromjson_is_local",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_fixture_hash_and_manual_prompt",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_text_blocks_keep_native_separator_and_reject_media",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_step35.StepTemplateTests.test_thinking_replay_and_tool_results_native_order",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_dsml_fragmentation_and_typed_arguments",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_normalized_tools_are_wrapped_for_gguf_template",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_partial_or_bad_calls_never_execute",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_plain_text_and_literal_qwen_tags",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_service_returns_dsml_as_openai_tool_calls",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_service_uses_only_deepseek_eos_not_qwen_fragments",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_deepseek.DeepSeekParserTests.test_template_uses_deepseek_tokens_and_thinking",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_calls_in_reasoning_are_not_executable",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_every_truncated_prefix_of_call_is_text",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_invalid_declared_json_never_executes",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_literal_tags_inside_string_value",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_malformed_calls_remain_exact_text",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_optional_opening_think_and_empty_reasoning",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_partial_markers_and_plain_text_preserved",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_reasoning_and_multiple_calls_all_boundaries",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_schema_preserves_json_looking_strings",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_stream_tools_waits_for_complete_validation",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_template_call_result_continuation_round_trip",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMParserTests.test_valid_call_after_invalid_call",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_ambiguous_result_ids_preserve_arrival_order",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_clear_thinking_retains_current_tool_turn",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_effort_values_and_default",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_embedded_template_bytes",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_invalid_arguments_are_request_errors",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_multi_message_exact_prompt",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_reject_incompatible_qwen_settings",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_tool_results_follow_call_ids",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_typed_arguments_and_no_history_mutation",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next.GLMTemplateTests.test_wrapped_and_bare_tool_schemas_and_references",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_anthropic_thinking_is_always_on_without_invented_budget_mapping",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_anthropic_tool_error_is_visible_to_model",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_anthropic_tool_results_and_reasoning_render",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_bad_calls_and_content_are_request_errors",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_clear_thinking_reaches_template",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_count_tokens_handler_uses_glm_adapter_without_http",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_default_dispatch_keeps_existing_normalizers",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_double_encoded_lists_supported",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_effort_sources_and_override_precedence",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_mixed_anthropic_text_results_keep_order",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_openai_ids_arguments_and_late_system_preserved",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_service_selects_glm_adapter_and_prepares_prompt",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_requests.GLMRequestTests.test_unsupported_options_fail_for_both_apis",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_complete_calls_report_handoff_in_both_apis",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_each_boundary_stops_text_in_both_api_streams",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_eom_does_not_invent_call_for_truncated_or_malformed_output",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_invalid_metadata_fails_at_service_construction",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_length_takes_precedence_even_after_complete_call",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_literal_marker_text_is_not_a_token_boundary",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_qwen_fallback_unchanged",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_stop_ids_are_not_hardcoded",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_service.GLMServiceTests.test_stop_ids_resolved_without_encoding_qwen_markers",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_capabilities_and_validation",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_defaults_reach_both_normalizers",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_explicit_request_values_win_without_mutation",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_persistence_and_reload_use_same_capabilities",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_qwen_settings_still_reject_glm_only_controls",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_settings.GLMSettingsTests.test_settings_post_returns_capabilities_and_validation_error",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_info.GLMInfoTests.test_engine_architecture_wins_but_service_identity_is_authoritative",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_info.GLMInfoTests.test_legacy_qwen_info_remains_available",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_info.GLMInfoTests.test_metrics_preserve_reported_facts_and_zero_values",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_info.GLMInfoTests.test_template_identity_does_not_claim_engine_features",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_anthropic_tool_result_round_trip",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_cancel_before_generation_finishes_both_api_responses",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_cancel_mcp_continuation_does_not_count_previous_round_twice",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_cancelled_done_event_is_emitted_after_releasing_fifo",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_client_tool_name_wins_over_mcp_wrapped_and_bare",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_disconnect_during_prefill_reasoning_or_incomplete_tool_releases_engine",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_invalid_options_return_json_before_stream_or_generation",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_json_and_sse_unicode_reasoning_and_stop",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_noncolliding_mcp_tool_still_executes",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_openai_tool_result_round_trip",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_handlers.GLMHandlerTests.test_request_cancelled_while_waiting_for_fifo_never_runs_engine",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_cancel_does_not_prepare_partial_results",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_client_tools_prevent_mcp_execution",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_multiple_calls_keep_ids_through_prompt_and_api",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_qwen_loop_accepts_added_ids",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_repeated_tool_across_rounds_has_distinct_ids",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMMcpTests.test_round_limit_and_length_never_execute_calls",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMWebHistoryTests.test_browser_history_retains_current_tool_turn_reasoning",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_glm5next_mcp.GLMWebHistoryTests.test_clear_thinking_clears_only_prior_turn_after_new_user_message",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ToolCallTerminators.test_values_keep_the_terminators",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.UnfinishedToolCall.test_a_call_cut_at_the_token_limit",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.UnfinishedToolCall.test_a_cut_call",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.UnfinishedToolCall.test_a_whole_call",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.UnfinishedToolCall.test_collect_keeps_calls_whose_arguments_parse",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.UnfinishedToolCall.test_parser",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_anthropic_mid_conversation_system",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_leading_system_unchanged",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_messages_as_a_json_string_over_http",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_messages_sent_as_a_json_string",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_no_user_turn_is_a_400",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_openai_late_developer_and_system",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_query_string",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientShapes.test_vision_temp_image_removed_when_the_pipe_fails",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_a_bad_value_is_a_400",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_a_budget_the_thinking_stays_under",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_anthropic_stream",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_no_room_left_to_answer",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_off_by_default",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_the_budget_wraps_up_the_thinking",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_the_config_default_and_a_request_that_turns_it_off",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ThinkingBudget.test_without_thinking_there_is_nothing_to_limit",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientHangUp.test_non_streamed",
+      "status": "pass"
+    },
+    {
+      "name": "serve.test_server.ClientHangUp.test_streamed",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_ambiguous_directory",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_fingerprint_scope",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_invalid_alignment",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_invalid_metadata",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_malformed_headers",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_missing_required_profile_tensor",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_missing_shard",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_output_cannot_overwrite_any_shard",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_reordered_shards",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_scalar_clamps_are_broadcast",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_single_file",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_single_file_cannot_claim_to_be_a_later_shard",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_tensor_mutations",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_trailing_singleton_dimensions",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_truncated_weight",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_valid_metadata_only_first",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_setup_step35.StepAdmissionTests.test_wrong_split_or_conflicting_metadata",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_step35_tokenizer.StepTokenizerTests.test_control_and_user_defined_tokens",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_step35_tokenizer.StepTokenizerTests.test_does_not_enable_glm_ignore_merges",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_step35_tokenizer.StepTokenizerTests.test_oracle_provenance",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_step35_tokenizer.StepTokenizerTests.test_sequential_cjk_and_digit_boundaries",
+      "status": "pass"
+    },
+    {
+      "name": "tools.test_step35_shards.ShardOutputGuards.test_output_guards",
+      "status": "pass"
+    }
+  ]
+}

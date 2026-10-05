@@ -1,0 +1,26 @@
+{
+  "status": "pass",
+  "scope": "Final adapter sources replay all actual model prompts and raw token outputs after JSON-duplicate/error-result hardening; no new generation",
+  "adapter_sha256": "9a35315254ec048384e4056e5feba744b13514fd7dc90edf026f19ed96140cd1",
+  "model_report_sha256": "5a5ff55c1d86f96ce1a2da5ac90022934af9137d3d3006523b0ea7c846d381c6",
+  "cases": [
+    {
+      "name": "P1_A",
+      "pass": true,
+      "prompt_ids_exact": true,
+      "token_whole_character_parsing_exact": true
+    },
+    {
+      "name": "tool_call",
+      "pass": true,
+      "prompt_ids_exact": true,
+      "token_whole_character_parsing_exact": true
+    },
+    {
+      "name": "tool_continuation",
+      "pass": true,
+      "prompt_ids_exact": true,
+      "token_whole_character_parsing_exact": true
+    }
+  ]
+}
