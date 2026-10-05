@@ -3,6 +3,7 @@
 #include "sync_runtime.h"
 #include "llama.h"
 #include "ggml-backend.h"
+#include "expert_load.hpp"
 #include <cstdlib>
 #include <memory>
 #include <stdexcept>
@@ -23,6 +24,7 @@ inline void environment() {
 #endif
 }
 inline Model load(const std::string & path, bool resident=false, bool cpu_embedding=false, bool mtp=false) {
+    const auto ram_layers=ram_expert_layers();
     auto * gpu=ggml_backend_dev_by_name("CUDA0"); auto * cpu=ggml_backend_dev_by_name("CPU");
     require(gpu && cpu, "CUDA0 and CPU buffer backends required");
     auto mp=llama_model_default_params();
@@ -33,7 +35,11 @@ inline Model load(const std::string & path, bool resident=false, bool cpu_embedd
         {nullptr,nullptr}};
     if (resident) overrides[1]={nullptr,nullptr};
     mp.tensor_buft_overrides=overrides; mp.n_gpu_layers=-1; mp.split_mode=LLAMA_SPLIT_MODE_NONE;
-    mp.load_mode=LLAMA_LOAD_MODE_MMAP; mp.load_mtp=mtp; mp.use_extra_bufts=false;
+    mp.load_mode=ram_experts()?LLAMA_LOAD_MODE_NONE:LLAMA_LOAD_MODE_MMAP;
+    // CPU overrides otherwise prefer CUDA_Host: never pin the whole expert set.
+    mp.no_host=ram_experts();
+    mp.lazy_mode=ram_experts() && ram_layers>=0 && !resident?LLAMA_LAZY_MODE_ON:LLAMA_LAZY_MODE_OFF;
+    mp.load_mtp=mtp; mp.use_extra_bufts=false;
     Model model(llama_model_load_from_file(path.c_str(),mp),llama_model_free);
     require(bool(model),"model load failed");
     char arch[64]{}; llama_model_meta_val_str(model.get(),"general.architecture",arch,sizeof(arch));

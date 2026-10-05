@@ -63,6 +63,20 @@ ${map_anchor}" source_text "${source_text}")
     string(REPLACE "            if (addr) {\n                if (!UnmapViewOfFile(addr)) {"
       "            if (addr) {\n                strata_expert_file::remove(addr);\n                if (!UnmapViewOfFile(addr)) {" source_text "${source_text}")
   else()
+    string(PREPEND source_text "#include \"expert_load.hpp\"\n")
+    set(lazy_anchor "    if (flags & TENSOR_READ_LAZY) {")
+    string(FIND "${source_text}" "${lazy_anchor}" lazy_found)
+    if(lazy_found EQUAL -1)
+      message(FATAL_ERROR "GLM bounded RAM loading boundary not found")
+    endif()
+    string(REPLACE "${lazy_anchor}" "    if (arch_name == \"glm5next\" && strata_glm::ram_experts() && strata_glm::ram_expert_layers() >= 0) {
+        std::smatch expert;
+        const std::string name = tn.str();
+        static const std::regex pattern(R\"(blk\\.([0-9]+)\\.ffn_(gate|up|down)_exps\\.weight)\");
+        if (std::regex_match(name, expert, pattern) && strata_glm::mapped_expert_layer(std::stoi(expert[1])))
+            flags |= TENSOR_READ_LAZY;
+    }
+${lazy_anchor}" source_text "${source_text}")
     string(REPLACE "const size_t prefetch_size = prefetch && use_mmap ? -1 : 0;"
       "const size_t prefetch_size = 0; // Strata: fault expert ranges only on demand."
       source_text "${source_text}")
@@ -88,7 +102,7 @@ ${map_anchor}" source_text "${source_text}")
   get_filename_component(original_dir "${original}" DIRECTORY)
   set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
     INCLUDE_DIRECTORIES "${original_dir};${CMAKE_CURRENT_SOURCE_DIR}"
-    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/expert_load.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
 endfunction()
 glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)
@@ -98,3 +112,4 @@ glm_runtime_source(llama src/llama-mmap.cpp
   3ca6869dfccbdbbafad0802e1a3d7db52174347d36174a982c1a662d7034b9c6 strata-glm-mmap.cpp)
 string(APPEND glm_candidate_patches ",sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages")
 string(APPEND glm_candidate_patches ",optional-native-expert-reads,optional-idle-slab-compaction")
+string(APPEND glm_candidate_patches ",optional-private-ram-expert-load")

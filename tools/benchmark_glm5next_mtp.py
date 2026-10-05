@@ -40,6 +40,8 @@ def main():
     ap.add_argument('--copy-events', type=int, choices=(0, 1, 2), help='0: host waits; 1: events per range; 2: events per tensor')
     ap.add_argument('--decode-readers', type=int, choices=(1, 2, 3, 4))
     ap.add_argument('--read-mode', type=int, choices=(0, 1, 2), help='0 mmap; 1 native cached reads; 2 native cold prefill')
+    ap.add_argument('--load-ram', type=int, choices=(0, 1), help='Copy expert weights into private RAM instead of mmap')
+    ap.add_argument('--ram-layers', type=int, help='With --load-ram 1, keep layers at or above this index mapped')
     ap.add_argument('--paging-counters', action='store_true', help='Windows machine-wide paging/disk deltas per request')
     ap.add_argument('--write-combined', type=int, choices=(0, 1))
     ap.add_argument('--main-cache-decay', type=int)
@@ -56,6 +58,8 @@ def main():
         ap.error('main cache decay must be 1..1048576')
     if a.cache_slab_mib is not None and a.cache_slab_mib != 0 and not 4 <= a.cache_slab_mib <= 256:
         ap.error('cache slab must be 0 or 4..256 MiB')
+    if a.ram_layers is not None and (a.load_ram != 1 or not 0 <= a.ram_layers <= 4096):
+        ap.error('ram layers must be 0..4096 and require --load-ram 1')
     cfg = json.loads(a.profile.read_text(encoding='utf-8'))
     paging = None
     if a.paging_counters:
@@ -82,6 +86,8 @@ def main():
         for name, value in (('STRATA_GLM_COPY_EVENTS', a.copy_events),
                             ('STRATA_GLM_DECODE_READERS', a.decode_readers),
                             ('STRATA_GLM_EXPERT_READ_MODE', a.read_mode),
+                            ('STRATA_GLM_EXPERT_LOAD_RAM', a.load_ram),
+                            ('STRATA_GLM_EXPERT_RAM_LAYERS', a.ram_layers),
                             ('STRATA_GLM_WRITE_COMBINED', a.write_combined),
                             ('STRATA_GLM_MAIN_CACHE_DECAY', a.main_cache_decay),
                             ('STRATA_GLM_POOL_RECLAIM', a.pool_reclaim),
@@ -111,7 +117,15 @@ def main():
             if a.decode_readers is not None:
                 assert engine.info['expert_decode_readers'] == a.decode_readers
             if a.read_mode is not None:
-                assert engine.info['expert_read_mode'] == ('mmap', 'native', 'auto')[a.read_mode]
+                wanted_read = ('mmap', 'native', 'auto')[a.read_mode]
+                if a.read_mode == 0 and variant['env'].get('STRATA_GLM_EXPERT_LOAD_RAM') == '1':
+                    wanted_read = 'hybrid' if 'STRATA_GLM_EXPERT_RAM_LAYERS' in variant['env'] else 'ram'
+                assert engine.info['expert_read_mode'] == wanted_read
+            if a.load_ram is not None:
+                storage = ('hybrid' if 'STRATA_GLM_EXPERT_RAM_LAYERS' in variant['env'] else 'ram') if a.load_ram else 'mmap'
+                assert engine.info['expert_storage'] == storage
+            if a.ram_layers is not None:
+                assert engine.info['expert_ram_layers'] == a.ram_layers
             if a.write_combined is not None:
                 assert engine.info['expert_write_combined'] == a.write_combined
             if a.main_cache_decay is not None:

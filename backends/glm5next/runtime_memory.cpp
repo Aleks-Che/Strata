@@ -22,15 +22,15 @@ using Clock=std::chrono::steady_clock;
 constexpr size_t MiB=1ULL<<20, staging_size=16*MiB;
 double milliseconds(Clock::time_point start) {return std::chrono::duration<double,std::milli>(Clock::now()-start).count();}
 void cuda_check(cudaError_t e) {require(e==cudaSuccess,cudaGetErrorString(e));}
-struct Ram {uint64_t total=0,available=0,working_set=0,page_faults=0;};
+struct Ram {uint64_t total=0,available=0,working_set=0,page_faults=0,private_bytes=0;};
 Ram ram() {
     Ram r;
 #ifdef _WIN32
     MEMORYSTATUSEX s{}; s.dwLength=sizeof(s);
     require(GlobalMemoryStatusEx(&s)!=0,"global RAM query failed");
-    PROCESS_MEMORY_COUNTERS p{}; p.cb=sizeof(p);
-    require(GetProcessMemoryInfo(GetCurrentProcess(),&p,sizeof(p))!=0,"working set query failed");
-    r={s.ullTotalPhys,s.ullAvailPhys,p.WorkingSetSize,p.PageFaultCount};
+    PROCESS_MEMORY_COUNTERS_EX p{}; p.cb=sizeof(p);
+    require(GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&p),sizeof(p))!=0,"working set query failed");
+    r={s.ullTotalPhys,s.ullAvailPhys,p.WorkingSetSize,p.PageFaultCount,p.PrivateUsage};
 #else
     std::ifstream in("/proc/meminfo"); std::string line;
     while (std::getline(in,line)) {
@@ -91,12 +91,11 @@ struct RuntimeMemory::Impl {
     nlohmann::json residency_before=nullptr,residency_after=nullptr;
     void * staging=nullptr;
     uint64_t ram_touched=0,working_set_limit=0,d2d_bytes=0;
+    uint64_t private_expert_bytes=0,mapped_expert_bytes=0;
     std::string ram_warm_stop="off";
     double warm_ms=0;
     bool hook=false;
-#ifdef _WIN32
-    SIZE_T old_min=0,old_max=0; DWORD old_flags=0; bool ws_changed=false;
-#endif
+    HostWorkingSetBudget ram_budget;
     Impl(Model m,const std::string & path,int rp,int vp,bool pipe,int chunk,size_t mtp_limit):model(std::move(m)),
         identity(std::filesystem::weakly_canonical(path).u8string()),ram_percent(rp),vram_percent(vp),pipeline_enabled(pipe),chunk_mib(chunk),mtp_cache_mib(mtp_limit) {
         static std::atomic<uint64_t> next{0}; generation=++next;
@@ -113,9 +112,6 @@ struct RuntimeMemory::Impl {
         if (scratch_released) cudaEventDestroy(scratch_released);
         if (copy_ready) cudaEventDestroy(copy_ready);
         if (stream) cudaStreamDestroy(stream);
-#ifdef _WIN32
-        if (ws_changed) SetProcessWorkingSetSizeEx(GetCurrentProcess(),old_min,old_max,old_flags);
-#endif
     }
     ExpertKey key(const ggml_tensor * t,int expert) const {
         auto k=tensors.at(tensor_index.at(t)).second;
@@ -128,18 +124,7 @@ struct RuntimeMemory::Impl {
     void ram_limit() {
         if (!ram_percent) return;
         const auto r=ram();
-#ifdef _WIN32
-        const uint64_t used=r.total-r.available, other=used-std::min(used,r.working_set);
-        const uint64_t target=r.total/100*ram_percent;
-        working_set_limit=std::max<uint64_t>(512*MiB,target-std::min(target,other));
-        if (!ws_changed) require(GetProcessWorkingSetSizeEx(GetCurrentProcess(),&old_min,&old_max,&old_flags)!=0,"read working set limit failed");
-        // Raising the minimum requires SeIncreaseWorkingSetPrivilege. Keep the
-        // existing minimum; a maximum and page warming need no such privilege.
-        const bool limited=SetProcessWorkingSetSizeEx(GetCurrentProcess(),old_min,working_set_limit,
-            QUOTA_LIMITS_HARDWS_MIN_DISABLE|QUOTA_LIMITS_HARDWS_MAX_ENABLE)!=0;
-        require(limited,"set RAM working set limit failed: "+std::to_string(GetLastError()));
-        ws_changed=true;
-#endif
+        working_set_limit=ram_budget.apply(ram_percent,r.total,r.available,r.working_set);
     }
     void initialize() {
         require((!ram_percent || (ram_percent>=10 && ram_percent<=95)) &&
@@ -149,12 +134,18 @@ struct RuntimeMemory::Impl {
         for (const auto & item:model->tensors_by_name) {
             std::smatch match; const auto * t=item.second;
             if (!std::regex_match(item.first,match,pattern)) continue;
+            const int layer=std::stoi(match[1]);
             require(t->data && ggml_backend_buffer_is_host(t->buffer),"memory targets require host expert tensors");
+#ifdef _WIN32
+            MEMORY_BASIC_INFORMATION region{};
+            require(VirtualQuery(t->data,&region,sizeof(region))==sizeof(region),"expert memory region query failed");
+            require(region.Type==(mapped_expert_layer(layer)?MEM_MAPPED:MEM_PRIVATE),"expert source storage differs from load mode");
+#endif
+            (mapped_expert_layer(layer)?mapped_expert_bytes:private_expert_bytes)+=ggml_nbytes(t);
             require(t->nb[2]*size_t(t->ne[2])==ggml_nbytes(t),"expert tensor must be contiguous");
             const auto projection=match[2]=="gate"?Projection::gate:match[2]=="up"?Projection::up:Projection::down;
             // Runtime namespace uses tensor-relative offsets, never claims to be
-            // GGUF file offsets. The retained model owns the underlying mapping.
-            const int layer=std::stoi(match[1]);
+            // GGUF file offsets. The retained model owns the source buffers/views.
             ExpertKey k{identity,generation,layer<int(model->hparams.n_layer())?Branch::main:Branch::mtp,layer,0,projection,
                 ggml_type_name(t->type),uint64_t(t->ne[0]),uint64_t(t->ne[1]),"runtime-tensor:"+item.first,0,0};
             tensor_index[t]=tensors.size(); tensors.push_back({t,std::move(k)});
@@ -259,6 +250,7 @@ struct RuntimeMemory::Impl {
                 read_mode=value[0]-'0';
             }
             if(read_mode) {
+                require(!ram_experts(),"native file reads require mmap expert storage");
 #ifdef _WIN32
                 // Refuse a silently mixed experiment: every expert tensor must
                 // be covered by the loader's exact file/mapping registration.
@@ -563,6 +555,8 @@ struct RuntimeMemory::Impl {
             {"working_set_limit_bytes",working_set_limit},{"ram_warm_touched_bytes",ram_touched},{"warm_ms",warm_ms},
             {"ram_warm_stop",ram_warm_stop},
             {"process_page_faults",r.page_faults},
+            {"process_private_bytes",r.private_bytes},{"expert_load_ram",ram_experts()},
+            {"expert_ram_layers",ram_expert_layers()},{"private_expert_bytes",private_expert_bytes},{"mapped_expert_bytes",mapped_expert_bytes},
             {"global_vram_valid",valid},{"global_vram_total_bytes",total},{"global_vram_used_bytes",total-free},
             {"cache_resident_bytes",cache?cache->resident_bytes():0},{"cache_budget_bytes",cache?cache->byte_budget():0},
             {"cache_d2d_bytes",d2d_bytes},{"cuda_memory_pool",pool!=nullptr}};
@@ -608,7 +602,7 @@ struct RuntimeMemory::Impl {
         result["expert_pipeline"]=pipeline_enabled;
         result["expert_copy_events"]=event_copy;
         result["expert_decode_readers"]=decode_readers;
-        result["expert_read_mode"]=read_mode==1?"native":read_mode==2?"auto":"mmap";
+        result["expert_read_mode"]=read_mode==1?"native":read_mode==2?"auto":expert_storage_name();
         result["expert_write_combined"]=int(write_combined);
         result["main_cache_decay"]=main_cache_decay;
         result["mtp_cache_decay"]=4096;
@@ -621,7 +615,7 @@ struct RuntimeMemory::Impl {
             const auto c=transport->counters();
             result["pipeline"]={{"groups",c.groups},{"chunks",c.chunks},{"source_bytes",c.file_bytes+c.mmap_bytes},
                 {"h2d_bytes",c.h2d_bytes},{"d2d_bytes",c.d2d_bytes},{"read_us",c.read_us},
-                {"file_bytes",c.file_bytes},{"mmap_bytes",c.mmap_bytes},
+                {"file_bytes",c.file_bytes},{"mmap_bytes",c.mmap_bytes},{"host_memcpy_bytes",c.mmap_bytes},
                 {"submit_us",c.submit_us},{"consumer_wait_us",c.consumer_wait_us},{"slot_wait_us",c.slot_wait_us},
                 {"unused_bytes",c.unused_bytes},{"pinned_bytes",c.pinned_bytes},{"device_ring_bytes",c.device_ring_bytes},
                 {"queued_peak",c.queued_peak},{"read_peak",c.read_peak}};

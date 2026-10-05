@@ -1,0 +1,427 @@
+{
+  "status": "pass",
+  "date": "2026-10-05",
+  "revision": "5f57f844e393e7bdbad38d055791523468e41869 plus working changes",
+  "backend_identity": {
+    "architecture": "glm5next",
+    "engine": "glm5next-native",
+    "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+    "protocol_version": 1,
+    "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+  },
+  "selected_profile": {
+    "architecture": "glm5next",
+    "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+    "cwd": "C:\\work\\git\\my-repos\\Strata",
+    "args": [
+      "--native",
+      "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "--max-context",
+      "2048",
+      "--batch-size",
+      "16",
+      "--threads",
+      "4",
+      "--ram-target-percent",
+      "95",
+      "--vram-target-percent",
+      "95",
+      "--expert-pipeline",
+      "1",
+      "--expert-chunk-mib",
+      "4",
+      "--mtp",
+      "0",
+      "--mtp-cache-mib",
+      "512"
+    ],
+    "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+    "model_name": "glm-5.3-flash",
+    "log": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.log",
+    "host": "127.0.0.1",
+    "port": 8081,
+    "gpu": 0,
+    "sampling": {
+      "temperature": 0
+    },
+    "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+    "backend_identity": {
+      "architecture": "glm5next",
+      "engine": "glm5next-native",
+      "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+      "protocol_version": 1,
+      "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+    },
+    "lib_dirs": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+    ],
+    "env": {
+      "STRATA_GLM_COPY_EVENTS": "2",
+      "STRATA_GLM_DECODE_READERS": "1",
+      "STRATA_GLM_WRITE_COMBINED": "0",
+      "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+      "STRATA_GLM_POOL_RECLAIM": "0",
+      "STRATA_GLM_MEMORY_POOL": "0",
+      "STRATA_GLM_CACHE_SLAB_MIB": "16"
+    }
+  },
+  "tests": {
+    "candidate_ctest": 26,
+    "python": 83,
+    "reference_matching_benchmark_responses": 60,
+    "bit_exact_saved_f32_elements": 9912320,
+    "native_pipe_cases": 9,
+    "native_pipe_exit": 0
+  },
+  "full_private_startup_failures": [
+    {
+      "benchmark": {
+        "status": "incomplete_or_mismatch",
+        "configuration": {
+          "architecture": "glm5next",
+          "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+          "cwd": "C:\\work\\git\\my-repos\\Strata",
+          "args": [
+            "--native",
+            "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+            "--max-context",
+            "2048",
+            "--batch-size",
+            "16",
+            "--threads",
+            "4",
+            "--ram-target-percent",
+            "95",
+            "--vram-target-percent",
+            "95",
+            "--expert-pipeline",
+            "1",
+            "--expert-chunk-mib",
+            "4",
+            "--mtp",
+            "0",
+            "--mtp-cache-mib",
+            "512"
+          ],
+          "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+          "model_name": "glm-5.3-flash",
+          "log": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.log",
+          "host": "127.0.0.1",
+          "port": 8081,
+          "gpu": 0,
+          "sampling": {
+            "temperature": 0
+          },
+          "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+          "backend_identity": {
+            "architecture": "glm5next",
+            "engine": "glm5next-native",
+            "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+            "protocol_version": 1,
+            "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+          },
+          "lib_dirs": [
+            "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+            "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+          ],
+          "env": {
+            "STRATA_GLM_COPY_EVENTS": "2",
+            "STRATA_GLM_DECODE_READERS": "1",
+            "STRATA_GLM_WRITE_COMBINED": "0",
+            "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+            "STRATA_GLM_POOL_RECLAIM": "0",
+            "STRATA_GLM_MEMORY_POOL": "0",
+            "STRATA_GLM_CACHE_SLAB_MIB": "16"
+          }
+        },
+        "reference": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SYNC_REPEAT.json",
+        "binary_sha256": "61867d84aae3a669bcb937c668cfa97a53cbf6a04b2efa8f7acd74fe1cb3aee5",
+        "warmup_requests": 6,
+        "timed_requests": 6,
+        "timing": "(output tokens - 1) * 1000 / DONE.decode_ms; excludes load/warmup/prefill, includes target sampling, draft, verify, repair and pipe writes",
+        "second_reference": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-mtp-cache-reference-b.json",
+        "scope": "saved prompts in round-robin order, sequential engines, OS file cache not cleared",
+        "variants": [
+          {
+            "depth": 0,
+            "configuration": {
+              "architecture": "glm5next",
+              "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+              "cwd": "C:\\work\\git\\my-repos\\Strata",
+              "args": [
+                "--native",
+                "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+                "--max-context",
+                "2048",
+                "--batch-size",
+                "16",
+                "--threads",
+                "4",
+                "--ram-target-percent",
+                "95",
+                "--vram-target-percent",
+                "95",
+                "--expert-pipeline",
+                "1",
+                "--expert-chunk-mib",
+                "4",
+                "--mtp",
+                "0",
+                "--mtp-cache-mib",
+                "512"
+              ],
+              "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+              "model_name": "glm-5.3-flash",
+              "log": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-private-ram-ab-mtp0.engine.log",
+              "host": "127.0.0.1",
+              "port": 8081,
+              "gpu": 0,
+              "sampling": {
+                "temperature": 0
+              },
+              "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+              "backend_identity": {
+                "architecture": "glm5next",
+                "engine": "glm5next-native",
+                "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+                "protocol_version": 1,
+                "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+              },
+              "lib_dirs": [
+                "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+                "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+              ],
+              "env": {
+                "STRATA_GLM_COPY_EVENTS": "2",
+                "STRATA_GLM_DECODE_READERS": "1",
+                "STRATA_GLM_WRITE_COMBINED": "0",
+                "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+                "STRATA_GLM_POOL_RECLAIM": "0",
+                "STRATA_GLM_MEMORY_POOL": "0",
+                "STRATA_GLM_CACHE_SLAB_MIB": "16",
+                "STRATA_GLM_EXPERT_READ_MODE": "0",
+                "STRATA_GLM_EXPERT_LOAD_RAM": "1",
+                "STRATA_GLM_CACHE_COMPACT": "0"
+              }
+            },
+            "runs": [],
+            "status": "error",
+            "error": "the engine exited before it was ready (see C:\\work\\git\\my-repos\\Strata\\build-local\\glm-private-ram-ab-mtp0.engine.log)"
+          }
+        ],
+        "fastest_matching_depth": null
+      },
+      "loader_log_tail": [
+        "create_tensor: loading tensor blk.44.ffn_up_exps.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_gate_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_down_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_up_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ssm_beta.input_scale",
+        "done_getting_tensors: tensor 'token_embd.weight' (q6_K) (and 160 others) cannot be used with preferred buffer type CUDA_Host, using CUDA0 instead",
+        "ggml_cuda_host_malloc: failed to allocate 104778.00 MiB of pinned memory: out of memory",
+        "ggml_backend_cpu_buffer_type_alloc_buffer: failed to allocate buffer of size 109867696128",
+        "alloc_tensor_range: failed to allocate CUDA_Host buffer of size 109867696128",
+        "llama_model_load: error loading model: unable to allocate CUDA_Host buffer",
+        "llama_model_load_from_file_impl: failed to load model",
+        "strata-glm5next: model load failed"
+      ]
+    },
+    {
+      "benchmark": {
+        "status": "incomplete_or_mismatch",
+        "configuration": {
+          "architecture": "glm5next",
+          "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+          "cwd": "C:\\work\\git\\my-repos\\Strata",
+          "args": [
+            "--native",
+            "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+            "--max-context",
+            "2048",
+            "--batch-size",
+            "16",
+            "--threads",
+            "4",
+            "--ram-target-percent",
+            "95",
+            "--vram-target-percent",
+            "95",
+            "--expert-pipeline",
+            "1",
+            "--expert-chunk-mib",
+            "4",
+            "--mtp",
+            "0",
+            "--mtp-cache-mib",
+            "512"
+          ],
+          "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+          "model_name": "glm-5.3-flash",
+          "log": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.log",
+          "host": "127.0.0.1",
+          "port": 8081,
+          "gpu": 0,
+          "sampling": {
+            "temperature": 0
+          },
+          "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+          "backend_identity": {
+            "architecture": "glm5next",
+            "engine": "glm5next-native",
+            "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+            "protocol_version": 1,
+            "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+          },
+          "lib_dirs": [
+            "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+            "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+          ],
+          "env": {
+            "STRATA_GLM_COPY_EVENTS": "2",
+            "STRATA_GLM_DECODE_READERS": "1",
+            "STRATA_GLM_WRITE_COMBINED": "0",
+            "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+            "STRATA_GLM_POOL_RECLAIM": "0",
+            "STRATA_GLM_MEMORY_POOL": "0",
+            "STRATA_GLM_CACHE_SLAB_MIB": "16"
+          }
+        },
+        "reference": "C:\\work\\git\\my-repos\\Strata\\docs\\GLM53\\GLM53_FLASH_SYNC_REPEAT.json",
+        "binary_sha256": "a864cdc16f23563a22d56fb8dda9e5713ee73df0b28847aaf3c1ec326b31b728",
+        "warmup_requests": 6,
+        "timed_requests": 6,
+        "timing": "(output tokens - 1) * 1000 / DONE.decode_ms; excludes load/warmup/prefill, includes target sampling, draft, verify, repair and pipe writes",
+        "second_reference": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-mtp-cache-reference-b.json",
+        "scope": "saved prompts in round-robin order, sequential engines, OS file cache not cleared",
+        "variants": [
+          {
+            "depth": 0,
+            "configuration": {
+              "architecture": "glm5next",
+              "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next.exe",
+              "cwd": "C:\\work\\git\\my-repos\\Strata",
+              "args": [
+                "--native",
+                "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+                "--max-context",
+                "2048",
+                "--batch-size",
+                "16",
+                "--threads",
+                "4",
+                "--ram-target-percent",
+                "95",
+                "--vram-target-percent",
+                "95",
+                "--expert-pipeline",
+                "1",
+                "--expert-chunk-mib",
+                "4",
+                "--mtp",
+                "0",
+                "--mtp-cache-mib",
+                "512"
+              ],
+              "tokenizer": "C:\\work\\git\\my-repos\\Strata\\packs\\strata-glm5next\\tokenizer",
+              "model_name": "glm-5.3-flash",
+              "log": "C:\\work\\git\\my-repos\\Strata\\build-local\\glm-private-ram-nohost-ab-mtp0.engine.log",
+              "host": "127.0.0.1",
+              "port": 8081,
+              "gpu": 0,
+              "sampling": {
+                "temperature": 0
+              },
+              "statistics_file": "C:\\work\\git\\my-repos\\Strata\\strata-glm5next.usage.sqlite",
+              "backend_identity": {
+                "architecture": "glm5next",
+                "engine": "glm5next-native",
+                "patch_set": "cuda-f32-mmf-respect-tf32-override,optional-tokenwise-small-batch-matmul,sync-selected-experts-16MiB-pinned,gpu-only-precompute-audit,mmap-no-prefetch,runtime-cache,router-lookahead-pipeline,native-mtp-rollback,optional-event-fenced-expert-copy,optional-pipeline-staging-tuning,optional-main-cache-aging,optional-pool-reclaim-before-budget,optional-cache-allocator,bounded-ram-warmup,optional-packed-expert-cache,optional-learned-expert-warmup,optional-vram-aware-host-pages,optional-native-expert-reads,optional-idle-slab-compaction,optional-private-ram-expert-load,mtp-cache-only-catch-up",
+                "protocol_version": 1,
+                "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9"
+              },
+              "lib_dirs": [
+                "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+                "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+              ],
+              "env": {
+                "STRATA_GLM_COPY_EVENTS": "2",
+                "STRATA_GLM_DECODE_READERS": "1",
+                "STRATA_GLM_WRITE_COMBINED": "0",
+                "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+                "STRATA_GLM_POOL_RECLAIM": "0",
+                "STRATA_GLM_MEMORY_POOL": "0",
+                "STRATA_GLM_CACHE_SLAB_MIB": "16",
+                "STRATA_GLM_EXPERT_READ_MODE": "0",
+                "STRATA_GLM_EXPERT_LOAD_RAM": "1",
+                "STRATA_GLM_CACHE_COMPACT": "0"
+              }
+            },
+            "runs": [],
+            "status": "error",
+            "error": "the engine exited before it was ready (see C:\\work\\git\\my-repos\\Strata\\build-local\\glm-private-ram-nohost-ab-mtp0.engine.log)"
+          }
+        ],
+        "fastest_matching_depth": null
+      },
+      "loader_log_tail": [
+        "create_tensor: loading tensor blk.44.ffn_down_exps.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_up_exps.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_gate_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_down_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ffn_up_shexp.input_scale",
+        "create_tensor: loading tensor blk.44.ssm_beta.input_scale",
+        "done_getting_tensors: tensor 'token_embd.weight' (q6_K) (and 160 others) cannot be used with preferred buffer type CPU, using CUDA0 instead",
+        "ggml_backend_cuda_buffer_type_alloc_buffer: allocating 7541.55 MiB on device 0: cudaMalloc failed: out of memory",
+        "alloc_tensor_range: failed to allocate CUDA0 buffer of size 7907889024",
+        "llama_model_load: error loading model: unable to allocate CUDA0 buffer",
+        "llama_model_load_from_file_impl: failed to load model",
+        "strata-glm5next: model load failed"
+      ]
+    }
+  ],
+  "build_command": "cmd /c build-local\\build-glm-graph.cmd > build-local\\glm-ram-final-build.log 2>&1",
+  "build_script": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release \"-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz\" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DSTRATA_GLM_SYNC_BASELINE=ON \"-DPython3_EXECUTABLE=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/python.exe\" -DCMAKE_CUDA_ARCHITECTURES=120 \"-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe\" \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/glm5next-candidate-cuda --config Release -j 4\nif errorlevel 1 exit /b 1\nctest --test-dir build-local/glm5next-candidate-cuda -C Release -V --no-tests=error\nexit /b %errorlevel%\n\n\n",
+  "python_test_command": "python -m unittest tools.test_glm5next_profile tools.test_setup_glm5next tools.test_glm5next_build serve.test_glm5next serve.test_glm5next_info serve.test_glm5next_requests serve.test_glm5next_handlers serve.test_glm5next_http serve.test_glm5next_service",
+  "benchmark_command": "python tools/benchmark_glm5next_mtp.py --profile strata-glm5next.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --second-reference build-local/glm-mtp-cache-reference-b.json --output <fresh path> --depths 0 --warmups 6 --repeats 6 --read-mode 0 --cache-compact 0 --decode-readers <1 or 2> --paging-counters --load-ram <0 or 1> [--ram-layers <0 or 24>]",
+  "reference_B_recovery": "BENCHMARK JSON embeds references.A and references.B; save references.B at the local second-reference path.",
+  "integration_script": "import hashlib\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nroot = Path(__file__).resolve().parents[1]\nsys.path.insert(0, str(root))\nfrom serve.server import child_env\n\ncfg = json.loads((root / 'build-local/glm-ram-check-profile.json').read_text(encoding='utf-8'))\nenv = child_env(cfg)\nexe = root / 'build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe'\ncommand = [str(exe), '--model', cfg['args'][1], '--memory-percent', '95',\n           '--reference', 'docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json',\n           '--reference-logits', 'build-local/glm-sync-iq3-repeat.f32', '--baseline-only', '1',\n           '--report', 'build-local/glm-ram-logits.json']\nprint('Checking all saved F32 logits with expert-only mappings...', flush=True)\nwith (root / 'build-local/glm-ram-logits.log').open('w', encoding='utf-8') as log:\n    subprocess.run(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)\npath = root / 'build-local/glm-ram-logits.json'\nreport = json.loads(path.read_text(encoding='utf-8'))\nassert report['status'] == 'pass' and report['baseline_vs_saved_logits']['bit_exact']\nreport.update(command=command, binary_sha256=hashlib.sha256(exe.read_bytes()).hexdigest(), env=cfg['env'])\npath.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\\n', encoding='utf-8')\nprint('F32 logits bit-exact; checking native pipe lifecycle...', flush=True)\nsubprocess.run([sys.executable, 'tools/check_glm5next_engine.py', '--profile',\n                'build-local/glm-ram-check-profile.json', '--reference',\n                'docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json', '--output', 'build-local/glm-ram-pipe.json'],\n               cwd=root, check=True)\nprint('Native pipe checks passed.', flush=True)\n",
+  "limits": [
+    "No repeat of full-model HTTP, long context, Linux/HIP or full Qwen/DeepSeek tests in this stage.",
+    "Full private-RAM loading tested only on fixtures: real model startup failed before READY.",
+    "Memory and paging counters are measured on a shared Windows PC; system counters include other processes.",
+    "Targets95 are reactive budgets: global peaks, including 97.46% RAM in the first control, are documented.",
+    "The memory-saving strategy did not show a repeatable throughput gain; defaults remain mmap/reader1/MTP off."
+  ],
+  "sha256": {
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next.exe": "b89167d3326226dd77f88915a07eb71924560f7020921c25b62f29d6c282f3aa",
+    "strata-glm5next.json": "8c84f377e305efc3109af59b7a36b66c3cd7e27c36910084c4df52350b909de8",
+    "backends/glm5next/CMakeLists.txt": "b09814abfad21d20e1b9142652477c58a587ad6275ed94940ecb5cbcfba1c7c1",
+    "backends/glm5next/RuntimePatches.cmake": "0f2b5d992fc6adadf0e45d60cb3760b9548be2695ca02b80edfbf5cbb28ccdca",
+    "backends/glm5next/expert_load.hpp": "e49d855a7ac157147276112795c092cf6dd76feacc3ba0590ff221c60ad758f5",
+    "backends/glm5next/host_pages.hpp": "b16bddc7126afd9252c4da738bd903b73cd53fae1d36c9ffb0fa5cf60cf50944",
+    "backends/glm5next/runtime.hpp": "ec8ab63877aaa588b683a606754e77f462b290a7a013dad4d011418d30ef4890",
+    "backends/glm5next/runtime_memory.cpp": "ba9686d4a4a943f74e823387271f510bda07fdd619e0fd3d4af5fbfa0bec0666",
+    "backends/glm5next/main.cpp": "f9a25db7d031484df59d594c17bea01698574c5cbbd745f650fd96899c7bc14a",
+    "backends/glm5next/test_host_pages.cpp": "26346c1577f1058e63cb9ffad7beb114c456123f2da64efb8284e16f1e8ce9f9",
+    "backends/glm5next/check_mtp.cpp": "063afb46bcb9b3bb77bcf1afb96c0dddf487f99221f457e2727f9fb1e0076554",
+    "backends/glm5next/smoke.cpp": "f69f8c70be159c75e1a0010c49d611fab109c4eb4a99929b701c6fc1ec535868",
+    "tools/benchmark_glm5next_mtp.py": "1606e358fcd48dc6c51b800507dfb76ddcb4aa0d8e8f339aecdfaed1e6bd6b26",
+    "tools/windows_memory_counters.py": "814607f030748760ea4850246331a9e77a3d4c928003771ec33b3818a4f7edfe",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe": "bed908e62ac5b6c4039375860186c554da29a64cd886e0e96a8fa67f8c75ddec",
+    "build-local/glm5next-candidate-cuda/glm-source-build.txt": "a2017db3cfc76b6d610c54d20a6368ea181aa31d05b48f4be3952dedebab04d2",
+    "build-local/glm5next-candidate-cuda/strata-glm-loader.cpp": "12d0a8ae455b205233c9b522d841a3f9acd097df08d76c5b61daa5ad3ea3ea48",
+    "build-local/glm5next-candidate-cuda/strata-glm-model.cpp": "e22af700618c146fc443086ab6ce6acea73665a3ddf0b6f47003df5dbb8ba73f",
+    "build-local/glm-ram-final-build.log": "11ca8d05268eb0b171ab559b5b17e400115c7fea6f08507c639eac4557d1b811",
+    "build-local/glm-private-ram-python.log": "03ac04082f3a1d254b507ccf251ecbb4812919d0b5b018ac715280bb6fe59636",
+    "build-local/glm-private-ram-ab-mtp0.engine.log": "de32bba8db48f20b2db7a83ff4398c4862e0f95615243cc5798ac5e5a7ca601d",
+    "build-local/glm-private-ram-nohost-ab-mtp0.engine.log": "73c82b59385e0f821fb5f7f43cd57504be581d96fd2dccbe47486b389a0e6a5e",
+    "build-local/glm-ram-logits.log": "11d9bd6b2f0491c139dfa2f2bce39f18243ad7c8e075d968fede8446ba57c08a",
+    "build-local/glm-ram-pipe.engine.log": "33d5020b798e60fb7c0ad818df280b6df416ce59f72dd3de2a751d2ee8d00d19",
+    "build-local/glm-sync-iq3-repeat.f32": "1bb10028852e351734b952e99cb94e6d56295142cbba01754899b8264fd0a550",
+    "docs/GLM53/GLM53_FLASH_RAM_LOADING.md": "3328d34797e80a60112a48c2078e27ad7a54134a070826b3e21bf2d6c4f2679b",
+    "docs/GLM53/GLM53_FLASH_RAM_LOADING_BENCHMARK.json": "2f3960b7991ef3c96ce26e9a2bc1e6b59d3d3e496e04bb592465360fed2a879f",
+    "docs/GLM53/GLM53_FLASH_RAM_LOADING_LOGITS.json": "31853719d854b23a9083cd4c0454ea9a8c58ab47185022c4cd51f153845b2b78",
+    "docs/GLM53/GLM53_FLASH_RAM_LOADING_PIPE.json": "99acf70b7ac7055888fdbb43ae858532d7879259664d37d8e3e84ca561743950"
+  }
+}

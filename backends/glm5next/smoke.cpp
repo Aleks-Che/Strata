@@ -2,6 +2,7 @@
 #include "sync_runtime.h"
 #include "runtime.hpp"
 #include "runtime_memory.hpp"
+#include "host_pages.hpp"
 #include "synthetic_glm.hpp"
 #include "llama.h"
 #include "ggml-backend.h"
@@ -67,6 +68,8 @@ static void run(const Options & o, json & report, std::vector<float> * capture=n
         {"transfer",o.candidate_copy ? "candidate selected-range reference (not instrumented)" : o.vram_percent ? "synchronous cache plus 16 MiB pinned staging" : "synchronous 16 MiB pinned staging"}};
     auto & samples=report["memory_samples"]; samples=json::array(); samples.push_back(memory("before_load"));
     auto start=Clock::now(); report["phase"]="load";
+    strata_glm::HostWorkingSetBudget load_budget;
+    if(strata_glm::ram_experts())load_budget.apply(o.ram_percent);
     auto model=strata_glm::load(o.model,o.resident,o.cpu_embedding);
     report["load_seconds"]=elapsed(start);
     samples.push_back(memory("after_load"));

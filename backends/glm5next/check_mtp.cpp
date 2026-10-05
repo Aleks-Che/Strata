@@ -1,5 +1,6 @@
 #include "mtp.hpp"
 #include "runtime_memory.hpp"
+#include "host_pages.hpp"
 #include "synthetic_glm.hpp"
 #include "llama-context.h"
 #include "nlohmann/json.hpp"
@@ -49,12 +50,19 @@ int main(int argc,char ** argv) {
         else {require(synthetic,"real model requires saved reference prompt/IDs");for (int i=0;i<39;++i) prompt.push_back((7*i+11)%64);}
         environment();ggml_backend_load_all();llama_backend_init();strata_glm_sync_enable(true);
         {
+            HostWorkingSetBudget load_budget;
+            if(ram_experts())load_budget.apply(percent);
             auto model=load(file,false,false,true);const auto * vocab=llama_model_get_vocab(model.get());const int nv=llama_vocab_n_tokens(vocab);
             const int context_size=synthetic?512:2048;
             Probe probe;
             auto ctx=context(model.get(),context_size,16,4,3,false,diagnostic?Probe::callback:nullptr,diagnostic?&probe:nullptr);
             Mtp mtp(model.get(),ctx.get(),context_size,16,4,3);
             RuntimeMemory memory(model,file,percent,percent,true,4,512);memory.warm();
+            if(synthetic && ram_experts() && ram_expert_layers()==2) {
+                const auto storage=memory.snapshot();
+                require(storage["private_expert_bytes"].get<uint64_t>()>0 && storage["mapped_expert_bytes"].get<uint64_t>()>0,
+                    "hybrid fixture must exercise both private and mapped expert buffers");
+            }
             report["memory_after_warm"]=memory.snapshot();report["configuration"]={{"model",file},{"synthetic",synthetic},{"n_ctx",context_size},
                 {"batch",16},{"n_rs_seq",3},{"kv","F16"},{"pipeline",true},{"ram_target_percent",percent},{"vram_target_percent",percent},{"prompt_ids",prompt}};
             if (diagnostic) {

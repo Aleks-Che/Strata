@@ -425,6 +425,13 @@ result работают через оба API; токены и шаблон со
     compaction, ни reader2 не дали устойчивого ускорения; defaults сохранены.
     Выявлены большие задержки подготовки весов при малом дисковом I/O и большом
     числе transition faults. [Измерения и ограничения](GLM53_FLASH_COMPACTION.md).
+  - [x] P3.3i: опциональная private/hybrid загрузка и mmap только для экспертов;
+    Windows RAM budget до загрузки, проверка backing buffers и commit telemetry.
+    60 ответов A/B, повторный контроль, readers1/2: нового устойчивого прироста
+    ток/с нет. N=0 уменьшил measured working set на 3,437 ГиБ; полная private
+    загрузка GGUF не поместилась в commit budget. 26 candidate CTest, 83 Python,
+    9 912 320 F32 logits bit-exact, 9 native pipe cases. Defaults сохранены.
+    [Методика и ограничения](GLM53_FLASH_RAM_LOADING.md).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить

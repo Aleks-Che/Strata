@@ -1,6 +1,7 @@
 // GLM single-owner pipe engine. All model state is discarded between requests.
 #include "runtime.hpp"
 #include "runtime_memory.hpp"
+#include "host_pages.hpp"
 #include "protocol.hpp"
 #include "mtp.hpp"
 #include "nlohmann/json.hpp"
@@ -171,13 +172,16 @@ int main(int argc,char ** argv) {
         const auto o=options(argc,argv);
         environment(); ggml_backend_load_all(); llama_backend_init(); strata_glm_sync_enable(true);
         {
+            HostWorkingSetBudget load_budget;
+            if(ram_experts())load_budget.apply(o.ram_percent);
             auto model=load(o.model,false,false,o.mtp>0); auto ctx=context(model.get(),o.context,o.batch,o.threads,o.mtp);
             std::unique_ptr<Mtp> mtp; if (o.mtp) mtp=std::make_unique<Mtp>(model.get(),ctx.get(),o.context,o.batch,o.threads,o.mtp);
             RuntimeMemory memory(model,o.model,o.ram_percent,o.vram_percent,o.pipeline!=0,o.chunk_mib,o.mtp_cache_mib); memory.warm();
             const auto usage=memory.snapshot(); std::cerr<<"STRATA_GLM_MEMORY "<<usage.dump()<<"\n";
             auto * vocab=llama_model_get_vocab(model.get());
             std::cout<<"INFO engine=glm5next-native architecture=glm5next backend=llama.cpp mtp="<<(o.mtp?1:0)<<" spec="<<o.mtp<<" draft_tokens="<<o.mtp<<" speculative="<<(o.mtp?"mtp":"none")
-                <<" expert_storage=mmap expert_compute=gpu gpu_only=1 expert_cache_mib="<<usage["cache_resident_bytes"].get<uint64_t>()/(1<<20)
+                <<" expert_storage="<<expert_storage_name()<<" expert_ram_layers="<<ram_expert_layers()
+                <<" expert_compute=gpu gpu_only=1 expert_cache_mib="<<usage["cache_resident_bytes"].get<uint64_t>()/(1<<20)
                 <<" ram_target_percent="<<o.ram_percent<<" vram_target_percent="<<o.vram_percent<<" expert_stage_mib="<<(o.pipeline?4*o.chunk_mib:16)
                 <<" expert_pipeline="<<o.pipeline<<" expert_copy_events="<<usage["expert_copy_events"].get<int>()
                 <<" expert_decode_readers="<<usage["expert_decode_readers"].get<int>()
