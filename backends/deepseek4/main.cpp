@@ -46,6 +46,7 @@ struct Options {
     int expert_readers=2;
     std::string expert_read_mode="mmap";
     int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
+    int draft_shared_scratch=0;
     float draft_min_confidence=0;
     bool vocab_only=false;
 };
@@ -67,6 +68,7 @@ static Options options(int argc, char **argv) {
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
                 "--expert-readers 2 (1..4 bounded readers); --expert-read-mode mmap|file|auto\n"
                 "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
+                "--draft-shared-scratch 0 (0/1; serialize target/draft on one GPU compute buffer)\n"
                 "--draft-max 3 (1..5 target-verified draft tokens)\n"
                 "--draft-min-confidence 0 (0..1; reject low-confidence draft suffix; 0 disables)\n"
                 "--draft-expert-cache-mib 1024 --draft-gpu-expert-layers 0 (0..3)\n"
@@ -79,6 +81,7 @@ static Options options(int argc, char **argv) {
         std::string v=argv[i];
         if (k=="--native") o.model=v;
         else if (k=="--draft-model") o.draft_model=v;
+        else if (k=="--draft-shared-scratch") o.draft_shared_scratch=integer(v);
         else if (k=="--draft-max") o.draft_max=integer(v);
         else if (k=="--draft-min-confidence") {
             size_t end=0;o.draft_min_confidence=std::stof(v,&end);
@@ -126,6 +129,8 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("DSpark batch size must fit anchor plus draft tokens");
     if(o.draft_min_confidence>0 && o.draft_model.empty())
         throw std::runtime_error("DSpark confidence filtering requires --draft-model");
+    if(o.draft_shared_scratch<0 || o.draft_shared_scratch>1 || (o.draft_shared_scratch && o.draft_model.empty()))
+        throw std::runtime_error("draft-shared-scratch must be 0/1 and requires --draft-model");
     return o;
 }
 struct Request {
@@ -274,8 +279,11 @@ class Runner {
 public:
     Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,VramControl &vc):
         ctx(c),draft_ctx(d),expert_budget(b),vram(vc),vocab(v),o(opts),stop(s) {
-        if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence);
+        if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence,o.draft_shared_scratch!=0);
+        if(spec)std::cerr<<"STRATA_DSPARK_SCRATCH saved_bytes="<<spec->scratch_saved()<<" shared="<<spec->scratch_shared()<<"\n";
     }
+    size_t scratch_saved() const {return spec?spec->scratch_saved():0;}
+    bool scratch_shared() const {return spec && spec->scratch_shared();}
     void inventory() {
         std::cout<<"CACHE_ENTRIES {\"entries\":[";
         bool first=true;
@@ -420,7 +428,8 @@ public:
             }
             if(!ok || stop.load()) {finish="cancel";reset();}
             if(spec)std::cerr<<"STRATA_SPEC type=dspark rounds="<<rounds<<" offered="<<offered<<" accepted="<<accepted
-                <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<" proposed="<<proposed<<" filtered="<<proposed-offered<<"\n";
+                <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<" proposed="<<proposed<<" filtered="<<proposed-offered
+                <<" shared_scratch="<<spec->scratch_shared()<<"\n";
             inventory();status("idle",source,save_ms,restore);
             std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" "<<finish<<" "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
         } catch(const std::exception&e) {
@@ -583,6 +592,9 @@ int main(int argc,char**argv) {
             vram.enqueue(std::string("VRAM_SET ")+vram_policy);vram.poll();
             if(!vram.configured())throw std::runtime_error("invalid or unsupported STRATA_VRAM_POLICY");
         }
+        // Reserve final graph outputs and optionally share their temporary
+        // buffer before checking space for the lazy expert caches.
+        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu,vram);
         if((o.expert_cache_mib || draft_ctx || o.expert_pipeline) && !vram.configured()) {
             size_t free=0,total=0;ggml_backend_dev_memory(gpu,&free,&total);
             auto draft_cache=draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0;
@@ -598,7 +610,6 @@ int main(int argc,char**argv) {
             throw std::runtime_error("--working-set-mib is Windows-only; use OS memory controls on Linux");
 #endif
         }
-        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu,vram);
         llama_memory_breakdown_data draft_memory;
         if(draft_ctx)for(const auto &[buft,data]:llama_get_memory_breakdown(draft_ctx.get())) {
             auto *device=ggml_backend_buft_get_device(buft);
@@ -606,6 +617,9 @@ int main(int argc,char**argv) {
                 draft_memory.model+=data.model;draft_memory.context+=data.context;draft_memory.compute+=data.compute;
             }
         }
+        // A shared physical compute buffer is attributed to the target once.
+        // The raw per-context allocator sizes both include that same buffer.
+        if(runner.scratch_shared())draft_memory.compute=0;
         std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
             <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
@@ -614,6 +628,7 @@ int main(int argc,char**argv) {
             <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
             <<" expert_readers="<<(o.expert_pipeline?o.expert_readers:0)<<" expert_read_mode="<<o.expert_read_mode
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
+            <<" draft_shared_scratch="<<runner.scratch_shared()<<" draft_shared_scratch_saved_bytes="<<runner.scratch_saved()
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute
             <<" draft_vram_pipeline_bytes="<<(draft_ctx && o.draft_gpu_expert_layers<3?uint64_t(o.expert_pipeline)*4*o.expert_stage_mib*1048576:0)
             <<" draft_min_confidence="<<(draft_ctx?o.draft_min_confidence:0)

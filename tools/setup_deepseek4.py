@@ -103,6 +103,7 @@ def main():
     ap.add_argument("--expert-readers", type=int, choices=range(1, 5), default=2, help="Bounded reader concurrency; uses the existing four staging slots")
     ap.add_argument("--expert-read-mode", choices=("mmap", "file", "auto"), default="mmap", help="Windows file uses overlapped reads; auto queues nonresident prefill slices and uses mmap for decode")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
+    ap.add_argument("--draft-shared-scratch", type=int, choices=(0, 1), default=0, help="Use one GPU compute buffer for sequential target/draft execution; KV and expert caches remain separate")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
     ap.add_argument("--draft-min-confidence", type=float, default=0, help="0 disables filtering; otherwise keep the draft prefix with predicted acceptance >= this threshold")
     ap.add_argument("--draft-expert-cache-mib", type=int, default=1024)
@@ -111,6 +112,8 @@ def main():
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
+    if args.draft_shared_scratch and not args.draft_model:
+        ap.error("draft-shared-scratch requires --draft-model")
     if args.expert_pipeline and args.expert_stage_mib <= 0:
         ap.error("expert-pipeline requires expert-stage-mib > 0")
     if args.expert_pipeline and args.expert_read_mode == "file" and sys.platform != "win32":
@@ -159,6 +162,7 @@ def main():
         cfg["lib_dirs"] = [str((args.cuda_dir / sub).resolve()) for sub in ("bin", "bin/x64") if (args.cuda_dir / sub).is_dir()]
     if args.draft_model:
         cfg["args"] += ["--draft-model", report["draft"]["path"], "--draft-max", str(args.draft_max),
+                        "--draft-shared-scratch", str(args.draft_shared_scratch),
                         "--draft-min-confidence", str(args.draft_min_confidence),
                         "--draft-expert-cache-mib", str(args.draft_expert_cache_mib),
                         "--draft-gpu-expert-layers", str(args.draft_gpu_expert_layers)]

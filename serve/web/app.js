@@ -759,6 +759,7 @@ function renderAbout(eng, hw, st) {
     ["DSpark confidence filter", eng.speculative === "dspark" ? Number(eng.draft_min_confidence) > 0 ? `Keep draft prefix with confidence ≥ ${Number(eng.draft_min_confidence).toFixed(2)}` : "Off" : null],
     ["DSpark VRAM reserved at startup", eng.draft_vram_weights_bytes ? `${gb(eng.draft_vram_weights_bytes + (eng.draft_vram_context_bytes || 0) + (eng.draft_vram_compute_bytes || 0) + (eng.draft_vram_pipeline_bytes || 0) + (eng.draft_expert_cache_mib || 0) * 1048576, 2)} GB, including expert cache and pipeline budgets` : null],
     ["Expert transfer pipeline", expertPipelineText(eng)],
+    ["DSpark shared compute buffer", eng.draft_shared_scratch ? `${gb(eng.draft_shared_scratch_saved_bytes, 2)} GB saved at startup` : null],
     ["Expert cache policy", expertPolicyText(eng)],
     ["Fixed expert cache replacement", eng.architecture === "deepseek4" ?
       eng.expert_cache_match_size === 1 ? "Prefer matching matrix sizes" : "Least recently used" : null],

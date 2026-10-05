@@ -1,6 +1,8 @@
 #pragma once
 #include "llama.h"
 #include "llama-ext.h"
+#include "llama-context.h"
+#include "shared_scratch.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -46,12 +48,13 @@ class DSpark {
     float minimum;
     std::vector<float> confidence;
     int proposed=0;
+    size_t shared_bytes=0;
     llama_token mask;
     std::vector<int32_t> layers;
     Batch features, noise;
     std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> greedy;
 public:
-    DSpark(llama_context *t, llama_context *d, int n, float p_min=0):target(t),draft(d),
+    DSpark(llama_context *t, llama_context *d, int n, float p_min=0,bool share_scratch=false):target(t),draft(d),
         width(llama_model_n_embd(llama_get_model(t))),limit(n),minimum(p_min),
         mask(llama_vocab_mask(llama_model_get_vocab(llama_get_model(d)))),
         features(llama_n_ubatch(d),width*llama_model_target_layer_ids_n(llama_get_model(d))),
@@ -66,7 +69,16 @@ public:
         for(int layer:layers)llama_set_embeddings_layer_inp(target,layer,true);
         llama_set_embeddings_nextn(draft,true,true);
         llama_set_causal_attn(draft,false);
+        if(share_scratch) {
+            // Final feature/attention flags are set before reserving. Neither
+            // context has executed; KV/state and expert caches stay separate.
+            target->sched_reserve();draft->sched_reserve();
+            shared_bytes=strata_ds4_sched_share_scratch(target->get_sched(),draft->get_sched());
+            if(!shared_bytes)throw std::runtime_error("DSpark scratch sharing requires compatible fresh CUDA schedulers");
+        }
     }
+    size_t scratch_saved() const {return shared_bytes;}
+    bool scratch_shared() const {return shared_bytes && strata_ds4_sched_scratch_is_shared(target->get_sched(),draft->get_sched());}
     const std::vector<float>& last_confidence() const {return confidence;}
     int last_proposed() const {return proposed;}
     void inject(const llama_batch &batch) {
@@ -83,6 +95,9 @@ public:
             if(llama_decode(draft,features.value))throw std::runtime_error("DSpark feature injection failed");
             offset+=count;
         }
+        // Feature injection has no logits to force a host synchronization.
+        // Drain it before the next target graph can reuse the shared scratch.
+        if(shared_bytes)llama_synchronize(draft);
     }
     std::vector<llama_token> propose(llama_token anchor,int position,int remaining) {
         const int n=std::min(limit,remaining);
