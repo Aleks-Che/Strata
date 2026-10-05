@@ -92,7 +92,7 @@ struct Fixture {
     }
 };
 
-static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
+static void test_group(Fixture &fixture,size_t group,int mode,bool decode,bool early_host_refill) {
     constexpr size_t chunk=(256<<10)+17; // split quant blocks and leave a short tail
     constexpr size_t guard=37;
     std::vector<StrataExpertSlice> slices;
@@ -129,7 +129,7 @@ static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
     DeviceBuffer dest(dest_bytes);
     Stream even,odd;
     cuda_ok(cudaMemset(dest.data,0xA5,dest_bytes));
-    StrataExpertPipeline pipeline(0,chunk,false,4,mode);
+    StrataExpertPipeline pipeline(0,chunk,false,4,mode,{},1,early_host_refill);
 #ifdef _WIN32
     if(mode==1)fixture.protect(PAGE_NOACCESS); // Native reads must not touch mmap.
 #endif
@@ -165,11 +165,57 @@ static void test_group(Fixture &fixture,size_t group,int mode,bool decode) {
         fixture.register_source();
     }
 #endif
-    std::printf("PASS group=%zu mode=%d decode=%d matrices=24 bytes=%zu chunks=%zu file_bytes=%llu mmap_bytes=%llu\n",
-                group,mode,int(decode),source_bytes,chunks,
+    std::printf("PASS group=%zu mode=%d decode=%d early_host_refill=%d matrices=24 bytes=%zu chunks=%zu file_bytes=%llu mmap_bytes=%llu\n",
+                group,mode,int(decode),int(early_host_refill),source_bytes,chunks,
                 (unsigned long long)counters.file_bytes,(unsigned long long)counters.mmap_bytes);
 }
 
+// A stalled GPU consumer must prevent device reuse, but must not prevent
+// filling the now-idle host slot. Gate lifetime also releases failed tests.
+struct RefillGate {
+    cudaStream_t stream;
+    std::atomic<bool> release{false},expired{false};
+    ~RefillGate() {release.store(true);cudaStreamSynchronize(stream);}
+};
+static void CUDART_CB block_refill_consumer(void *ptr) {
+    auto &gate=*static_cast<RefillGate *>(ptr);
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+    while(!gate.release.load()) {
+        if(std::chrono::steady_clock::now()>deadline) {gate.expired.store(true);break;}
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+static void test_early_refill() {
+    constexpr size_t chunk=65553,n=8*chunk+17;
+    std::vector<uint8_t> source(n),actual(n);
+    for(size_t i=0;i<n;++i)source[i]=uint8_t(i*17+i/251);
+    DeviceBuffer dest(n);Stream stream;
+    StrataExpertPipeline pipeline(0,chunk,false,1,0,{},1,true);
+    pipeline.start({{source.data(),n,true}});
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+    while(pipeline.ready_chunks()!=4 && std::chrono::steady_clock::now()<deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    check(pipeline.ready_chunks()==4,"refill fixture did not fill ring");
+    RefillGate gate{stream.value};
+    cuda_ok(cudaLaunchHostFunc(stream.value,block_refill_consumer,&gate));
+    check(pipeline.transfer(dest.data,source.data(),chunk,stream.value),"first refill transfer");
+    const auto refill_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+    while(pipeline.counters().mmap_bytes<5*chunk && std::chrono::steady_clock::now()<refill_deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    const auto c=pipeline.counters();
+    check(c.mmap_bytes==5*chunk && c.h2d_bytes==4*chunk &&
+          cudaStreamQuery(stream.value)==cudaErrorNotReady && !gate.expired.load(),
+          "host refill did not overlap blocked consumer, or overwrote its GPU slot");
+    gate.release.store(true);
+    check(pipeline.transfer(dest.data+chunk,source.data()+chunk,n-chunk,stream.value),"remaining refill transfer");
+    pipeline.finish();cuda_ok(cudaStreamSynchronize(stream.value));
+    cuda_ok(cudaMemcpy(actual.data(),dest.data,n,cudaMemcpyDeviceToHost));
+    check(actual==source,"early refill corrupted GPU bytes");
+    const auto done=pipeline.counters();
+    check(done.wait_us==done.slot_wait_us+done.consumer_wait_us && !done.reader_owned_bytes && !done.queued_bytes,
+          "refill wait/lifetime accounting");
+    std::puts("PASS: early host refill overlaps blocked consumer; GPU slot protected; all bytes exact");
+}
 static void test_telemetry() {
     constexpr size_t chunk=65553,n=chunk+17;
     std::vector<uint8_t> source(n,0x31),actual(n);
@@ -222,7 +268,7 @@ int main() {
         int runtime=0,driver=0;
         cuda_ok(cudaRuntimeGetVersion(&runtime));cuda_ok(cudaDriverGetVersion(&driver));
         std::printf("GPU=%s CUDA_runtime=%d CUDA_driver=%d\n",props.name,runtime,driver);
-        test_telemetry();
+        test_telemetry();test_early_refill();
     std::puts("Native router plan -> synthetic packed bytes: IQ2_S/IQ3_S/IQ4_XS/Q2_K/Q3_K/IQ3_XXS/Q6_K/Q4_K; no numerical GLM inference");
         size_t cases=0;
         for(size_t group=0;group<3;++group) {
@@ -235,7 +281,7 @@ int main() {
             // The shared source registry has no POSIX native implementation.
             for(int mode:{0})for(bool decode:{false,true}) {
 #endif
-                test_group(fixture,group,mode,decode);++cases;
+                for(bool refill:{false,true}) {test_group(fixture,group,mode,decode,refill);++cases;}
             }
         }
         std::printf("PASS: %zu cases, %zu GPU matrix comparisons, guarded destinations, partial chunks, two consumer streams\n",cases,cases*24);

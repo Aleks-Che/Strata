@@ -59,6 +59,7 @@ private:
     std::mutex mutex,copy_mutex;
     std::condition_variable cv;
     bool active=false,quit=false;
+    bool early_host_refill=false;
     std::atomic<bool> cancel_reads{true};
     std::exception_ptr error;
     Counters totals;
@@ -92,9 +93,10 @@ private:
                 totals.reader_owned_peak=std::max(totals.reader_owned_peak,totals.reader_owned_bytes);
                 cv.notify_all();lock.unlock();
                 uint64_t started=now_us();
-                // The consumer event also implies completion of the previous
-                // H2D, so both host and device slots can be reused.
-                if(has_use)check(cudaEventSynchronize(slot.used));
+                // Host reuse needs only the previous H2D. Optionally prepare
+                // the next payload while the GPU still consumes the device
+                // slot. Device reuse remains protected by used below.
+                if(has_use)check(cudaEventSynchronize(early_host_refill?slot.ready:slot.used));
                 uint64_t waited=now_us()-started;started=now_us();
                 bool file_read=job.file && (read_mode==1 || !strata_expert_file::resident(job.source,job.bytes));
                 bool read_ok=!cancel_reads.load();
@@ -111,6 +113,9 @@ private:
                     cv.notify_all();continue;
                 }
                 lock.unlock();started=now_us();
+                if(has_use && early_host_refill)check(cudaEventSynchronize(slot.used));
+                const uint64_t device_wait=early_host_refill?now_us()-started:0;
+                started=now_us();
                 {
                     // Keep copy/event pairs together while readers finish in
                     // arbitrary order. Publication follows event recording.
@@ -122,6 +127,7 @@ private:
                 }
                 uint64_t submitted=now_us()-started;
                 lock.lock();slot.job=index;slot.bytes=job.bytes;slot.submitted=true;
+                totals.wait_us+=device_wait;totals.slot_wait_us+=device_wait;
                 totals.queued_bytes+=job.bytes;totals.queued_peak=std::max(totals.queued_peak,totals.queued_bytes);
                 ++totals.chunks;totals.h2d_bytes+=job.bytes;totals.submit_us+=submitted;
                 --busy;claimed=false;totals.reader_owned_bytes-=claimed_bytes;cv.notify_all();
@@ -145,8 +151,8 @@ private:
         if(copy)cudaStreamDestroy(copy);
     }
 public:
-    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1)
-        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),copy_observer(std::move(observer)) {
+    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1,bool refill_early=false)
+        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),early_host_refill(refill_early),copy_observer(std::move(observer)) {
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
         if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
         if(readers<1 || readers>int(slots) || decode_readers<1 || decode_readers>readers || mode<0 || mode>2)

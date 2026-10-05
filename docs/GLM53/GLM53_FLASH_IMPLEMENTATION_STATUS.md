@@ -14,20 +14,20 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `ff294a2aa398b82277481d853c0573dc2df95b14` + P5.3d в рабочем дереве; source/binary hashes и команды в MTP_SHARED_SCRATCH_VALIDATION |
-| Последняя выполненная работа | P5.3d: reproduced repeated-B/compaction, optional shared target/draft scratch (-993,553 МиБ VRAM), проверки logits без временных строк. 28 CTest, 83 Python, 108 benchmark responses, full GGUF bit-exact и 9 итоговых pipe cases; устойчивого общего ускорения MTP не получено |
-| Следующая задача | Разделить CPU memcpy, H2D и ожидания verify после prefill; уменьшить возвраты страниц у hard working-set cap. Продолжать в repeated-B/compaction режиме с отдельным MTP-off контролем, не смешивать его с A/B. Затем P4 и длинный контекст |
-| Активная задача / исполнитель | Нет; ограниченная итерация P5.3d завершена / Codex. Общий P5 остаётся IN_PROGRESS |
+| Последняя проверенная ревизия Strata | `b7e0976ecad062dd67d4cb0290495fa53d9763a2` + P3.3j в рабочем дереве; hashes и команды в HOST_PIPELINE_VALIDATION |
+| Последняя выполненная работа | P3.3j: optional early host refill, раздельные CPU copy/H2D microbenchmarks и CPU affinity. 77 точных benchmark responses, 32 candidate / 14 transport CTest, 83 Python, полные F32 logits bit-exact и 9 native pipe cases. Устойчивого прироста нет; defaults сохранены |
+| Следующая задача | Разделить реальные CPU memcpy/H2D/wait после prefill при сопоставимом cache budget; уменьшить повторные переносы и возвраты страниц у hard working-set cap. Repeated-B/compaction и A/B измерять отдельно. Затем P4 и длинный контекст |
+| Активная задача / исполнитель | Нет; ограниченная итерация P3.3j завершена / Codex. Общие P3/P5 остаются IN_PROGRESS |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
 | GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели ранее. Локальный профиль: pipeline on, events2, MTP off, token-batch MMVQ on, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned/RAM warmup off; backend identity обновлён. MTP cache ceiling 512 МиБ действует только при включении MTP |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | P5.3d: IQ3_XXS, repeated B 49+64, compaction1, mmap/reader1/slabs16/targets95, ctx2048/batch16/threads4, F16 KV, TF32/FA off. Shared scratch MTP1/2/3 checked bit-exact до перегрузки require; итоговая сборка — MTP0/1 benchmark и MTP1 seeded/cancel/recovery. Полный HTTP ранее в P5.3b |
-| Измеренная скорость GLM / память | P5.3d repeated-B: новая сборка MTP off 13,373 (13,019–13,637), MTP1 раздельный scratch 11,082 (9,883–12,905), shared 10,644 (1,835–12,949) ток/с. Первые контроли до изменений 12,889–12,933. Shared scratch экономит 993,553 МиБ; sampled maxima итоговых серий RAM 95,24%, VRAM 95,29%. Общий выигрыш MTP не подтверждён; полный ряд в COMPACTION_MTP |
+| Последняя проверенная конфигурация запуска GLM | P3.3j: IQ3_XXS, repeated B 49+64, compaction1, MTP0, mmap/reader1/slabs16/targets95, ctx2048/batch16/threads4, F16 KV, TF32/FA off. Early refill0/1 benchmark; early refill1 full F32 и seeded/cancel/recovery. Полный HTTP ранее в P5.3b |
+| Измеренная скорость GLM / память | P3.3j repeated-B: early refill1 12,565 (12,464–12,801), контроли off 12,935 и 11,833 ток/с. Контроли и cache budget дрейфуют, устойчивый выигрыш не установлен. Sampled maxima RAM95,77%, VRAM95,43% при targets95. Предыдущие MTP результаты сохранены в P5.3d / COMPACTION_MTP |
 
-Последний эксперимент без MTP: [P3.3i, загрузка RAM и mmap только для экспертов](GLM53_FLASH_RAM_LOADING.md).
+Последний эксперимент без MTP: [P3.3j, host copy и раннее заполнение RAM-буфера](GLM53_FLASH_HOST_PIPELINE.md).
 
 Последняя оптимизация MTP: [P5.3d, scratch и CPU overhead в быстром режиме B](GLM53_FLASH_COMPACTION_MTP.md).
 
@@ -3456,3 +3456,49 @@ KV/recurrent state, а отказ от target forward меняет алгори�
 [logits](GLM53_FLASH_MTP_SHARED_SCRATCH_CHECK.json),
 [pipe](GLM53_FLASH_MTP_SHARED_SCRATCH_PIPE.json),
 [manifest](GLM53_FLASH_MTP_SHARED_SCRATCH_VALIDATION.json).
+
+### P3.3j — 2026-10-05 — Host copy, affinity и раннее заполнение RAM-буфера
+
+**Статус:** DONE для ограниченной итерации; общие P3/P5 остаются IN_PROGRESS.
+Исполнитель: Codex. База `b7e0976ecad062dd67d4cb0290495fa53d9763a2`,
+engine SHA-256 `4da6f03b41c08f8cfddb5967addd5358b8735d1c8101cbb7b4167a1eb9ab92f8`.
+
+Реализован opt-in `STRATA_GLM_EARLY_HOST_REFILL=1`: host slot защищён старым
+H2D event, device slot — старым consumer event; memcpy перекрывается с работой
+предыдущего потребителя. Четыре слота и ёмкости staging не увеличены.
+Ожидание device остаётся вне copy mutex, отмена и ownership сохранены.
+INFO, snapshots и benchmark проверяют эффективный режим.
+
+В repeated-B/compaction1: early refill 12,565 (12,464–12,801), контроли до/после
+12,935/11,833 ток/с. Медиана суммы ожиданий слотов 0,785 → 0,206 с на запрос,
+но CPU read/copy 6,093 → 6,501 с. Это суммы по потокам с prefill, не GPU timing.
+Контроли и cache capacity менялись; устойчивого выигрыша скорости нет.
+
+CPU affinity: 50 точных ответов, ABBA внутри одного engine, три маски.
+Нет оснований менять default. SSE2/AVX2 streaming memcpy: 180 точных GPU
+byte checks, отдельные CPU/H2D/serial timings. Для 1 МиБ итог медленнее,
+для 3–4 МиБ устойчивого преимущества нет; production сохраняет memcpy.
+
+**Проверки:** 32 candidate CTest (31 + отдельный DeepSeek pipeline fixture),
+14 transport CTest, 864 матрицы, blocked-consumer overlap, cancel/restart,
+83 Python. Ещё 27 точных benchmark responses на полной GGUF. Early refill1:
+9 912 320 F32 logits побитово совпали, 9 native pipe cases прошли с exit0.
+Все 20 source/binary hashes совпали после измерений. Полные HTTP, Qwen/DeepSeek,
+Linux/HIP и длинный контекст не повторялись; большой MTP forward отдельно
+не проверялся, F32 checker запускался с baseline-only.
+
+**Решение:** early refill off, MTP off, token-batch MMVQ on, обычный memcpy и
+CPU affinity без ограничений. Backend identity локального профиля обновлён.
+Compaction1 только в экспериментальных профилях. Targets95 сохранены;
+максимумы benchmark RAM95,77%, VRAM95,43%. Собственные engine завершены.
+
+**Следующий шаг:** замеры после prefill при сопоставимом cache budget;
+сокращение повторных переносов и возвратов страниц.
+
+**Результаты:** [описание](GLM53_FLASH_HOST_PIPELINE.md),
+[benchmark](GLM53_FLASH_HOST_PIPELINE_BENCHMARK.json),
+[affinity](GLM53_FLASH_HOST_PIPELINE_AFFINITY.json),
+[copy](GLM53_FLASH_HOST_PIPELINE_COPY.json),
+[F32](GLM53_FLASH_HOST_PIPELINE_CHECK.json),
+[pipe](GLM53_FLASH_HOST_PIPELINE_PIPE.json),
+[manifest](GLM53_FLASH_HOST_PIPELINE_VALIDATION.json).

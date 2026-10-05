@@ -432,6 +432,12 @@ result работают через оба API; токены и шаблон со
     загрузка GGUF не поместилась в commit budget. 26 candidate CTest, 83 Python,
     9 912 320 F32 logits bit-exact, 9 native pipe cases. Defaults сохранены.
     [Методика и ограничения](GLM53_FLASH_RAM_LOADING.md).
+  - [x] P3.3j: раздельная защита host/device slots и optional early host refill;
+    диагностические memcpy/SSE2/AVX2 и CPU affinity. 77 точных benchmark
+    ответов, 32 candidate / 14 transport CTest, 83 Python, полные F32 logits
+    bit-exact и 9 native pipe cases. Новый режим 12,565 ток/с при контролях
+    12,935/11,833; устойчивого прироста нет, defaults сохранены.
+    [Измерения и ограничения](GLM53_FLASH_HOST_PIPELINE.md).
 - [x] Проверить побайтовое равенство доставленных матриц для экспертных типов обоих
   профилей: IQ2_S, IQ3_S, IQ4_XS, Q2_K, Q3_K, а также прежних IQ3_XXS, Q6_K, Q4_K;
   padding/alignment и последний неполный chunk; отдельно проверить

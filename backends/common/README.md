@@ -46,6 +46,20 @@ new job waiting for a still-running consumer of that slot. CPU wait sums may
 overlap across threads and are not elapsed wall time, H2D/compute execution times,
 or proof of GPU overlap. CUDA timeline measurement remains a separate task.
 
+The optional final constructor argument `refill_early` separates host and device
+reuse. A producer waits for the previous H2D event, fills the host slot, then
+waits for the previous consumer event before submitting the next H2D. The second
+wait stays outside the copy-stream lock, so another reader can still submit an
+older job. Slot counts and allocated capacities stay the same. The default is
+false; GLM exposes it as `STRATA_GLM_EARLY_HOST_REFILL=1`. Both event waits count
+toward `slot_wait_us`. The GLM byte test blocks a consumer and checks that the
+next host copy completes while the old device payload is still protected.
+
+`host_staging_copy.hpp` contains diagnostic SSE2/AVX2 streaming-store variants.
+Production transport uses `std::memcpy`. The isolated GLM host-copy benchmark
+measures CPU copy, H2D and their serialized combination separately; its bandwidth
+is not model throughput. AVX2 executables require an AVX2 CPU and are run manually.
+
 `expert_file.hpp` is the native file-reading layer used by DeepSeek and prepared
 for GLM's byte-range planner. It has no llama, ggml or CUDA dependency. The old
 DeepSeek include forwards here, so its loader hook and pipeline use this code.

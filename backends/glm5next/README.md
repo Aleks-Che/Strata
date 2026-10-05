@@ -1992,3 +1992,18 @@ when all 102.322 GiB of eligible expert mappings have been touched.
 These short-prompt measurements have no copy/compute overlap or MTP.
 [Measurement record](../../docs/GLM53/GLM53_FLASH_MEMORY_VALIDATION.json),
 [commands](../../docs/GLM53/GLM53_FLASH_MEMORY_TARGETS_TESTS.txt).
+
+### Host staging experiment (2026-10-05)
+
+`STRATA_GLM_EARLY_HOST_REFILL=1` prepares the next pinned host payload after the
+previous H2D finishes, before waiting for the previous GPU consumer. The device
+slot remains protected by its consumer event. INFO reports the effective flag.
+This stays off by default: repeated-B/compaction measurements gave 12.565 tok/s
+with surrounding controls at 12.935 and 11.833 tok/s, without a robust speed gain.
+[Measurements, validation and commands](../../docs/GLM53/GLM53_FLASH_HOST_PIPELINE.md).
+
+The optional CUDA transport build also produces `strata-glm5next-host-copy-bench`
+and, on MSVC x64, explicit AVX2 diagnostic targets. They compare ordinary memcpy
+and streaming stores; production still uses memcpy. Run AVX2 binaries only on
+an AVX2 CPU. `tools/benchmark_glm5next_affinity.py` compares CPU masks within one
+owned Windows engine process and restores its initial affinity before exit.

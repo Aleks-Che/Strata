@@ -65,6 +65,7 @@ struct RuntimeMemory::Impl {
     int decode_readers=1;
     int read_mode=0; // 0 mmap; 1 native cached file I/O; 2 native cold prefill.
     bool write_combined=false;
+    bool early_host_refill=false;
     uint64_t main_cache_decay=4096;
     bool pool_reclaim=false;
     uint64_t pool_reclaims=0;
@@ -272,6 +273,10 @@ struct RuntimeMemory::Impl {
                 require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0 || std::strcmp(value,"2")==0,"STRATA_GLM_COPY_EVENTS must be 0, 1 or 2");
                 event_copy=std::atoi(value);
             }
+            if (const auto * value=std::getenv("STRATA_GLM_EARLY_HOST_REFILL")) {
+                require(std::strcmp(value,"0")==0 || std::strcmp(value,"1")==0,"STRATA_GLM_EARLY_HOST_REFILL must be 0 or 1");
+                early_host_refill=value[0]=='1';
+            }
             if (event_copy) {
                 cuda_check(cudaEventCreateWithFlags(&scratch_released,cudaEventDisableTiming));
                 cuda_check(cudaEventCreateWithFlags(&copy_ready,cudaEventDisableTiming));
@@ -281,7 +286,7 @@ struct RuntimeMemory::Impl {
                 trace=std::make_unique<GpuTrace>(std::stoi(n));
                 observer=[this](cudaStream_t stream,bool begin,size_t) {trace->record(stream,nullptr,begin);};
             }
-            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,write_combined,std::max(2,decode_readers),read_mode,std::move(observer),decode_readers);
+            transport=std::make_unique<ExpertTransport>(0,size_t(chunk_mib)*MiB,write_combined,std::max(2,decode_readers),read_mode,std::move(observer),decode_readers,early_host_refill);
         }
         if (vram_percent) controller=std::make_unique<ExpertMemoryController>(*cache,total,policy,
             [this](int device,size_t &free,size_t &total) {
@@ -604,6 +609,7 @@ struct RuntimeMemory::Impl {
         result["expert_decode_readers"]=decode_readers;
         result["expert_read_mode"]=read_mode==1?"native":read_mode==2?"auto":expert_storage_name();
         result["expert_write_combined"]=int(write_combined);
+        result["expert_early_host_refill"]=int(early_host_refill);
         result["main_cache_decay"]=main_cache_decay;
         result["mtp_cache_decay"]=4096;
         result["expert_pool_reclaim"]=int(pool_reclaim);

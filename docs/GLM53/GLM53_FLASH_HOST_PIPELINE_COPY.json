@@ -1,0 +1,2316 @@
+{
+  "status": "pass",
+  "date": "2026-10-05",
+  "hardware": "Ryzen 9 9950X / RTX 5090 / 128 GiB RAM, Windows, MSVC 19.44, CUDA 13.0.48",
+  "method": "2 GiB rotating source; fixed pinned destination; separate CPU, CUDA-event H2D, serial copy+H2D measurements. Six rounds ABBAAB. Offset is relative to vector data, not a claim of 64-byte base alignment. Final GPU bytes checked in every row. This is not model throughput.",
+  "decision": "Production retains std::memcpy; NT regressions at 1 MiB and no consistent larger-block gain.",
+  "series": [
+    {
+      "variant": "sse2-0",
+      "rows": [
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 38.2982,
+          "h2d_GiB_s": 19.7357,
+          "serial_GiB_s": 2.1698
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 18.5955,
+          "h2d_GiB_s": 27.1967,
+          "serial_GiB_s": 2.23569
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.1085,
+          "h2d_GiB_s": 27.0133,
+          "serial_GiB_s": 2.24045
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 36.2375,
+          "h2d_GiB_s": 20.1883,
+          "serial_GiB_s": 2.15923
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 35.2734,
+          "h2d_GiB_s": 19.4816,
+          "serial_GiB_s": 2.17085
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.4987,
+          "h2d_GiB_s": 27.2508,
+          "serial_GiB_s": 2.23724
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.7588,
+          "h2d_GiB_s": 26.8054,
+          "serial_GiB_s": 7.38047
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.3002,
+          "h2d_GiB_s": 43.6292,
+          "serial_GiB_s": 7.18298
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.9358,
+          "h2d_GiB_s": 43.5924,
+          "serial_GiB_s": 7.40807
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 42.9299,
+          "h2d_GiB_s": 26.5737,
+          "serial_GiB_s": 6.99524
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.3594,
+          "h2d_GiB_s": 26.1824,
+          "serial_GiB_s": 7.01262
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.1574,
+          "h2d_GiB_s": 43.6477,
+          "serial_GiB_s": 7.31439
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.0987,
+          "h2d_GiB_s": 28.5449,
+          "serial_GiB_s": 13.3141
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1202,
+          "h2d_GiB_s": 50.1956,
+          "serial_GiB_s": 12.3104
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.8062,
+          "h2d_GiB_s": 49.9051,
+          "serial_GiB_s": 12.1221
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.5816,
+          "h2d_GiB_s": 28.6809,
+          "serial_GiB_s": 13.414
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 46.9597,
+          "h2d_GiB_s": 28.6772,
+          "serial_GiB_s": 13.6378
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.7401,
+          "h2d_GiB_s": 50.2215,
+          "serial_GiB_s": 12.2343
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.85,
+          "h2d_GiB_s": 52.7653,
+          "serial_GiB_s": 14.4162
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.6325,
+          "h2d_GiB_s": 52.7821,
+          "serial_GiB_s": 13.9088
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.3682,
+          "h2d_GiB_s": 52.7681,
+          "serial_GiB_s": 14.3189
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8298,
+          "h2d_GiB_s": 52.785,
+          "serial_GiB_s": 14.4733
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.1729,
+          "h2d_GiB_s": 52.7792,
+          "serial_GiB_s": 14.2108
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.9576,
+          "h2d_GiB_s": 52.7145,
+          "serial_GiB_s": 13.8439
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.7559,
+          "h2d_GiB_s": 52.5963,
+          "serial_GiB_s": 15.0035
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1892,
+          "h2d_GiB_s": 52.9213,
+          "serial_GiB_s": 14.4695
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.7687,
+          "h2d_GiB_s": 52.9177,
+          "serial_GiB_s": 14.6148
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8231,
+          "h2d_GiB_s": 52.9076,
+          "serial_GiB_s": 14.7104
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6412,
+          "h2d_GiB_s": 52.8786,
+          "serial_GiB_s": 14.7854
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.0655,
+          "h2d_GiB_s": 52.8854,
+          "serial_GiB_s": 14.6275
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.501,
+          "h2d_GiB_s": 26.2464,
+          "serial_GiB_s": 2.22671
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.2154,
+          "h2d_GiB_s": 26.0905,
+          "serial_GiB_s": 2.21671
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.4094,
+          "h2d_GiB_s": 26.311,
+          "serial_GiB_s": 2.2292
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.227,
+          "h2d_GiB_s": 26.1091,
+          "serial_GiB_s": 2.19945
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 20.8879,
+          "h2d_GiB_s": 26.2928,
+          "serial_GiB_s": 2.213
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.414,
+          "h2d_GiB_s": 26.4358,
+          "serial_GiB_s": 2.21971
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.3819,
+          "h2d_GiB_s": 44.0809,
+          "serial_GiB_s": 7.28103
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0531,
+          "h2d_GiB_s": 44.0573,
+          "serial_GiB_s": 7.03892
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.6448,
+          "h2d_GiB_s": 43.4827,
+          "serial_GiB_s": 7.27178
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6309,
+          "h2d_GiB_s": 44.0729,
+          "serial_GiB_s": 7.60845
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.806,
+          "h2d_GiB_s": 43.6951,
+          "serial_GiB_s": 7.32955
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.9321,
+          "h2d_GiB_s": 44.1063,
+          "serial_GiB_s": 7.24932
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0714,
+          "h2d_GiB_s": 50.1856,
+          "serial_GiB_s": 12.0173
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.153,
+          "h2d_GiB_s": 48.3599,
+          "serial_GiB_s": 11.8932
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.5425,
+          "h2d_GiB_s": 48.7985,
+          "serial_GiB_s": 11.2319
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6658,
+          "h2d_GiB_s": 49.0729,
+          "serial_GiB_s": 11.6902
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.3108,
+          "h2d_GiB_s": 48.9195,
+          "serial_GiB_s": 10.1602
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0169,
+          "h2d_GiB_s": 48.8467,
+          "serial_GiB_s": 9.60703
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6309,
+          "h2d_GiB_s": 52.045,
+          "serial_GiB_s": 13.0138
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.4155,
+          "h2d_GiB_s": 52.1043,
+          "serial_GiB_s": 13.4104
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.5231,
+          "h2d_GiB_s": 52.1001,
+          "serial_GiB_s": 12.7615
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.3007,
+          "h2d_GiB_s": 51.8602,
+          "serial_GiB_s": 13.0348
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6295,
+          "h2d_GiB_s": 51.8243,
+          "serial_GiB_s": 13.2532
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.211,
+          "h2d_GiB_s": 51.8647,
+          "serial_GiB_s": 13.2459
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.4247,
+          "h2d_GiB_s": 52.224,
+          "serial_GiB_s": 13.4613
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1116,
+          "h2d_GiB_s": 52.261,
+          "serial_GiB_s": 13.8463
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6719,
+          "h2d_GiB_s": 52.1846,
+          "serial_GiB_s": 13.5048
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.2894,
+          "h2d_GiB_s": 52.2174,
+          "serial_GiB_s": 13.8298
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.7484,
+          "h2d_GiB_s": 52.2708,
+          "serial_GiB_s": 8.99035
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.3398,
+          "h2d_GiB_s": 6.77966,
+          "serial_GiB_s": 4.87153
+        }
+      ],
+      "medians": [
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 36.2375,
+          "h2d_GiB_s": 19.7357,
+          "serial_GiB_s": 2.1698
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.1085,
+          "h2d_GiB_s": 27.1967,
+          "serial_GiB_s": 2.23724
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.7588,
+          "h2d_GiB_s": 26.5737,
+          "serial_GiB_s": 7.01262
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.3002,
+          "h2d_GiB_s": 43.6292,
+          "serial_GiB_s": 7.31439
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.5816,
+          "h2d_GiB_s": 28.6772,
+          "serial_GiB_s": 13.414
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.8062,
+          "h2d_GiB_s": 50.1956,
+          "serial_GiB_s": 12.2343
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.85,
+          "h2d_GiB_s": 52.7792,
+          "serial_GiB_s": 14.4162
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.6325,
+          "h2d_GiB_s": 52.7681,
+          "serial_GiB_s": 13.9088
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.7559,
+          "h2d_GiB_s": 52.8786,
+          "serial_GiB_s": 14.7854
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.0655,
+          "h2d_GiB_s": 52.9177,
+          "serial_GiB_s": 14.6148
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.227,
+          "h2d_GiB_s": 26.2464,
+          "serial_GiB_s": 2.213
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 19.4094,
+          "h2d_GiB_s": 26.311,
+          "serial_GiB_s": 2.21971
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6309,
+          "h2d_GiB_s": 44.0729,
+          "serial_GiB_s": 7.32955
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0531,
+          "h2d_GiB_s": 44.0573,
+          "serial_GiB_s": 7.24932
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6658,
+          "h2d_GiB_s": 49.0729,
+          "serial_GiB_s": 11.6902
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.5425,
+          "h2d_GiB_s": 48.7985,
+          "serial_GiB_s": 11.2319
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6295,
+          "h2d_GiB_s": 51.8602,
+          "serial_GiB_s": 13.0348
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.5231,
+          "h2d_GiB_s": 52.1001,
+          "serial_GiB_s": 13.2459
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.2894,
+          "h2d_GiB_s": 52.224,
+          "serial_GiB_s": 13.4613
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.3398,
+          "h2d_GiB_s": 52.1846,
+          "serial_GiB_s": 13.5048
+        }
+      ],
+      "gpu_byte_checks": 60,
+      "csv_sha256": "de5a4e15b83bea72e2ba8626fd07f6d9818ccdfcc491c09a1f6b93b96a6bc647"
+    },
+    {
+      "variant": "avx2-0",
+      "rows": [
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 36.7463,
+          "h2d_GiB_s": 19.8219,
+          "serial_GiB_s": 2.13545
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.5827,
+          "h2d_GiB_s": 26.936,
+          "serial_GiB_s": 2.23324
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.2498,
+          "h2d_GiB_s": 27.2391,
+          "serial_GiB_s": 2.2406
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 38.5887,
+          "h2d_GiB_s": 19.5092,
+          "serial_GiB_s": 2.16363
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 37.3375,
+          "h2d_GiB_s": 19.4522,
+          "serial_GiB_s": 2.14289
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.2851,
+          "h2d_GiB_s": 26.9225,
+          "serial_GiB_s": 2.22342
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 42.8695,
+          "h2d_GiB_s": 26.5897,
+          "serial_GiB_s": 7.12115
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.739,
+          "h2d_GiB_s": 43.7521,
+          "serial_GiB_s": 7.21549
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2112,
+          "h2d_GiB_s": 43.6492,
+          "serial_GiB_s": 7.41096
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 43.1221,
+          "h2d_GiB_s": 26.8411,
+          "serial_GiB_s": 7.17764
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 41.0293,
+          "h2d_GiB_s": 26.5582,
+          "serial_GiB_s": 7.07848
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6991,
+          "h2d_GiB_s": 43.7668,
+          "serial_GiB_s": 7.33542
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 42.9817,
+          "h2d_GiB_s": 28.7502,
+          "serial_GiB_s": 13.4563
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.8751,
+          "h2d_GiB_s": 50.2166,
+          "serial_GiB_s": 12.3828
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6028,
+          "h2d_GiB_s": 50.2163,
+          "serial_GiB_s": 12.2535
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.8192,
+          "h2d_GiB_s": 28.748,
+          "serial_GiB_s": 13.3692
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.9448,
+          "h2d_GiB_s": 28.7368,
+          "serial_GiB_s": 13.4064
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9512,
+          "h2d_GiB_s": 50.2198,
+          "serial_GiB_s": 12.5692
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.7621,
+          "h2d_GiB_s": 52.8086,
+          "serial_GiB_s": 14.7171
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9876,
+          "h2d_GiB_s": 52.8276,
+          "serial_GiB_s": 14.6453
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6574,
+          "h2d_GiB_s": 52.8294,
+          "serial_GiB_s": 14.8379
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.3905,
+          "h2d_GiB_s": 52.8208,
+          "serial_GiB_s": 14.4902
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.2318,
+          "h2d_GiB_s": 52.8154,
+          "serial_GiB_s": 14.8167
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.2685,
+          "h2d_GiB_s": 52.8305,
+          "serial_GiB_s": 14.5373
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.3944,
+          "h2d_GiB_s": 52.8554,
+          "serial_GiB_s": 14.473
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9017,
+          "h2d_GiB_s": 52.8786,
+          "serial_GiB_s": 15.0487
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.3306,
+          "h2d_GiB_s": 52.8933,
+          "serial_GiB_s": 14.9233
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0472,
+          "h2d_GiB_s": 52.8851,
+          "serial_GiB_s": 15.2108
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.56,
+          "h2d_GiB_s": 52.8615,
+          "serial_GiB_s": 14.6487
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.6418,
+          "h2d_GiB_s": 51.817,
+          "serial_GiB_s": 14.3031
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.0531,
+          "h2d_GiB_s": 27.2893,
+          "serial_GiB_s": 2.20434
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0012,
+          "h2d_GiB_s": 26.9084,
+          "serial_GiB_s": 2.20584
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.3542,
+          "h2d_GiB_s": 27.1025,
+          "serial_GiB_s": 2.19379
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.1409,
+          "h2d_GiB_s": 27.0311,
+          "serial_GiB_s": 2.18856
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.5461,
+          "h2d_GiB_s": 27.6282,
+          "serial_GiB_s": 2.21014
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.4413,
+          "h2d_GiB_s": 27.1957,
+          "serial_GiB_s": 2.20793
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6275,
+          "h2d_GiB_s": 43.8734,
+          "serial_GiB_s": 6.9987
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.0095,
+          "h2d_GiB_s": 43.811,
+          "serial_GiB_s": 7.57229
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.0529,
+          "h2d_GiB_s": 43.7785,
+          "serial_GiB_s": 7.57539
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.4711,
+          "h2d_GiB_s": 43.7977,
+          "serial_GiB_s": 7.32925
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.5208,
+          "h2d_GiB_s": 43.8614,
+          "serial_GiB_s": 7.41028
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.5912,
+          "h2d_GiB_s": 43.4711,
+          "serial_GiB_s": 7.47474
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.2468,
+          "h2d_GiB_s": 50.214,
+          "serial_GiB_s": 12.6793
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.8438,
+          "h2d_GiB_s": 50.1998,
+          "serial_GiB_s": 12.472
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.5571,
+          "h2d_GiB_s": 50.1966,
+          "serial_GiB_s": 12.3805
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8084,
+          "h2d_GiB_s": 50.214,
+          "serial_GiB_s": 12.5433
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0573,
+          "h2d_GiB_s": 48.5411,
+          "serial_GiB_s": 11.7167
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.9875,
+          "h2d_GiB_s": 48.4818,
+          "serial_GiB_s": 11.6355
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.1854,
+          "h2d_GiB_s": 51.8678,
+          "serial_GiB_s": 13.0929
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6603,
+          "h2d_GiB_s": 51.8025,
+          "serial_GiB_s": 13.4195
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2465,
+          "h2d_GiB_s": 51.8343,
+          "serial_GiB_s": 13.1464
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.3309,
+          "h2d_GiB_s": 51.8595,
+          "serial_GiB_s": 13.2509
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.47,
+          "h2d_GiB_s": 51.8153,
+          "serial_GiB_s": 13.3302
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6462,
+          "h2d_GiB_s": 51.816,
+          "serial_GiB_s": 12.9466
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.6858,
+          "h2d_GiB_s": 52.2754,
+          "serial_GiB_s": 13.9949
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.754,
+          "h2d_GiB_s": 52.2621,
+          "serial_GiB_s": 14.1247
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.2966,
+          "h2d_GiB_s": 52.2167,
+          "serial_GiB_s": 12.397
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 18.3659,
+          "h2d_GiB_s": 50.0766,
+          "serial_GiB_s": 12.0265
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.3312,
+          "h2d_GiB_s": 52.3784,
+          "serial_GiB_s": 13.5805
+        },
+        {
+          "source_offset": 0,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.4354,
+          "h2d_GiB_s": 52.3328,
+          "serial_GiB_s": 13.8223
+        }
+      ],
+      "medians": [
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 37.3375,
+          "h2d_GiB_s": 19.5092,
+          "serial_GiB_s": 2.14289
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.2851,
+          "h2d_GiB_s": 26.936,
+          "serial_GiB_s": 2.23324
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 42.8695,
+          "h2d_GiB_s": 26.5897,
+          "serial_GiB_s": 7.12115
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6991,
+          "h2d_GiB_s": 43.7521,
+          "serial_GiB_s": 7.33542
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.8192,
+          "h2d_GiB_s": 28.748,
+          "serial_GiB_s": 13.4064
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.8751,
+          "h2d_GiB_s": 50.2166,
+          "serial_GiB_s": 12.3828
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.2318,
+          "h2d_GiB_s": 52.8154,
+          "serial_GiB_s": 14.7171
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9876,
+          "h2d_GiB_s": 52.8294,
+          "serial_GiB_s": 14.6453
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.3944,
+          "h2d_GiB_s": 52.8615,
+          "serial_GiB_s": 14.6487
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.3306,
+          "h2d_GiB_s": 52.8786,
+          "serial_GiB_s": 14.9233
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.1409,
+          "h2d_GiB_s": 27.2893,
+          "serial_GiB_s": 2.20434
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.3542,
+          "h2d_GiB_s": 27.1025,
+          "serial_GiB_s": 2.20584
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.5208,
+          "h2d_GiB_s": 43.8614,
+          "serial_GiB_s": 7.32925
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.0095,
+          "h2d_GiB_s": 43.7785,
+          "serial_GiB_s": 7.57229
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0573,
+          "h2d_GiB_s": 50.214,
+          "serial_GiB_s": 12.5433
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.5571,
+          "h2d_GiB_s": 50.1966,
+          "serial_GiB_s": 12.3805
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.3309,
+          "h2d_GiB_s": 51.8595,
+          "serial_GiB_s": 13.2509
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6462,
+          "h2d_GiB_s": 51.816,
+          "serial_GiB_s": 13.1464
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.3312,
+          "h2d_GiB_s": 52.2754,
+          "serial_GiB_s": 13.5805
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.4354,
+          "h2d_GiB_s": 52.2621,
+          "serial_GiB_s": 13.8223
+        }
+      ],
+      "gpu_byte_checks": 60,
+      "csv_sha256": "cc0d0cd23adb7a9feac70dff0b80280eec613bd71ff31d14bcde8c1bc8ddb378"
+    },
+    {
+      "variant": "avx2-17",
+      "rows": [
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 34.6869,
+          "h2d_GiB_s": 20.3683,
+          "serial_GiB_s": 2.15542
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0333,
+          "h2d_GiB_s": 27.1854,
+          "serial_GiB_s": 2.18597
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.8399,
+          "h2d_GiB_s": 27.0959,
+          "serial_GiB_s": 2.19046
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 35.0373,
+          "h2d_GiB_s": 20.5126,
+          "serial_GiB_s": 2.09826
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 31.3146,
+          "h2d_GiB_s": 19.0284,
+          "serial_GiB_s": 2.00121
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.738,
+          "h2d_GiB_s": 26.6626,
+          "serial_GiB_s": 2.23201
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 41.7502,
+          "h2d_GiB_s": 26.7275,
+          "serial_GiB_s": 6.9778
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1862,
+          "h2d_GiB_s": 43.909,
+          "serial_GiB_s": 7.28063
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2895,
+          "h2d_GiB_s": 43.5356,
+          "serial_GiB_s": 7.16283
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.8476,
+          "h2d_GiB_s": 26.473,
+          "serial_GiB_s": 6.88197
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.1791,
+          "h2d_GiB_s": 26.2206,
+          "serial_GiB_s": 6.84815
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1141,
+          "h2d_GiB_s": 43.597,
+          "serial_GiB_s": 7.27802
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 41.3494,
+          "h2d_GiB_s": 28.3162,
+          "serial_GiB_s": 12.7613
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0379,
+          "h2d_GiB_s": 50.2208,
+          "serial_GiB_s": 10.9709
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.8124,
+          "h2d_GiB_s": 50.1921,
+          "serial_GiB_s": 12.4478
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.529,
+          "h2d_GiB_s": 28.6912,
+          "serial_GiB_s": 13.224
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.5231,
+          "h2d_GiB_s": 28.4451,
+          "serial_GiB_s": 12.6486
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.2288,
+          "h2d_GiB_s": 50.1525,
+          "serial_GiB_s": 11.2943
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.4767,
+          "h2d_GiB_s": 52.7631,
+          "serial_GiB_s": 14.6454
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6064,
+          "h2d_GiB_s": 52.5838,
+          "serial_GiB_s": 14.3502
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9322,
+          "h2d_GiB_s": 52.7943,
+          "serial_GiB_s": 14.4021
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8565,
+          "h2d_GiB_s": 50.9082,
+          "serial_GiB_s": 13.5431
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0071,
+          "h2d_GiB_s": 52.79,
+          "serial_GiB_s": 14.7615
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.4451,
+          "h2d_GiB_s": 52.766,
+          "serial_GiB_s": 14.8174
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.4761,
+          "h2d_GiB_s": 52.874,
+          "serial_GiB_s": 15.0976
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.4278,
+          "h2d_GiB_s": 52.8518,
+          "serial_GiB_s": 15.3832
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.9536,
+          "h2d_GiB_s": 52.8518,
+          "serial_GiB_s": 15.2746
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.5283,
+          "h2d_GiB_s": 52.8575,
+          "serial_GiB_s": 14.907
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.1635,
+          "h2d_GiB_s": 52.8733,
+          "serial_GiB_s": 14.6837
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.1274,
+          "h2d_GiB_s": 52.8486,
+          "serial_GiB_s": 15.0888
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.5577,
+          "h2d_GiB_s": 27.0543,
+          "serial_GiB_s": 2.20273
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.1422,
+          "h2d_GiB_s": 27.4157,
+          "serial_GiB_s": 2.19451
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.1391,
+          "h2d_GiB_s": 27.3334,
+          "serial_GiB_s": 2.16202
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.5051,
+          "h2d_GiB_s": 27.5431,
+          "serial_GiB_s": 2.24473
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.1741,
+          "h2d_GiB_s": 27.1312,
+          "serial_GiB_s": 2.17004
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.9109,
+          "h2d_GiB_s": 26.9752,
+          "serial_GiB_s": 2.20028
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.1071,
+          "h2d_GiB_s": 44.1073,
+          "serial_GiB_s": 7.44291
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.0327,
+          "h2d_GiB_s": 43.7523,
+          "serial_GiB_s": 7.04775
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2981,
+          "h2d_GiB_s": 43.5082,
+          "serial_GiB_s": 7.22343
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.4887,
+          "h2d_GiB_s": 43.8914,
+          "serial_GiB_s": 7.46463
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.2777,
+          "h2d_GiB_s": 43.5924,
+          "serial_GiB_s": 7.36965
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6979,
+          "h2d_GiB_s": 43.7567,
+          "serial_GiB_s": 7.17585
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8,
+          "h2d_GiB_s": 50.1766,
+          "serial_GiB_s": 11.6138
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.5753,
+          "h2d_GiB_s": 50.1132,
+          "serial_GiB_s": 11.9308
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2482,
+          "h2d_GiB_s": 50.1973,
+          "serial_GiB_s": 12.2837
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0476,
+          "h2d_GiB_s": 49.6401,
+          "serial_GiB_s": 12.4097
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0631,
+          "h2d_GiB_s": 50.1238,
+          "serial_GiB_s": 12.0636
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.0636,
+          "h2d_GiB_s": 50.2144,
+          "serial_GiB_s": 10.4269
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0969,
+          "h2d_GiB_s": 52.6016,
+          "serial_GiB_s": 13.6177
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.7348,
+          "h2d_GiB_s": 51.8927,
+          "serial_GiB_s": 13.3968
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.1977,
+          "h2d_GiB_s": 51.8944,
+          "serial_GiB_s": 13.4555
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.2371,
+          "h2d_GiB_s": 51.8882,
+          "serial_GiB_s": 12.9147
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.5239,
+          "h2d_GiB_s": 51.8512,
+          "serial_GiB_s": 13.1948
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.6888,
+          "h2d_GiB_s": 51.8996,
+          "serial_GiB_s": 13.4477
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 0,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8961,
+          "h2d_GiB_s": 52.3247,
+          "serial_GiB_s": 13.5786
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 1,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9811,
+          "h2d_GiB_s": 52.3444,
+          "serial_GiB_s": 14.1331
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 2,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.0391,
+          "h2d_GiB_s": 52.4153,
+          "serial_GiB_s": 14.0177
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 3,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.494,
+          "h2d_GiB_s": 48.7057,
+          "serial_GiB_s": 12.6383
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 4,
+          "stream_copy": 0,
+          "cpu_GiB_s": 19.6611,
+          "h2d_GiB_s": 52.3356,
+          "serial_GiB_s": 13.6291
+        },
+        {
+          "source_offset": 17,
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "round": 5,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.4638,
+          "h2d_GiB_s": 50.2147,
+          "serial_GiB_s": 12.6723
+        }
+      ],
+      "medians": [
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 34.6869,
+          "h2d_GiB_s": 20.3683,
+          "serial_GiB_s": 2.09826
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 20.8399,
+          "h2d_GiB_s": 27.0959,
+          "serial_GiB_s": 2.19046
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 40.8476,
+          "h2d_GiB_s": 26.473,
+          "serial_GiB_s": 6.88197
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.1862,
+          "h2d_GiB_s": 43.597,
+          "serial_GiB_s": 7.27802
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 44.5231,
+          "h2d_GiB_s": 28.4451,
+          "serial_GiB_s": 12.7613
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.0379,
+          "h2d_GiB_s": 50.1921,
+          "serial_GiB_s": 11.2943
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.8565,
+          "h2d_GiB_s": 52.7631,
+          "serial_GiB_s": 14.6454
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9322,
+          "h2d_GiB_s": 52.766,
+          "serial_GiB_s": 14.4021
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.4761,
+          "h2d_GiB_s": 52.8733,
+          "serial_GiB_s": 14.907
+        },
+        {
+          "write_combined": 0,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 23.4278,
+          "h2d_GiB_s": 52.8518,
+          "serial_GiB_s": 15.2746
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 0,
+          "cpu_GiB_s": 21.5051,
+          "h2d_GiB_s": 27.1312,
+          "serial_GiB_s": 2.20273
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 65536,
+          "stream_copy": 1,
+          "cpu_GiB_s": 21.1391,
+          "h2d_GiB_s": 27.3334,
+          "serial_GiB_s": 2.19451
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.2777,
+          "h2d_GiB_s": 43.8914,
+          "serial_GiB_s": 7.44291
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 262144,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.2981,
+          "h2d_GiB_s": 43.7523,
+          "serial_GiB_s": 7.17585
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 0,
+          "cpu_GiB_s": 23.0476,
+          "h2d_GiB_s": 50.1238,
+          "serial_GiB_s": 12.0636
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 1048576,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.5753,
+          "h2d_GiB_s": 50.1973,
+          "serial_GiB_s": 11.9308
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.5239,
+          "h2d_GiB_s": 51.8882,
+          "serial_GiB_s": 13.1948
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 3145728,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.7348,
+          "h2d_GiB_s": 51.8944,
+          "serial_GiB_s": 13.4477
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 0,
+          "cpu_GiB_s": 22.494,
+          "h2d_GiB_s": 52.3247,
+          "serial_GiB_s": 13.5786
+        },
+        {
+          "write_combined": 1,
+          "chunk_bytes": 4194304,
+          "stream_copy": 1,
+          "cpu_GiB_s": 22.9811,
+          "h2d_GiB_s": 52.3444,
+          "serial_GiB_s": 14.0177
+        }
+      ],
+      "gpu_byte_checks": 60,
+      "csv_sha256": "64d8f3df5187f699e0468ffd946a23b2443038b4b4c1fa165396a720c6c027b4"
+    }
+  ]
+}

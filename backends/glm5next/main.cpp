@@ -186,6 +186,7 @@ int main(int argc,char ** argv) {
                 <<" expert_pipeline="<<o.pipeline<<" expert_copy_events="<<usage["expert_copy_events"].get<int>()
                 <<" expert_decode_readers="<<usage["expert_decode_readers"].get<int>()
                 <<" expert_write_combined="<<usage["expert_write_combined"].get<int>()
+                <<" expert_early_host_refill="<<usage["expert_early_host_refill"].get<int>()
                 <<" main_cache_decay="<<usage["main_cache_decay"].get<uint64_t>()
                 <<" expert_pool_reclaim="<<usage["expert_pool_reclaim"].get<int>()
                 <<" expert_memory_pool="<<int(usage["cuda_memory_pool"].get<bool>())

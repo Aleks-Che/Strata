@@ -44,6 +44,7 @@ def main():
     ap.add_argument('--ram-layers', type=int, help='With --load-ram 1, keep layers at or above this index mapped')
     ap.add_argument('--paging-counters', action='store_true', help='Windows machine-wide paging/disk deltas per request')
     ap.add_argument('--write-combined', type=int, choices=(0, 1))
+    ap.add_argument('--early-host-refill', type=int, choices=(0, 1), help='Prepare the next host payload while the prior GPU slot is still in use')
     ap.add_argument('--main-cache-decay', type=int)
     ap.add_argument('--pool-reclaim', type=int, choices=(0, 1))
     ap.add_argument('--memory-pool', type=int, choices=(0, 1))
@@ -91,6 +92,7 @@ def main():
                             ('STRATA_GLM_EXPERT_LOAD_RAM', a.load_ram),
                             ('STRATA_GLM_EXPERT_RAM_LAYERS', a.ram_layers),
                             ('STRATA_GLM_WRITE_COMBINED', a.write_combined),
+                            ('STRATA_GLM_EARLY_HOST_REFILL', a.early_host_refill),
                             ('STRATA_GLM_MAIN_CACHE_DECAY', a.main_cache_decay),
                             ('STRATA_GLM_POOL_RECLAIM', a.pool_reclaim),
                             ('STRATA_GLM_MEMORY_POOL', a.memory_pool),
@@ -132,6 +134,8 @@ def main():
                 assert engine.info['expert_ram_layers'] == a.ram_layers
             if a.write_combined is not None:
                 assert engine.info['expert_write_combined'] == a.write_combined
+            if a.early_host_refill is not None:
+                assert engine.info['expert_early_host_refill'] == a.early_host_refill
             if a.main_cache_decay is not None:
                 assert engine.info['main_cache_decay'] == a.main_cache_decay
             if a.pool_reclaim is not None:
