@@ -50,6 +50,8 @@ def main():
     ap.add_argument('--cache-slab-mib', type=int, help='0 disables packed cache; otherwise 4..256 MiB per slab')
     ap.add_argument('--cache-compact', type=int, choices=(0, 1), help='Compact idle expert slabs between requests')
     ap.add_argument('--cache-only', type=int, choices=(0, 1), help='MTP catch-up: full control / cache-only graph')
+    ap.add_argument('--token-batch', type=int, choices=(0, 1), help='Quantized verify matvec: serial / batch single-token kernels')
+    ap.add_argument('--shared-scratch', type=int, choices=(0, 1), help='Share setup-time CUDA compute buffers between serialized target and draft')
     a = ap.parse_args()
     depths = [int(x) for x in a.depths.split(',')]
     if a.repeats < 2 or a.warmups < 1 or not depths or any(x not in range(4) for x in depths):
@@ -94,7 +96,9 @@ def main():
                             ('STRATA_GLM_MEMORY_POOL', a.memory_pool),
                             ('STRATA_GLM_CACHE_SLAB_MIB', a.cache_slab_mib),
                             ('STRATA_GLM_CACHE_COMPACT', a.cache_compact),
-                            ('STRATA_GLM_MTP_CACHE_ONLY', a.cache_only)):
+                            ('STRATA_GLM_MTP_CACHE_ONLY', a.cache_only),
+                            ('STRATA_GLM_MMVQ_TOKEN_BATCH', a.token_batch),
+                            ('STRATA_GLM_MTP_SHARED_SCRATCH', a.shared_scratch)):
             if value is not None:
                 variant['env'][name] = str(value)
         for flag, value in (('--expert-pipeline', 1), ('--expert-chunk-mib', a.chunk_mib),
@@ -140,6 +144,10 @@ def main():
                 assert engine.info['expert_cache_compact'] == a.cache_compact
             if a.cache_only is not None:
                 assert engine.info['mtp_cache_only'] == (a.cache_only if depth else 0)
+            if a.token_batch is not None:
+                assert engine.info['mmvq_token_batch'] == a.token_batch
+            if a.shared_scratch is not None:
+                assert (engine.info['mtp_shared_scratch_bytes'] > 0) == bool(a.shared_scratch and depth)
             for i in range(a.repeats + a.warmups):
                 ref = references[i % len(references)]
                 ids, expected = ref['prompt_ids'], ref['generated_ids']
@@ -175,6 +183,10 @@ def main():
                 text = Path(variant['log']).read_text(encoding='utf-8', errors='replace')
                 for marker, key in (('STRATA_GLM_MEMORY ', 'memory_snapshots'), ('STRATA_GLM_MTP ', 'mtp_statistics')):
                     result[key] = [json.loads(line.split(marker, 1)[1]) for line in text.splitlines() if marker in line]
+                if a.shared_scratch and depth and (not result['mtp_statistics'] or
+                        not all(s.get('shared_scratch_active') for s in result['mtp_statistics'])):
+                    result['status'] = 'error'
+                    result['error'] = 'MTP scratch sharing detached or statistics are missing'
             save()
     valid = [v for v in report['variants'] if v['status'] == 'pass']
     report['fastest_matching_depth'] = max(valid, key=lambda v: v['median_tokens_per_second'])['depth'] if valid else None

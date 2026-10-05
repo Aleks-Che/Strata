@@ -91,6 +91,7 @@ string(REPLACE "${glm_sync_anchor}" "${glm_sync_anchor}
     }
 " glm_cuda_dispatch "${glm_cuda_dispatch}")
 set(glm_cuda_generated "${CMAKE_BINARY_DIR}/strata-glm-cuda.cu")
+include(ShortBatchPatches.cmake)
 set(glm_cuda_old "")
 if(EXISTS "${glm_cuda_generated}")
   file(READ "${glm_cuda_generated}" glm_cuda_old)
@@ -108,5 +109,6 @@ endif()
 list(REMOVE_ITEM glm_cuda_sources ${glm_dispatch_sources})
 set_property(TARGET ggml-cuda PROPERTY SOURCES "${glm_cuda_sources};${glm_cuda_generated}")
 set_source_files_properties("${glm_cuda_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
-  INCLUDE_DIRECTORIES "${glm_source}/ggml/src/ggml-cuda")
-string(APPEND glm_candidate_patches ",optional-tokenwise-small-batch-matmul")
+  INCLUDE_DIRECTORIES "${glm_source}/ggml/src/ggml-cuda;${CMAKE_CURRENT_SOURCE_DIR}"
+  OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.hpp")
+string(APPEND glm_candidate_patches ",optional-tokenwise-small-batch-matmul,optional-token-batch-mmvq")

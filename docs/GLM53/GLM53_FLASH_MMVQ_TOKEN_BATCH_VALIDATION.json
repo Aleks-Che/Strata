@@ -1,0 +1,375 @@
+{
+  "status": "pass",
+  "date": "2026-10-05",
+  "cwd": "C:\\work\\git\\my-repos\\Strata",
+  "base_revision": "ff294a2aa398b82277481d853c0573dc2df95b14",
+  "dependency": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "hardware": "Windows / Ryzen 9 9950X / 128 GiB RAM / RTX 5090 32 GiB",
+  "source_and_binary_hashes": [
+    {
+      "path": "backends/glm5next/CMakeLists.txt",
+      "sha256": "62c1664bd0bab15f677028a28d5dbb7092b7b9819d547743ae31bcda10f11a62"
+    },
+    {
+      "path": "backends/glm5next/CandidatePatches.cmake",
+      "sha256": "08901f9b6c6707547a543cd5cfb0de93dbd8b7f0d136eec7b3d380312d5c6b00"
+    },
+    {
+      "path": "backends/glm5next/ShortBatchPatches.cmake",
+      "sha256": "13e983a04f2b4dca67b878b12a6288458c22596c2fb8c9b11d82a75bfbe701cd"
+    },
+    {
+      "path": "backends/glm5next/mmvq_token_batch.hpp",
+      "sha256": "34b688ce85c2ab32126ecadb8d3d6e6dba8e4d6599365b6bedcdbee3878f8a45"
+    },
+    {
+      "path": "backends/glm5next/mmvq_token_batch.inc",
+      "sha256": "3da0038e85ad7663419ede975949a3625b34ccf7e7accc88c599b63c9446be06"
+    },
+    {
+      "path": "backends/glm5next/check_mmvq_batch.cpp",
+      "sha256": "f2458521b97f708f6f263e64600041cd21233040383b39c6fc5329e747805d65"
+    },
+    {
+      "path": "backends/glm5next/runtime.hpp",
+      "sha256": "bd8f9af8576aa24e1b78b2932abf05bca664ef435f8131a9faf361a3bf2154be"
+    },
+    {
+      "path": "backends/glm5next/main.cpp",
+      "sha256": "3ef1d41bb8b0e679acbbbbe58ff39e24f7de8bf47b2fea89dfd79c66e771ee75"
+    },
+    {
+      "path": "tools/benchmark_glm5next_mtp.py",
+      "sha256": "eae9eaa8c4b6ed281718ac0cfa44f4b6dee3b1be3c49210a2bad28edf6387a74"
+    },
+    {
+      "path": "build-local/glm5next-candidate-cuda/strata-glm-mmvq.cu",
+      "sha256": "af5a203ad6e9ba6bcfe111b6d54e042ae447de97d3e5cb38acdebf5628612185"
+    },
+    {
+      "path": "build-local/glm5next-candidate-cuda/strata-glm-cuda.cu",
+      "sha256": "c0e0ed3cff2c4bd0998594ffcfdfcde3c4be3ace6abc7a64616744d290d48777"
+    },
+    {
+      "path": "build-local/glm5next-candidate-cuda/bin/strata-glm5next.exe",
+      "sha256": "acca472bd815c0a8852a15c8f1d732961be1240498c6892fc8551ed7603f6d1f"
+    },
+    {
+      "path": "build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe",
+      "sha256": "76c920161a448d90cc664afef3f7529664e7ab5097a3b7c910568cd36bd3d5ba"
+    }
+  ],
+  "checks": {
+    "matrix_cases": 486,
+    "matrix_f32_outputs": 15686784,
+    "other_candidate_ctest": 26,
+    "python_tests": 83,
+    "benchmark_reference_answers": 98,
+    "real_mtp_cases": 11,
+    "saved_f32_logits": 9912320,
+    "native_pipe_cases": 9
+  },
+  "build_command": [
+    "cmd /c build-local/build-glm-mmvq-batch.cmd"
+  ],
+  "build_exit_code": 0,
+  "real_model_command": {
+    "command": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+      "--model",
+      "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "--reference",
+      "docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json",
+      "--reference-logits",
+      "build-local/glm-sync-iq3-repeat.f32",
+      "--memory-percent",
+      "95",
+      "--tokens",
+      "64",
+      "--report",
+      "build-local/glm-mmvq-batch-real-check.json"
+    ],
+    "environment": {
+      "STRATA_GLM_COPY_EVENTS": "2",
+      "STRATA_GLM_DECODE_READERS": "1",
+      "STRATA_GLM_WRITE_COMBINED": "0",
+      "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+      "STRATA_GLM_POOL_RECLAIM": "0",
+      "STRATA_GLM_MEMORY_POOL": "0",
+      "STRATA_GLM_CACHE_SLAB_MIB": "16",
+      "STRATA_GLM_MTP_CACHE_ONLY": "1",
+      "STRATA_GLM_RAM_WARM_MODE": "0",
+      "STRATA_GLM_EXPERT_PROFILE": "",
+      "STRATA_GLM_MMVQ_TOKEN_BATCH": "1"
+    }
+  },
+  "real_model_exit_code": 0,
+  "dll_environment": "Prepend absolute build-local/cuda-13.0/bin and bin/x64 to child PATH inside Python before subprocess.run.",
+  "initial_failed_launch": {
+    "exit_code": 3221225781,
+    "reason": "CUDA DLL prefix lost when inherited through the Python launcher; retried with explicit child PATH, exit 0."
+  },
+  "commands": [
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-mmvq-batch-check.exe > build-local/glm-mmvq-batch-fixture.json 2> build-local/glm-mmvq-batch-fixture.log",
+    "STRATA_GLM_MMVQ_TOKEN_BATCH=1; ctest --test-dir build-local/glm5next-candidate-cuda -C Release --output-on-failure --no-tests=error -E ^glm5next_mmvq_token_batch$",
+    "python -m unittest tools.test_glm5next_profile tools.test_setup_glm5next tools.test_glm5next_build serve.test_glm5next serve.test_glm5next_info serve.test_glm5next_requests serve.test_glm5next_handlers serve.test_glm5next_http serve.test_glm5next_service",
+    "python tools/benchmark_glm5next_mtp.py --profile build-local/glm-mtp-batch-baseline-profile.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --second-reference build-local/glm-mtp-cache-reference-b.json --output build-local/glm-mtp-batch-baseline.json --depths 1 --warmups 8 --repeats 6 --paging-counters",
+    "python tools/benchmark_glm5next_mtp.py --profile build-local/glm-mtp-batch-profile.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --second-reference build-local/glm-mtp-cache-reference-b.json --output build-local/glm-mtp-batch-depths.json --depths 1,2,3,0 --warmups 8 --repeats 6 --paging-counters --token-batch 1",
+    "python tools/benchmark_glm5next_mtp.py --profile build-local/glm-mtp-batch-profile.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --second-reference build-local/glm-mtp-cache-reference-b.json --output build-local/glm-mtp-batch-control.json --depths 1,0 --warmups 8 --repeats 6 --paging-counters --token-batch 0",
+    "python tools/check_glm5next_engine.py --profile build-local/glm-mmvq-batch-pipe-profile.json --reference docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json --output build-local/glm-mmvq-batch-pipe.json"
+  ],
+  "matrix_fixture_note": "The first built fixture produced the saved 486-case result. The final fixture adds only a stderr progress line; CUDA source and arithmetic are unchanged. Other 26 CTests and full-model checks use the final build.",
+  "local_profile": {
+    "path": "strata-glm5next.json",
+    "sha256": "01de078dbe3e7dbba97f56cfb39f8cf1f7aa5fb9441150204e080420fc129024",
+    "mtp_depth": 0,
+    "token_batch": 1,
+    "backup": "build-local\\strata-glm5next-before-mmvq-batch.json"
+  },
+  "not_checked": [
+    "Full HTTP repeated on this build",
+    "Long contexts and larger workload matrix",
+    "Linux/HIP",
+    "Full Qwen/DeepSeek runs",
+    "Model full-file hash"
+  ],
+  "measurement_limits": [
+    "Only two short saved prompts and 64-token greedy outputs.",
+    "Sequential engines; OS file cache not cleared; adaptive cache capacities differ.",
+    "Machine-wide paging/disk counters do not measure only this engine.",
+    "MTP-off and control-B rates vary; no stable universal end-to-end speedup established.",
+    "Memory peaks below are maxima of request-boundary samples, not continuous peaks.",
+    "Pipeline read time is cumulative worker time; H2D/read deltas include prefill."
+  ],
+  "logs": [
+    {
+      "path": "build-local/glm-mmvq-batch-build.log",
+      "sha256": "c3fc518b651e1e10f9cb88572aa290af826752c21e7b0c551937cc53d913a7b1",
+      "tail": [
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\xlocmon",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\xloctime",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\locale",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\xlocbuf",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\xlocmes",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\optional",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\xsmf_control.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\numeric",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\ostream",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\any",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\string_view",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:  C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\iostream",
+        "[9/20] Building CUDA object llama\\ggml\\src\\ggml-cuda\\CMakeFiles\\ggml-cuda.dir\\__\\__\\__\\__\\strata-glm-mmvq.cu.obj",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\ggml\\src\\ggml-cuda\\common.cuh(636): warning #221-D: floating-point value does not fit in required floating-point type",
+        "              return -((float)(1e+300)) ;",
+        "                       ^",
+        "",
+        "Remark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"",
+        "",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\ggml\\src\\ggml-cuda\\common.cuh(638): warning #221-D: floating-point value does not fit in required floating-point type",
+        "              return make_half2(-((float)(1e+300)) , -((float)(1e+300)) );",
+        "                                  ^",
+        "",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\ggml\\src\\ggml-cuda\\common.cuh(638): warning #221-D: floating-point value does not fit in required floating-point type",
+        "              return make_half2(-((float)(1e+300)) , -((float)(1e+300)) );",
+        "                                                       ^",
+        "",
+        "strata-glm-mmvq.cu",
+        "tmpxft_0000d548_00000000-7_strata-glm-mmvq.cudafe1.cpp",
+        "[10/20] Linking CXX static library llama\\ggml\\src\\ggml-cuda\\ggml-cuda.lib",
+        "[11/20] Linking CXX executable bin\\strata-glm5next-smoke.exe",
+        "[12/20] Linking CXX executable bin\\strata-glm5next-mtp-check.exe",
+        "[13/20] Linking CXX executable bin\\strata-glm5next-mtp-cache-check.exe",
+        "[14/20] Linking CXX executable bin\\strata-glm5next.exe",
+        "[15/20] Linking CXX executable bin\\strata-glm5next-ops-check.exe",
+        "[16/20] Linking CXX executable bin\\strata-glm5next-tokenizer.exe",
+        "[17/20] Linking CXX executable bin\\strata-glm5next-state-check.exe",
+        "[18/20] Linking CXX executable bin\\strata-glm5next-graph-check.exe",
+        "[19/20] Linking CXX executable bin\\strata-glm5next-quant-check.exe",
+        "[20/20] Linking CXX executable bin\\strata-glm5next-mmvq-batch-check.exe"
+      ]
+    },
+    {
+      "path": "build-local/glm-mmvq-batch-build-final.log",
+      "sha256": "4a12363b6a9a8947897bea55f5e860ceec9eb42418ebdb0e2e5768c279066bce",
+      "tail": [
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\unknwnbase.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\objidlbase.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\guiddef.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\cguid.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\poppack.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\coml2api.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\objidl.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:        C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\unknwn.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\propidlbase.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:        C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\oaidl.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\urlmon.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\oleidl.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\servprov.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:       C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.26100.0\\um\\msxml.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\propidl.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\poppack.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\oleauto.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\pshpack8.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:      C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\poppack.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\poppack.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\commdlg.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\prsht.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\shared\\stralign.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\winsvc.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\mcx.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:    C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\imm.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:     C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\ime_cmodes.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Windows Kits\\10\\\\include\\10.0.26100.0\\\\um\\psapi.h",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:  C:\\work\\git\\my-repos\\Strata\\backends\\glm5next\\synthetic_glm.hpp",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:  C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\fstream",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:   C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\__msvc_filebuf.hpp",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:  C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\iostream",
+        "РџСЂРёРјРµС‡Р°РЅРёРµ: РІРєР»СЋС‡РµРЅРёРµ С„Р°Р№Р»Р°:  C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\include\\sstream",
+        "[12/18] Linking CXX executable bin\\strata-glm5next-state-check.exe",
+        "[13/18] Linking CXX executable bin\\strata-glm5next.exe",
+        "[14/18] Linking CXX executable bin\\strata-glm5next-mtp-check.exe",
+        "[15/18] Linking CXX executable bin\\strata-glm5next-quant-check.exe",
+        "[16/18] Linking CXX executable bin\\strata-glm5next-mmvq-batch-check.exe",
+        "[17/18] Linking CXX executable bin\\strata-glm5next-mtp-cache-check.exe",
+        "[18/18] Linking CXX executable bin\\strata-glm5next-smoke.exe"
+      ]
+    },
+    {
+      "path": "build-local/glm-mmvq-batch-ctest.log",
+      "sha256": "013a5f6d3abb50c2c869e7fc3fde141d665b7cba1fd83321f6706ff62579a321",
+      "tail": [
+        "      Start  9: glm5next_host_pages",
+        " 9/26 Test  #9: glm5next_host_pages .................   Passed    0.01 sec",
+        "      Start 10: glm5next_native_mtp",
+        "10/26 Test #10: glm5next_native_mtp .................   Passed    2.43 sec",
+        "      Start 11: glm5next_native_mtp_events",
+        "11/26 Test #11: glm5next_native_mtp_events ..........   Passed    2.34 sec",
+        "      Start 12: glm5next_native_mtp_legacy",
+        "12/26 Test #12: glm5next_native_mtp_legacy ..........   Passed    2.47 sec",
+        "      Start 13: glm5next_native_mtp_ram",
+        "13/26 Test #13: glm5next_native_mtp_ram .............   Passed    2.33 sec",
+        "      Start 14: glm5next_native_mtp_hybrid",
+        "14/26 Test #14: glm5next_native_mtp_hybrid ..........   Passed    2.31 sec",
+        "      Start 15: glm5next_mtp_cache_state",
+        "15/26 Test #15: glm5next_mtp_cache_state ............   Passed    1.08 sec",
+        "      Start 16: glm5next_sync_baseline",
+        "16/26 Test #16: glm5next_sync_baseline ..............   Passed    1.08 sec",
+        "      Start 17: glm5next_pipeline_events",
+        "17/26 Test #17: glm5next_pipeline_events ............   Passed    0.96 sec",
+        "      Start 18: glm5next_pipeline_staging",
+        "18/26 Test #18: glm5next_pipeline_staging ...........   Passed    1.05 sec",
+        "      Start 19: glm5next_pipeline_slab",
+        "19/26 Test #19: glm5next_pipeline_slab ..............   Passed    0.98 sec",
+        "      Start 20: glm5next_pipeline_ram",
+        "20/26 Test #20: glm5next_pipeline_ram ...............   Passed    1.00 sec",
+        "      Start 21: glm5next_pipeline_hybrid",
+        "21/26 Test #21: glm5next_pipeline_hybrid ............   Passed    0.99 sec",
+        "      Start 22: glm5next_pipe_lifecycle",
+        "22/26 Test #22: glm5next_pipe_lifecycle .............   Passed    0.66 sec",
+        "      Start 23: glm5next_candidate_ops",
+        "23/26 Test #23: glm5next_candidate_ops ..............   Passed    0.69 sec",
+        "      Start 24: glm5next_candidate_state",
+        "24/26 Test #24: glm5next_candidate_state ............   Passed    0.87 sec",
+        "      Start 25: glm5next_candidate_quant",
+        "25/26 Test #25: glm5next_candidate_quant ............   Passed    1.37 sec",
+        "      Start 26: glm5next_tokenwise_quant",
+        "26/26 Test #26: glm5next_tokenwise_quant ............   Passed    1.31 sec",
+        "",
+        "100% tests passed, 0 tests failed out of 26",
+        "",
+        "Total Test time (real) =  24.13 sec"
+      ]
+    },
+    {
+      "path": "build-local/glm-mmvq-batch-python.log",
+      "sha256": "2d755e0e383659384b8dcf4137592183edcd3c65d1d9ef27de215b35b5b31b28",
+      "tail": [
+        "...................................................................................",
+        "----------------------------------------------------------------------",
+        "Ran 83 tests in 18.329s",
+        "",
+        "OK"
+      ]
+    },
+    {
+      "path": "build-local/glm-mmvq-batch-real-check.log",
+      "sha256": "99afde66749c19eb1ecc9f0dd364febdb953a5acf2740b08f9c7a92a58a5da6f",
+      "tail": [
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "ggml_backend_cuda_graph_compute: CUDA graph warmup reset",
+        "GLM_MTP_CHECK {\"depth\":3,\"mtp\":{\"accept_all\":3,\"accepted\":10,\"draft_ms\":111.52730000000001,\"proposed\":14,\"reject_first\":0,\"reject_middle\":2,\"repair_ms\":3.0548,\"rounds\":5,\"verify_ms\":1039.8311},\"tps\":12.382191700761718}",
+        "~llama_context:      CUDA0 compute buffer size is 993.5527 MiB, matches expectation of 993.5527 MiB",
+        "~llama_context:  CUDA_Host compute buffer size is   0.3754 MiB, matches expectation of   0.3754 MiB",
+        "~llama_context:      CUDA0 compute buffer size of 1963.0010 MiB, does not match expectation of 1228.8772 MiB",
+        "~llama_context:  CUDA_Host compute buffer size is   0.3754 MiB, matches expectation of   0.3754 MiB"
+      ]
+    },
+    {
+      "path": "build-local/glm-mmvq-batch-pipe.log",
+      "sha256": "a8e30e116625f6b97f4b20065175025e498d8b61fc57965bb6ce86ed7e998425",
+      "tail": [
+        "[strata] starting the engine: reading the model's weights ...",
+        "[strata] still starting (20 s) - please wait ..."
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/GLM53/GLM53_FLASH_MMVQ_TOKEN_BATCH_BENCHMARK.json",
+      "sha256": "446f60073e61328f994d9f79881914f5b34c743bbac51925175fbbf5dcd2b73b"
+    },
+    {
+      "path": "docs/GLM53/GLM53_FLASH_MMVQ_TOKEN_BATCH_CHECK.json",
+      "sha256": "b505e993a3d72bb18a47d1f5024db8e12d6eb9445e8ab5132497ed76fa3d6c58"
+    },
+    {
+      "path": "docs/GLM53/GLM53_FLASH_MMVQ_TOKEN_BATCH_MATRICES.json",
+      "sha256": "5c1ecc7849668b10c78e3b6085c88e0e80b25017e8d4e9adb9fe87a343e7b943"
+    },
+    {
+      "path": "docs/GLM53/GLM53_FLASH_MMVQ_TOKEN_BATCH_PIPE.json",
+      "sha256": "2e36603c76266a44b5cf679c2645f0158a0c3db2b1899a9f73400095479e382a"
+    }
+  ],
+  "after_checks": {
+    "own_engine_processes_running": false,
+    "gpu_memory_used_mib": 2156,
+    "gpu_utilization_percent": 0,
+    "git_diff_check": "pass",
+    "artifact_json_and_local_links": "pass"
+  }
+}

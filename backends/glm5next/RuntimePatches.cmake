@@ -7,6 +7,8 @@ function(glm_runtime_source target relative expected_hash output_name)
   endif()
   file(READ "${original}" source_text)
   if(target STREQUAL "ggml-base")
+    string(PREPEND source_text "#include \"shared_scratch.h\"\n")
+    string(APPEND source_text "\n#include \"shared_scratch_sched.inc\"\n")
     set(wait_before "                // wait for the split backend to finish using the input before overwriting it
                 if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
                     ggml_backend_event_wait(split_backend, sched->events[split_backend_id][sched->cur_copy]);
@@ -102,7 +104,7 @@ ${lazy_anchor}" source_text "${source_text}")
   get_filename_component(original_dir "${original}" DIRECTORY)
   set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
     INCLUDE_DIRECTORIES "${original_dir};${CMAKE_CURRENT_SOURCE_DIR}"
-    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/expert_load.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/expert_load.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp;${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch.h;${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch_sched.inc")
 endfunction()
 glm_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-glm-backend.cpp)

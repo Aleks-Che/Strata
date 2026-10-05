@@ -1,6 +1,8 @@
 #pragma once
 #include "runtime.hpp"
 #include "llama-ext.h"
+#include "llama-context.h"
+#include "shared_scratch.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -18,6 +20,7 @@ class Mtp {
     Context draft{nullptr,llama_free};
     int width,vocab,depth;
     bool cache_only_catch_up=true;
+    size_t shared_scratch_bytes=0;
     std::vector<float> pending;
     static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
     std::vector<float> features(llama_context * ctx,int count) {
@@ -69,9 +72,22 @@ public:
         draft=context(model,size,batch,threads,0,true);
         llama_set_embeddings_nextn(target,true,false);
         llama_set_embeddings_nextn(draft.get(),true,true);
+        if (const char * value=std::getenv("STRATA_GLM_MTP_SHARED_SCRATCH")) {
+            require(std::string(value)=="0" || std::string(value)=="1","STRATA_GLM_MTP_SHARED_SCRATCH must be 0 or 1");
+            if (*value=='1') {
+                target->sched_reserve();draft->sched_reserve();
+                // Both constructors have reserved worst-case graphs, but neither
+                // context has executed. decode()/draft_decode() synchronize and
+                // copy outputs to host before switching to the other context.
+                shared_scratch_bytes=strata_glm_sched_share_scratch(target->get_sched(),draft->get_sched());
+                require(shared_scratch_bytes>0,"MTP shared scratch requires compatible fresh CUDA0 schedulers");
+            }
+        }
     }
     void set_depth(int n) {require(n>=1 && n<=3 && uint32_t(n)<=llama_n_rs_seq(target),"invalid MTP depth");depth=n;}
     bool uses_cache_only_catch_up() const {return cache_only_catch_up;}
+    size_t shared_scratch_saved_bytes() const {return shared_scratch_bytes;}
+    bool shared_scratch_active() const {return shared_scratch_bytes && strata_glm_sched_scratch_is_shared(target->get_sched(),draft->get_sched());}
     void reset() {clear(draft.get());std::fill(pending.begin(),pending.end(),0);counters={};}
     void prefill(const std::vector<llama_token> & ids,int start,int count,int position) {
         auto h=features(target,count);

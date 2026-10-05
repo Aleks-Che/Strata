@@ -64,7 +64,8 @@ int main(int argc,char ** argv) {
                     "hybrid fixture must exercise both private and mapped expert buffers");
             }
             report["memory_after_warm"]=memory.snapshot();report["configuration"]={{"model",file},{"synthetic",synthetic},{"n_ctx",context_size},
-                {"batch",16},{"n_rs_seq",3},{"kv","F16"},{"pipeline",true},{"ram_target_percent",percent},{"vram_target_percent",percent},{"prompt_ids",prompt}};
+                {"batch",16},{"n_rs_seq",3},{"kv","F16"},{"pipeline",true},{"ram_target_percent",percent},{"vram_target_percent",percent},{"prompt_ids",prompt},
+                {"shared_scratch_saved_bytes",mtp.shared_scratch_saved_bytes()}};
             if (diagnostic) {
                 require(reference_ids.size()>=2,"diagnostic needs reference IDs");Probe single,batched;
                 for (int n:{1,2}) {
@@ -129,6 +130,8 @@ int main(int argc,char ** argv) {
                 out.report["decode_seconds"]=seconds(start);out.report["tokens"]=out.tokens;
                 out.report["tokens_per_second"]=(out.tokens.size()-1)/out.report["decode_seconds"].get<double>();
                 out.report["mtp"]=counts(mtp.counters);out.report["memory"]=memory.snapshot();
+                out.report["shared_scratch_active"]=mtp.shared_scratch_active();
+                require(!mtp.shared_scratch_saved_bytes() || mtp.shared_scratch_active(),"shared scratch detached during numerical check");
                 std::cerr<<"GLM_MTP_CHECK "<<json({{"depth",depth},{"tps",out.report["tokens_per_second"]},{"mtp",out.report["mtp"]}}).dump()<<"\n";
                 auto s=strata_glm_sync_snapshot();out.report["cpu_compute_nodes"]=s.rejected_cpu_nodes;
                 require(s.rejected_cpu_nodes==0,"CPU compute encountered");clear(ctx.get());mtp.reset();return out;

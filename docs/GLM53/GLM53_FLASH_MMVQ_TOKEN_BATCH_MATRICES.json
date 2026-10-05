@@ -1,0 +1,5299 @@
+{
+  "status": "pass",
+  "scope": "synthetic device-resident matvec; CUDA graphs disabled; CPU wall microseconds/op",
+  "checks": [
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 128,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 1024,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 192,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 1536,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 256,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 512,
+      "m": 64,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 2048,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true,
+      "control_us": [
+        70.82300000000001,
+        71.865,
+        70.821,
+        74.764
+      ],
+      "token_batch_us": [
+        56.372,
+        57.231,
+        57.058,
+        56.669
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true,
+      "control_us": [
+        96.944,
+        92.846,
+        85.99700000000001,
+        97.429
+      ],
+      "token_batch_us": [
+        79.64699999999999,
+        78.194,
+        67.39699999999999,
+        97.823
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true,
+      "control_us": [
+        75.374,
+        73.71,
+        75.306,
+        74.692
+      ],
+      "token_batch_us": [
+        58.45,
+        59.599,
+        58.4,
+        58.883
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true,
+      "control_us": [
+        80.932,
+        80.498,
+        80.447,
+        79.904
+      ],
+      "token_batch_us": [
+        41.875,
+        39.486999999999995,
+        39.711,
+        38.595
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true,
+      "control_us": [
+        96.17,
+        97.23299999999999,
+        96.79,
+        97.23100000000001
+      ],
+      "token_batch_us": [
+        64.8,
+        65.376,
+        65.168,
+        64.325
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true,
+      "control_us": [
+        102.477,
+        100.301,
+        101.113,
+        102.695
+      ],
+      "token_batch_us": [
+        66.803,
+        67.068,
+        66.238,
+        66.673
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true,
+      "control_us": [
+        99.052,
+        98.443,
+        97.302,
+        97.88600000000001
+      ],
+      "token_batch_us": [
+        41.218,
+        40.541,
+        41.146,
+        43.20399999999999
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true,
+      "control_us": [
+        122.29899999999999,
+        121.387,
+        120.936,
+        120.948
+      ],
+      "token_batch_us": [
+        75.41199999999999,
+        75.79,
+        74.648,
+        75.583
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true,
+      "control_us": [
+        130.029,
+        128.366,
+        127.17299999999999,
+        128.033
+      ],
+      "token_batch_us": [
+        77.355,
+        77.653,
+        78.111,
+        77.672
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true,
+      "control_us": [
+        75.883,
+        76.24,
+        74.548,
+        75.97399999999999
+      ],
+      "token_batch_us": [
+        56.413999999999994,
+        58.073,
+        57.202,
+        57.336000000000006
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true,
+      "control_us": [
+        87.35700000000001,
+        85.78399999999999,
+        88.579,
+        85.059
+      ],
+      "token_batch_us": [
+        66.142,
+        64.983,
+        69.822,
+        65.07600000000001
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true,
+      "control_us": [
+        95.666,
+        76.607,
+        81.447,
+        76.867
+      ],
+      "token_batch_us": [
+        70.938,
+        71.226,
+        58.625,
+        60.021
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true,
+      "control_us": [
+        84.574,
+        83.494,
+        85.126,
+        84.84899999999999
+      ],
+      "token_batch_us": [
+        38.984,
+        39.166,
+        44.608000000000004,
+        39.698
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true,
+      "control_us": [
+        95.686,
+        96.165,
+        95.079,
+        95.234
+      ],
+      "token_batch_us": [
+        63.203,
+        62.878,
+        64.492,
+        63.397
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true,
+      "control_us": [
+        104.37799999999999,
+        104.37799999999999,
+        105.324,
+        105.31
+      ],
+      "token_batch_us": [
+        71.979,
+        72.348,
+        72.429,
+        75.934
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true,
+      "control_us": [
+        115.036,
+        106.07700000000001,
+        105.53200000000001,
+        104.792
+      ],
+      "token_batch_us": [
+        43.098,
+        42.476000000000006,
+        42.538000000000004,
+        43.368
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true,
+      "control_us": [
+        122.652,
+        124.104,
+        122.443,
+        124.50299999999999
+      ],
+      "token_batch_us": [
+        73.589,
+        75.752,
+        73.827,
+        74.425
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true,
+      "control_us": [
+        134.78799999999998,
+        135.328,
+        133.08,
+        131.465
+      ],
+      "token_batch_us": [
+        88.182,
+        85.84200000000001,
+        85.28,
+        85.88799999999999
+      ]
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 3072,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 24576,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 4608,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 36864,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 6144,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 4096,
+      "m": 1536,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 49152,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q8_0",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q6_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq2_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_s",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true,
+      "control_us": [
+        72.383,
+        72.264,
+        71.587,
+        71.528
+      ],
+      "token_batch_us": [
+        57.047,
+        56.608000000000004,
+        56.659,
+        58.666000000000004
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true,
+      "control_us": [
+        103.875,
+        104.36200000000001,
+        99.572,
+        88.229
+      ],
+      "token_batch_us": [
+        96.844,
+        95.462,
+        72.725,
+        71.365
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true,
+      "control_us": [
+        90.404,
+        90.97,
+        89.87700000000001,
+        90.759
+      ],
+      "token_batch_us": [
+        75.072,
+        75.095,
+        75.972,
+        74.744
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true,
+      "control_us": [
+        108.853,
+        82.98299999999999,
+        83.256,
+        85.88
+      ],
+      "token_batch_us": [
+        53.696000000000005,
+        49.755,
+        44.062,
+        44.36
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true,
+      "control_us": [
+        121.163,
+        125.391,
+        126.538,
+        126.21600000000001
+      ],
+      "token_batch_us": [
+        85.669,
+        88.775,
+        89.58,
+        89.64200000000001
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true,
+      "control_us": [
+        127.295,
+        124.01899999999999,
+        123.834,
+        129.66
+      ],
+      "token_batch_us": [
+        96.911,
+        94.10700000000001,
+        93.959,
+        94.693
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true,
+      "control_us": [
+        102.21700000000001,
+        99.557,
+        99.83,
+        102.72399999999999
+      ],
+      "token_batch_us": [
+        43.992,
+        44.821999999999996,
+        45.758,
+        46.726000000000006
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true,
+      "control_us": [
+        155.32,
+        155.847,
+        155.349,
+        154.155
+      ],
+      "token_batch_us": [
+        106.36200000000001,
+        105.00399999999999,
+        105.118,
+        104.939
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true,
+      "control_us": [
+        165.997,
+        159.137,
+        159.44899999999998,
+        159.849
+      ],
+      "token_batch_us": [
+        114.34299999999999,
+        115.131,
+        113.882,
+        114.251
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq3_xxs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "iq4_xs",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true,
+      "control_us": [
+        70.26100000000001,
+        75.656,
+        82.455,
+        71.54
+      ],
+      "token_batch_us": [
+        56.772,
+        56.503,
+        58.916000000000004,
+        48.253
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true,
+      "control_us": [
+        79.35300000000001,
+        79.82600000000001,
+        79.782,
+        68.557
+      ],
+      "token_batch_us": [
+        62.258,
+        60.855,
+        58.397,
+        50.82
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true,
+      "control_us": [
+        71.471,
+        71.601,
+        70.842,
+        71.292
+      ],
+      "token_batch_us": [
+        53.607,
+        52.489,
+        54.105,
+        54.074
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true,
+      "control_us": [
+        81.31,
+        79.335,
+        79.29899999999999,
+        79.812
+      ],
+      "token_batch_us": [
+        39.031,
+        38.615,
+        41.133,
+        38.534
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true,
+      "control_us": [
+        90.77600000000001,
+        90.625,
+        89.77600000000001,
+        89.727
+      ],
+      "token_batch_us": [
+        59.151,
+        59.166000000000004,
+        59.483000000000004,
+        58.831
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true,
+      "control_us": [
+        95.80799999999999,
+        95.839,
+        95.141,
+        96.402
+      ],
+      "token_batch_us": [
+        63.145,
+        62.873999999999995,
+        62.994,
+        62.81399999999999
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true,
+      "control_us": [
+        99.509,
+        99.734,
+        99.596,
+        99.27600000000001
+      ],
+      "token_batch_us": [
+        39.29,
+        39.414,
+        39.289,
+        40.264
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true,
+      "control_us": [
+        115.095,
+        115.464,
+        118.012,
+        114.365
+      ],
+      "token_batch_us": [
+        66.116,
+        67.115,
+        72.896,
+        66.639
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true,
+      "control_us": [
+        124.34200000000001,
+        121.12,
+        120.116,
+        121.54799999999999
+      ],
+      "token_batch_us": [
+        73.146,
+        72.263,
+        72.111,
+        73.641
+      ]
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q2_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q3_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": false,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 0,
+      "strided": true,
+      "elements": 8192,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 1,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": false,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 2,
+      "mode": 2,
+      "strided": true,
+      "elements": 65536,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": false,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 0,
+      "strided": true,
+      "elements": 12288,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 1,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": false,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 3,
+      "mode": 2,
+      "strided": true,
+      "elements": 98304,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": false,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 0,
+      "strided": true,
+      "elements": 16384,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 1,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": false,
+      "elements": 131072,
+      "bit_exact": true
+    },
+    {
+      "k": 1536,
+      "m": 4096,
+      "type": "q4_K",
+      "tokens": 4,
+      "mode": 2,
+      "strided": true,
+      "elements": 131072,
+      "bit_exact": true
+    }
+  ],
+  "device": "NVIDIA GeForce RTX 5090"
+}

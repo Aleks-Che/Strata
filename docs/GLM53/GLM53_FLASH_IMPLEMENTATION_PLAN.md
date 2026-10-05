@@ -587,6 +587,19 @@ sharing не входят в перенос сокращённого catch-up.
     seeded sampling и recovery также сохранили logits. 114 benchmark responses,
     9 pipe и 8 HTTP cases прошли. Устойчивое общее ускорение не подтверждено,
     рабочий MTP off сохранён. [Проверки и замеры](GLM53_FLASH_MTP_CACHE_ONLY.md).
+  - [x] P5.3c: optional token-batch MMVQ для 2–4 токенов с арифметикой одиночного
+    decode; 486 matrix cases bit-exact, full GGUF MTP1/2/3 и rollback прошли.
+    98 benchmark responses совпали; MTP1 с новым путём 9,654/10,187 ток/с на
+    двух prompts. Контроли зависели от памяти; устойчивого общего процента
+    ускорения нет. Локальный token batch on, MTP off.
+  - [x] P5.3d: сравнение в repeated-B/compaction режиме 12,748 ток/с; optional
+    общий target/draft scratch освобождает 993,553 МиБ, полный GGUF bit-exact.
+    Убраны временные строки из проверок logits; 28 CTest, 83 Python,
+    108 benchmark responses и 9 итоговых pipe cases прошли. Новая сборка:
+    MTP off 13,373, MTP1 11,082, shared MTP1 10,644 ток/с по медианам;
+    устойчивого ускорения MTP нет, defaults off сохранены.
+    [Замеры и ограничения](GLM53_FLASH_COMPACTION_MTP.md).
+    [Проверки и ограничения](GLM53_FLASH_MMVQ_TOKEN_BATCH.md).
 - [ ] Реализовать откат всех ветвей состояния на точное число принятых токенов,
   включая KDA и pooled indexer. Проверить reject-first, reject-middle, accept-all,
   отмену раунда и сохранение сессии после каждого случая.

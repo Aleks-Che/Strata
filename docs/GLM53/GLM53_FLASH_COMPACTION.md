@@ -113,3 +113,7 @@ compatibility fixtures входят в transport CTest.
 Подробные времена, все token IDs, память, счётчики и hashes бинарников:
 [benchmark](GLM53_FLASH_COMPACTION_BENCHMARK.json),
 [manifest проверок](GLM53_FLASH_COMPACTION_VALIDATION.json).
+
+Продолжение с MTP на **этом же repeated-B режиме**: [P5.3d](GLM53_FLASH_COMPACTION_MTP.md).
+В нём вынесен отдельный reference B, воспроизведены 12,889–12,933 ток/с без MTP
+и проверяются затраты draft/verify. Результаты чередования A/B сравниваются отдельно.

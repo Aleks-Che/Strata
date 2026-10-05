@@ -1,0 +1,310 @@
+{
+  "status": "pass",
+  "date": "2026-10-05",
+  "base_revision": "ff294a2aa398b82277481d853c0573dc2df95b14",
+  "dependency": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "source_binary_hashes_before_literal_guard": {
+    "backends/glm5next/SharedScratchPatches.cmake": "f949627c9bd6213ee30f791d42020346b2ce6f5da1825031ee49f347cb1e8fa6",
+    "backends/glm5next/RuntimePatches.cmake": "4465ff6f9f030b324c664b7323d3148c8ae5534f5acd25a811ff1e6b89b881be",
+    "backends/glm5next/CMakeLists.txt": "f354138b5fe43de94e7625e7bb6535ea33f13a1de70eb4d8b9b92c9f672fc064",
+    "backends/glm5next/shared_scratch.h": "be685b04b46dee323ac5134c84440c5dbde17cd5c6d43f2c4970432be45f0dfd",
+    "backends/glm5next/shared_scratch_alloc.inc": "595f529f8677f129d787fae89b1186fdd2c1e016ae9a05bf0f78dbfca6e4a8ba",
+    "backends/glm5next/shared_scratch_sched.inc": "1fc468b9f8bb57d241f934f220c9427290a9e530e129269eb33a05379a8a398c",
+    "backends/glm5next/check_shared_scratch.cpp": "d2c6a407788438f1b7383e8e88c2d4f905137f3f2a74e09ea70c0b090fcc96d8",
+    "backends/glm5next/mtp.hpp": "1a79513458a6bc6d39e60f4a678352354995715e97516faf4b5c6b761cae0d1c",
+    "backends/glm5next/main.cpp": "0e84c8d0b1ca2477e79daf9f76b056bda348eb9b8ff61b98c350d9d8c2cadb1d",
+    "backends/glm5next/check_mtp.cpp": "666eace2dac0b2afbf638001790df7d1c0187291ad9d34002c441a79942748f5",
+    "tools/benchmark_glm5next_mtp.py": "e570ad63e3a39d21d45ee72c059a9109e0ef06d05297afaf61e989f294d2981a",
+    "build-local/glm5next-candidate-cuda/strata-glm-alloc.c": "b13401d9fd76f3a99ce4cea8ac9b8181a6a2908d0c13bc1838e4c9a6b2aaa3d4",
+    "build-local/glm5next-candidate-cuda/strata-glm-context.cpp": "a46b623622c76b75d170942a957da66ec4cc98a9718becb74c0a2886a93ae61c",
+    "build-local/glm5next-candidate-cuda/strata-glm-backend.cpp": "5bb770578aad9947c85f2d7bde1ae749868cc35624d82a0b47a6f211a82c6f91",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next.exe": "e291c5854f09a92766054330f1b9856042c8fa0561d69bcde18293c35ccf8828",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe": "9236f316998c7dabd92978f5033716e4a8cf69096fac2307873b23df046713a9",
+    "backends/glm5next/runtime.hpp": "bd8f9af8576aa24e1b78b2932abf05bca664ef435f8131a9faf361a3bf2154be"
+  },
+  "source_binary_hashes_final": {
+    "backends/glm5next/SharedScratchPatches.cmake": "f949627c9bd6213ee30f791d42020346b2ce6f5da1825031ee49f347cb1e8fa6",
+    "backends/glm5next/RuntimePatches.cmake": "4465ff6f9f030b324c664b7323d3148c8ae5534f5acd25a811ff1e6b89b881be",
+    "backends/glm5next/CMakeLists.txt": "f354138b5fe43de94e7625e7bb6535ea33f13a1de70eb4d8b9b92c9f672fc064",
+    "backends/glm5next/shared_scratch.h": "be685b04b46dee323ac5134c84440c5dbde17cd5c6d43f2c4970432be45f0dfd",
+    "backends/glm5next/shared_scratch_alloc.inc": "595f529f8677f129d787fae89b1186fdd2c1e016ae9a05bf0f78dbfca6e4a8ba",
+    "backends/glm5next/shared_scratch_sched.inc": "1fc468b9f8bb57d241f934f220c9427290a9e530e129269eb33a05379a8a398c",
+    "backends/glm5next/check_shared_scratch.cpp": "d2c6a407788438f1b7383e8e88c2d4f905137f3f2a74e09ea70c0b090fcc96d8",
+    "backends/glm5next/mtp.hpp": "1a79513458a6bc6d39e60f4a678352354995715e97516faf4b5c6b761cae0d1c",
+    "backends/glm5next/main.cpp": "0e84c8d0b1ca2477e79daf9f76b056bda348eb9b8ff61b98c350d9d8c2cadb1d",
+    "backends/glm5next/check_mtp.cpp": "666eace2dac0b2afbf638001790df7d1c0187291ad9d34002c441a79942748f5",
+    "tools/benchmark_glm5next_mtp.py": "73169e43acfbca748d9f31bb1839f98827f628067e1047515c4ab9bd9274359b",
+    "build-local/glm5next-candidate-cuda/strata-glm-alloc.c": "b13401d9fd76f3a99ce4cea8ac9b8181a6a2908d0c13bc1838e4c9a6b2aaa3d4",
+    "build-local/glm5next-candidate-cuda/strata-glm-context.cpp": "a46b623622c76b75d170942a957da66ec4cc98a9718becb74c0a2886a93ae61c",
+    "build-local/glm5next-candidate-cuda/strata-glm-backend.cpp": "5bb770578aad9947c85f2d7bde1ae749868cc35624d82a0b47a6f211a82c6f91",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next.exe": "ae83ef59c5904fe911c0ab470fb720182851a6c1c8d56000bd8773b9f768be64",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-mtp-check.exe": "3e79aaff2c67b019730aca17af81a4fd7dd4cc3989b3d23ffbde94a442a5964d",
+    "backends/glm5next/runtime.hpp": "b26f4d261ac652212aa4918fb11acc16e93ecc07758eeca113f0f9a0b5eabd3f",
+    "build-local/glm5next-candidate-cuda/bin/strata-glm5next-shared-scratch-check.exe": "6bc6e1b4261511d7fd74918f569e345848d363fec663ce656da82108243ea21c"
+  },
+  "hashes_match_benchmark_start": true,
+  "checks": {
+    "candidate_ctest": 28,
+    "python_tests": 83,
+    "full_model_cases_before_literal_guard": 11,
+    "saved_f32_logits_before_literal_guard": 9912320,
+    "final_native_pipe_cases": 9,
+    "benchmark_responses": 36
+  },
+  "full_model_command": {
+    "command": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\glm5next-candidate-cuda\\bin\\strata-glm5next-mtp-check.exe",
+      "--model",
+      "H:\\GLM-5.3-Flash-GGUF\\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf",
+      "--reference",
+      "docs/GLM53/GLM53_FLASH_SYNC_REPEAT.json",
+      "--reference-logits",
+      "build-local/glm-sync-iq3-repeat.f32",
+      "--memory-percent",
+      "95",
+      "--tokens",
+      "64",
+      "--report",
+      "build-local/glm-shared-scratch-real-check.json"
+    ],
+    "environment": {
+      "STRATA_GLM_COPY_EVENTS": "2",
+      "STRATA_GLM_DECODE_READERS": "1",
+      "STRATA_GLM_WRITE_COMBINED": "0",
+      "STRATA_GLM_MAIN_CACHE_DECAY": "131072",
+      "STRATA_GLM_POOL_RECLAIM": "0",
+      "STRATA_GLM_MEMORY_POOL": "0",
+      "STRATA_GLM_CACHE_SLAB_MIB": "16",
+      "STRATA_GLM_MTP_CACHE_ONLY": "1",
+      "STRATA_GLM_RAM_WARM_MODE": "0",
+      "STRATA_GLM_EXPERT_PROFILE": "",
+      "STRATA_GLM_MMVQ_TOKEN_BATCH": "1",
+      "STRATA_GLM_MTP_SHARED_SCRATCH": "1",
+      "STRATA_GLM_CACHE_COMPACT": "1"
+    }
+  },
+  "build_command": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\nset \"CUDA_PATH=%CD%\\build-local\\cuda-13.0\"\nset \"PATH=%CUDA_PATH%\\bin;%CUDA_PATH%\\bin\\x64;%PATH%\"\ncmake -S backends/glm5next -B build-local/glm5next-candidate-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release \"-DSTRATA_GLM_ARCHIVE=%CD%/build-local/llama-glm-86ebfef2.tar.gz\" -DSTRATA_GLM_ARCHIVE_SHA256=f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99 -DSTRATA_GLM_CUDA=ON -DSTRATA_GLM_GRAPH_CHECK=ON -DSTRATA_GLM_SYNC_BASELINE=ON \"-DPython3_EXECUTABLE=C:/Users/Aleks/AppData/Local/Programs/Python/Python312/python.exe\" -DCMAKE_CUDA_ARCHITECTURES=120 \"-DCMAKE_CUDA_COMPILER=%CUDA_PATH%/bin/nvcc.exe\" \"-DCUDAToolkit_ROOT=%CUDA_PATH%\"\nif errorlevel 1 exit /b 1\ncmake --build build-local/glm5next-candidate-cuda --config Release -j 4\nexit /b %errorlevel%\n",
+  "test_commands": [
+    "STRATA_GLM_MTP_SHARED_SCRATCH=1 STRATA_GLM_MMVQ_TOKEN_BATCH=1 ctest --test-dir build-local/glm5next-candidate-cuda -C Release --output-on-failure --no-tests=error -E ^glm5next_mmvq_token_batch$",
+    "python -m unittest tools.test_glm5next_profile tools.test_setup_glm5next tools.test_glm5next_build serve.test_glm5next serve.test_glm5next_info serve.test_glm5next_requests serve.test_glm5next_handlers serve.test_glm5next_http serve.test_glm5next_service",
+    "python tools/check_glm5next_engine.py --profile build-local/glm-shared-scratch-guard-pipe-profile.json --reference docs/GLM53/GLM53_FLASH_COMPACTION_B_REFERENCE.json --output build-local/glm-shared-scratch-guard-pipe.json"
+  ],
+  "logs": {
+    "glm-shared-scratch-guard-ctest.log": "Test project C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda\r\n      Start  1: glm5next_tokenizer_protocol\r\n 1/28 Test  #1: glm5next_tokenizer_protocol .........   Passed    0.01 sec\r\n      Start  2: glm5next_generation_protocol\r\n 2/28 Test  #2: glm5next_generation_protocol ........   Passed    0.00 sec\r\n      Start  3: glm5next_expert_plan\r\n 3/28 Test  #3: glm5next_expert_plan ................   Passed    0.00 sec\r\n      Start  4: deepseek4_expert_frequency_compat\r\n 4/28 Test  #4: deepseek4_expert_frequency_compat ...   Passed    0.00 sec\r\n      Start  5: deepseek4_vram_policy_compat\r\n 5/28 Test  #5: deepseek4_vram_policy_compat ........   Passed    0.00 sec\r\n      Start  6: glm5next_expert_file_test\r\n 6/28 Test  #6: glm5next_expert_file_test ...........   Passed    0.06 sec\r\n      Start  7: deepseek4_expert_file_compat_test\r\n 7/28 Test  #7: deepseek4_expert_file_compat_test ...   Passed    0.07 sec\r\n      Start  8: glm5next_warm_profile\r\n 8/28 Test  #8: glm5next_warm_profile ...............   Passed    0.01 sec\r\n      Start  9: glm5next_host_pages\r\n 9/28 Test  #9: glm5next_host_pages .................   Passed    0.01 sec\r\n      Start 10: glm5next_native_mtp\r\n10/28 Test #10: glm5next_native_mtp .................   Passed    2.44 sec\r\n      Start 11: glm5next_native_mtp_shared\r\n11/28 Test #11: glm5next_native_mtp_shared ..........   Passed    2.50 sec\r\n      Start 12: glm5next_shared_scratch\r\n12/28 Test #12: glm5next_shared_scratch .............   Passed    0.23 sec\r\n      Start 13: glm5next_native_mtp_events\r\n13/28 Test #13: glm5next_native_mtp_events ..........   Passed    2.34 sec\r\n      Start 14: glm5next_native_mtp_legacy\r\n14/28 Test #14: glm5next_native_mtp_legacy ..........   Passed    2.71 sec\r\n      Start 15: glm5next_native_mtp_ram\r\n15/28 Test #15: glm5next_native_mtp_ram .............   Passed    2.31 sec\r\n      Start 16: glm5next_native_mtp_hybrid\r\n16/28 Test #16: glm5next_native_mtp_hybrid ..........   Passed    2.49 sec\r\n      Start 17: glm5next_mtp_cache_state\r\n17/28 Test #17: glm5next_mtp_cache_state ............   Passed    1.20 sec\r\n      Start 18: glm5next_sync_baseline\r\n18/28 Test #18: glm5next_sync_baseline ..............   Passed    1.02 sec\r\n      Start 19: glm5next_pipeline_events\r\n19/28 Test #19: glm5next_pipeline_events ............   Passed    0.97 sec\r\n      Start 20: glm5next_pipeline_staging\r\n20/28 Test #20: glm5next_pipeline_staging ...........   Passed    1.14 sec\r\n      Start 21: glm5next_pipeline_slab\r\n21/28 Test #21: glm5next_pipeline_slab ..............   Passed    0.98 sec\r\n      Start 22: glm5next_pipeline_ram\r\n22/28 Test #22: glm5next_pipeline_ram ...............   Passed    0.97 sec\r\n      Start 23: glm5next_pipeline_hybrid\r\n23/28 Test #23: glm5next_pipeline_hybrid ............   Passed    0.94 sec\r\n      Start 24: glm5next_pipe_lifecycle\r\n24/28 Test #24: glm5next_pipe_lifecycle .............   Passed    0.63 sec\r\n      Start 25: glm5next_candidate_ops\r\n25/28 Test #25: glm5next_candidate_ops ..............   Passed    0.80 sec\r\n      Start 26: glm5next_candidate_state\r\n26/28 Test #26: glm5next_candidate_state ............   Passed    1.02 sec\r\n      Start 27: glm5next_candidate_quant\r\n27/28 Test #27: glm5next_candidate_quant ............   Passed    1.57 sec\r\n      Start 28: glm5next_tokenwise_quant\r\n28/28 Test #28: glm5next_tokenwise_quant ............   Passed    1.34 sec\r\n\r\n100% tests passed, 0 tests failed out of 28\r\n\r\nTotal Test time (real) =  27.81 sec\r\n",
+    "glm-shared-scratch-guard-python.log": "...................................................................................\r\n----------------------------------------------------------------------\r\nRan 83 tests in 18.523s\r\n\r\nOK\r\n",
+    "glm-shared-scratch-targeted-reserve.log": "Test project C:/work/git/my-repos/Strata/build-local/glm5next-candidate-cuda\r\n    Start 11: glm5next_native_mtp_shared\r\n1/2 Test #11: glm5next_native_mtp_shared .......   Passed    2.52 sec\r\n    Start 12: glm5next_shared_scratch\r\n2/2 Test #12: glm5next_shared_scratch ..........   Passed    0.31 sec\r\n\r\n100% tests passed, 0 tests failed out of 2\r\n\r\nTotal Test time (real) =   2.85 sec\r\n"
+  },
+  "literal_guard_microbenchmark": {
+    "caveat": "Instrumented operator new, MSVC /O2, finite logits plus preserved failure behavior. Isolates literal diagnostic overhead, not model speed. Before and after use the same source; production runtime.hpp changes between builds.",
+    "source": "#include \"runtime.hpp\"\n#include <atomic>\n#include <chrono>\n#include <cmath>\n#include <cstdio>\n#include <new>\n\nstatic size_t allocations = 0;\nvoid * operator new(size_t n) { ++allocations; if (void * p = std::malloc(n)) return p; throw std::bad_alloc(); }\nvoid operator delete(void * p) noexcept { std::free(p); }\nvoid operator delete(void * p, size_t) noexcept { std::free(p); }\n\nnamespace proposed {\ninline void require(bool ok, const char * message) { if (!ok) throw std::runtime_error(message); }\n}\n\n__declspec(noinline) static void current_scan(const std::vector<float> & values) {\n    for (float value : values) strata_glm::require(std::isfinite(value), \"non-finite output logits\");\n}\n__declspec(noinline) static void proposed_scan(const std::vector<float> & values) {\n    for (float value : values) proposed::require(std::isfinite(value), \"non-finite output logits\");\n}\nint main(int argc, char ** argv) {\n    std::vector<float> values(154880);\n    for (size_t i = 0; i < values.size(); ++i) values[i] = float((i + argc) % 7919) / 7919.0f;\n    for (int trial = 0; trial < 7; ++trial) {\n        for (int variant = 0; variant < 2; ++variant) {\n            const auto before = allocations;\n            const auto start = std::chrono::steady_clock::now();\n            for (int token = 0; token < 64; ++token) {\n                if (variant == 0) current_scan(values); else proposed_scan(values);\n            }\n            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();\n            std::printf(\"{\\\"trial\\\":%d,\\\"variant\\\":\\\"%s\\\",\\\"values\\\":%zu,\\\"allocations\\\":%zu,\\\"ms\\\":%.6f}\\n\",\n                        trial, variant == 0 ? \"current\" : \"proposed\", values.size() * 64, allocations - before, ms);\n        }\n    }\n    values[3] = INFINITY;\n    for (int variant = 0; variant < 2; ++variant) {\n        try { if (variant == 0) current_scan(values); else proposed_scan(values); return 1; }\n        catch (const std::runtime_error & e) { if (std::string(e.what()) != \"non-finite output logits\") return 2; }\n    }\n    return 0;\n}\n",
+    "runtime_header_before_overload": "#pragma once\n// Shared placement/precision/decode contract for the baseline and pipe engine.\n#include \"sync_runtime.h\"\n#include \"llama.h\"\n#include \"ggml-backend.h\"\n#include \"expert_load.hpp\"\n#include <cstdlib>\n#include <memory>\n#include <stdexcept>\n#include <string>\n#include <vector>\n\nnamespace strata_glm {\nusing Model = std::shared_ptr<llama_model>;\nusing Context = std::unique_ptr<llama_context, decltype(&llama_free)>;\ninline void require(bool ok, const std::string & message) { if (!ok) throw std::runtime_error(message); }\ninline bool mmvq_token_batch_enabled() {\n    const char * value=std::getenv(\"STRATA_GLM_MMVQ_TOKEN_BATCH\");\n    require(!value || std::string(value)==\"0\" || std::string(value)==\"1\",\"STRATA_GLM_MMVQ_TOKEN_BATCH must be 0 or 1\");\n    return value && std::string(value)==\"1\";\n}\ninline void environment() {\n    (void)mmvq_token_batch_enabled();\n#ifdef _WIN32\n    _putenv_s(\"NVIDIA_TF32_OVERRIDE\", \"0\"); _putenv_s(\"GGML_OP_OFFLOAD_MIN_BATCH\", \"1\");\n    _putenv_s(\"STRATA_GLM_TOKENWISE_MATMUL\", \"1\");\n#else\n    setenv(\"NVIDIA_TF32_OVERRIDE\", \"0\", 1); setenv(\"GGML_OP_OFFLOAD_MIN_BATCH\", \"1\", 1);\n    setenv(\"STRATA_GLM_TOKENWISE_MATMUL\", \"1\", 1);\n#endif\n}\ninline Model load(const std::string & path, bool resident=false, bool cpu_embedding=false, bool mtp=false) {\n    const auto ram_layers=ram_expert_layers();\n    auto * gpu=ggml_backend_dev_by_name(\"CUDA0\"); auto * cpu=ggml_backend_dev_by_name(\"CPU\");\n    require(gpu && cpu, \"CUDA0 and CPU buffer backends required\");\n    auto mp=llama_model_default_params();\n    ggml_backend_dev_t devices[]={gpu,nullptr}; mp.devices=devices;\n    llama_model_tensor_buft_override overrides[]={\n        {\"token_embd\\\\.weight\",ggml_backend_dev_buffer_type(cpu_embedding ? cpu : gpu)},\n        {\"blk\\\\.[0-9]+\\\\.ffn_(gate|up|down)_exps\\\\.weight\",ggml_backend_dev_buffer_type(cpu)},\n        {nullptr,nullptr}};\n    if (resident) overrides[1]={nullptr,nullptr};\n    mp.tensor_buft_overrides=overrides; mp.n_gpu_layers=-1; mp.split_mode=LLAMA_SPLIT_MODE_NONE;\n    mp.load_mode=ram_experts()?LLAMA_LOAD_MODE_NONE:LLAMA_LOAD_MODE_MMAP;\n    // CPU overrides otherwise prefer CUDA_Host: never pin the whole expert set.\n    mp.no_host=ram_experts();\n    mp.lazy_mode=ram_experts() && ram_layers>=0 && !resident?LLAMA_LAZY_MODE_ON:LLAMA_LAZY_MODE_OFF;\n    mp.load_mtp=mtp; mp.use_extra_bufts=false;\n    Model model(llama_model_load_from_file(path.c_str(),mp),llama_model_free);\n    require(bool(model),\"model load failed\");\n    char arch[64]{}; llama_model_meta_val_str(model.get(),\"general.architecture\",arch,sizeof(arch));\n    require(std::string(arch)==\"glm5next\",\"this backend accepts glm5next only\");\n    return model;\n}\ninline Context context(llama_model * model, int size, int batch, int threads=4, int rollback=0, bool mtp=false,\n                       ggml_backend_sched_eval_callback callback=nullptr,void * callback_data=nullptr) {\n    auto cp=llama_context_default_params();\n    cp.n_ctx=size; cp.n_batch=cp.n_ubatch=batch; cp.n_seq_max=1; cp.n_rs_seq=rollback;\n    if (mtp) cp.ctx_type=LLAMA_CONTEXT_TYPE_MTP;\n    cp.n_threads=cp.n_threads_batch=threads; cp.type_k=cp.type_v=GGML_TYPE_F16;\n    cp.cb_eval=callback;cp.cb_eval_user_data=callback_data;\n    cp.flash_attn_type=LLAMA_FLASH_ATTN_TYPE_DISABLED; cp.offload_kqv=cp.op_offload=true; cp.no_perf=false;\n    Context ctx(llama_init_from_model(model,cp),llama_free);\n    require(bool(ctx),\"context allocation failed\");\n    return ctx;\n}\ninline void decode(llama_context * ctx, const std::vector<llama_token> & ids, int start, int count, int position, bool all_logits=false) {\n    auto b=llama_batch_init(count,0,1); b.n_tokens=count;\n    for (int i=0;i<count;++i) {\n        b.token[i]=ids[start+i]; b.pos[i]=position+i; b.n_seq_id[i]=1; b.seq_id[i][0]=0; b.logits[i]=all_logits || i==count-1;\n    }\n    const int rc=llama_decode(ctx,b); llama_batch_free(b);\n    require(rc==0,\"llama_decode failed: \"+std::to_string(rc));\n    llama_synchronize(ctx);\n}\ninline void clear(llama_context * ctx) {\n    llama_synchronize(ctx);\n    llama_memory_clear(llama_get_memory(ctx),true);\n}\n} // namespace strata_glm\n",
+    "build_command": "@echo off\nsetlocal\ncd /d \"%~dp0..\"\ncall \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul\nif errorlevel 1 exit /b 1\ncl /nologo /O2 /EHsc /std:c++17 /I backends\\glm5next /I build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\include /I build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\ggml\\include /I build-local\\glm5next-candidate-cuda\\_deps\\glm5next_candidate-src\\src build-local\\check-glm-logit-guard.cpp /Fo:build-local\\check-glm-logit-guard.obj /Fe:build-local\\check-glm-logit-guard.exe\nexit /b %errorlevel%\n",
+    "results": {
+      "before": [
+        {
+          "trial": 0,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1756.9292
+        },
+        {
+          "trial": 0,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.2506
+        },
+        {
+          "trial": 1,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1748.7672
+        },
+        {
+          "trial": 1,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.0925
+        },
+        {
+          "trial": 2,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1751.6433
+        },
+        {
+          "trial": 2,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.1422
+        },
+        {
+          "trial": 3,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1750.5431
+        },
+        {
+          "trial": 3,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.1201
+        },
+        {
+          "trial": 4,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1745.9154
+        },
+        {
+          "trial": 4,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.0167
+        },
+        {
+          "trial": 5,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1745.7596
+        },
+        {
+          "trial": 5,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.0848
+        },
+        {
+          "trial": 6,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 9912320,
+          "ms": 1747.435
+        },
+        {
+          "trial": 6,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 11.1318
+        }
+      ],
+      "after": [
+        {
+          "trial": 0,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2327
+        },
+        {
+          "trial": 0,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2511
+        },
+        {
+          "trial": 1,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2626
+        },
+        {
+          "trial": 1,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.23
+        },
+        {
+          "trial": 2,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.1914
+        },
+        {
+          "trial": 2,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.1187
+        },
+        {
+          "trial": 3,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2066
+        },
+        {
+          "trial": 3,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.1996
+        },
+        {
+          "trial": 4,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.1902
+        },
+        {
+          "trial": 4,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2641
+        },
+        {
+          "trial": 5,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2365
+        },
+        {
+          "trial": 5,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.252
+        },
+        {
+          "trial": 6,
+          "variant": "current",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.3713
+        },
+        {
+          "trial": 6,
+          "variant": "proposed",
+          "values": 9912320,
+          "allocations": 0,
+          "ms": 9.2493
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "No new full HTTP, long-context, Linux/HIP or full Qwen/DeepSeek tests.",
+    "Full saved F32 check applies to shared scratch before the literal guard overload; final guard build is covered by CTest and full-model pipe/references.",
+    "Shared scratch is opt-in; measured memory saving is not proof of throughput gain."
+  ]
+}

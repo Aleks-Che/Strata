@@ -13,8 +13,16 @@
 namespace strata_glm {
 using Model = std::shared_ptr<llama_model>;
 using Context = std::unique_ptr<llama_context, decltype(&llama_free)>;
+// Literal diagnostics in per-logit checks must not allocate on the success path.
+inline void require(bool ok, const char * message) { if (!ok) throw std::runtime_error(message); }
 inline void require(bool ok, const std::string & message) { if (!ok) throw std::runtime_error(message); }
+inline bool mmvq_token_batch_enabled() {
+    const char * value=std::getenv("STRATA_GLM_MMVQ_TOKEN_BATCH");
+    require(!value || std::string(value)=="0" || std::string(value)=="1","STRATA_GLM_MMVQ_TOKEN_BATCH must be 0 or 1");
+    return value && std::string(value)=="1";
+}
 inline void environment() {
+    (void)mmvq_token_batch_enabled();
 #ifdef _WIN32
     _putenv_s("NVIDIA_TF32_OVERRIDE", "0"); _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH", "1");
     _putenv_s("STRATA_GLM_TOKENWISE_MATMUL", "1");

@@ -14,20 +14,22 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | P1 DONE; P0/P2/P3/P5/P6 IN_PROGRESS. Shared async pipeline и native MTP 1/2/3 работают, точность и pipe/API проверены; P4 session reuse, длинный контекст и полная матрица регрессий ещё не готовы |
-| Последняя проверенная ревизия Strata | `5f57f844e393e7bdbad38d055791523468e41869` + P3.3i в рабочем дереве; source/binary hashes и команды в RAM_LOADING_VALIDATION |
-| Последняя выполненная работа | P3.3i: private/hybrid загрузка, mmap только для экспертов, RAM guard перед загрузкой и commit telemetry. 60 ответов, 26 CTest, 83 Python, 9 912 320 F32 logits bit-exact, 9 native pipe cases. Рабочий набор уменьшен на 3,437 ГиБ в сравнительных сериях, ускорения ток/с нет; новые режимы выключены |
-| Следующая задача | Разделить CPU memcpy в pinned ring и H2D при одинаковом состоянии памяти; проверить размещение reader threads и запись без заполнения CPU cache. После устранения массовых faults read time всё ещё 7–12 с на запрос. Отдельно уточнить реакцию RAM target на изменение внешней нагрузки между запросами. Затем short-batch verify/MTP, P4 и длинный контекст |
-| Активная задача / исполнитель | Нет; P3.3i завершён / Codex |
+| Последняя проверенная ревизия Strata | `ff294a2aa398b82277481d853c0573dc2df95b14` + P5.3d в рабочем дереве; source/binary hashes и команды в MTP_SHARED_SCRATCH_VALIDATION |
+| Последняя выполненная работа | P5.3d: reproduced repeated-B/compaction, optional shared target/draft scratch (-993,553 МиБ VRAM), проверки logits без временных строк. 28 CTest, 83 Python, 108 benchmark responses, full GGUF bit-exact и 9 итоговых pipe cases; устойчивого общего ускорения MTP не получено |
+| Следующая задача | Разделить CPU memcpy, H2D и ожидания verify после prefill; уменьшить возвраты страниц у hard working-set cap. Продолжать в repeated-B/compaction режиме с отдельным MTP-off контролем, не смешивать его с A/B. Затем P4 и длинный контекст |
+| Активная задача / исполнитель | Нет; ограниченная итерация P5.3d завершена / Codex. Общий P5 остаётся IN_PROGRESS |
 | Блокеры | Блокеров нет; архив, бинарник, профиль и baseline доступны. Остаток плана — следующая разработка |
 | Основная тестовая модель | `H:\GLM-5.3-Flash-GGUF\GLM-5.3-Flash-Uncensored-IQ3_XXS.gguf` |
 | Дополнительный профиль | `H:\GLM-5.3-Flash-GGUF\UD-Q3_K_XL`; прежние отчёты сохраняются отдельно |
 | Стенд | Windows, Ryzen 9 9950X, 128 ГиБ RAM, RTX 5090 32 ГиБ |
-| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели. Локальный профиль: pipeline on, events2, MTP off, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned warmup и новый RAM warmup off; обновлён только backend patch identity. MTP cache ceiling 512 МиБ действует только при включении MTP |
+| GLM backend / setup | `strata-glm5next`, INFO `glm5next-native`; OpenAI/Anthropic JSON/SSE, отмена и unload проверены на полной модели ранее. Локальный профиль: pipeline on, events2, MTP off, token-batch MMVQ on, cache slabs16 МиБ, pool0, main decay131072, reader1, обычный pinned ring, reclaim0, chunk4 МиБ; RAM/VRAM 95%, ctx2048/batch16/threads4. Learned/RAM warmup off; backend identity обновлён. MTP cache ceiling 512 МиБ действует только при включении MTP |
 | Закреплённая зависимость GLM | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`, архив SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`; MSVC 19.44 / CUDA 13.0.48 / 120a; generated TF32/runtime patches, hashes в SYNC_VALIDATION; production validation остаётся неполной |
-| Последняя проверенная конфигурация запуска GLM | P3.3i: IQ3_XXS, MTP off, 39/49 prompt + 64 generated, ctx2048/batch16/threads4, F16 KV, TF32/FA off; mmap/private24/mapped-experts, readers1/2, slabs16, targets95. F32 и native seeded/cancel/recovery проверены с N=0; полный HTTP ранее в P5.3b |
-| Измеренная скорость GLM / память | P3.3i, A/B: private24 8,050/9,111; первый mmap-контроль 7,698/7,131; mapped-experts reader1 7,129/7,743; повтор mmap 9,402/9,646; mapped-experts reader2 8,837/9,375 ток/с. WS 106,624 → 103,187 ГиБ в сравнительных сериях. Устойчивого ускорения нет; defaults mmap/reader1/MTP off сохранены. Глобальная RAM в первом контроле достигала 97,46% при target95: это реактивный budget, не потолок для всей ОС. Подробности в RAM_LOADING_BENCHMARK |
+| Последняя проверенная конфигурация запуска GLM | P5.3d: IQ3_XXS, repeated B 49+64, compaction1, mmap/reader1/slabs16/targets95, ctx2048/batch16/threads4, F16 KV, TF32/FA off. Shared scratch MTP1/2/3 checked bit-exact до перегрузки require; итоговая сборка — MTP0/1 benchmark и MTP1 seeded/cancel/recovery. Полный HTTP ранее в P5.3b |
+| Измеренная скорость GLM / память | P5.3d repeated-B: новая сборка MTP off 13,373 (13,019–13,637), MTP1 раздельный scratch 11,082 (9,883–12,905), shared 10,644 (1,835–12,949) ток/с. Первые контроли до изменений 12,889–12,933. Shared scratch экономит 993,553 МиБ; sampled maxima итоговых серий RAM 95,24%, VRAM 95,29%. Общий выигрыш MTP не подтверждён; полный ряд в COMPACTION_MTP |
 
 Последний эксперимент без MTP: [P3.3i, загрузка RAM и mmap только для экспертов](GLM53_FLASH_RAM_LOADING.md).
+
+Последняя оптимизация MTP: [P5.3d, scratch и CPU overhead в быстром режиме B](GLM53_FLASH_COMPACTION_MTP.md).
 
 **Исследование MTP, 2026-10-05:** найдены опубликованные ускорения Unsloth,
 SparkLab и SGLang; прочитан новый llama.cpp PR #29928 и сопоставлен с локальным
@@ -3344,3 +3346,113 @@ Qwen/DeepSeek; full private GGUF не прошла загрузку. Собст�
 [logits](GLM53_FLASH_RAM_LOADING_LOGITS.json),
 [pipe](GLM53_FLASH_RAM_LOADING_PIPE.json),
 [manifest](GLM53_FLASH_RAM_LOADING_VALIDATION.json).
+
+### P5.3c — 2026-10-05 — Совместный запуск quantized matvec для verify
+
+**Статус:** DONE для опционального пути, численных проверок и измерений.
+Исполнитель: Codex. Ревизия `ff294a2aa398b82277481d853c0573dc2df95b14`
++ рабочие изменения. Полный этап P5 остаётся IN_PROGRESS.
+
+Добавлен generated patch MMVQ с SHA guard: 2–4 токена квантуются вместе,
+затем выполняются как независимые samples в одном CUDA matvec launch.
+Single-token reduction и vec_dot сохранены; routed IDs адресуются по токену.
+F32/F16/BF16 и неподдержанные случаи используют прежний путь. Переключатель
+`STRATA_GLM_MMVQ_TOKEN_BATCH=0/1` отражён в INFO и benchmark tool.
+
+486 matrix cases / 15 686 784 F32 outputs совпали бит-в-бит с отдельными
+одиночными matvec и старым batch; девять квантов, три формы, три глубины,
+dense/routed и padded strides. Изолированные IQ3_XXS/Q2_K routed операции
+сократились примерно на 17–42% по времени, веса постоянно находились на GPU.
+Это не общий процент ускорения модели.
+
+В полной модели 98 ответов совпали с references. На двух prompts MTP1 с
+новым путём дал 9,654/10,187 ток/с; MTP2 — 8,522/9,433, MTP3 — 7,730/8,545.
+Повторный контроль на той же сборке с token batch off: 9,314/9,202 ток/с.
+Контроли зависели от нагрузки RAM/ёмкости GPU cache и замедлялись между
+повторами; устойчивый общий процент выигрыша пока не установлен. H2D
+остаётся большим: 126,28/122,55 ГиБ на запрос с prefill при MTP1.
+
+**Проверки:** остальные 26 candidate CTest и 83 Python tests прошли.
+Полный GGUF: 11 MTP/logits сценариев, forced rejection, seeded sample-and-match,
+cancel/recovery; все сравниваемые logits точны, baseline совпал с 9 912 320
+сохранёнными F32 значениями. Production pipe: 9 сценариев с MTP1/token batch on,
+cancel/recovery и exit0. Hashes исходников и engine совпали с началом benchmark.
+
+В рабочем профиле включён token batch и обновлён backend identity, MTP off
+сохранён. Глобальный default нового флага — off. RAM/VRAM targets95 сохранены;
+в контрольных сериях общая RAM достигала 99,12%, поэтому это не жёсткий лимит
+для всей ОС. Full HTTP, длинные контексты, Linux/HIP и полные Qwen/DeepSeek
+в этой итерации не повторялись.
+
+**Следующий шаг:** измерить CPU memcpy и H2D отдельно при одинаковой ёмкости
+кэша, контролировать RAM pressure; сокращать повторные переносы в verify.
+
+**Результаты:** [описание](GLM53_FLASH_MMVQ_TOKEN_BATCH.md),
+[benchmark](GLM53_FLASH_MMVQ_TOKEN_BATCH_BENCHMARK.json),
+[матрицы](GLM53_FLASH_MMVQ_TOKEN_BATCH_MATRICES.json),
+[logits](GLM53_FLASH_MMVQ_TOKEN_BATCH_CHECK.json),
+[pipe](GLM53_FLASH_MMVQ_TOKEN_BATCH_PIPE.json),
+[manifest](GLM53_FLASH_MMVQ_TOKEN_BATCH_VALIDATION.json).
+
+### P5.3d — 2026-10-05 — MTP в repeated-B/compaction и устранение лишних затрат
+
+**Статус:** DONE для ограниченной итерации; общий P5 остаётся IN_PROGRESS.
+Исполнитель: Codex. Ревизия `ff294a2aa398b82277481d853c0573dc2df95b14`
++ рабочие изменения, финальный engine SHA-256
+`ae83ef59c5904fe911c0ab470fb720182851a6c1c8d56000bd8773b9f768be64`.
+
+По просьбе пользователя базой выбран режим исторических 12,748 ток/с:
+повторяемый B, 49 входных + 64 выходных токена, compaction1, 4 warmup + 5 timed.
+Контроли до изменений воспроизвели 12,889–12,933 ток/с без MTP. Перебор
+MTP1/2/3, cache256/512/1024 и прежнего MMVQ: 72 точных ответа, устойчивого
+выигрыша над MTP off нет. Серия cache256 совпала с RAM97,87% и не изолирует
+эффект cache ceiling. Результаты A/B из P5.3c не используются для процентов.
+
+Реализован opt-in shared target/draft scratch. GPU compute buffers разделяют
+владение, KV/recurrent state остаются независимыми; дальнейший рост безопасно
+отделяет буфер. Output flags NextN учитываются до reserve/sharing. Экономия
+полной GGUF — 993,553 МиБ. INFO сообщает начальную экономию, MTP statistics —
+фактический sharing; benchmark отвергает потерю sharing при запрошенном режиме.
+
+В `require` добавлена перегрузка `const char *`: литералы в циклах проверки
+logits больше не создают временные строки при успехе. Проверки NaN/Inf и
+динамические сообщения сохранены. Инструментированный CPU benchmark показал
+9 912 320 → 0 allocations на 64 строки словаря; это не общий процент ускорения.
+Медиана draft в последовательных сериях снизилась с 256,6 до 133,7 мс,
+но verify и переносы весов остаются дороже.
+
+Ещё 36 точных benchmark responses на B. Итоговая сборка: MTP off **13,373**
+(13,019–13,637), MTP1 раздельный scratch **11,082** (9,883–12,905), shared
+**10,644** (1,835–12,949) ток/с. Общий scratch увеличил основной cache
+15,960 → 16,874 ГиБ и снизил H2D/request 99,939 → 96,104 ГиБ; без MTP
+17,733 ГиБ и 85,694 ГиБ. Объёмы включают prefill. Cold и timed провалы
+сопровождались возвратами страниц при рабочем наборе у hard cap; точная
+причинная декомпозиция ещё не сделана. MTP1 принимает 29/34 предложений.
+
+**Проверки:** 28 CTest, 83 Python tests. На сборке до перегрузки `require`
+полная модель прошла 11 MTP/logits сценариев, baseline совпал с 9 912 320
+сохранёнными F32 значениями, sharing сохранился. На финальной сборке прошли
+9 native pipe cases: greedy, invalid ID, seeded repeat, prefill/decode cancel
+и clean recovery. Exit0; все source/binary hashes совпали с началом серии.
+Отдельный ранний benchmark остановлен после двух правильных warmup-ответов;
+его partial report сохранён и исключён из медиан.
+
+**Решение:** устранение строковых allocations включено; MTP и shared scratch
+остаются off по умолчанию, token-batch MMVQ on в локальном профиле сохранён.
+Compaction использован в экспериментальных профилях; обычный профиль остаётся
+прежним. Финальные sampled maxima RAM95,24%, VRAM95,29% при targets95.
+Собственные процессы завершены, GPU 2 032 МиБ / utilization0.
+
+**Следующий шаг:** отдельно считать CPU memcpy/H2D после prefill и ожидания
+verify, исследовать удержание нужных страниц у hard working-set cap. Полный
+HTTP, длинный контекст, Linux/HIP и полные Qwen/DeepSeek здесь не повторялись.
+Предложение пользователя принимать MTP без проверки рассмотрено, но такой
+приближённый режим не включён: основная модель всё ещё должна обновлять
+KV/recurrent state, а отказ от target forward меняет алгоритм и качество.
+
+**Результаты:** [описание и настройки](GLM53_FLASH_COMPACTION_MTP.md),
+[первый перебор](GLM53_FLASH_COMPACTION_MTP_BENCHMARK.json),
+[итоговый benchmark](GLM53_FLASH_MTP_SHARED_SCRATCH_BENCHMARK.json),
+[logits](GLM53_FLASH_MTP_SHARED_SCRATCH_CHECK.json),
+[pipe](GLM53_FLASH_MTP_SHARED_SCRATCH_PIPE.json),
+[manifest](GLM53_FLASH_MTP_SHARED_SCRATCH_VALIDATION.json).

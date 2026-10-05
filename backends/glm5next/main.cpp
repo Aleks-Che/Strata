@@ -119,7 +119,7 @@ static void generate(llama_context * ctx,const llama_vocab * vocab,const Options
         std::cerr<<"STRATA_GLM_MEMORY "<<memory.snapshot().dump()<<"\n";
         if (mtp) std::cerr<<"STRATA_GLM_MTP "<<nlohmann::json({{"proposed",mt.proposed},{"accepted",mt.accepted},{"rounds",mt.rounds},
             {"reject_first",mt.reject_first},{"reject_middle",mt.reject_middle},{"accept_all",mt.accept_all},
-            {"draft_ms",mt.draft_ms},{"verify_ms",mt.verify_ms},{"repair_ms",mt.repair_ms}}).dump()<<"\n";
+            {"draft_ms",mt.draft_ms},{"verify_ms",mt.verify_ms},{"repair_ms",mt.repair_ms},{"shared_scratch_active",mtp->shared_scratch_active()}}).dump()<<"\n";
         std::cout<<"DONE "<<generated<<" "<<prompt<<" "<<prompt_ms<<" "<<decode_ms<<" "<<finish<<" "<<delivered_drafts<<" "<<mt.proposed<<" 0\n"<<std::flush;
     } catch(const std::exception & e) {
         clear(ctx);if (mtp) mtp->reset();
@@ -195,6 +195,8 @@ int main(int argc,char ** argv) {
                 <<" expert_ram_warm_mode="<<usage["ram_warm_mode"].get<int>()
                 <<" expert_ram_diagnostics="<<int(usage["ram_diagnostics"].get<bool>())
                 <<" mtp_cache_only="<<int(mtp && mtp->uses_cache_only_catch_up())
+                <<" mmvq_token_batch="<<int(mmvq_token_batch_enabled())
+                <<" mtp_shared_scratch_bytes="<<(mtp?mtp->shared_scratch_saved_bytes():0)
                 <<" expert_read_mode="<<usage["expert_read_mode"].get<std::string>()
                 <<" kv=fp16 flash_attention=0 tf32=0 tokenwise_small_batch=1 conversation_cache=0\n"
                 <<"READY "<<llama_n_ctx(ctx.get())<<" stop session-id\n"<<std::flush;
