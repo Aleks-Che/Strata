@@ -348,9 +348,11 @@ reasoning не выдаётся за гарантированный лимит �
 
 ### P5. Native MTP
 
-- [ ] **P5.1:** получить совместимый sidecar, проверить checksum и loader contract,
+- [x] **P5.1:** получить совместимый sidecar, проверить checksum и loader contract,
   vocabulary, embeddings/hidden interface, число реально присутствующих NextN-голов.
   Отсутствие draft не должно мешать MTP-off и P1–P4.
+  STEP-11: официальный Q8_0 проверен; 3 головы, vocabulary/hidden width и общий
+  embedding совместимы. [Результаты](STEP37_FLASH_MTP_TRIALS.md).
 - [ ] **P5.2:** отдельный draft context и Step-specific передача hidden state;
   несколько обученных heads, catch-up, positions и attention state сверить
   с oracle. GLM `mtp.hpp` использовать как образец тестов, не готовую формулу Step.
@@ -368,6 +370,12 @@ reasoning не выдаётся за гарантированный лимит �
 Включать MTP по умолчанию только при воспроизводимом выигрыше end-to-end на
 нескольких prompts. Высокий acceptance сам по себе недостаточен.
 Возможен итог P5: MTP работает, но default остаётся off.
+
+STEP-11: P5.2–P5.5 частично выполнены в отдельном greedy checker. Проверены
+off/1/2/3, 60 MTP requests с exact reference IDs и варианты RAM/VRAM размещения.
+Финальное сравнение: 9,146 → 10,602 токена/с. Production pipe/HTTP MTP, stochastic
+sampling, cancel, sessions и SWA rollback через512 ещё не реализованы/не проверены;
+этап P5 целиком не закрыт.
 
 ### P6. Установка, замеры и рекомендуемый профиль
 

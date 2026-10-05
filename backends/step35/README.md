@@ -5,6 +5,70 @@ vocabulary/template oracles and CUDA checks. It does not install a profile or
 connect Step to the HTTP server. Qwen, DeepSeek and GLM keep their own backends.
 The GGUF architecture is `step35`.
 
+## Offline MTP probe
+
+`STRATA_STEP_MTP_PROBE=ON` adds `strata-step35-mtp-check` and builds the pinned
+dependency's `llama-common` speculative driver. It defaults to OFF and requires
+the validated CUDA runtime flags below. This is a separate executable, not the
+pipe/HTTP engine; it does not enable MTP in any installed profile.
+
+In the same developer shell and configured CUDA build directory:
+
+```powershell
+cmake -S backends/step35 -B build-local/step35-cuda -DSTRATA_STEP_MTP_PROBE=ON -DSTRATA_STEP_MTP_ACTIVE_CATCHUP=OFF -DSTRATA_STEP_RUNTIME=ON
+cmake --build build-local/step35-cuda --target strata-step35-mtp-check -j 4
+python -X utf8 tools/check_step35_mtp.py --engine build-local/step35-cuda/bin/strata-step35-mtp-check.exe --model H:/models/Step-3.7-Flash/UD-Q4_K_S/Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf --draft build-local/models/step37-mtp/Step3.7-flash-mtp-Q8_0.gguf --output-dir build-local/step35-cuda/step11-mtp/resident --cache-mib 16384 --depths 0,1,2,3 --rounds 2
+```
+
+Obtain the official sidecar at revision
+`0b69336d2fd2adfdef9c66e425f7778196c31482` of
+[`stepfun-ai/Step-3.7-Flash-GGUF`](https://huggingface.co/stepfun-ai/Step-3.7-Flash-GGUF/tree/0b69336d2fd2adfdef9c66e425f7778196c31482).
+The Q8_0 file's expected SHA-256 is
+`469a81667a6cd6d87a85d501d57155fd90cee5af7010fd289c5169881763fd57`.
+The checker records the actual checksum and validates the sidecar directory,
+trunk metadata, vocabulary and tensor placement before generation.
+
+Every request starts with empty KV and a fresh speculative driver. The probe
+compares greedy IDs with the existing native reference, includes EOG, warms each
+depth, then reverses depth order on alternate rounds. It records draft, target
+verification, catch-up, total request time and acceptance. Context is 2048 with
+F32 KV, batch 17, pipeline reader 1 and no prefill cache admission. Requests are
+limited to **480 total positions**, below the SWA window; this does not admit
+rollover, sessions, stochastic sampling, cancellation or HTTP MTP.
+
+The cache argument is a cap. Runtime reserves 5% of global VRAM plus 256 MiB;
+the Python monitor terminates only its test child if global RAM or VRAM crosses
+95%. Run a separate `--depths 0` trial without `--draft` for an off baseline that
+can use the memory otherwise occupied by MTP.
+
+Optional `--draft-placement shared-embedding` maps the draft embedding and
+unused global output weights in RAM. It compares every quantized embedding byte
+with the target's GPU tensor before borrowing that tensor. All admitted heads
+must have their own output matrices/norms and use the common embedding. The
+target outlives both contexts and the draft; no shared buffer ownership is
+transferred. All matrices used for computation remain on GPU.
+
+The additional build option `STRATA_STEP_MTP_ACTIVE_CATCHUP=ON` generates a
+hash-guarded copy of the upstream speculative driver which catches up only the
+heads requested by the current fresh sequence. It defaults to OFF. With this
+option, `--draft-placement active-heads --active-heads 2 --depths 2` keeps head
+47 in RAM and also shares the embedding. Use `--active-heads 1 --depths 1` to
+keep heads 46 and 47 in RAM. Requests deeper than the resident head count are
+rejected. The unpatched build rejects either placement with fewer than 3 heads.
+This experiment saved VRAM but did not improve the completed local measurements.
+
+`--prefault-experts` touches mapped expert pages before READY. The default
+`--ram-prefault-reserve-mib 24576` leaves a startup reserve **in addition** to the
+5% RAM margin: generation brings more expert pages into RAM. The 512 MiB and
+8192 MiB reserve trials crossed 95% and were stopped by the monitor. The 24576 MiB
+trial passed at 117.607 GiB peak RAM on this 125.555 GiB visible-RAM PC. Prefault
+remains opt-in: startup increased and filling RAM did not establish a throughput
+gain. These limits are observations for the tested short prompts, not admission
+for longer requests or changing external memory pressure.
+
+Measurements and remaining MTP gates:
+[MTP trials](../../docs/Step-3.7-Flash/STEP37_FLASH_MTP_TRIALS.md).
+
 Progress and remaining gates:
 [plan](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_PLAN.md),
 [status](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_STATUS.md).

@@ -14,11 +14,11 @@
 
 | Поле | Значение |
 |---|---|
-| Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4–P7 TODO |
-| Проверенная ревизия Strata | `97e016de11754cccd1b5550232c6c198cdbe0723`; при начале подготовки рабочее дерево чистое |
-| Последняя выполненная работа | STEP-10: EOG/capabilities/profile + HTTP; 232 regression tests, 34 final targeted, 2190 exported tokenizer checks; 9 exact real-model HTTP responses, 3 disconnect → clean-next pairs |
-| Активная задача / исполнитель | Нет активного исполнителя; STEP-10 завершён в указанном объёме |
-| Следующая задача | STEP-11 / остаток P2.5–P2.6: интерактивный web chat, HTTP unload/reload, отмена MCP и длинного HTTP prefill/rollover; расширение memory-pressure проверки |
+| Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4 TODO; P5 IN_PROGRESS (P5.1 DONE, P5.2–P5.5 частично); P6–P7 TODO |
+| Проверенная ревизия Strata | `3f757b0e7996c3bc0dd7859076cabdd3cc723f6d` перед STEP-11, дерево чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
+| Последняя выполненная работа | STEP-11: официальный Q8 MTP sidecar; 100 exact-reference requests, 60 с MTP; off/1/2/3 и RAM/VRAM trials; финальный shared-embedding MTP2: 9,146 → 10,602 токена/с |
+| Активная задача / исполнитель | Нет активного исполнителя; STEP-11 завершён в объёме offline greedy trials |
+| Следующая задача | STEP-12 / P5: длинные prompts, SWA512 rollback, stop/cancel и интеграция MTP в native pipe/HTTP. Остаток P2.5–P2.6 (web/MCP/unload/reload) также остаётся открытым |
 | Основная модель | `H:\models\Step-3.7-Flash\UD-Q4_K_S` |
 | Входной файл | `Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf` |
 | Фактическая архитектура | GGUF `step35`; display name `Step-3.7-Flash`; 45 основных блоков, 42 MoE, 12 full + 33 SWA |
@@ -28,10 +28,10 @@
 | Step backend / профиль | Отдельный native `strata-step35`; experimental HTTP profile: `build-local/step35-cuda/step10-http-profile-8g/step37.json`, создаётся `tools/prepare_step35_profile.py`. Активный профиль приложения не заменён |
 | Step dependency pin | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`; Step patches дополнены `step-prefill-cache-admission`; отдельная сборка |
 | Step tokenizer / API | deepseek-v3 и exported tokenizer по 2190/2190 native checks; Step template 215/215; parser/request adapters и HTTP registration готовы. Native EOG [1,128007], PAD2 не EOG; JSON/SSE, stop strings и low/medium/high effort подключены |
-| Native MTP | Локальных весов нет; официальный Q8_0 sidecar найден в публикации, совместимость не проверена |
+| Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. MTP2/shared embedding/p_min0.6: +15,9% decode в финальном контроле; native pipe/HTTP MTP пока не подключён |
 | Vision | Локального mmproj нет; отдельный P7 |
 | Измеренная скорость / runtime память Step | STEP-08: context4096, batch17, pipeline1/cacheauto/F32: prefill511 57,376 → 40,281 с; весь запрос511+16 60,137 → 43,550 с. Повторный короткий decode при prefill-off 8,505 токена/с; tradeoff и память ниже. Старый STEP-06 sync/pipeline comparison сохранён |
-| Блокеры | Для P0–P3 внешних блокеров не выявлено. Отсутствие draft/mmproj относится к P5/P7 и не блокирует текстовый MTP-off путь |
+| Блокеры | Для P0–P3 внешних блокеров не выявлено. Draft для P5 получен; остаются integration/state gates. Для P7 по-прежнему нет mmproj |
 | Приоритет совместимости | Текущие профили и бинарники моделей не изменены. Step hooks в общем server opt-in; 232 tests PASS, включая полный serve.test_server и GLM/DeepSeek regressions. Два известных старых GLM profile failures не включены в этот набор; их прежний baseline сохранён |
 
 ## Подтверждено при подготовке
@@ -74,7 +74,8 @@
 - Внешний MCP и его отмена, persistent runtime sessions, SWA rollback и HTTP stop
   после длинного rollover. READY принимает session-id для изоляции, но INFO
   conversation_cache=0; восстановление KV-сессий этим не заявляется.
-- Совместимость sidecar с этим Unsloth trunk, native MTP speedup, vision.
+- MTP на длинных prompts/через SWA512, stochastic sampling, sessions и pipe/HTTP
+  stop/cancel. Короткий greedy sidecar/speedup проверен в STEP-11; vision не проверен.
 
 Результаты GLM/DeepSeek/Qwen нельзя отмечать здесь как успешные тесты Step.
 Собраны CPU/CUDA vocabulary/template oracles, CUDA matrix/router и native graph checks.
@@ -90,7 +91,7 @@ Native inference полной модели выполнен; установка 
 | P2. Tokenizer/API | IN_PROGRESS | P2.1–P2.3 DONE в adapter/pipe: native renderer 215/215, parser 3415 sequences, реальный tool dialogue | API EOG/capabilities, HTTP/profile, stop strings и disconnect/cancel |
 | P3. Pipeline/cache | IN_PROGRESS | P3.1–P3.2/P3.4 DONE; shared ring, 973 real-byte checks, context4096 и bounded external pressure PASS | Prefill admission on/off проверен STEP-08; остаются startup OOM/предельная pressure, early refill, 4/16 MiB tuning и async cache leases при снятии D2D sync |
 | P4. Sessions/context | TODO | В P0 проверен in-process KV checkpoint на synthetic Step | Runtime sessions, budgets, sampler/output state, полная модель и длинные контексты |
-| P5. MTP | TODO | Найден официальный sidecar-кандидат | Локальный draft, compatibility, heads/hidden/state, verify/rollback, замеры |
+| P5. MTP | IN_PROGRESS | P5.1 DONE; официальный Q8, separate draft context/hidden/greedy verify, off/1/2/3, 60 exact MTP requests, RAM/VRAM trials в checker | Pipe/HTTP integration, SWA512 rollback, stochastic, stop/cancel/sessions, длинные и разнообразные prompts |
 | P6. Profile/release | TODO | Определена методика | Setup/profile, controls/benchmarks, регрессии и capabilities |
 | P7. Vision | TODO | Найден опубликованный mmproj | Отдельные encoder/input/state/memory проверки; необязателен для текстового выпуска |
 
@@ -1156,3 +1157,49 @@ Checker: `tools/check_step35_http.py`; воспроизведение — в bac
 внешнего MCP и длинного HTTP rollover; persistent session cache/SWA rollback,
 MTP/vision и расширенные RAM-pressure сценарии. READY `session-id` означает
 приём ID для изоляции запросов; INFO `conversation_cache=0` не обещает KV reuse.
+
+## STEP-11 — native MTP trials (2026-10-05)
+
+По запросу пользователя проверен готовый Step MTP driver из закреплённой
+зависимости и официальный Q8_0 sidecar. Реализация изолирована в
+`backends/step35/check_mtp.cpp`, harness — `tools/check_step35_mtp.py`.
+Опция сборки `STRATA_STEP_MTP_PROBE` по умолчанию OFF. Рабочий pipe engine,
+экспериментальный HTTP-профиль STEP-10 и остальные backends не изменялись.
+
+Подробности, команды, ограничения:
+[STEP37_FLASH_MTP_TRIALS.md](STEP37_FLASH_MTP_TRIALS.md).
+IDs, timings, source/binary/sidecar hashes, memory peaks и неудачные попытки:
+[STEP37_FLASH_MTP_TRIALS.json](STEP37_FLASH_MTP_TRIALS.json).
+
+**Итог:** 100 завершённых запросов на двух P1 prompts, из них60 с MTP;
+все IDs совпали с native reference. Проверены off/1/2/3, common embedding,
+неактивные головы в RAM и ограниченный prefault экспертных страниц.
+Финальная серия, context2048/batch17/F32/pipeline1/cap16384MiB:
+
+| Режим | Decode, токена/с | Средняя пара запросов вместе с prefill |
+|---|---:|---:|
+| Без загрузки draft | 9,146 | 19,972с |
+| Резидентный Q8, MTP2 | 10,274 | 18,453с |
+| Q8, MTP2, shared embedding | **10,602** | **17,859с** |
+
+Финальный кандидат: depth2, `p_min=0.6`, shared embedding, demand paging.
+Это **+15,9% decode**, полная пара запросов **на10,6% быстрее**, acceptance92,55%.
+Замеры после прогрева; переносить эти проценты на другие prompts пока нельзя.
+На RTX5090 наблюдаемый power limit400W, driver581.80; параметры питания не менялись.
+
+RAM удалось загрузить до **117,607ГиБ /93,67%**, VRAM до30216MiB.
+Прогрев RAM не установил дополнительного выигрыша по throughput, увеличил startup
+и остаётся opt-in. Запасы512/8192MiB при prefault привели к RAM>95%; monitor
+остановил только свой child. Запас24576MiB прошёл короткий sweep. Матрицы
+неиспользуемых голов в RAM дали9,33–9,43 токена/с; optional catch-up patch
+по умолчанию OFF, поскольку ускорение не подтверждено.
+
+**Проверки:** 24 существующих Step Python tests PASS, сборки upstream и optional
+active-head catch-up PASS, guards CLI и `git diff --check` PASS. Исходный
+`strata-step35.exe` сохранил SHA-256
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+
+**Следующий шаг:** P5.2–P5.5 ещё не закрыты целиком. Checker ограничен480
+суммарными позициями и greedy. Нужны SWA512/full KV rollback обеих contexts,
+длинные prompts, stop/cancel, stochastic sampling и интеграция в pipe/HTTP.
+В рабочем приложении MTP остаётся выключенным.
