@@ -84,6 +84,11 @@ inline Context context(llama_model * model, int size = 2048, int batch = 17, ggm
     require(bool(ctx), "Hy3 context creation failed");
     return ctx;
 }
+inline void configure_cache(llama_model * model,size_t cap) {
+    strata_hy3_cache_begin(cap);
+    if(cap) for(const auto & entry:model->tensors_by_name)
+        if(expert(entry.first)) strata_hy3_cache_register(entry.second);
+}
 inline void decode(llama_context * ctx, const std::vector<llama_token> & tokens,
                    size_t begin, int count, int position, bool all_logits = false) {
     require(count > 0 && begin <= tokens.size() && size_t(count) <= tokens.size()-begin, "invalid Hy3 decode slice");

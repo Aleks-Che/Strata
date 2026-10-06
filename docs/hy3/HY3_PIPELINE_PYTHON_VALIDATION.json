@@ -1,0 +1,106 @@
+{
+  "status": "pass",
+  "scope": "CPU profile/protocol/header and HTTP/parser regressions; CLI admission without model allocation",
+  "tests_run": 45,
+  "failures": 0,
+  "errors": 0,
+  "modules": [
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "elapsed_seconds": 12.020202700048685,
+  "cli_cases": [
+    {
+      "args": [
+        "--pipeline-readers",
+        "-1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache\n"
+    },
+    {
+      "args": [
+        "--pipeline-readers",
+        "3"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache\n"
+    },
+    {
+      "args": [
+        "--pipeline-readers",
+        "1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache\n"
+    },
+    {
+      "args": [
+        "--pipeline-chunk-mib",
+        "3"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache\n"
+    },
+    {
+      "args": [
+        "--trace-graphs",
+        "1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: trace requires pipeline, trace-file and graphs1..128\n"
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "8",
+        "--pipeline-readers",
+        "1"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "8",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "16"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    }
+  ],
+  "engine_sha256": "68288b37ee631bea8e8b45f9e13aa33615f5d1002d54963b994542670de1e0d3",
+  "source_sha256": {
+    "backends/hy3/cache_runtime.inc": "5a3e9bb0d0a498327748f95c650fbfab7104a5082ca9d13d4f5167563e1709e0",
+    "backends/hy3/pipeline_runtime.inc": "8abdf9293e4f418f0fc1367791ef6a89b842d59a0751d9604f4f32f68e7e09bf",
+    "backends/hy3/pipeline_sched.inc": "3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d",
+    "backends/hy3/check_runtime.cpp": "ab83d635e83b62cc47cd6f728a1ba837268044d3e47b5f890d6eb6f5ff2a3aaa",
+    "backends/hy3/sync_runtime.h": "5574dcbd3ea84e7da508d421d7d5847bd8cf1f6a18766c57f9350c30e43ca16c",
+    "backends/hy3/sync_runtime.inc": "62afc4701083c5c646d271762b73fb4009f324fd73c9e98c33e7a719137d9964",
+    "backends/hy3/sync_test.h": "df60db36934a03b62a103bcf6d7a4c31ead3b5aa2275c6399a102ab8f314e7a9",
+    "backends/hy3/main.cpp": "926d1b678f63fb1cefcb65f37f6accd5f8f3690ee6bac94c92ab37440f7e3273",
+    "backends/hy3/runtime.hpp": "677d3a136ae463bdb1278e62b78133bb4aa0c2bb0cfe3cd6fe86271a6a165360",
+    "backends/hy3/RuntimePatches.cmake": "fb5238c526d90d264a14f9754902aa3f0bb9b140ac8e3dfb3d957277d4c09a6a",
+    "backends/hy3/CMakeLists.txt": "33ced3df782e8989d5d5a4f29709b660afe0072b81ed4f8a606f30425ac27a39",
+    "backends/common/expert_pipeline.hpp": "20ea8dcf7308d433e1791afa5dbcc8d5612423f3805c6d7324289a2a4d456fe2",
+    "backends/step35/expert_cache.hpp": "36928d887ad6899f18a07aad7fb6f44a7bb767e123c5f25c53ae69f1e7daffa9",
+    "backends/step35/gpu_trace.hpp": "04e74fd7fb728cdac4f7dba88409027acd6a7348a88bf2954536d02162139196",
+    "tools/prepare_hy3_profile.py": "a9ea3f08c6302aa5b6922f634a7a7c76d9a44cac378ea6a05edc649c0250d139",
+    "tools/test_hy3_profile.py": "8d6cc99d2b911c2ae779e3fcebefbdb08bb52d0c4cbe469dfe8da3d14b96fef7",
+    "tools/check_hy3_cache_model.py": "437b5faa9958631c82a86d468c00737cf79435ba6f1d022525d4451ee32f2702"
+  }
+}

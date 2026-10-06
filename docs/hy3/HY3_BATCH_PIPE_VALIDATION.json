@@ -1,0 +1,174 @@
+{
+  "status": "pass",
+  "scope": "synthetic pipe lifecycle, sampling, isolation and cancellation",
+  "cases": [
+    {
+      "name": "greedy_16",
+      "pass": true
+    },
+    {
+      "name": "A_B_A_greedy",
+      "pass": true
+    },
+    {
+      "name": "seeded_sampling_repeat",
+      "pass": true
+    },
+    {
+      "name": "reject/",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 0 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 2048 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 64",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 -1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 1,",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 1,,2",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 temperature=nan 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 seed=4294967296 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 top_p=0 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 unknown=1 1",
+      "pass": true
+    },
+    {
+      "name": "reject/GEN 1 session=bad 1",
+      "pass": true
+    },
+    {
+      "name": "reject/ENC 2 00",
+      "pass": true
+    },
+    {
+      "name": "reject/ENC 1 gg",
+      "pass": true
+    },
+    {
+      "name": "stop_during_prefill",
+      "pass": true
+    },
+    {
+      "name": "fresh_state_after_cancel_and_errors",
+      "pass": true
+    },
+    {
+      "name": "session_key_isolation",
+      "pass": true
+    },
+    {
+      "name": "quit_during_request",
+      "pass": true
+    }
+  ],
+  "info": [
+    "INFO engine=hy3-native architecture=hy_v3 backend=llama.cpp gpu_only=1 mtp=0 spec=0 speculative=none expert_storage=mmap expert_compute=gpu expert_pipeline=1 expert_cache_mib=8 memory_target_percent=95 ram_target_percent=93 expert_readers=2 expert_stage_mib=16 expert_batch_copy=1 expert_copy=pinned-pipeline-file kv=f32 flash_attention=0 tf32=0 cuda_fusion=0 conversation_cache=0",
+    "READY 2048 stop session-id"
+  ],
+  "exit_code": 0,
+  "greedy_ids": [
+    39,
+    19,
+    49,
+    17,
+    49,
+    19,
+    32,
+    49,
+    39,
+    37,
+    49,
+    49,
+    49,
+    49,
+    49,
+    49
+  ],
+  "sampled_ids": [
+    43,
+    6,
+    5,
+    60,
+    31,
+    14,
+    16,
+    13,
+    2,
+    29,
+    48,
+    17,
+    50,
+    49,
+    28,
+    37
+  ],
+  "case_count": 22,
+  "engine_sha256": "e24dc96ac7edfb308d0574b07a2e0f29d80f202387ef7dfc640ff105b0c0078a",
+  "fixture_sha256": "d22ac0e9e2196a68390cd3314f24dfd4d863ee47f86e98673095390ceab1dbf6",
+  "command_extra_args": [
+    "--expert-cache-mib",
+    "8",
+    "--pipeline-readers",
+    "2",
+    "--pipeline-batch",
+    "1"
+  ],
+  "memory_samples": [
+    {
+      "seconds": 0.059634000004734844,
+      "process_rss": 1593344,
+      "process_peak_wset": 1597440,
+      "process_private": 1388544,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 112132341760,
+      "gpu": {
+        "total": 34190917632,
+        "used": 2438987776
+      }
+    },
+    {
+      "seconds": 0.5846613000030629,
+      "process_rss": 19955712,
+      "process_peak_wset": 571846656,
+      "process_private": 251322368,
+      "system_ram_total": 134813700096,
+      "system_ram_available": 111852703744,
+      "gpu": {
+        "total": 34190917632,
+        "used": 2438987776
+      }
+    }
+  ],
+  "memory_guard_error": null,
+  "harness_sha256": "d6953841f41d42a6af313544b1215039b7e347efa7b63f796a4ea722d46b99ad"
+}

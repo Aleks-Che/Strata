@@ -18,8 +18,10 @@ using Clock = std::chrono::steady_clock;
 using json = nlohmann::ordered_json;
 static double ms(Clock::time_point start) { return std::chrono::duration<double,std::milli>(Clock::now()-start).count(); }
 struct Options {
-    std::string model, logits_file;
-    int context=2048, batch=17, copy_mode=2;
+    std::string model, logits_file, trace_file;
+    int context=2048, batch=17, copy_mode=2, cache_mib=0;
+    int pipeline_readers=0, pipeline_chunk=4, trace_graphs=0;
+    int pipeline_batch=0;
     ggml_type kv=GGML_TYPE_F32;
     bool fixture=false, inspect_only=false;
 };
@@ -35,6 +37,12 @@ static Options options(int argc,char ** argv) {
         if(key=="--native") out.model=value;
         else if(key=="--max-context") out.context=integer(value);
         else if(key=="--batch-size") out.batch=integer(value);
+        else if(key=="--expert-cache-mib") out.cache_mib=integer(value);
+        else if(key=="--pipeline-readers") out.pipeline_readers=integer(value);
+        else if(key=="--pipeline-chunk-mib") out.pipeline_chunk=integer(value);
+        else if(key=="--pipeline-batch") out.pipeline_batch=integer(value);
+        else if(key=="--trace-graphs") out.trace_graphs=integer(value);
+        else if(key=="--trace-file") out.trace_file=value;
         else if(key=="--logits-file") out.logits_file=value;
         else if(key=="--copy-mode") {
             require(value=="native" || value=="pinned","copy-mode must be native or pinned");
@@ -44,6 +52,17 @@ static Options options(int argc,char ** argv) {
         } else throw std::runtime_error("unsupported Hy3 option: "+key);
     }
     require(!out.model.empty() && out.context>=32 && out.context<=2048 && out.batch>=1 && out.batch<=32 && out.batch<=out.context,"invalid model/context/batch");
+    require(out.cache_mib>=0 && out.cache_mib<=16384 && (!out.cache_mib || out.copy_mode==2),"cache must be 0..16384 MiB and requires pinned copy mode");
+    require(out.pipeline_readers>=0 && out.pipeline_readers<=2 &&
+        (out.pipeline_chunk==4 || out.pipeline_chunk==8 || out.pipeline_chunk==16) &&
+        (!out.pipeline_readers || (out.cache_mib && out.copy_mode==2)),"pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache");
+    require(out.trace_graphs>=0 && out.trace_graphs<=128 &&
+        (out.trace_graphs>0)==!out.trace_file.empty() && (!out.trace_graphs || out.pipeline_readers),"trace requires pipeline, trace-file and graphs1..128");
+    require((out.pipeline_batch==0 || out.pipeline_batch==1) && (!out.pipeline_batch || out.pipeline_readers),"pipeline-batch must be0/1 and requires pipeline readers");
+    if(!out.trace_file.empty()) {
+        const auto p=std::filesystem::absolute(out.trace_file);
+        require(p.extension()==".json" && !std::filesystem::exists(p),"trace output must be a new .json file");
+    }
     if(!out.logits_file.empty()) {
         const auto p=std::filesystem::absolute(out.logits_file);
         require(p.extension()==".f32","logits output must end with .f32");
@@ -134,6 +153,21 @@ static void execute(llama_context * ctx, const llama_vocab * vocab, const Option
             {"source_bytes",s.source_bytes},{"h2d_bytes",s.h2d_bytes},{"source_ms",s.source_ms},{"h2d_ms",s.h2d_ms},
             {"prefill_h2d_bytes",prefill_counters.h2d_bytes},{"decode_h2d_bytes",s.h2d_bytes-prefill_counters.h2d_bytes},
             {"staging_bytes",s.staging_bytes},{"ranges",s.ranges},{"chunks",s.chunks},
+            {"cache_bytes",s.cache_bytes},{"cache_budget",s.cache_budget},{"cache_entries",s.cache_entries},
+            {"cache_generation",s.cache_generation},{"cache_hits",s.cache_hits},{"cache_misses",s.cache_misses},
+            {"cache_evictions",s.cache_evictions},{"cache_reuses",s.cache_reuses},{"cache_oom",s.cache_oom},
+            {"cache_rejected",s.cache_rejected},{"cache_fill_bytes",s.cache_fill_bytes},{"d2d_bytes",s.d2d_bytes},
+            {"pipeline_groups",s.pipeline_groups},{"pipeline_chunks",s.pipeline_chunks},
+            {"pipeline_unused_bytes",s.pipeline_unused_bytes},{"pipeline_device_bytes",s.pipeline_device_bytes},
+            {"pipeline_wait_us",s.pipeline_wait_us},{"pipeline_slot_wait_us",s.pipeline_slot_wait_us},
+            {"pipeline_submit_us",s.pipeline_submit_us},{"pipeline_read_peak",s.pipeline_read_peak},
+            {"pipeline_reader_owned",s.pipeline_reader_owned},{"pipeline_queued",s.pipeline_queued},
+            {"pipeline_copy_fences",s.pipeline_copy_fences},
+            {"pipeline_copy_batches",s.pipeline_copy_batches},{"pipeline_pending_fills_peak",s.pipeline_pending_fills_peak},
+            {"pipeline_batch_ms",s.pipeline_batch_ms},
+            {"prefill_copy_fences",prefill_counters.pipeline_copy_fences},
+            {"decode_copy_fences",s.pipeline_copy_fences-prefill_counters.pipeline_copy_fences},
+            {"decode_cache_hits",s.cache_hits-prefill_counters.cache_hits},{"decode_cache_misses",s.cache_misses-prefill_counters.cache_misses},
             {"gpu_nodes",s.gpu_nodes},{"expert_nodes",s.expert_nodes},
             {"rejected_cpu_nodes",s.rejected_cpu_nodes},{"rejected_full_copies",s.rejected_full_copies},
             {"gpu_free",s.gpu_free},{"gpu_total",s.gpu_total},{"ram_free",s.ram_free},{"ram_total",s.ram_total},
@@ -202,14 +236,19 @@ int main(int argc,char ** argv) {
         {
             auto model=load(config.model,false,false,config.fixture);
             auto ctx=context(model.get(),config.context,config.batch,config.kv);
+            configure_cache(model.get(),size_t(config.cache_mib)<<20);
+            strata_hy3_pipeline_config(config.pipeline_readers,config.pipeline_chunk,config.trace_graphs,config.pipeline_batch!=0);
             strata_hy3_memory_check();
             std::cout<<"INFO engine=hy3-native architecture=hy_v3 backend=llama.cpp gpu_only=1"
-                <<" mtp=0 spec=0 speculative=none expert_storage=mmap expert_compute=gpu expert_pipeline=0"
-                <<" expert_cache_mib=0 memory_target_percent=95 ram_target_percent=93 expert_readers=0 expert_stage_mib="<<(config.copy_mode==2 ? 16 : 0)
-                <<" expert_copy="<<(config.copy_mode==2 ? "pinned-sync-file" : "native-reference")
+                <<" mtp=0 spec=0 speculative=none expert_storage=mmap expert_compute=gpu expert_pipeline="<<(config.pipeline_readers>0)
+                <<" expert_cache_mib="<<config.cache_mib<<" memory_target_percent=95 ram_target_percent=93 expert_readers="<<config.pipeline_readers
+                <<" expert_stage_mib="<<(config.pipeline_readers ? 4*config.pipeline_chunk : config.copy_mode==2 ? 16 : 0)
+                <<" expert_batch_copy="<<config.pipeline_batch
+                <<" expert_copy="<<(config.pipeline_readers ? "pinned-pipeline-file" : config.copy_mode==2 ? "pinned-sync-file" : "native-reference")
                 <<" kv=f32 flash_attention=0 tf32=0 cuda_fusion=0 conversation_cache=0\n"
                 <<"READY "<<config.context<<" stop session-id\n"<<std::flush;
             serve(ctx.get(),llama_model_get_vocab(model.get()),config);
+            strata_hy3_trace_write(config.trace_file.c_str());
             strata_hy3_sync_release();
         }
         llama_backend_free();return 0;

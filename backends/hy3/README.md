@@ -3,8 +3,9 @@
 This directory builds CPU vocabulary/template/registration oracles and CUDA
 numerical checks for GGUF `hy_v3`. The CUDA checks execute small synthetic main
 and MTP graphs. The opt-in Windows pipe engine executes the full checkpoint
-without MTP using synchronous selected expert transfers. There is no installed
-profile or HTTP API yet.
+without MTP. Selected expert transfers support a synchronous reference and
+an optional bounded GPU matrix cache and file/H2D pipeline. An isolated profile
+serves both HTTP APIs and the web app below.
 
 Use a Visual Studio 2022 developer shell (MSVC and Windows SDK in PATH/INCLUDE/LIB):
 
@@ -143,12 +144,80 @@ build-local/hy3-cuda/bin/strata-hy3.exe --native H:/models/hy3/Hy3-Q3_K_M-mtp.gg
 `STOP` cancels the current request, `QUIT` exits. Each request starts with fresh
 KV and sampler state. Session keys are accepted for isolation, not persistence.
 Greedy and seeded temperature/top-k/top-p/min-p/repetition sampling use native
-samplers. The capability line explicitly reports MTP/cache/pipeline disabled.
+samplers. The capability line reports the requested expert-cache cap and
+pipeline readers; MTP and conversation persistence remain disabled.
 Context is limited to 2048, batch to 32 and KV to F32 for this baseline.
 
 The native header check validates the local 80+1 shape, all 1298 tensors, allowed
 types, required dense/shared/router/NextN weights and non-overlapping in-file
 ranges before loading weights. `--inspect-only` allocates no weight payload.
+`--expert-cache-mib 0..16384` enables a bounded GPU matrix cache with pinned copy
+mode; zero keeps the uncached reference path. It is a cap, not a reservation:
+the controller clamps against global VRAM usage, including other applications,
+and leaves 5% plus 256 MiB. It trims entries under pressure before the 95% guard.
+RAM still uses the 93% process working-set target and 95% global admission guard.
+
+The allocation/eviction controller is reused unchanged from
+`backends/step35/expert_cache.hpp`. Hy3 owns a separate registry and CUDA stream.
+Keys identify a live model generation, registered tensor (name/layer, type,
+shape, strides and actual file mapping/offset), and expert. Beginning a new
+generation drops all old entries. Cache hits copy bytes from GPU to GPU into
+the native scratch; cache misses use the synchronous file/pinned path. Every
+copy is fenced before admission, eviction or reuse. Entries include the actual
+native next-expert padding of up to 512 bytes. A failed cache fill invalidates
+entries; allocation OOM bypasses caching after the successful scratch upload.
+No cache persists across model unload. The synchronous mode remains the default.
+
+`--pipeline-readers 1` opts into the unchanged shared `StrataExpertPipeline`.
+It requires pinned copy and a nonzero expert-cache cap. Reader counts 1 and 2
+are admitted; `--pipeline-chunk-mib 4|8|16` defaults to 4. The shared ring has
+four slots, so the default allocates 16 MiB pinned RAM plus 16 MiB GPU storage,
+independently of model size. It replaces the synchronous 16 MiB host buffer.
+RAM/VRAM admission precedes allocation and retains the global 95% ceiling.
+
+After the native router returns IDs, a bounded plan follows the actual future
+gate/up/down scheduler split order for that routing tensor. Only misses are
+read through the registered native file handle; hits are pinned against cache
+eviction until the plan drains. Independent H2D stages into ring buffers, never
+directly into scheduler scratch. Each consumer waits on a recorded ready event;
+slot reuse waits on its consumer event. The default delivery fences each
+matrix and cache fill. Read/H2D lookahead can continue during preceding compute.
+
+`--pipeline-batch 1` queues all selected matrices of one scheduler input tensor,
+then fences the consumer stream once. It requires pipeline readers; default 0
+keeps the per-matrix reference. The preceding scratch-consumer fence remains.
+Cache hits stay plan-pinned; newly admitted cache destinations get local pins
+until all queued D2D copies and fills complete on that same stream. Allocation
+pressure cannot reuse these pending entries. Error unwinding drains the stream
+before releasing pins and invalidating incomplete fills. STOP is checked between
+matrix submissions and before the final fence. The shared ring is unchanged.
+
+Every graph exit finishes the plan, including cancellation and exceptions.
+Mappings remain owned until readers finish. Reader/submission errors drain the
+ring and trigger recreation on the next request; incomplete cache fills are
+invalidated. No source handle is changed concurrently by the failure tests.
+
+Request metrics distinguish source/H2D bytes, D2D hit bytes, cache-fill D2D
+bytes, resident/budget bytes, hits/misses, evictions/reuses and allocation OOM.
+Source bytes count native file reads, including OS-cached reads; they are not
+a measurement of physical SSD traffic. Cache fill and hit bytes are separate.
+Pipeline counters add groups/chunks, abandoned bytes, fixed device-ring size,
+reader concurrency, outstanding reader/queue bytes, consumer/slot wait time and
+submission time. CPU wait sums are not GPU execution or proof of overlap.
+After drain, reader-owned and queued bytes must both be zero.
+`h2d_ms` times the synchronous upload path only; pipeline H2D execution time
+comes from the optional CUDA trace, not that field or CPU submission time.
+Batch metrics add `pipeline_copy_batches`, `pipeline_pending_fills_peak` (entry
+count), `pipeline_batch_ms` (inclusive CPU wall time), and prefill/decode delivery
+fence counts. The fence counter excludes preceding scratch and graph-end fences;
+it does not count implicit CUDA allocator synchronization.
+
+For a separate diagnostic run, `--trace-graphs 4 --trace-file NEW_FILE.json`
+records CUDA event intervals on the actual H2D and compute streams. The file
+is written at clean engine shutdown. Timing runs must leave tracing disabled.
+These intervals include stream scheduling gaps; they do not measure kernel
+occupancy. Tracing reuses Step's audited `GpuTrace` unchanged.
+
 `--fixture` explicitly admits the tiny tokenizer-free fixture instead; it cannot
 bypass validation of a full checkpoint. Python admission additionally validates
 the full tokenizer/template contract and records header hashes. Neither hashes
@@ -158,8 +227,8 @@ All non-routed main weights stay on GPU. Routed weights have demand mappings;
 MTP tensors are skipped. The unchanged scheduler's `--copy-mode native` is the
 reference. `pinned` reads only its selected expert ranges through the shared
 `backends/common/expert_file.hpp`, stages at most 16 MiB and fences each H2D
-before reusing staging. One native read is in flight; no prefetch pipeline or
-expert cache is enabled. The scheduler rejects CPU tensor math and accidental
+before reusing staging. Without pipeline readers, one native read is in flight.
+The cache and pipeline are opt-in. The scheduler rejects CPU tensor math and accidental
 whole expert-tensor copies before submitting them. Selected uploads include
 the candidate's <=512-byte MMQ padding; counters include these real bytes.
 
@@ -219,8 +288,14 @@ python -m serve.server --engine strata --config build-local/hy3-http-new/hy3.jso
 
 The server binds to `127.0.0.1`. It serves the web app, `/v1/models`, OpenAI
 `/v1/chat/completions` and Anthropic `/v1/messages`, including JSON and SSE.
-The profile uses the synchronous pinned baseline, context2048, batch17, F32 KV
-and temperature0; MTP, expert cache, pipeline and persistent sessions remain off.
+The profile uses the synchronous pinned baseline, context 2048, batch 17, F32 KV
+and temperature 0; MTP and persistent sessions remain off. The exporter
+accepts `--expert-cache-mib` with default 0; a nonzero value adds the runtime cap
+to the new profile. Existing profiles are not overwritten.
+`--pipeline-readers 1 --pipeline-chunk-mib 4` also exports an explicit pipeline
+configuration when a nonzero cache cap is supplied.
+The exporter flag `--pipeline-batch` adds native `--pipeline-batch 1` to a new
+profile; it requires nonzero readers and does not alter existing profiles.
 `fit_max_tokens` reduces the requested output cap to the available context space;
 it never truncates the prompt. This profile is for validation, not a speed default.
 
@@ -235,14 +310,43 @@ blocks are unsupported. EOS is resolved and checked from the exported tokenizer;
 only120025 ends generation for this model, not PAD or placeholder120026.
 
 The real HTTP checker requires the same binary as the passing direct-dialogue
-reference. It compares prompts/output IDs, runs a local tool/result round-trip,
-checks prefill disconnect/recovery, and samples global RAM/VRAM under a95% guard:
+reference, or explicit `--allow-engine-change` to compare a new checksummed
+engine against the historical IDs. It compares prompts/output IDs, runs a local
+tool/result round-trip, checks prefill disconnect/recovery, and samples global
+RAM/VRAM under a 95% guard:
 
 ```powershell
-python tools/check_hy3_http.py --profile build-local/hy3-http-new/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/http-new
+python tools/check_hy3_http.py --profile build-local/hy3-http-new/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/http-new --allow-engine-change
 python -m unittest serve.test_hy3 serve.test_hy3_http tools.test_hy3_profile
 node serve/test_hy3_settings_ui.cjs
 ```
+
+Cache admission and the full-model capacity sweep (run sequentially, one GPU
+test at a time):
+
+```powershell
+cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-runtime-check strata-hy3-cache-check -j 4
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind cache --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/cache-unit-new
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/cache-runtime-new
+python tools/check_hy3_cache_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/cache-model-new
+python tools/check_hy3_cache_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --cache-mib 8192 --pipeline-readers 0 1 2 0 --output-dir build-local/hy3-tests/pipeline-model-new
+python tools/check_hy3_cache_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --cache-mib 8192 --pipeline-readers 2 --pipeline-batch 0 1 1 0 --output-dir build-local/hy3-tests/batch-model-new
+```
+
+The sweep defaults to 0/8192/12288/16384/0 MiB, two English/code passes per
+process with fresh KV and deterministic sampling. Cache survives requests;
+the OS file cache is not purged. Every output logit hash and token sequence
+must equal the recorded native baseline. Each nonzero capacity also checks
+STOP and a following request. See the status for measured results and limits.
+`--prompts long --repeats 1` selects the recorded 362-token prompt for a separate
+prefill comparison. Reference hashes and stop/recovery checks still apply.
+
+The first HY3-08 runtime run had one intermittent resident/native mismatch at
+mixed batch 4, with the pipeline disabled. Subsequent full runs and 32 focused
+resident/native comparisons passed. The cause remains unresolved; the original
+failure is retained in the status, and batching remains an explicit experiment.
+`strata-hy3-runtime-check NEW_DIRECTORY --reference-probe` runs the focused
+32 comparisons plus 28 native repeat checks; failed comparisons save logits.
 
 [Plan](../../docs/hy3/HY3_IMPLEMENTATION_PLAN.md) and
 [status with measured validation](../../docs/hy3/HY3_IMPLEMENTATION_STATUS.md).

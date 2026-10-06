@@ -1,0 +1,90 @@
+{
+  "status": "pass",
+  "scope": "46 CPU unittest tests plus CLI batch admission without model allocation",
+  "tests_run": 46,
+  "failures": 0,
+  "errors": 0,
+  "elapsed_seconds": 11.844,
+  "modules": [
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "cli_cases": [
+    {
+      "args": [
+        "--pipeline-batch",
+        "1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline-batch must be0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--pipeline-batch",
+        "-1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline-batch must be0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--pipeline-batch",
+        "2"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: pipeline-batch must be0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--pipeline-batch",
+        "bad"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: invalid stoi argument\n"
+    },
+    {
+      "args": [
+        "--pipeline-batch",
+        "0"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "8",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    }
+  ],
+  "engine_sha256": "e24dc96ac7edfb308d0574b07a2e0f29d80f202387ef7dfc640ff105b0c0078a",
+  "source_sha256": {
+    "backends/hy3/pipeline_runtime.inc": "5f5d8e0477f38b5eea7972e2fc77b487ce99afe428dcc9e21e7c0fa5db178e73",
+    "backends/hy3/pipeline_sched.inc": "3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d",
+    "backends/hy3/check_runtime.cpp": "e97a7e8f1c11ac626bc1239f844a02f10b4f952fc5f08ddcf5820378c148eba0",
+    "backends/hy3/sync_runtime.h": "5c8056a53c1665c1b592c73ce5d89d8c6ed07dc85f9717c82f030a49523f4a93",
+    "backends/hy3/sync_test.h": "dde655dac4639864002830b9a3601345a0d071bc445172bd384cb1d1b80a5914",
+    "backends/hy3/main.cpp": "373b2bef62026482d85e24887a1aaa73998a09c79d90cf92581b6683b69305eb",
+    "backends/hy3/RuntimePatches.cmake": "48b74da8911b36c48261ad86cab560a5caeda86684769d92733ad9e025bd37fc",
+    "tools/prepare_hy3_profile.py": "62a82cf24ae657198e8f1c0c2b16312ba257cce49314dc611674318c9800285c",
+    "tools/test_hy3_profile.py": "1beddebd0845d0f38013ab0dd1a03effeda511230c1f4bb527f872ecab46bfed",
+    "tools/check_hy3_cache_model.py": "19c2887d1c121a2a6766fd7853f54cefe87b1e3b351d189149a86863726a877d",
+    "backends/common/expert_pipeline.hpp": "20ea8dcf7308d433e1791afa5dbcc8d5612423f3805c6d7324289a2a4d456fe2",
+    "backends/step35/expert_cache.hpp": "36928d887ad6899f18a07aad7fb6f44a7bb767e123c5f25c53ae69f1e7daffa9"
+  }
+}

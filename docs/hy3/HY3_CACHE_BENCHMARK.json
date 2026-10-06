@@ -1,0 +1,67 @@
+{
+  "status": "pass",
+  "scope": "second English/code pass in each process, 37 decode steps; one sequential sweep with cache-off bookends; OS file cache not purged",
+  "rows": [
+    {
+      "cap_mib": 0,
+      "decode_steps": 37,
+      "decode_seconds": 27.2019482,
+      "decode_tokens_per_second": 1.3601966935588827,
+      "decode_h2d_gib_per_step": 4.865246076841612,
+      "cache_resident_mib_end": 0.0,
+      "peak_global_ram_gib": 37.462730407714844,
+      "peak_global_vram_mib": 13917.0,
+      "warm_request_seconds": 45.019973600050434
+    },
+    {
+      "cap_mib": 8192,
+      "decode_steps": 37,
+      "decode_seconds": 20.3148626,
+      "decode_tokens_per_second": 1.8213266182760202,
+      "decode_h2d_gib_per_step": 3.077041007377006,
+      "cache_resident_mib_end": 8192.0,
+      "peak_global_ram_gib": 39.71905517578125,
+      "peak_global_vram_mib": 26519.0,
+      "warm_request_seconds": 37.391226100036874
+    },
+    {
+      "cap_mib": 12288,
+      "decode_steps": 37,
+      "decode_seconds": 20.5241033,
+      "decode_tokens_per_second": 1.8027584181960339,
+      "decode_h2d_gib_per_step": 2.835193273183462,
+      "cache_resident_mib_end": 10666.375,
+      "peak_global_ram_gib": 34.861759185791016,
+      "peak_global_vram_mib": 30230.0,
+      "warm_request_seconds": 38.10510320001049
+    },
+    {
+      "cap_mib": 16384,
+      "decode_steps": 37,
+      "decode_seconds": 21.0006942,
+      "decode_tokens_per_second": 1.761846520292648,
+      "decode_h2d_gib_per_step": 2.772956861032022,
+      "cache_resident_mib_end": 10643.0,
+      "peak_global_ram_gib": 37.93947982788086,
+      "peak_global_vram_mib": 30233.0,
+      "warm_request_seconds": 40.13425510004163
+    },
+    {
+      "cap_mib": 0,
+      "decode_steps": 37,
+      "decode_seconds": 26.8716875,
+      "decode_tokens_per_second": 1.3769138986898386,
+      "decode_h2d_gib_per_step": 4.865246076841612,
+      "cache_resident_mib_end": 0.0,
+      "peak_global_ram_gib": 33.76082229614258,
+      "peak_global_vram_mib": 14003.0,
+      "warm_request_seconds": 44.60993549996056
+    }
+  ],
+  "cache_off_bookend_decode_tokens_per_second": 1.3685042450363663,
+  "selected_cache_mib": 8192,
+  "selected_decode_speedup_percent": 33.08885411806821,
+  "selected_decode_h2d_reduction_percent": 36.75466854546977,
+  "reason": "8 GiB was fastest in this short sweep and used less VRAM; no claim of universal optimum",
+  "model_validation": "HY3_CACHE_MODEL_VALIDATION.json"
+}

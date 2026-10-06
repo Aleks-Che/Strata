@@ -46,19 +46,22 @@ def wait_for(predicate, engine, timeout=240):
         time.sleep(.05)
 
 
-def run(profile, reference, output):
+def run(profile, reference, output, allow_engine_change=False):
     cfg = json.loads(profile.read_text(encoding='utf8'))
     ref = json.loads(reference.read_text(encoding='utf8'))
     sha = hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest()
     if cfg['architecture'] != 'hy_v3' or ref['status'] != 'pass':
         raise ValueError('Explicit Hy3 profile and passing dialogue reference required')
-    if sha != cfg['engine_sha256'] or sha != ref['engine_sha256']:
-        raise ValueError('Profile, engine and reference must have the same engine checksum')
+    if sha != cfg['engine_sha256'] or (sha != ref['engine_sha256'] and not allow_engine_change):
+        raise ValueError('Profile/engine checksum mismatch or reference engine changed without explicit --allow-engine-change')
+    if cfg['model_header_sha256'] != ref['header_sha256']:
+        raise ValueError('Profile and reference must describe the same model header')
     tok = load_tokenizer(cfg['tokenizer'])
     template = server.configured_template(cfg, tok, Path(cfg['tokenizer']))
     output.mkdir(parents=True, exist_ok=False)
     report = dict(status='error', scope='production Service/StrataEngine; loopback JSON/SSE; local tool stub; no browser interaction',
         profile=str(profile), reference=str(reference), engine_sha256=sha,
+        reference_engine_sha256=ref['engine_sha256'], allow_engine_change=allow_engine_change,
         engine_args=server.engine_args(cfg), requests=[], cancellations=[], endpoints={})
     monitor, engine, httpd, worker = Monitor(), None, None, None
     phase, finished = ['loading'], threading.Event()
@@ -231,8 +234,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for arg in ('profile', 'reference', 'output-dir'):
         parser.add_argument('--'+arg, type=Path, required=True)
+    parser.add_argument('--allow-engine-change', action='store_true', help='compare a new checksummed engine to historical native prompt/output IDs')
     args = parser.parse_args()
-    run(args.profile.resolve(), args.reference.resolve(), args.output_dir.resolve())
+    run(args.profile.resolve(), args.reference.resolve(), args.output_dir.resolve(), args.allow_engine_change)
 
 
 if __name__ == '__main__':

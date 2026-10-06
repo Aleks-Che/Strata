@@ -12,6 +12,30 @@ from serve.test_hy3_http import Tokenizer
 
 
 class ProfileTests(unittest.TestCase):
+    def test_invalid_batch_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value,readers in ((True,0),(1,2),('1',2),(None,2)):
+                with self.subTest(value=value,readers=readers), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',cache_mib=8,
+                                  pipeline_readers=readers,pipeline_batch=value)
+            inspect.assert_not_called()
+            self.assertFalse((Path(directory)/'new').exists())
+    def test_invalid_pipeline_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for readers,chunk,cap in ((-1,4,8),(3,4,8),(True,4,8),(1,3,8),(1,4,0),(1,4.0,8)):
+                with self.subTest(readers=readers,chunk=chunk,cap=cap), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',cache_mib=cap,
+                                  pipeline_readers=readers,pipeline_chunk_mib=chunk)
+            inspect.assert_not_called()
+            self.assertFalse((Path(directory)/'new').exists())
+    def test_invalid_cache_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for cap in (-1, 16385, True, 1.5, '8192'):
+                with self.subTest(cap=cap), self.assertRaises(ValueError):
+                    setup.prepare('model', 'engine', Path(directory)/'new', cache_mib=cap)
+            inspect.assert_not_called()
+            self.assertFalse((Path(directory)/'new').exists())
+
     def test_existing_destination_refused_before_inspection(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
             with self.assertRaisesRegex(ValueError, 'Destination exists'):
@@ -48,6 +72,16 @@ class ProfileTests(unittest.TestCase):
                         self.assertEqual(cfg['args'][-4:], ['--copy-mode', 'pinned', '--kv', 'f32'])
                         self.assertNotIn('--mtp', cfg['args'])
                         self.assertEqual(Path(cfg['tokenizer']).parent, destination)
+                        second = setup.prepare('model', exe, base/'cached', cache_mib=8192)
+                        cached = json.loads(second.read_text(encoding='utf8'))
+                        self.assertEqual(cached['args'][-2:], ['--expert-cache-mib', '8192'])
+                        third=setup.prepare('model',exe,base/'pipeline',cache_mib=8192,pipeline_readers=1)
+                        piped=json.loads(third.read_text(encoding='utf8'))
+                        self.assertEqual(piped['args'][-4:],['--pipeline-readers','1','--pipeline-chunk-mib','4'])
+                        fourth=setup.prepare('model',exe,base/'batch',cache_mib=8192,pipeline_readers=2,pipeline_batch=True)
+                        batched=json.loads(fourth.read_text(encoding='utf8'))
+                        self.assertEqual(batched['args'][-2:],['--pipeline-batch','1'])
+                        self.assertEqual(json.loads(profile.read_text(encoding='utf8')), cfg)
 
 
 if __name__ == '__main__':

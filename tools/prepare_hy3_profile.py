@@ -15,7 +15,7 @@ from tools.hy3_loader_contract import LOADER_SHA
 from serve.server import configured_template
 
 HEADER_SHA = 'f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9'
-PATCH_SET = 'hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap'
+PATCH_SET = 'hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy'
 
 
 def load_tokenizer(path):
@@ -32,8 +32,16 @@ def load_tokenizer(path):
         pre=config['pre'], special_ids=config['special_ids'])
 
 
-def prepare(model, engine, directory, cuda_dir=None):
+def prepare(model, engine, directory, cuda_dir=None, cache_mib=0, pipeline_readers=0, pipeline_chunk_mib=4, pipeline_batch=False):
     model, engine, directory = Path(model).resolve(), Path(engine).resolve(), Path(directory).resolve()
+    if type(cache_mib) is not int or not 0 <= cache_mib <= 16384:
+        raise ValueError('Hy3 expert cache must be 0..16384 MiB')
+    if (type(pipeline_readers) is not int or not 0 <= pipeline_readers <= 2 or
+            type(pipeline_chunk_mib) is not int or pipeline_chunk_mib not in (4,8,16) or
+            (pipeline_readers and not cache_mib)):
+        raise ValueError('Hy3 pipeline requires readers0..2, chunk4/8/16 MiB and nonzero cache cap')
+    if type(pipeline_batch) is not bool or (pipeline_batch and not pipeline_readers):
+        raise ValueError('Hy3 tensor batching requires a boolean option and pipeline readers')
     if directory.exists():
         raise ValueError('Destination exists; choose a new directory for the Hy3 profile')
     report = inspect_model(model)
@@ -64,6 +72,12 @@ def prepare(model, engine, directory, cuda_dir=None):
         'fit_max_tokens': True, 'backend_identity': identity,
         'engine_sha256': hashlib.sha256(engine.read_bytes()).hexdigest(), 'model_header_sha256': report['header_sha256'],
         'validated_eog_ids': sorted(template.resolve_stop_ids(tokenizer))}
+    if cache_mib:
+        cfg['args'] += ['--expert-cache-mib', str(cache_mib)]
+    if pipeline_readers:
+        cfg['args'] += ['--pipeline-readers', str(pipeline_readers), '--pipeline-chunk-mib', str(pipeline_chunk_mib)]
+    if pipeline_batch:
+        cfg['args'] += ['--pipeline-batch', '1']
     profile = directory/'hy3.json'
     with profile.open('x', encoding='utf8') as stream:
         json.dump(cfg, stream, ensure_ascii=False, indent=2)
@@ -76,9 +90,14 @@ def main():
     for key in ('model', 'engine', 'output-dir'):
         parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--cuda-dir', type=Path)
+    parser.add_argument('--expert-cache-mib', type=int, default=0, help='opt-in GPU cache cap (0..16384); runtime clamps to global free VRAM')
+    parser.add_argument('--pipeline-readers', type=int, default=0, help='opt-in readers (1 or 2); requires nonzero expert cache')
+    parser.add_argument('--pipeline-chunk-mib', type=int, default=4, choices=(4,8,16))
+    parser.add_argument('--pipeline-batch', action='store_true', help='opt-in one delivery fence per expert tensor')
     args = parser.parse_args()
     try:
-        profile = prepare(args.model, args.engine, args.output_dir, args.cuda_dir)
+        profile = prepare(args.model, args.engine, args.output_dir, args.cuda_dir, args.expert_cache_mib,
+                          args.pipeline_readers, args.pipeline_chunk_mib, args.pipeline_batch)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         parser.exit(1, f'Hy3 profile preparation failed: {error}\n')
     print(profile)

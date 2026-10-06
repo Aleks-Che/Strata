@@ -1,0 +1,77 @@
+{
+  "status": "pass",
+  "engine_sha256": "e24dc96ac7edfb308d0574b07a2e0f29d80f202387ef7dfc640ff105b0c0078a",
+  "model_validation": "HY3_BATCH_MODEL_VALIDATION.json",
+  "scope": "ABBA batch0/1/1/0, second English/code pass in each process, 37 decode steps per pair; fresh KV, warm cache; OS file cache not purged",
+  "cache_mib": 8192,
+  "readers": 2,
+  "chunk_mib": 4,
+  "rows": [
+    {
+      "batch": 0,
+      "decode_steps": 37,
+      "decode_seconds": 12.086903200000002,
+      "decode_tokens_per_second": 3.0611645834972845,
+      "prefill_seconds": 9.47246,
+      "pair_seconds": 21.58582799998112,
+      "decode_delivery_fences": 73945,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 34.975685119628906,
+      "peak_global_vram_mib": 26559.0
+    },
+    {
+      "batch": 1,
+      "decode_steps": 37,
+      "decode_seconds": 11.4644904,
+      "decode_tokens_per_second": 3.227356708327829,
+      "prefill_seconds": 9.32338,
+      "pair_seconds": 20.814388900005724,
+      "decode_delivery_fences": 8769,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 35.10841369628906,
+      "peak_global_vram_mib": 26556.0
+    },
+    {
+      "batch": 1,
+      "decode_steps": 37,
+      "decode_seconds": 13.788929799999998,
+      "decode_tokens_per_second": 2.68331194201888,
+      "prefill_seconds": 10.85123,
+      "pair_seconds": 24.669628600007854,
+      "decode_delivery_fences": 8769,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 38.11559295654297,
+      "peak_global_vram_mib": 26817.0
+    },
+    {
+      "batch": 0,
+      "decode_steps": 37,
+      "decode_seconds": 14.3041515,
+      "decode_tokens_per_second": 2.5866616415521047,
+      "prefill_seconds": 11.458630000000001,
+      "pair_seconds": 25.793472000048496,
+      "decode_delivery_fences": 73945,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 38.494781494140625,
+      "peak_global_vram_mib": 26694.0
+    }
+  ],
+  "groups": {
+    "0": {
+      "decode_tokens_per_second": 2.803980395675509,
+      "pair_seconds": 23.689650000014808,
+      "prefill_seconds": 10.465545
+    },
+    "1": {
+      "decode_tokens_per_second": 2.9302961505388483,
+      "pair_seconds": 22.74200875000679,
+      "prefill_seconds": 10.087305
+    }
+  },
+  "batched_decode_speedup_percent": 4.504872967662399,
+  "batched_pair_reduction_percent": 4.000233224245298
+}

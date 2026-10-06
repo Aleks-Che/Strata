@@ -1,0 +1,62 @@
+{
+  "status": "pass",
+  "engine_sha256": "68288b37ee631bea8e8b45f9e13aa33615f5d1002d54963b994542670de1e0d3",
+  "model_validation": "HY3_PIPELINE_MODEL_VALIDATION.json",
+  "scope": "second English/code pass in each process; sequential readers0/1/2/0 with synchronous bookends; 37 decode steps per pair; OS file cache not purged",
+  "cache_mib": 8192,
+  "chunk_mib": 4,
+  "rows": [
+    {
+      "readers": 0,
+      "decode_steps": 37,
+      "decode_seconds": 19.796089,
+      "decode_tokens_per_second": 1.869056054456009,
+      "prefill_seconds": 17.24496,
+      "warm_request_seconds": 37.06624260003446,
+      "decode_h2d_gib_per_step": 3.077041007377006,
+      "cache_resident_mib_end": 8192.0,
+      "peak_global_ram_gib": 34.10261917114258,
+      "peak_global_vram_mib": 26481.0
+    },
+    {
+      "readers": 1,
+      "decode_steps": 37,
+      "decode_seconds": 14.663415999999998,
+      "decode_tokens_per_second": 2.523286524777037,
+      "prefill_seconds": 12.590200000000001,
+      "warm_request_seconds": 27.279132800002117,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 33.33494567871094,
+      "peak_global_vram_mib": 26514.0
+    },
+    {
+      "readers": 2,
+      "decode_steps": 37,
+      "decode_seconds": 11.9370435,
+      "decode_tokens_per_second": 3.0995949708987824,
+      "prefill_seconds": 9.26141,
+      "warm_request_seconds": 21.223719399946276,
+      "decode_h2d_gib_per_step": 3.0799659909428776,
+      "cache_resident_mib_end": 8191.1875,
+      "peak_global_ram_gib": 33.94231033325195,
+      "peak_global_vram_mib": 26541.0
+    },
+    {
+      "readers": 0,
+      "decode_steps": 37,
+      "decode_seconds": 20.084057800000004,
+      "decode_tokens_per_second": 1.8422571956549534,
+      "prefill_seconds": 16.958129999999997,
+      "warm_request_seconds": 37.0679030000465,
+      "decode_h2d_gib_per_step": 3.077041007377006,
+      "cache_resident_mib_end": 8192.0,
+      "peak_global_ram_gib": 35.7501220703125,
+      "peak_global_vram_mib": 26506.0
+    }
+  ],
+  "sync_bookend_decode_tokens_per_second": 1.8555598697043911,
+  "selected_readers": 2,
+  "selected_decode_speedup_percent": 67.04365197295294,
+  "selected_warm_pair_time_reduction_percent": 42.74239157098183
+}

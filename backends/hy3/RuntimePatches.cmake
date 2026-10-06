@@ -25,7 +25,15 @@ function(hy3_runtime_source target relative expected output)
   file(READ "${original}" content)
   if(target STREQUAL "ggml-base")
     set(anchor "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {")
-    hy3_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n${anchor}\n#include \"gpu_only_audit.inc\"")
+    hy3_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n${anchor}\n#include \"gpu_only_audit.inc\"\n    Hy3PlanScope hy3_scope;")
+    hy3_replace_once(content "                        prev_ids_tensor = ids_tensor;"
+      "#include \"pipeline_sched.inc\"\n                        prev_ids_tensor = ids_tensor;")
+    hy3_replace_once(content "                    // group consecutive experts and copy them together"
+      "                    if (hy3_sync_mode == 2 && hy3_pipeline && hy3_pipeline_batch) {\n                        if (!hy3_pipeline_copy_tensor(split_backend, input_cpy, input)) return GGML_STATUS_FAILED;\n                        continue;\n                    }\n\n                    // group consecutive experts and copy them together")
+    hy3_replace_once(content "        prev_backend_id = split_backend_id;\n    }\n\n    return GGML_STATUS_SUCCESS;"
+      "        prev_backend_id = split_backend_id;\n    }\n\n    if (!hy3_scope.finish()) return GGML_STATUS_FAILED;\n    return GGML_STATUS_SUCCESS;")
+    hy3_replace_once(content "ggml_backend_graph_compute_async(split_backend, &split->graph)" "hy3_graph_compute(split_backend, &split->graph)")
+    hy3_replace_once(content "ggml_backend_graph_compute_async(split_backend, &gv)" "hy3_graph_compute(split_backend, &gv)")
     hy3_replace_once(content "        struct ggml_backend_sched_split * split = &splits[split_id];"
       "        if (hy3_sync_mode && hy3_cancelled()) return GGML_STATUS_ABORTED;\n        struct ggml_backend_sched_split * split = &splits[split_id];")
     set(anchor "                        ggml_backend_tensor_set_async(split_backend,")
@@ -80,6 +88,24 @@ hy3_runtime_source(llama src/llama-model-loader.cpp
 hy3_runtime_source(llama src/llama-mmap.cpp
   3ca6869dfccbdbbafad0802e1a3d7db52174347d36174a982c1a662d7034b9c6 strata-hy3-mmap.cpp)
 get_property(hy3_runtime_hashes GLOBAL PROPERTY HY3_RUNTIME_HASHES)
-string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap")
+set(cache_dependencies "${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_slice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../step35/gpu_trace.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../step35/expert_cache.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../common/vram_policy.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_frequency.hpp")
+set_property(SOURCE "${CMAKE_BINARY_DIR}/strata-hy3-backend.cpp" TARGET_DIRECTORY ggml-base APPEND
+  PROPERTY OBJECT_DEPENDS "${cache_dependencies}")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${cache_dependencies}")
+foreach(dependency IN LISTS cache_dependencies)
+  file(SHA256 "${dependency}" dependency_hash)
+  get_filename_component(dependency_name "${dependency}" NAME)
+  list(APPEND hy3_runtime_hashes "${dependency_name}:${dependency_hash}")
+endforeach()
+string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
+target_include_directories(ggml-base PRIVATE "${hy3_source}/vendor")
 target_compile_features(ggml-base PRIVATE cxx_std_17)

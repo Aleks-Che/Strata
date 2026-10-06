@@ -1,0 +1,170 @@
+{
+  "status": "pass",
+  "kind": "cache",
+  "scope": "synthetic correctness, no inference throughput",
+  "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-cache-check.exe",
+  "binary_sha256": "bca2a9aea0c4d511883d03bbd35c5809b72c05ec3831daefcc2398061a2edb50",
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:5026674f9c59f66cc84ed50e50d1390b4b1ef86ad17554cff1448e32037540b1;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558;cache_runtime.inc:5a23da218d15fb420e6c0f8acb953c02b204dd86dc376cc1b2d2fa6386319262;expert_cache.hpp:36928d887ad6899f18a07aad7fb6f44a7bb767e123c5f25c53ae69f1e7daffa9;vram_policy.hpp:0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e;expert_frequency.hpp:065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "manifest_sha256": "ac61401094d723c47a6fa64fa58f0d2eef5d593d17365853b974039f5514e0b1",
+  "samples": [
+    {
+      "ram_total": 134813700096,
+      "ram_available": 111963922432,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2321547264
+      },
+      "seconds": 0.062000000034458935,
+      "process_rss": 34729984,
+      "process_peak_wset": 34738176
+    }
+  ],
+  "sampling_seconds": 0.5,
+  "gpu_sampling_seconds": 2,
+  "ceiling_fraction": 0.95,
+  "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-cache-check.exe",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-tests\\cache-unit-01\\cache-report.json"
+  ],
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 112000229376,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2321547264
+    }
+  },
+  "exit_code": 0,
+  "wall_seconds": 0.5620000000344589,
+  "result": {
+    "status": "pass",
+    "scope": "real CUDA cache allocations with deterministic memory/allocator probes",
+    "case_count": 25,
+    "cases": [
+      {
+        "name": "cold_miss",
+        "pass": true
+      },
+      {
+        "name": "allocated_and_hit",
+        "pass": true
+      },
+      {
+        "name": "frequency_rejects_cold",
+        "pass": true
+      },
+      {
+        "name": "eviction_replaces_colder",
+        "pass": true
+      },
+      {
+        "name": "trim_releases_all",
+        "pass": true
+      },
+      {
+        "name": "external_pressure_trims",
+        "pass": true
+      },
+      {
+        "name": "ram_pressure_refused",
+        "pass": true
+      },
+      {
+        "name": "invalid_sample_closed",
+        "pass": true
+      },
+      {
+        "name": "unaccounted_residency_refused",
+        "pass": true
+      },
+      {
+        "name": "allocation_oom_bypass",
+        "pass": true
+      },
+      {
+        "name": "generation_identity",
+        "pass": true
+      },
+      {
+        "name": "planned_hit_blocks_eviction",
+        "pass": true
+      },
+      {
+        "name": "pinned_bytes_remain_charged",
+        "pass": true
+      },
+      {
+        "name": "unpin_allows_trim",
+        "pass": true
+      },
+      {
+        "name": "reuse_equal_allocation_without_allocator",
+        "pass": true
+      },
+      {
+        "name": "reuse_removes_old_identity",
+        "pass": true
+      },
+      {
+        "name": "reuse_filled_bytes",
+        "pass": true
+      },
+      {
+        "name": "reuse_respects_plan_pins",
+        "pass": true
+      },
+      {
+        "name": "reuse_after_unpin",
+        "pass": true
+      },
+      {
+        "name": "duplicate_admission_preserves_resident",
+        "pass": true
+      },
+      {
+        "name": "reuse_pressure_releases_all",
+        "pass": true
+      },
+      {
+        "name": "reuse_different_size_allocates",
+        "pass": true
+      },
+      {
+        "name": "reuse_trim_has_no_hidden_pool",
+        "pass": true
+      },
+      {
+        "name": "direct_scan_131200_decisions_membership_parity",
+        "pass": true
+      },
+      {
+        "name": "direct_scan_first_zero_is_oldest_minimum",
+        "pass": true
+      }
+    ]
+  },
+  "result_sha256": "138c6a1cc813557d931d681fd497e64dae6542bae6ea1494c74f07e35a549921"
+}

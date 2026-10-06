@@ -1,0 +1,94 @@
+{
+  "status": "pass",
+  "scope": "Hy3 profile/header/harness and existing HTTP/parser regressions; no GPU",
+  "tests_run": 44,
+  "failures": 0,
+  "errors": 0,
+  "modules": [
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "elapsed_seconds": 11.945540500048082,
+  "cli_cases": [
+    {
+      "args": [
+        "--expert-cache-mib",
+        "-1"
+      ],
+      "exit_code": 1,
+      "pass_case": true,
+      "stderr": "strata-hy3: cache must be 0..16384 MiB and requires pinned copy mode\n"
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "16385"
+      ],
+      "exit_code": 1,
+      "pass_case": true,
+      "stderr": "strata-hy3: cache must be 0..16384 MiB and requires pinned copy mode\n"
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "bad"
+      ],
+      "exit_code": 1,
+      "pass_case": true,
+      "stderr": "strata-hy3: invalid stoi argument\n"
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "1",
+        "--copy-mode",
+        "native"
+      ],
+      "exit_code": 1,
+      "pass_case": true,
+      "stderr": "strata-hy3: cache must be 0..16384 MiB and requires pinned copy mode\n"
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "0",
+        "--copy-mode",
+        "native"
+      ],
+      "exit_code": 0,
+      "pass_case": true,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "8192"
+      ],
+      "exit_code": 0,
+      "pass_case": true,
+      "stderr": ""
+    }
+  ],
+  "engine_sha256": "8da251920bf0d034f52978192ea1e10fc412896193057355502d981e974858b9",
+  "source_sha256": {
+    "backends/hy3/cache_runtime.inc": "5a23da218d15fb420e6c0f8acb953c02b204dd86dc376cc1b2d2fa6386319262",
+    "backends/hy3/check_runtime.cpp": "456391b6ac0de8d3588be5ef8d931f1ff824da2b7d5e2b38f1ac1fff2458af76",
+    "backends/hy3/main.cpp": "5f9a462a065620349c23dc6eb2d6ff847e887639d63bb66199f101f420b530c9",
+    "backends/hy3/runtime.hpp": "677d3a136ae463bdb1278e62b78133bb4aa0c2bb0cfe3cd6fe86271a6a165360",
+    "backends/hy3/sync_runtime.h": "cc42f111481588eeec550850368602d5ef7489327ef790c7492b6b59a5b8fd8b",
+    "backends/hy3/sync_runtime.inc": "b72cf36af38deb8db5d9945dfb85e457b78400fcc6272cd0a5652bfa0f670708",
+    "backends/hy3/sync_test.h": "16e4b9a2bc49124d503190a802621eca76da06950e9b318096502e8092c582d5",
+    "backends/hy3/RuntimePatches.cmake": "e3ada40c2196d6b04e6b18b0a42c28a6b2249643785e53a78a8880381b848b9a",
+    "backends/hy3/CMakeLists.txt": "33ced3df782e8989d5d5a4f29709b660afe0072b81ed4f8a606f30425ac27a39",
+    "backends/step35/expert_cache.hpp": "36928d887ad6899f18a07aad7fb6f44a7bb767e123c5f25c53ae69f1e7daffa9",
+    "backends/step35/check_cache.cpp": "c7443478b5367b1cc86d4a601fbe04cc885a303e0928a1712e54598b527618ab",
+    "tools/check_hy3_cache_model.py": "560bd939aba20d65edc2b13a53b4b4681f50b8d91003c8dc9ecfa6fa46c731f1",
+    "tools/check_hy3_cuda.py": "8d31f7db2675961e54d61429a5cc82f872056859c663b5b7afec0bca960632c1",
+    "tools/check_hy3_http.py": "fb6f503403be959ced173dff6e2aecee6906da67a353b6630c4ac91919d90566",
+    "tools/prepare_hy3_profile.py": "ed75bdebcebfb04e08c08709c59e43ba59b557fd6174a1ce51817b225a522275",
+    "tools/test_hy3_profile.py": "90323d234782d20ea465a64a03e7aad21fce3ddec7eeb1e35b6fd6af78af8add"
+  }
+}

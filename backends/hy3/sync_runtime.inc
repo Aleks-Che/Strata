@@ -20,15 +20,32 @@ static thread_local strata_hy3_test_limits hy3_test_limits;
 extern "C" void strata_hy3_test_set_limits(strata_hy3_test_limits limits) {hy3_test_limits=limits;}
 static const std::atomic<bool> hy3_never_cancel{false};
 static void hy3_cuda(cudaError_t rc) {if(rc!=cudaSuccess) throw std::runtime_error(cudaGetErrorString(rc));}
+#include "cache_runtime.inc"
 void strata_hy3_sync_mode(int mode) {
     if(mode<0 || mode>2) throw std::invalid_argument("invalid Hy3 copy mode");
     hy3_sync_mode=mode;
 }
 void strata_hy3_sync_cancel(const std::atomic<bool> * cancel) {hy3_cancel=cancel;}
 void strata_hy3_sync_observer(strata_hy3_copy_observer fn,void * owner) {hy3_observer=fn;hy3_owner=owner;}
-void strata_hy3_sync_reset() {hy3_sync_stats={};hy3_sync_stats.staging_bytes=hy3_staging ? hy3_staging_limit : 0;}
-strata_hy3_sync_stats strata_hy3_sync_snapshot() {return hy3_sync_stats;}
+void strata_hy3_sync_reset() {
+    hy3_account_pipeline();
+    hy3_sync_stats={};hy3_sync_stats.staging_bytes=hy3_staging ? hy3_staging_limit : 0;
+    if(hy3_cache) hy3_cache->reset_counters();
+}
+strata_hy3_sync_stats strata_hy3_sync_snapshot() {
+    hy3_account_pipeline();
+    auto s=hy3_sync_stats;s.cache_generation=hy3_generation;
+    if(hy3_cache) {
+        const auto c=hy3_cache->counters();
+        s.cache_bytes=hy3_cache->resident_bytes();s.cache_budget=hy3_cache->budget();s.cache_entries=hy3_cache->size();
+        s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;s.cache_oom=c.oom;
+        s.cache_rejected=c.rejected;s.cache_reuses=c.reuses;
+    }
+    return s;
+}
 void strata_hy3_memory_check(size_t reserve) {
+    // Decode boundaries are synchronized: reclaim cache before the global guard.
+    if(hy3_cache) hy3_cache->refresh();
     size_t free=0,total=0;
 #ifdef _WIN32
     static StrataGlobalMemory gpu;
@@ -52,6 +69,7 @@ void strata_hy3_memory_check(size_t reserve) {
     if(available<total/20 || reserve>available-total/20) throw std::runtime_error("Hy3 global VRAM 95% limit reached");
 }
 void strata_hy3_sync_release() {
+    strata_hy3_cache_begin(0);
     if(hy3_staging) cudaFreeHost(hy3_staging);
     hy3_staging=nullptr;hy3_observer=nullptr;hy3_owner=nullptr;hy3_cancel=nullptr;hy3_sync_mode=0;
     hy3_ram_budget.reset();
@@ -62,7 +80,7 @@ static bool hy3_expert_weight(const ggml_tensor * t) {
     return name.rfind("blk.",0)==0 && name.size()>12 && name.compare(name.size()-12,12,"_exps.weight")==0;
 }
 static bool hy3_cancelled() {return hy3_cancel && hy3_cancel->load();}
-static bool hy3_copy_range(ggml_backend_t backend,ggml_tensor * dst,const ggml_tensor * src,size_t offset,size_t bytes) {
+static bool hy3_copy_uncached(ggml_backend_t backend,ggml_tensor * dst,const ggml_tensor * src,size_t offset,size_t bytes) {
     try {
         if(hy3_cancelled()) return false;
         if(!hy3_expert_weight(src) || !src->data || src->type!=dst->type || !ggml_are_same_shape(src,dst) ||
@@ -107,3 +125,4 @@ static bool hy3_copy_range(ggml_backend_t backend,ggml_tensor * dst,const ggml_t
         return true;
     } catch(const std::exception & e) {GGML_LOG_ERROR("STRATA_HY3 selected-copy: %s\n",e.what());return false;}
 }
+#include "pipeline_runtime.inc"

@@ -37,6 +37,30 @@ P1.4 остаётся частично открытым для настояще�
 comparisons прошли. Кэш и асинхронный конвейер P3 остаются следующим этапом;
 скоростные defaults не выбраны.
 
+Обновление HY3-06, 2026-10-06: реализован opt-in GPU matrix cache с отдельной
+Hy3 identity/registry и переиспользованием проверенного Step controller.
+100 runtime и25 allocation/policy checks прошли. Full-model logits/IDs,
+пересылки, память и варианты cap0/8/12/16 ГиБ отражены в статусе.
+Cache8 прошёл HTTP tools/disconnect/recovery и22 synthetic pipe checks.
+Копирование остаётся синхронным; следующий этап — P3.2 async pipeline.
+
+Обновление HY3-07, 2026-10-06: bounded pipeline по реальным router IDs прошёл
+246 runtime checks и полный GGUF. При cache8/readers2/chunk4 прогретая пара
+English/code дала3,100 ток/с против1,869/1,842 synchronous, exact logits/IDs.
+CUDA event trace подтвердил небольшое H2D/compute перекрытие; весь выигрыш
+ему не приписывается. HTTP tools, disconnect/recovery и22 pipe checks прошли.
+Следующий этап — P3.3 tensor batching и prefill policy.
+
+Обновление HY3-08, 2026-10-06: реализован opt-in tensor batching с удержанием
+hits/fills до единственного delivery fence. Итоговые472 runtime checks и
+полный English/code ABBA прошли; среднее decode2,804→2,930 ток/с, разброс
+между процессами большой, default batch0 сохранён. Первый runtime run имел
+один intermittent resident/native mismatch при pipeline off; повторы прошли,
+причина не установлена. Отчёт FAIL и точные границы проверки сохранены в статусе.
+Длинный prompt362 прошёл exact parity, STOP/recovery в обоих режимах;
+первый prefill121,454→105,085 с — одно последовательное наблюдение на вариант.
+HTTP JSON/SSE, tools и disconnect/recovery с batching также прошли.
+
 ## 1. Проверенные исходные данные
 
 ### 1.1. Файл, основная модель и MTP
@@ -316,12 +340,24 @@ CPU-expert режим, если понадобится, оценивать по�
 - **P3.1:** matrix cache с ключом model generation/layer/tensor/expert/type;
   byte-budget по реальному allocation size, pin активных entries,
   корректная eviction и release. Отдельно учитывать холодный SSD и RAM hit.
+  **HY3-06: cache DONE в synchronous объёме:** identity/generation, cap,
+  frequency eviction/reuse, D2D hits, OOM bypass, error invalidation и release.
+  Все потребители завершаются до eviction, асинхронных leases пока нет.
+  Source/H2D/cache-fill/D2D учитываются отдельно; физические SSD reads и
+  попадания в OS file cache ещё не разделены инструментально.
 - **P3.2:** bounded RAM→pinned→H2D→compute pipeline на общем transport.
+  **HY3-07 DONE в проверенном объёме:**4 слота×4 МиБ, readers1/2, native file
+  reads, CUDA events, plan pins, cancel/error drain, recovery, exact full-model
+  logits/IDs и короткий speed sweep. Общий transport не изменён. Kernel-level
+  profiling и длительные рандомизированные A/B остаются отдельной проверкой.
   Ждать H2D event до чтения device slot и consumer event до его перезаписи;
   source mapping и destinations живут до завершения использующих их операций.
 - **P3.3:** включить batching выбранных ranges, allocation reuse и prefill
   admission по отдельности. Сверять точные GPU bytes и logits с P1 при mixed
   quants, boundary offsets, смене экспертов, отмене и выгрузке.
+  **Частично HY3-06/08:** allocation reuse и opt-in tensor batching реализованы.
+  Batching прошёл exact full-model checks; его speed effect невелик и пока
+  не меняет default. Отдельная prefill admission policy ещё не реализована.
 - **P3.4:** раздельное размещение RAM/VRAM и адаптивный горячий набор;
   бюджет учитывать вместе с non-routed, KV, scratch, staging, MTP и внешними
   процессами. Cache cap уменьшается при давлении, отменяет admission и даёт
@@ -438,7 +474,8 @@ HTTP checker и profile созданы в HY3-05; MTP checker остаётся �
 Порядок: **P0 → P1 → P2/P3 → P4 → P5 → P6**. Tokenizer P2.1 можно
 делать во время P0. MTP-probe после P1/P3 допустим до полной готовности P4,
 но не должен объявлять поддержку MTP sessions до проверки rollback/restore.
-Следующий результат — P3.1: bounded GPU matrix cache с точной parity и метриками;
+Следующий результат — HY3-09: изоляция intermittent fixture mismatch,
+профилирование чтения/admission и отдельное измерение prefill policy;
 подробнее в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 
 ## 7. Контроль завершения
@@ -446,7 +483,7 @@ HTTP checker и profile созданы в HY3-05; MTP checker остаётся �
 - [x] Строгий contract принят для локального GGUF, dependency закреплена (HY3-01).
 - [x] Full-model inference и logits/token parity подтверждены на GPU (HY3-03, MTP-off).
 - [x] Реализованы tokenizer/template, reasoning, tools и API (HY3-04/HY3-05, границы в статусе).
-- [ ] Кэш и асинхронный pipeline корректны и дают измеренный эффект.
+- [x] Кэш и асинхронный pipeline корректны и дают измеренный эффект (HY3-06/07, короткий corpus; границы в статусе).
 - [ ] Глобальные бюджеты RAM/VRAM и pressure/cancel/unload проверены.
 - [ ] Сессии и заявленные контексты работают после restore/shift.
 - [ ] MTP проверен на корректность и скорость; default обоснован A/B.
