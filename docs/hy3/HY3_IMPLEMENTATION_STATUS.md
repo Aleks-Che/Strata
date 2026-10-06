@@ -3,31 +3,39 @@
 Обновлено: **2026-10-06**, `Asia/Yekaterinburg`.
 План: [HY3_IMPLEMENTATION_PLAN.md](HY3_IMPLEMENTATION_PLAN.md).
 
-Этот файл хранит проверенный прогресс и следующую задачу. **Генерация Hy3
-в Strata пока не реализована.** HY3-01 добавил inspector, строгий loader contract,
+Этот файл хранит проверенный прогресс и следующую задачу. **Полный GGUF Hy3
+генерирует через отдельный native pipe engine.** HY3-01 добавил inspector, строгий loader contract,
 изолированные CPU oracles, проверку tokenizer/template и исправление MTP load flags.
 HY3-02 закрыл P0 числовыми CUDA fixtures и проверками main/MTP graph/state.
-Генерация, скорость и пиковая память inference полного GGUF не измерялись.
+HY3-03 добавил синхронный selected-copy runtime, подтвердил точное совпадение
+token IDs/logits и измерил baseline на полном GGUF. HTTP/UI, кэш, конвейер
+и MTP-ускорение пока не реализованы. HY3-04 проверил восстановление после
+управляемых отказов и добавил отдельный template/reasoning/tool parser.
 
 ## Текущее состояние
 
 | Область | Статус |
 |---|---|
 | Подготовка PREP-01 | DONE: исследование, план и этот статус |
-| Репозиторий HY3-01 | `9fd4153e372d75dd638eaf90c9c1f1f180dc6057`; результаты этой итерации пока без commit |
+| Репозиторий HY3-03/HY3-04 | `51125bdbc03f700608584d650e94666bec18c16b`; изменения обеих итераций без commit |
 | Модель | `H:\models\hy3\Hy3-Q3_K_M-mtp.gguf`, один файл, 127,083 ГиБ |
 | Формат | `hy_v3`, GGUF v3, 1298 тензоров, 43 metadata records |
 | Состав | 80 основных блоков, 1 MTP; dense0, MoE1..79, MoE80+NextN |
 | MTP | Полный GGUF: no_alloc off=0/on=20; синтетический граф, hidden, KV rollback/restore — PASS |
-| Candidate dependency | Unsloth `86ebfef2`; CPU и CUDA13.0/sm_120, 3 generated correctness patches |
+| Candidate dependency | Unsloth `86ebfef2`; CPU и CUDA13.0/sm_120, 3 correctness patches + изолированный runtime patch |
 | Inspector/loader contract | DONE: все1298 тензоров, JSON и отрицательные CPU fixtures |
 | Tokenizer / template | 2194 / 144 проверки, 0 расхождений с native oracles |
 | CUDA admission | 150/150 kernel cases, 86/86 graph/state checks; CPU fallback в GPU-графах отсутствует |
-| Native engine / HTTP / UI | TODO |
+| Native engine | DONE HY3-03: Windows pipe, GPU-only, sync selected-copy, MTP-off |
+| Восстановление после отказов | HY3-04: pinned OOM, partial ReadFile/cancel, simulated RAM/VRAM, unload/reload; 32/32 checks |
+| Reasoning/tool parser | HY3-04: 17 tests /7327 fragmentation sequences, adapter144/144 native comparisons |
+| HTTP / UI | TODO |
 | Кэш / pipeline / sessions | TODO |
-| Локальная скорость, токенов/с | **Нет измерений** |
-| Рекомендуемые настройки | Не выбраны; MTP-off — исходный вариант будущего baseline |
-| Следующая задача | **HY3-03: P1 — sync selected-copy engine и первый baseline полного GGUF, MTP-off** |
+| Полный GGUF | 6 prompts + 2 повтора в каждом режиме; точные logits/IDs, STOP/recovery PASS |
+| Tool/result/answer на полном GGUF | HY3-04 PASS: `get_temperature({"city":"Paris"})` → локальный результат17 → `17 C`; без HTTP |
+| Локальная скорость, токенов/с | pinned **1,219**, native **2,086** на 37 decode-шагов en+code; последовательные наблюдения, не A/B |
+| Настройки baseline | Context2048/batch17/F32 KV, pinned16 МиБ; MTP/cache/pipeline/TF32/fusion off |
+| Следующая задача | **HY3-05: P2.4/P2.5 — request adapters, Service/HTTP и отдельный профиль** |
 
 Созданы изолированный `backends/hy3`, tools/tests и отчёты. В общем Python
 tokenizer добавлен `hunyuan-dense`; действующие профили и модель не изменялись.
@@ -67,11 +75,13 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 ## Не проверено
 
 - Полный checksum весов и соответствие опубликованному AngelSlim файлу.
-- Реальные weight allocations/read и logits полного GGUF;
-  no_alloc проверяет его регистрацию, CUDA fixtures используют синтетические веса.
-- Flash Attention, F16 KV, числовое поведение на полном размере/длинном контексте.
-- Production reasoning/tool parser, API и toolcall round-trip через сервер.
-- TTFT, prefill/decode throughput, GPU timeline, peak RAM/VRAM, SSD traffic.
+- Независимый полноразмерный CPU/F32 oracle: full-model parity проверен между
+  двумя путями доставки одного native GPU graph; GPU-resident oracle — на fixtures.
+- Flash Attention, F16 KV, production контекст длиннее проверенных 362 prompt tokens.
+- Подключение parser к Service/HTTP и toolcall round-trip через оба API.
+- GPU timeline, физический SSD traffic, controlled performance A/B, настоящий
+  driver OOM/device-loss recovery и внешнее давление памяти. Pinned OOM и
+  RAM/VRAM availability injection проверены; Source-read bytes не равны SSD traffic.
 - MTP acceptance/скорость, speculative accept/reject driver, stochastic sampling
   и production sessions. Синтетические main/MTP KV rollback/restore проверены.
 - Рабочий профиль, HTTP/web chat, установка и регрессии других моделей.
@@ -82,8 +92,8 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 |---|---|---|
 | PREP-01 | DONE | Проверены заголовок/исходники; создана документация |
 | P0 — contract/dependency/oracles | DONE HY3-01/HY3-02 | Header/contract/oracles, CUDA kernels, synthetic main/MTP graph и KV |
-| P1 — sync GPU baseline | TODO | Полный GGUF, logits/greedy parity, memory/throughput report |
-| P2 — tokenizer/template/API | Tokenizer и template oracles проверены; API TODO | Production parser, tools, JSON/SSE, cancel/recovery |
+| P1 — sync GPU baseline | P1.1–P1.3 DONE; P1.4 controlled failures PASS | Полный GGUF/parity/метрики готовы; настоящий driver OOM и внешний pressure не проверены |
+| P2 — tokenizer/template/API | P2.1–P2.3 готовы в проверенном объёме; API TODO | Request adapters, Service/profile, JSON/SSE, cancel/recovery |
 | P3 — cache/pipeline | TODO | Bytes/logits parity, overlap, pressure checks и A/B |
 | P4 — sessions/context | TODO | Fresh vs restored/shifted parity и bounded memory |
 | P5 — native MTP | TODO | Correctness, rollback и выигрыш относительно оптимизированного off |
@@ -92,7 +102,33 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 `DONE` относится только к указанному объёму. `IN PROGRESS` не означает,
 что модель уже может генерировать. Не закрывать P0 по факту успешного чтения header.
 
-## Точка продолжения: HY3-03
+## Точка продолжения: HY3-05
+
+1. Добавить OpenAI/Anthropic request adapters в `serve/hy3.py`: call/result IDs,
+   text blocks, `no_think/low/high`, `preserved_thinking`, точные ошибки на
+   unsupported options. Определять старт reasoning по фактическому Hy3 prefix.
+2. Подключить Hy3 к Service только через отдельный профиль; точные control-token
+   spellings и EOG120025 проверять до запуска. Не менять default других моделей.
+3. Проверить оба API через loopback JSON/SSE: tools/result/answer, stop/length,
+   usage, cancellation/disconnect и следующий запрос. Затем smoke полного GGUF.
+4. Сохранить P1 baseline для P3 кэша/конвейера. Настоящий driver OOM/device loss
+   и внешний pressure остаются отдельными непроверенными режимами; тестовая
+   имитация доступной памяти не считается hardware stress test.
+
+### Архивная точка перед HY3-04
+
+1. Закрыть оставшиеся P1.4 failure paths: управляемые ошибки reader/allocations,
+   достижение бюджета без реального заполнения всей RAM, отмена/drain, следующий
+   запрос и выгрузка. Отчёт должен различать ожидаемый отказ и повреждение runtime.
+2. Добавить потоковый reasoning/tool parser Hy3 по P2.3: разрывы тегов и UTF-8,
+   несколько вызовов, JSON arguments, malformed/incomplete output и round-trip.
+3. Подключить отдельный `serve/hy3.py` к проверенному pipe: оба API, JSON/SSE,
+   usage/finish_reason, отмена и повтор. Начальный bind `127.0.0.1`.
+4. Сохранить этот P1 baseline для дальнейшего P3: GPU expert cache и overlap
+   должны уменьшать измеренные **4,865 ГиБ H2D на decode-шаг**, сохраняя parity.
+   Проверять бюджет перед каждым тестом; чужие процессы не останавливать.
+
+### Архивная точка перед HY3-03
 
 1. Создать `strata-hy3` native pipe engine. Использовать строгий loader contract
    до weight allocations и отдельно собранную зависимость Hy3.
@@ -142,7 +178,7 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
    Следом — P0.4/P0.5 CUDA fixtures и аудит пропуска MTP, затем P1.
 
 Этот список выполнен в HY3-01 в объёме header/loader/tokenizer/template.
-В HY3-02 добавлены числовые GPU проверки; generation engine ещё отсутствует.
+В HY3-02 добавлены числовые GPU проверки; в HY3-03 — generation engine и full-model baseline.
 
 ## Подтверждённый журнал
 
@@ -384,6 +420,228 @@ API, production sessions и производительность. Синтети
 
 **Следующий шаг:** HY3-03/P1 — sync selected-copy baseline полного GGUF,
 MTP-off, с logits/greedy parity и измерением скорости/памяти.
+
+### HY3-03 / P1.1–P1.3, часть P1.4 — 2026-10-06 — Полный GGUF и sync baseline
+
+**Основание:** Strata `51125bdbc03f700608584d650e94666bec18c16b`, рабочее дерево
+чистое в начале итерации; изменения HY3-03 пока без commit. Тот же GGUF и
+header/template hashes. RTX5090, driver581.80, 125,555 ГиБ доступной системе RAM,
+MSVC19.44.35222, CUDA13.0.48, sm_120, Release/Ninja. Dependency — Unsloth
+`86ebfef2`, отдельная сборка `build-local/hy3-cuda`.
+[Manifest с generated source hashes](HY3_RUNTIME_BUILD_MANIFEST.json).
+
+**Что изменено:**
+
+- `strata-hy3.exe`: stdin/stdout pipe ENC/GEN/STOP/QUIT, native sampler,
+  progress и request metrics. Каждый GEN начинает с чистого KV и sampler;
+  session ID обеспечивает изоляцию, но не сохраняет KV между запросами.
+- Native contract проверяет metadata, все1298 тензоров, main/MTP boundary,
+  shapes/quants/ranges до загрузки весов. MTP-off исключает блок80.
+  Non-routed weights находятся на GPU; математика CPU запрещена scheduler audit.
+- Новый путь selected ranges: native file read через общий `expert_file.hpp`
+  → pinned16 МиБ → GPU. GPU fence перед перезаписью staging; не более одного
+  чтения в полёте. Проверяются размеры/offsets и MMQ padding до512 байт.
+  Whole-expert copies отклоняются до копирования. Кэша и overlap пока нет.
+- Loader использует demand mmap без предварительного чтения всего файла.
+  Existing GLM `HostWorkingSetBudget` ограничивает mapped resident pages
+  по system target93%, учитывая другие процессы. Global RAM/VRAM guard95%; VRAM
+  читается через общий NVML helper по PCI identity, а не process view CUDA/WDDM.
+- Отдельный model checker сохраняет prompt IDs, logits hashes, метрики,
+  memory samples, проверяет сравнение режимов, повтор, отмену и свежий запрос.
+  Исправлено закрытие тестового pipe после принудительного завершения child:
+  broken pipe больше не скрывает исходную ошибку и отчёт memory monitor.
+- Добавлены явные CMake header dependencies: локальный MSVC с русскими include
+  diagnostics пропускал rebuild после изменения header. Архив dependency,
+  исходный third_party и действующие engine/profile других моделей не менялись.
+
+**Проверки:**
+
+| Проверка | Результат |
+|---|---|
+| Native preallocation admission полного GGUF | PASS; blocks81/vocab120832, точные main/MTP bytes, weight allocations0 |
+| Runtime: resident/native/pinned, bytes и logits | **19/19 PASS**, exit0; F32/mixed, batch1/4/17, transfer >16 МиБ |
+| Pipe: greedy/seeded repeat, malformed input, STOP/QUIT и повтор | **22/22 PASS**, exit0 |
+| Полный GGUF: native selected-copy vs pinned-file | **PASS**, exit0; 6 prompts + 2 повтора на режим, все IDs и logits побитово одинаковы |
+| Полный GGUF: STOP → свежий запрос, unload/reload | PASS в обоих режимах; process exit0, memory monitor без ошибок |
+| CUDA kernel regression с runtime patch | **150/150 PASS**, exit0 |
+| Synthetic main/MTP graph/state regression | **86/86 PASS**, exit0 |
+| Python contract/tokenizer/Step/GLM + pipe cleanup regression | **32 tests PASS** |
+| CPU CTest version checks | **2/2 PASS** |
+
+Артефакты: [runtime](HY3_RUNTIME_VALIDATION.json), [pipe](HY3_PIPE_VALIDATION.json),
+[полный GGUF](HY3_MODEL_VALIDATION.json),
+[kernel regression](HY3_RUNTIME_KERNELS_REGRESSION.json),
+[graph regression](HY3_RUNTIME_GRAPH_REGRESSION.json).
+Полный отчёт содержит SHA-256 проверенного engine
+`d6fd9dbffd4985feea1b925d58dcb3550c4b580e687ca07e550bf6742d540600`.
+Raw logits и stderr остаются в `build-local/hy3-tests/model-bounded`.
+
+**Числовая оговорка:** с включёнными candidate CUDA fusions fixture F32/batch4
+дал resident/native max_abs **0,00105551**; pinned/native при этом совпал.
+[Диагностический FAIL](HY3_RUNTIME_FUSION_DIAGNOSTIC.json) сохранён.
+С `GGML_CUDA_DISABLE_FUSION=1` все19 runtime checks проходят с точными bytes/logits.
+Конкретная fusion ещё не изолирована; runtime принудительно выключает fusions,
+TF32 и оставляет `GGML_OP_OFFLOAD_MIN_BATCH=1`. P0 graph callbacks меняют условия
+планирования и не заменяют эту проверку без evaluation callbacks.
+
+**Измерения полного GGUF:** template `no_think`, greedy temperature0,
+context2048, batch/ubatch17, F32 KV, FA off, MTP/cache/pipeline/fusions off.
+Сначала native, затем pinned; OS file cache не очищался, порядок не чередовался.
+Это correctness-baseline с наблюдениями времени, **не контролируемый speed A/B**.
+
+| Запрос | Prompt / output tokens¹ | Native TTFT, с | Pinned TTFT, с | Native decode, токенов/с² | Pinned decode, токенов/с² |
+|---|---:|---:|---:|---:|---:|
+| Русский, 2+2 | 34 / 2 | 16,032 | 10,144 | 1,828 | 1,330 |
+| Английский, пять простых чисел | 25 / 15 | 6,157 | 8,955 | 2,005 | 1,305 |
+| Китайский, столица | 24 / 3 | 5,246 | 8,538 | 2,194 | 1,299 |
+| Python, сложение двух чисел | 28 / 24 | 6,156 | 9,953 | 2,139 | 1,172 |
+| Числа, 123+456 | 27 / 2 | 5,230 | 11,043 | 2,248 | 1,235 |
+| Длинный prompt, цвет лодки | 362 / 2 | 143,773 | 134,579 | 1,044 | 1,283 |
+
+¹ Включая EOS, reasoning выключен. Ответы: `4`, `2, 3, 5, 7, 11.`, `北京。`,
+функция `add`, `579`, `blue`. Это проверка этих запросов, не оценка качества модели.
+² `decode_steps / decode_forward_seconds`: первый token получен из prefill
+и не включён, последующий EOS включён. В коротких ответах всего один-два decode
+шага. Для en+code вместе37 шагов: native **2,086**, pinned **1,219 токена/с**.
+Повторы русского после длинного запроса/отмены: native1,179/1,239,
+pinned1,316/1,320; все logits совпали с первым русским ответом.
+
+Load до READY: native **2,914 с**, pinned **4,822 с**; demand loading означает,
+что сюда не входит чтение всех routed weights. Prefill длинного prompt:
+native143,770 с /2,518 токена/с, pinned134,576 с /2,690 токена/с.
+Каждый decode-шаг переносит около **4,865 ГиБ H2D** выбранных экспертов.
+Для pinned source-read bytes равны H2D bytes; ОС может обслужить чтения из
+file cache, поэтому это не измерение физического SSD traffic.
+
+| Sampled memory peak³ | Native | Pinned |
+|---|---:|---:|
+| Global physical RAM, ГиБ | 117,094 | 36,006 |
+| Global VRAM, МиБ | 14 022 | 14 336 |
+| Process working set, ГиБ | 99,032 | 9,257 |
+| Process private commit, ГиБ | 12,635 | 12,651 |
+| Собственный pinned staging, МиБ | 0 | 16 |
+
+³ Global значения включают другие процессы, RAM опрашивается примерно раз0,5с,
+GPU раз2с; короткий пик может быть пропущен. Указанный staging — только новый
+transport buffer, не сумма всех внутренних driver allocations. mmap virtual size
+не равен working set. Оба прогона уложились в95%; неиспользованная VRAM оставлена
+для будущего полезного expert cache. Рабочий набор native ограничен93%-target,
+иначе mapped pages при длинном prompt вытесняют доступную RAM.
+
+**Воспроизведение:** configure/build и команды в
+[README](../../backends/hy3/README.md#windows-synchronous-baseline).
+Финальные каталоги: `runtime-bounded`, `pipe-bounded`, `model-bounded`,
+`runtime-kernels`, `runtime-graph` внутри `build-local/hy3-tests`.
+Full-model команда:
+
+```powershell
+python tools/check_hy3_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/model-new --predict 24
+```
+
+**Не закрыто:** injected OOM/read-error recovery, внешний pressure, контекст
+длиннее362 prompt tokens, F16 KV/FA, HTTP/UI/parser, persistent sessions,
+expert cache/pipeline и speculative MTP. Новый синхронный transport пока не даёт
+ускорения в этом прогоне; его назначение — проверенная основа для P3.
+Оптимальные defaults ещё не выбраны. **Следующий шаг:** HY3-04, оставшиеся
+P1.4 failure/recovery fixtures, затем P2 parser/API с сохранением этого baseline.
+
+### HY3-04 / P1 recovery, P2.2–P2.3 — 2026-10-06 — Отказы, parser и tool round-trip
+
+**Основание:** тот же HEAD `51125bdbc03f700608584d650e94666bec18c16b` с
+незакоммиченными изменениями HY3-03; они сохранены. Та же Release/Ninja сборка,
+MSVC19.44.35222, CUDA13.0.48/sm_120, RTX5090/driver581.80 и checkpoint.
+[Build manifest](HY3_RECOVERY_BUILD_MANIFEST.json). Скоростные настройки
+и архитектура вычислений не менялись: MTP/cache/pipeline/fusion off, F32 KV.
+
+**Отказы runtime и найденная ошибка:**
+
+- Добавлено13 проверок к прежним19. Pinned allocation возвращает injected
+  `cudaErrorMemoryAllocation` до upload; после отказа тот же context повторяет
+  исходные logits. На следующем selected read после успешного H2D временно
+  заменяется handle только синтетического fixture: настоящий Win32 `ReadFile`
+  отказывает, handle восстанавливается, запрос повторяется с точными logits.
+- Отмена после частичного upload, simulated RAM/VRAM availability0, заведомо
+  невозможный GPU reserve, пустой registry после unload и reload — PASS.
+  Неполная копия не публикуется как успешная. Test caps только уменьшают
+  доступность памяти, не отключают реальные лимиты и не заполняют RAM/VRAM.
+  Эти функции не доступны через CLI, env или пользовательский pipe.
+- Тест RAM admission сначала завершил процесс с **exit3221226356 /0xc0000374**.
+  Throwing helpers были объявлены `extern "C"`; при MSVC `/EHsc` такой вызов
+  считается не бросающим исключение, что нарушало нужный unwind path.
+  Переведены на C++ linkage. Тот же тест теперь возвращает ожидаемый отказ,
+  следующий запрос и выгрузка проходят. [Диагностика до исправления](HY3_RECOVERY_PRE_FIX.json)
+  хранит exit code и binary hash; процесса хватило только до RAM pressure,
+  поэтому отдельного `runtime-report.json` у этого неудачного прогона нет.
+- [Финальный runtime report](HY3_RECOVERY_VALIDATION.json): **32/32 PASS**, exit0.
+  Partial ReadFile/cancel возвращали управление примерно за1 мс в tiny fixture;
+  это не гарантия latency при задержанном SSD I/O. Registry/source lifetime
+  и reload проверены. [Pipe regression](HY3_RECOVERY_PIPE_VALIDATION.json): **22/22 PASS**.
+
+Реальное исчерпание VRAM внутри driver, device loss и внешнее давление памяти
+не воспроизводились. Успешная инъекция pinned OOM не доказывает восстановление
+после любого CUDA allocation failure. Прочие модели/shared transport не менялись.
+
+**Template и output parser:**
+
+- Новый [serve/hy3.py](../../serve/hy3.py) и точный fixture10223 bytes.
+  Renderer проверяет SHA-256, принимает native `no_think/low/high`, правила
+  replay/raw-last-assistant/training/fallback, нормализует JSON-string arguments
+  перед `.items()` без изменения исходных messages. Неизвестные опции отвергаются.
+- Потоковый parser разбирает reasoning и namespace `:opensource`, сохраняет
+  raw strings и whitespace; typed arguments проверяет как конечный JSON нужного
+  базового типа. Duplicate keys/arguments, неизвестные functions, ошибочные и
+  незавершённые группы остаются текстом. Весь tool group проверяется до выдачи
+  первого вызова; tool markup внутри reasoning не становится действием.
+- Проверены разрывы каждого тега и UTF-8, несколько calls, JSON с delimiter
+  strings внутри кавычек, stop в reasoning/tool, перекрывающиеся stop sequences,
+  финальные неполные теги, повторный finish и ограничение group buffer1 МиСимвол.
+  Нативный формат не экранирует raw values; неоднозначная пара value delimiter
+  и следующего key/call delimiter в строках history отвергается. Полная JSON
+  Schema validation не добавлена; raw strings задаются string schemas.
+- [17 CPU tests /7327 fragmentation sequences](HY3_PARSER_VALIDATION.json) — PASS.
+  Новый runtime renderer [совпал с native Jinja и BPE](HY3_ADAPTER_TEMPLATE_VALIDATION.json)
+  во всех **144** случаях. Python regression: **100 tests PASS**, включая
+  Step/GLM/DeepSeek adapters, Hy3 contract/tokenizer и pipe cleanup.
+
+**Проверка полного GGUF:** [tool dialogue report](HY3_TOOL_DIALOGUE_VALIDATION.json).
+`tools/check_hy3_dialogue.py` использует полный read-only checkpoint, native
+pipe и локальный фиксированный result stub; HTTP и внешние tools не вызываются.
+Template `no_think`, greedy temperature0, pinned sync16 МиБ, context2048/batch17.
+
+1. User просит температуру в Paris через `get_temperature`. Prompt211 токенов,
+   output19 с EOS. Модель выдала ровно один полный вызов с `{"city":"Paris"}`;
+   parser вернул typed tool event без постороннего content.
+2. В history добавлен этот call и локальный result
+   `{"city":"Paris","temperature_c":17}` с тем же call ID. Prompt253 токена,
+   output3 с EOS: **`17 C`**, без повторного tool call.
+3. Для обоих фактических prompts строки и token IDs совпали с compiled
+   native template/tokenizer oracles. Оба finish=`stop`, engine exit0,
+   memory monitor без ошибок. Это тест протокола на фиктивной температуре,
+   а не запрос реальной погоды.
+
+Prefill75,647/96,621с; generation13,463/1,581с соответственно. Это единичная
+correctness-проверка, не новый benchmark или ускорение. Sampled global peak:
+RAM **33,437 ГиБ**, VRAM **14 258 МиБ**; process private commit12,648 ГиБ.
+Монитор RAM≈0,5с/GPU≈2с может пропустить короткий пик; лимит95% не пересечён.
+Проверенный engine SHA-256:
+`f5cf4dd25611a9173e3cb5d2b4828204babbb959b71f73b99fbb46edb02180c7`.
+Исторические HY3-03 reports/binary hashes сохранены и относятся к прежней сборке.
+
+**Воспроизведение**, после обычной CUDA build из README:
+
+```powershell
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/recovery-new
+python -m unittest serve.test_hy3 serve.test_step35 serve.test_glm5next serve.test_deepseek tools.test_hy3_gguf tools.test_hy3_tokenizer tools.test_hy3_engine tools.test_step35_tokenizer tools.test_glm5next_tokenizer
+python tools/check_hy3_template.py --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --runtime-adapter --output docs/hy3/HY3_ADAPTER_TEMPLATE_VALIDATION.json
+python tools/check_hy3_dialogue.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --cuda-bin build-local/cuda-13.0/bin/x64 --template-oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --output-dir build-local/hy3-tests/dialogue-new
+```
+
+Финальные локальные каталоги: `runtime-recovery-03`, `pipe-recovery-01`,
+`dialogue-01` внутри `build-local/hy3-tests`. Неудачные recovery-01/02 сохранены.
+
+**Следующий шаг:** HY3-05 — P2.4/P2.5, request adapters и отдельный профиль,
+подключение к Service/HTTP, JSON/SSE/tool round-trip/cancellation. Parser импортируется
+отдельно и пока не включён в сервер. UI, sessions, cache/pipeline и MTP остаются TODO.
 
 ## Правила обновления
 

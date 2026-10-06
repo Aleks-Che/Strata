@@ -1,0 +1,19 @@
+{
+  "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+  "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+  "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+  "compiler": "MSVC",
+  "compiler_version": "19.44.35222.0",
+  "generator": "Ninja",
+  "build_type": "Release",
+  "cuda": true,
+  "runtime": "ON",
+  "runtime_generated_hashes": "strata-hy3-backend.cpp:5026674f9c59f66cc84ed50e50d1390b4b1ef86ad17554cff1448e32037540b1;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558",
+  "cuda_compiler_version": "13.0.48",
+  "cuda_architectures": "120",
+  "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+  "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+}

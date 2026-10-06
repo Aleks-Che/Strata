@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "scope": "CPU template/parser fragmentation and input validation; no HTTP or external tool execution",
+  "tests": 17,
+  "fragmentation_sequences": 7327,
+  "errors": 0,
+  "failures": 0,
+  "sources": {
+    "serve/hy3.py": "476a609d7e209e924c58c1b2b56109524491bb2aab526946ff962800e36b2264",
+    "serve/test_hy3.py": "adfdbadff420e7fd6a47372d1c9df40fd21592d91d2b91233306d9c62a5936fe",
+    "serve/fixtures/hy3_chat_template.jinja": "7fc351fee674c13754656ba7f33a3ca426bfb7231039f48444360a3f3c5ecf3e"
+  },
+  "output": ".................\n----------------------------------------------------------------------\nRan 17 tests in 0.656s\n\nOK\n"
+}

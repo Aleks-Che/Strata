@@ -232,3 +232,51 @@ generated text across chunks, before tool parsing. Anthropic returns the matched
 `stop_sequence`; OpenAI reports `stop`. Hard thinking budgets are unsupported;
 low/medium/high effort changes the prompt, not a guaranteed thinking-token cap.
 Browser interaction and external MCP cancellation remain separate gates.
+
+## Hy3 fixture and parser
+
+`hy3_chat_template.jinja` is the exact 10223-byte UTF-8 GGUF template extracted
+on 2026-10-06 from `H:/models/hy3/Hy3-Q3_K_M-mtp.gguf`. SHA-256:
+`7fc351fee674c13754656ba7f33a3ca426bfb7231039f48444360a3f3c5ecf3e`.
+Preserve bytes and line endings. This is a test fixture, not a runtime fallback.
+
+`serve.hy3.Hy3Template` checks the extracted template's hash, preserves the
+embedded `no_think`/`low`/`high` behavior and renders tool history without
+mutating it. JSON-string arguments become objects before Jinja `.items()`.
+Reasoning replay, raw-last-assistant, training and fallback options match the
+native template corpus. Tool results retain arrival order; IDs are preserved
+in the input objects but the native prompt itself does not encode call IDs.
+
+`Hy3OutputParser` emits the existing reasoning/content/tool_call events.
+It starts outside reasoning for the default `no_think` prefix; pass
+`thinking=True` when the prompt already opened a low/high reasoning block.
+UTF-8 byte assembly belongs to the detokenizer; `feed()` accepts decoded text.
+Only a complete valid `<tool_calls:opensource>` group emits tools, including
+with `stream_tools=True`. A malformed later call invalidates the entire group.
+Undeclared functions, duplicate arguments, invalid typed JSON and incomplete
+groups stay literal content. Tools inside reasoning stay reasoning text.
+
+Native argument strings are raw, with no framing newline inside the value
+tags and no XML entity decoding. Declared strings (including string unions)
+preserve whitespace and JSON-looking text. Other declared base types must
+match decoded finite JSON; duplicate JSON members are rejected. This is not
+full JSON Schema validation. Literal tags are kept except the inherently
+ambiguous value-closer followed by a key opener or call closer; the renderer
+rejects that sequence in raw history strings. JSON object/array quoted strings
+are scanned separately so embedded delimiters remain data. Use string schemas
+for raw strings that resemble incomplete JSON.
+
+The group buffer defaults to one million characters. An oversized group turns
+the remainder into literal content and cannot start further tools. Raw stop
+strings are matched before tool parsing, including across chunks; earliest
+completion wins for overlapping sequences. Partial tool groups at stop/end
+are flushed as text. `finish()` is idempotent.
+
+Checks: `python -m unittest serve.test_hy3` and native rendering/token-ID parity:
+
+```powershell
+python tools/check_hy3_template.py --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --runtime-adapter --output docs/hy3/HY3_ADAPTER_TEMPLATE_VALIDATION.json
+```
+
+HTTP request adapters, Service/profile registration and both API round-trips
+remain separate P2.4/P2.5 work. Importing this module changes no existing model.

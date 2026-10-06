@@ -40,7 +40,7 @@ def check_ceiling(sample):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', type=Path, required=True)
-    parser.add_argument('--kind', choices=['kernels', 'graph'], required=True)
+    parser.add_argument('--kind', choices=['kernels', 'graph', 'runtime'], required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--cuda-bin', type=Path, help='CUDA DLL directory to prepend to child PATH')
     args = parser.parse_args()
@@ -61,7 +61,7 @@ def main():
     env['NVIDIA_TF32_OVERRIDE'] = '0'
     if args.cuda_bin:
         env['PATH'] = str(args.cuda_bin.resolve())+os.pathsep+env.get('PATH', '')
-    result_path = directory/'kernels-report.json' if args.kind == 'kernels' else directory/'fixture'/'graph-report.json'
+    result_path = directory/'kernels-report.json' if args.kind == 'kernels' else directory/'fixture'/f'{args.kind}-report.json'
     command = [str(binary), '--output', str(result_path)] if args.kind == 'kernels' else [str(binary), str(directory/'fixture')]
     report['command'] = command
     child = None

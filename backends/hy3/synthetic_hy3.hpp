@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-inline void write_synthetic_hy3(const std::string & path, bool mixed) {
+inline void write_synthetic_hy3(const std::string & path, bool mixed, bool wide=false) {
     std::unique_ptr<gguf_context, decltype(&gguf_free)> file(gguf_init_empty(), gguf_free);
     std::unique_ptr<ggml_context, decltype(&ggml_free)> ctx(
         ggml_init({ggml_tensor_overhead()*128, nullptr, true}), ggml_free);
@@ -27,7 +27,8 @@ inline void write_synthetic_hy3(const std::string & path, bool mixed) {
     u("rope.dimension_count", 128); v("rope.freq_base", 11158840);
     v("attention.layer_norm_rms_epsilon", 1e-5f);
     u("expert_count", 16); u("expert_used_count", 8);
-    u("expert_feed_forward_length", 256); u("expert_shared_feed_forward_length", 256);
+    const int ef=wide ? 2304 : 256;
+    u("expert_feed_forward_length", ef); u("expert_shared_feed_forward_length", 256);
     u("expert_gating_func", 2); v("expert_weights_scale", 2.826f);
     gguf_set_val_bool(f, "hy_v3.expert_weights_norm", true);
     uint32_t rng = 0x483312u;
@@ -83,7 +84,7 @@ inline void write_synthetic_hy3(const std::string & path, bool mixed) {
         } else {
             add(p+"ffn_gate_inp.weight",256,16); add(p+"exp_probs_b",16);
             for (const std::string kind : {"gate","up","down"}) {
-                add(p+"ffn_"+kind+"_exps.weight",256,256,16);
+                add(p+"ffn_"+kind+"_exps.weight",kind=="down" ? ef : 256,kind=="down" ? 256 : ef,16);
                 add(p+"ffn_"+kind+"_shexp.weight",256,256);
             }
         }

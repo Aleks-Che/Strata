@@ -100,7 +100,7 @@ def corpus():
     return cases
 
 
-def compare(gguf, oracle, tokenizer_oracle):
+def compare(gguf, oracle, tokenizer_oracle, runtime_adapter=False):
     provenance = json.loads(subprocess.run([str(oracle), '--version'], capture_output=True, check=True, timeout=15).stdout)
     if provenance != {'architecture': 'hy_v3', 'requested_revision': LOADER_SHA, 'archive_sha256': ARCHIVE_SHA256,
                       'renderer': 'native-jinja-with-tool-json-normalization'}:
@@ -118,6 +118,14 @@ def compare(gguf, oracle, tokenizer_oracle):
     if len(rows) != len(cases):
         raise ValueError('Wrong template response count')
     template, tokenizer = renderer(source), Tokenizer.from_gguf(gguf)
+    if runtime_adapter:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from serve.hy3 import Hy3Template
+        # The fixture must be byte-identical to the requested GGUF, not a fallback.
+        fixture = Path(__file__).resolve().parents[1]/'serve/fixtures/hy3_chat_template.jinja'
+        if fixture.read_bytes() != source.encode('utf8'):
+            raise ValueError('Hy3 fixture differs from model template')
+        template = Hy3Template(fixture)
     token_request = ''.join(json.dumps({'text': r.get('rendered', ''), 'parse_special': True}, ensure_ascii=True) + '\n' for r in rows)
     encoded = subprocess.run([str(tokenizer_oracle), '--gguf', str(gguf)], input=(token_request + 'QUIT\n').encode(),
                              capture_output=True, check=True, timeout=120)
@@ -127,7 +135,7 @@ def compare(gguf, oracle, tokenizer_oracle):
     results = []
     for case, row, tokens in zip(cases, rows, token_rows[1:]):
         try:
-            py = template.render(**normalize_context(case['context']))
+            py = template.render(**(case['context'] if runtime_adapter else normalize_context(case['context'])))
             error = None
         except Exception as exc:
             py, error = None, str(exc)
@@ -150,6 +158,7 @@ def compare(gguf, oracle, tokenizer_oracle):
     results.append({'name': 'manual-default-prefix', 'pass': actual == manual})
     failures = sum(not r['pass'] for r in results)
     return {'status': 'pass' if not failures else 'fail', 'scope': 'native/Python rendering and token IDs; no API or generation',
+            'runtime_adapter': runtime_adapter,
             'case_count': len(results), 'mismatch_count': failures, 'template_sha256': TEMPLATE_SHA,
             'gguf_header_sha256': file_hash(gguf, header.header_end), 'oracle_provenance': provenance,
             'template_binary_sha256': file_hash(oracle, oracle.stat().st_size),
@@ -162,10 +171,11 @@ def main(argv=None):
     parser.add_argument('--oracle', type=Path, required=True)
     parser.add_argument('--tokenizer-oracle', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--runtime-adapter', action='store_true', help='compare serve.hy3.Hy3Template including argument normalization')
     args = parser.parse_args(argv)
     try:
         output = protect_output(args.output, args.gguf, args.oracle, args.tokenizer_oracle)
-        report = compare(args.gguf.resolve(), args.oracle.resolve(), args.tokenizer_oracle.resolve())
+        report = compare(args.gguf.resolve(), args.oracle.resolve(), args.tokenizer_oracle.resolve(), args.runtime_adapter)
         output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         print(f'{report["status"]}: {report["case_count"]} cases, {report["mismatch_count"]} mismatches; {output}')
         return int(report['status'] != 'pass')

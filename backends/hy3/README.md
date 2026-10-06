@@ -2,8 +2,9 @@
 
 This directory builds CPU vocabulary/template/registration oracles and CUDA
 numerical checks for GGUF `hy_v3`. The CUDA checks execute small synthetic main
-and MTP graphs. There is no full-model generation engine, installed profile or
-HTTP API yet.
+and MTP graphs. The opt-in Windows pipe engine executes the full checkpoint
+without MTP using synchronous selected expert transfers. There is no installed
+profile or HTTP API yet.
 
 Use a Visual Studio 2022 developer shell (MSVC and Windows SDK in PATH/INCLUDE/LIB):
 
@@ -92,8 +93,9 @@ limits are tighter and recorded per check. Mixed-quant CPU/CUDA and batch-path
 comparisons allow abs <=0.03 for logits, <=0.12 for hidden and NMSE <=2e-3,
 because these paths quantize activations differently. This is bounded numerical
 agreement, not exact quantized parity. Restore/replay and MTP-off/on comparisons
-require exact bytes even with mixed weights. Full-model logits/greedy parity,
-Flash Attention, F16 KV, speculative accept/reject integration and speed remain
+require exact bytes even with mixed weights. These synthetic checks do not
+cover full-model inference; the Windows baseline below adds that comparison.
+Flash Attention, F16 KV and speculative accept/reject integration remain
 for later phases.
 
 Both CUDA patches default ON in a fresh CUDA configuration, and are scoped to
@@ -107,6 +109,102 @@ generated sources under this build directory with original-source hash guards:
 For reproduction, configure both OFF, build/run kernels, then enable only
 STRICT_F32 and repeat, then enable both. Use a new report directory each time.
 The three measured reports and final graph report are linked from the status.
+
+## Windows synchronous baseline
+
+Keep the CUDA options above and enable `STRATA_HY3_RUNTIME=ON`:
+
+```powershell
+cmake -S backends/hy3 -B build-local/hy3-cuda -DSTRATA_HY3_RUNTIME=ON
+cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-runtime-check -j 4
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/runtime-new
+$env:PATH=(Resolve-Path build-local/cuda-13.0/bin/x64).Path+';'+$env:PATH
+python tools/check_hy3_engine.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --fixture build-local/hy3-tests/runtime-new/fixture/hy3-mixed.gguf --output-dir build-local/hy3-tests/pipe-new
+python tools/check_hy3_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/model-new --predict 24
+```
+
+The model checker uses the reviewed embedded `no_think` template. It compares
+Russian, English, Chinese, code, arithmetic and a longer prompt, then A/B/A and
+STOP/recovery. Binary hashes, prompt IDs, raw logit hashes, H2D byte counts,
+TTFT, decode-forward time and memory samples go to `model-report.json`.
+Raw logits remain in the run directory. `--smoke` selects only the short Russian
+request. Sequential timings include changing OS file-cache residency and must
+not be interpreted as a controlled speed comparison between transports.
+
+Direct pipe invocation (stdin/stdout only, no network listener):
+
+```powershell
+build-local/hy3-cuda/bin/strata-hy3.exe --native H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --inspect-only
+build-local/hy3-cuda/bin/strata-hy3.exe --native H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --serve --max-context 2048 --batch-size 17 --copy-mode pinned --kv f32
+```
+
+`ENC <parse_special:0|1> <UTF8 hex>` returns `IDS ...`. `GEN <count>
+[sampling key=value ...] <comma-separated IDs>` emits `PP`, `T`, then `DONE`.
+`STOP` cancels the current request, `QUIT` exits. Each request starts with fresh
+KV and sampler state. Session keys are accepted for isolation, not persistence.
+Greedy and seeded temperature/top-k/top-p/min-p/repetition sampling use native
+samplers. The capability line explicitly reports MTP/cache/pipeline disabled.
+Context is limited to 2048, batch to 32 and KV to F32 for this baseline.
+
+The native header check validates the local 80+1 shape, all 1298 tensors, allowed
+types, required dense/shared/router/NextN weights and non-overlapping in-file
+ranges before loading weights. `--inspect-only` allocates no weight payload.
+`--fixture` explicitly admits the tiny tokenizer-free fixture instead; it cannot
+bypass validation of a full checkpoint. Python admission additionally validates
+the full tokenizer/template contract and records header hashes. Neither hashes
+nor header admission verify all weight payload bytes.
+
+All non-routed main weights stay on GPU. Routed weights have demand mappings;
+MTP tensors are skipped. The unchanged scheduler's `--copy-mode native` is the
+reference. `pinned` reads only its selected expert ranges through the shared
+`backends/common/expert_file.hpp`, stages at most 16 MiB and fences each H2D
+before reusing staging. One native read is in flight; no prefetch pipeline or
+expert cache is enabled. The scheduler rejects CPU tensor math and accidental
+whole expert-tensor copies before submitting them. Selected uploads include
+the candidate's <=512-byte MMQ padding; counters include these real bytes.
+
+Mapped resident pages are bounded using GLM's existing `HostWorkingSetBudget`
+helper. It caps this process based on a 93% system target after charging other
+processes; limits are restored on release. The remaining margin precedes the
+95% global RAM/VRAM guard. VRAM uses the shared driver-global NVML probe matched
+by PCI identity, not CUDA's process view on WDDM. A separate test monitor can
+stop only its child. These controls do not fill unused memory artificially.
+
+Runtime sets `NVIDIA_TF32_OVERRIDE=0`, `GGML_OP_OFFLOAD_MIN_BATCH=1` and
+`GGML_CUDA_DISABLE_FUSION=1` before backend initialization. With candidate
+fusions enabled, the F32 batch4 fixture's resident/reference logits differed
+by up to 0.00105551, while pinned/reference matched. Disabling fusions restored
+exact equality in every runtime fixture. The offending fusion is not isolated
+yet; re-enabling it requires separate numerical admission. The earlier P0
+graph checker uses evaluation callbacks and is not a substitute for this
+uncaptured scheduler test.
+
+The runtime suite checks exact copied GPU bytes and logits for F32/mixed,
+batch1/4/17, a transfer exceeding 16 MiB, cancellation/recovery, CPU rejection
+and malformed input. HY3-04 extends it to 32 cases: injected pinned allocation
+failure, a real invalid-handle ReadFile failure after one completed upload,
+partial-copy cancellation, simulated RAM/VRAM limits, impossible GPU reserve,
+unload and reload. Every recovery must reproduce the original logits exactly.
+Test controls have no CLI/environment entry point; availability caps can only
+lower real memory availability, and do not allocate pressure buffers.
+
+These checks exposed an exception-boundary bug under MSVC `/EHsc`: throwing
+memory admission helpers had C linkage, which permits the compiler to assume
+they cannot throw. The RAM refusal fixture crashed with exit `0xc0000374`.
+Runtime helpers now have C++ linkage; the same fixture reports the expected
+refusal and recovers. Real driver OOM/device-loss recovery and external memory
+pressure are not established by these synthetic failures.
+
+Full-model speed tuning, long context, Flash Attention,
+F16 KV, MTP, HTTP and session persistence remain separate stages.
+
+Hy3's separate template/parser module lives in `serve/hy3.py`. Its reviewed
+fixture and CPU tests are described in `serve/fixtures/README.md`. A full-model
+tool/result check uses a fixed local stub, with no external tool execution:
+
+```powershell
+python tools/check_hy3_dialogue.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --cuda-bin build-local/cuda-13.0/bin/x64 --template-oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --output-dir build-local/hy3-tests/dialogue-new
+```
 
 [Plan](../../docs/hy3/HY3_IMPLEMENTATION_PLAN.md) and
 [status with measured validation](../../docs/hy3/HY3_IMPLEMENTATION_STATUS.md).

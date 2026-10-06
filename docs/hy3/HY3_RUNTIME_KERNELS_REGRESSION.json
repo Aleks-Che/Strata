@@ -1,0 +1,5073 @@
+{
+  "status": "pass",
+  "kind": "kernels",
+  "scope": "synthetic correctness, no inference throughput",
+  "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-kernels-check.exe",
+  "binary_sha256": "1d34279a6af7fe1ad1a2feb88aee9be2ef93b48675b3359fc30c284ef6a94fba",
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:5026674f9c59f66cc84ed50e50d1390b4b1ef86ad17554cff1448e32037540b1;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "manifest_sha256": "bae90415b3e9c95a9ef9f4823f2335bec2493f1035b3a300f3e2a7d2c2cd0a5b",
+  "samples": [
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113782284288,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2338324480
+      },
+      "seconds": 0.0470000000204891,
+      "process_rss": 96919552,
+      "process_peak_wset": 96923648
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113304838144,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2338324480
+      },
+      "seconds": 0.5619999999762513,
+      "process_rss": 571555840,
+      "process_peak_wset": 593752064
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113330102272,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2338324480
+      },
+      "seconds": 1.0619999999762513,
+      "process_rss": 549511168,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113324109824,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2338324480
+      },
+      "seconds": 1.577999999979511,
+      "process_rss": 531808256,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113293479936,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2965372928
+      },
+      "seconds": 2.125,
+      "process_rss": 537780224,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113284739072,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2965372928
+      },
+      "seconds": 2.6410000000032596,
+      "process_rss": 554307584,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113303511040,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2965372928
+      },
+      "seconds": 3.1560000000172295,
+      "process_rss": 554307584,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113313935360,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2965372928
+      },
+      "seconds": 3.6560000000172295,
+      "process_rss": 554307584,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113321828352,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2972712960
+      },
+      "seconds": 4.2189999999827705,
+      "process_rss": 553971712,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113312796672,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2972712960
+      },
+      "seconds": 4.73399999999674,
+      "process_rss": 561532928,
+      "process_peak_wset": 594489344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113462661120,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2972712960
+      },
+      "seconds": 5.23399999999674,
+      "process_rss": 354381824,
+      "process_peak_wset": 594489344
+    }
+  ],
+  "sampling_seconds": 0.5,
+  "gpu_sampling_seconds": 2,
+  "ceiling_fraction": 0.95,
+  "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-kernels-check.exe",
+    "--output",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-tests\\runtime-kernels\\kernels-report.json"
+  ],
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 113850441728,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2338324480
+    }
+  },
+  "exit_code": 0,
+  "wall_seconds": 5.75,
+  "result": {
+    "schema_version": 1,
+    "status": "pass",
+    "scope": "synthetic direct CUDA matrix/router operations; no full Hy3 graph, model weights, pipeline or inference",
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "patch_set": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "shape": {
+      "input": 512,
+      "output": 64,
+      "experts": 192,
+      "selected": 8
+    },
+    "weight_seed": 3645441,
+    "input_seed": 3649537,
+    "router_seed": 3653633,
+    "tolerance_policy": "declared before execution: F32 NMSE<=1e-10 and abs<=5e-5; quant NMSE<=1e-4 and abs<=0.02; router exact IDs, NMSE<=1e-10 abs<=2e-6",
+    "results": [
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.76398309562558e-15,
+          "max_abs": 4.470348358154297e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.994288305965742e-15,
+          "max_abs": 4.470348358154297e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.3521800198631425e-14,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.76398309562558e-15,
+          "max_abs": 4.470348358154297e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.994288305965742e-15,
+          "max_abs": 4.470348358154297e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.3521800198631425e-14,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 8.563085947519725e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.233599322823344e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4849256539543028e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 8.563085947519725e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.233599322823344e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4849256539543028e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.839083255364545e-15,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.706370811508572e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4312071743712572e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.839083255364545e-15,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.706370811508572e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4312071743712572e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2512635474902083e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.3778529629684926e-14,
+          "max_abs": 1.043081283569336e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.8174056928277446e-14,
+          "max_abs": 1.4901161193847656e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2512635474902083e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.252748879662217e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9512856377072515e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.890103452669995e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.577949814006431e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.494777745775719e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.890103452669995e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.577949814006431e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.494777745775719e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.627669071977912e-15,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 8.079472863992432e-15,
+          "max_abs": 7.450580596923828e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4378162772787126e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.627669071977912e-15,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 8.079472863992432e-15,
+          "max_abs": 7.450580596923828e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4378162772787126e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.865939746970805e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.584635003551773e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.9201379631794435e-14,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "f32",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.865939746970805e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.987202085906724e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3925920049958357e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2704514804473316e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.979051897204097e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9017299223584544e-14,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "f32",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2704514804473316e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.979051897204097e-15,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9017299223584544e-14,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2809175415475059e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.82245754357116e-15,
+          "max_abs": 7.450580596923828e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.891653002090739e-14,
+          "max_abs": 1.4901161193847656e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "f32",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2809175415475059e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 7.82245754357116e-15,
+          "max_abs": 7.450580596923828e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.891653002090739e-14,
+          "max_abs": 1.4901161193847656e-07,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 5e-05
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2385064823549503e-05,
+          "max_abs": 0.0022316426038742065,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2385131158941567e-05,
+          "max_abs": 0.0022316575050354004,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 9.981606362874649e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2385064823549503e-05,
+          "max_abs": 0.0022316426038742065,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2385131158941567e-05,
+          "max_abs": 0.0022316575050354004,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 9.981606362874649e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5450907409512763e-05,
+          "max_abs": 0.003063097596168518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5450919572886895e-05,
+          "max_abs": 0.003063112497329712,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.273983209293467e-14,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5450907409512763e-05,
+          "max_abs": 0.003063097596168518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5450919572886895e-05,
+          "max_abs": 0.003063112497329712,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.273983209293467e-14,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6053242612603364e-05,
+          "max_abs": 0.0025705471634864807,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6113627750200132e-05,
+          "max_abs": 0.002570509910583496,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 3.927285404682007e-08,
+          "max_abs": 0.0002192854881286621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6053242612603364e-05,
+          "max_abs": 0.0025705471634864807,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6113627750200132e-05,
+          "max_abs": 0.002570509910583496,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 3.927285404682007e-08,
+          "max_abs": 0.0002192854881286621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.259998957466758e-05,
+          "max_abs": 0.0022316426038742065,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2599973079950287e-05,
+          "max_abs": 0.0022316575050354004,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.172218299780627e-14,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.259998957466758e-05,
+          "max_abs": 0.0022316426038742065,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2599973079950287e-05,
+          "max_abs": 0.0022316575050354004,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.172218299780627e-14,
+          "max_abs": 8.940696716308594e-08,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4573826554851338e-05,
+          "max_abs": 0.003063097596168518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4573847171269928e-05,
+          "max_abs": 0.003063112497329712,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2463460755476359e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4573826554851338e-05,
+          "max_abs": 0.003063097596168518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4573847171269928e-05,
+          "max_abs": 0.003063112497329712,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2463460755476359e-14,
+          "max_abs": 1.1920928955078125e-07,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5154243815350363e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.516937537170001e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 9.84410773721823e-09,
+          "max_abs": 0.00021925568580627441,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5154243815350363e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.516937537170001e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 9.84410773721823e-09,
+          "max_abs": 0.00021925568580627441,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2578903768230993e-05,
+          "max_abs": 0.0026403069496154785,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2530478941510261e-05,
+          "max_abs": 0.0028151720762252808,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.043924674976252e-08,
+          "max_abs": 0.00035113096237182617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2578903768230993e-05,
+          "max_abs": 0.0026403069496154785,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2530478941510261e-05,
+          "max_abs": 0.0028151720762252808,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.043924674976252e-08,
+          "max_abs": 0.00035113096237182617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4670255790607003e-05,
+          "max_abs": 0.0035185813903808594,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4707931549671787e-05,
+          "max_abs": 0.0034367740154266357,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.051216916335238e-08,
+          "max_abs": 0.0003511011600494385,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4670255790607003e-05,
+          "max_abs": 0.0035185813903808594,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4707931549671787e-05,
+          "max_abs": 0.0034367740154266357,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.051216916335238e-08,
+          "max_abs": 0.0003511011600494385,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4555990206991368e-05,
+          "max_abs": 0.003572702407836914,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.461250937788807e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 4.032756506047274e-08,
+          "max_abs": 0.00033713504672050476,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q8_0",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4555990206991368e-05,
+          "max_abs": 0.003572702407836914,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.461250937788807e-05,
+          "max_abs": 0.0035570859909057617,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 4.032756506047274e-08,
+          "max_abs": 0.00033713504672050476,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2574832221588322e-05,
+          "max_abs": 0.0022275447845458984,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.823627830257133e-05,
+          "max_abs": 0.002087436616420746,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.9802401239155684e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2574832221588322e-05,
+          "max_abs": 0.0022275447845458984,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.823627830257133e-05,
+          "max_abs": 0.002087436616420746,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.9802401239155684e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5453864768427117e-05,
+          "max_abs": 0.0030534863471984863,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5819324417624633e-05,
+          "max_abs": 0.0023155510425567627,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5088407319196344e-05,
+          "max_abs": 0.0035225972533226013,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5453864768427117e-05,
+          "max_abs": 0.0030534863471984863,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5819324417624633e-05,
+          "max_abs": 0.0023155510425567627,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5088407319196344e-05,
+          "max_abs": 0.0035225972533226013,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.607998495064983e-05,
+          "max_abs": 0.002557307481765747,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7533029659680744e-05,
+          "max_abs": 0.002845197916030884,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6160193240258966e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.607998495064983e-05,
+          "max_abs": 0.002557307481765747,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7533029659680744e-05,
+          "max_abs": 0.002845197916030884,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6160193240258966e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2686054078519756e-05,
+          "max_abs": 0.002232283353805542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4264286649336247e-05,
+          "max_abs": 0.002598494291305542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9654983808127115e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2686054078519756e-05,
+          "max_abs": 0.002232283353805542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4264286649336247e-05,
+          "max_abs": 0.002598494291305542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9654983808127115e-05,
+          "max_abs": 0.003210499882698059,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.456647007054055e-05,
+          "max_abs": 0.0030534863471984863,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.575382530318906e-05,
+          "max_abs": 0.003005778416991234,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.360102340272859e-05,
+          "max_abs": 0.004421353340148926,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.456647007054055e-05,
+          "max_abs": 0.0030534863471984863,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.575382530318906e-05,
+          "max_abs": 0.003005778416991234,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.360102340272859e-05,
+          "max_abs": 0.004421353340148926,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5161213583060202e-05,
+          "max_abs": 0.0035489648580551147,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6261387079312297e-05,
+          "max_abs": 0.0030279606580734253,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5396993245300194e-05,
+          "max_abs": 0.004238203167915344,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5161213583060202e-05,
+          "max_abs": 0.0035489648580551147,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6261387079312297e-05,
+          "max_abs": 0.0030279606580734253,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5396993245300194e-05,
+          "max_abs": 0.004238203167915344,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2603710657116558e-05,
+          "max_abs": 0.002650618553161621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6478781540288815e-05,
+          "max_abs": 0.003175586462020874,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.446176390838613e-05,
+          "max_abs": 0.003559619188308716,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2603710657116558e-05,
+          "max_abs": 0.002650618553161621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6478781540288815e-05,
+          "max_abs": 0.003175586462020874,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.446176390838613e-05,
+          "max_abs": 0.003559619188308716,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4664404359317867e-05,
+          "max_abs": 0.0035173892974853516,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5893326935554016e-05,
+          "max_abs": 0.003860883414745331,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4817593785650315e-05,
+          "max_abs": 0.004387699067592621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4664404359317867e-05,
+          "max_abs": 0.0035173892974853516,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5893326935554016e-05,
+          "max_abs": 0.003860883414745331,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4817593785650315e-05,
+          "max_abs": 0.004387699067592621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4550020000300086e-05,
+          "max_abs": 0.003559902310371399,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.526213060476096e-05,
+          "max_abs": 0.0032111406326293945,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4830871437672793e-05,
+          "max_abs": 0.004469595849514008,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q6_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4550020000300086e-05,
+          "max_abs": 0.003559902310371399,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.526213060476096e-05,
+          "max_abs": 0.0032111406326293945,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4830871437672793e-05,
+          "max_abs": 0.004469595849514008,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2524673208567017e-05,
+          "max_abs": 0.0022359415888786316,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7955672754965645e-05,
+          "max_abs": 0.0020607560873031616,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.960934479511897e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2524673208567017e-05,
+          "max_abs": 0.0022359415888786316,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7955672754965645e-05,
+          "max_abs": 0.0020607560873031616,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.960934479511897e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.550671943617713e-05,
+          "max_abs": 0.0030709803104400635,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5934200963437884e-05,
+          "max_abs": 0.0022956430912017822,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.50715821426588e-05,
+          "max_abs": 0.0034500285983085632,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.550671943617713e-05,
+          "max_abs": 0.0030709803104400635,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5934200963437884e-05,
+          "max_abs": 0.0022956430912017822,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.50715821426588e-05,
+          "max_abs": 0.0034500285983085632,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6043413734915406e-05,
+          "max_abs": 0.0025567635893821716,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.751300124386304e-05,
+          "max_abs": 0.002849876880645752,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6093287229580587e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6043413734915406e-05,
+          "max_abs": 0.0025567635893821716,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.751300124386304e-05,
+          "max_abs": 0.002849876880645752,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6093287229580587e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.267026203806235e-05,
+          "max_abs": 0.0022359415888786316,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4214531207234487e-05,
+          "max_abs": 0.002604380249977112,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.957642031288668e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.267026203806235e-05,
+          "max_abs": 0.0022359415888786316,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4214531207234487e-05,
+          "max_abs": 0.002604380249977112,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.957642031288668e-05,
+          "max_abs": 0.0031876787543296814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4569047681328562e-05,
+          "max_abs": 0.0030709803104400635,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5801408440672516e-05,
+          "max_abs": 0.0030068382620811462,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3597112989819976e-05,
+          "max_abs": 0.004434496164321899,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4569047681328562e-05,
+          "max_abs": 0.0030709803104400635,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5801408440672516e-05,
+          "max_abs": 0.0030068382620811462,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3597112989819976e-05,
+          "max_abs": 0.004434496164321899,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5168924127204296e-05,
+          "max_abs": 0.0035767853260040283,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6255711092738775e-05,
+          "max_abs": 0.003008738160133362,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5391660283545743e-05,
+          "max_abs": 0.004272371530532837,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5168924127204296e-05,
+          "max_abs": 0.0035767853260040283,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6255711092738775e-05,
+          "max_abs": 0.003008738160133362,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5391660283545743e-05,
+          "max_abs": 0.004272371530532837,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.280254970696383e-05,
+          "max_abs": 0.005448281764984131,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6443092588259516e-05,
+          "max_abs": 0.003180563449859619,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.41125607230492e-05,
+          "max_abs": 0.0070575326681137085,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.280254970696383e-05,
+          "max_abs": 0.005448281764984131,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6443092588259516e-05,
+          "max_abs": 0.003180563449859619,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.41125607230492e-05,
+          "max_abs": 0.0070575326681137085,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.758948343265396e-05,
+          "max_abs": 0.005826238542795181,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.590451466917578e-05,
+          "max_abs": 0.0038286596536636353,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.898556930705564e-05,
+          "max_abs": 0.007616296410560608,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.758948343265396e-05,
+          "max_abs": 0.005826238542795181,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.590451466917578e-05,
+          "max_abs": 0.0038286596536636353,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.898556930705564e-05,
+          "max_abs": 0.007616296410560608,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.4549297525242076e-05,
+          "max_abs": 0.006625273497775197,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.525335882408065e-05,
+          "max_abs": 0.0032172352075576782,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.444581946544332e-05,
+          "max_abs": 0.006478071212768555,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q5_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.4549297525242076e-05,
+          "max_abs": 0.006625273497775197,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.525335882408065e-05,
+          "max_abs": 0.0032172352075576782,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.444581946544332e-05,
+          "max_abs": 0.006478071212768555,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2089946390578963e-05,
+          "max_abs": 0.0022452473640441895,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.779246567926443e-05,
+          "max_abs": 0.0020315200090408325,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.927136832555899e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2089946390578963e-05,
+          "max_abs": 0.0022452473640441895,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.779246567926443e-05,
+          "max_abs": 0.0020315200090408325,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.927136832555899e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.543766433875942e-05,
+          "max_abs": 0.002995416522026062,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5887281165415683e-05,
+          "max_abs": 0.0022995173931121826,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4998595792902823e-05,
+          "max_abs": 0.0035742446780204773,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.543766433875942e-05,
+          "max_abs": 0.002995416522026062,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5887281165415683e-05,
+          "max_abs": 0.0022995173931121826,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4998595792902823e-05,
+          "max_abs": 0.0035742446780204773,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6033307427001926e-05,
+          "max_abs": 0.0026591867208480835,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7388971637963654e-05,
+          "max_abs": 0.0027762651443481445,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5981531630479572e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6033307427001926e-05,
+          "max_abs": 0.0026591867208480835,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7388971637963654e-05,
+          "max_abs": 0.0027762651443481445,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5981531630479572e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2355972830253325e-05,
+          "max_abs": 0.0022452473640441895,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.404018465335573e-05,
+          "max_abs": 0.0025747716426849365,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.926050123592679e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2355972830253325e-05,
+          "max_abs": 0.0022452473640441895,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.404018465335573e-05,
+          "max_abs": 0.0025747716426849365,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.926050123592679e-05,
+          "max_abs": 0.0031159818172454834,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4613310087991904e-05,
+          "max_abs": 0.002995416522026062,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.575228620467494e-05,
+          "max_abs": 0.003045257180929184,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.360174776728946e-05,
+          "max_abs": 0.004314199090003967,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4613310087991904e-05,
+          "max_abs": 0.002995416522026062,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.575228620467494e-05,
+          "max_abs": 0.003045257180929184,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.360174776728946e-05,
+          "max_abs": 0.004314199090003967,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5114974512203026e-05,
+          "max_abs": 0.0036122947931289673,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.622136825940023e-05,
+          "max_abs": 0.0030807405710220337,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5356397037553133e-05,
+          "max_abs": 0.004225432872772217,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5114974512203026e-05,
+          "max_abs": 0.0036122947931289673,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.622136825940023e-05,
+          "max_abs": 0.0030807405710220337,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5356397037553133e-05,
+          "max_abs": 0.004225432872772217,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.191630450202999e-05,
+          "max_abs": 0.005418002605438232,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.636118241301081e-05,
+          "max_abs": 0.0032070577144622803,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.338021615576124e-05,
+          "max_abs": 0.007033601403236389,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.191630450202999e-05,
+          "max_abs": 0.005418002605438232,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.636118241301081e-05,
+          "max_abs": 0.0032070577144622803,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.338021615576124e-05,
+          "max_abs": 0.007033601403236389,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.684711817507132e-05,
+          "max_abs": 0.005808033049106598,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.587069255373783e-05,
+          "max_abs": 0.0038810819387435913,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.82621678486077e-05,
+          "max_abs": 0.007676701992750168,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.684711817507132e-05,
+          "max_abs": 0.005808033049106598,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.587069255373783e-05,
+          "max_abs": 0.0038810819387435913,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.82621678486077e-05,
+          "max_abs": 0.007676701992750168,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.402037762015576e-05,
+          "max_abs": 0.006608732044696808,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5266957885185297e-05,
+          "max_abs": 0.003153592348098755,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.395757465927939e-05,
+          "max_abs": 0.006554126739501953,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q4_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 5.402037762015576e-05,
+          "max_abs": 0.006608732044696808,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5266957885185297e-05,
+          "max_abs": 0.003153592348098755,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.395757465927939e-05,
+          "max_abs": 0.006554126739501953,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.1728398552673272e-05,
+          "max_abs": 0.002270534634590149,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.716333146171809e-05,
+          "max_abs": 0.0020908936858177185,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8788396038489e-05,
+          "max_abs": 0.003080178052186966,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.1728398552673272e-05,
+          "max_abs": 0.002270534634590149,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.716333146171809e-05,
+          "max_abs": 0.0020908936858177185,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8788396038489e-05,
+          "max_abs": 0.003080178052186966,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5459301222857298e-05,
+          "max_abs": 0.0028677284717559814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5876169555276068e-05,
+          "max_abs": 0.0022764652967453003,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5046625141824452e-05,
+          "max_abs": 0.003438130021095276,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5459301222857298e-05,
+          "max_abs": 0.0028677284717559814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5876169555276068e-05,
+          "max_abs": 0.0022764652967453003,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5046625141824452e-05,
+          "max_abs": 0.003438130021095276,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6372986620297727e-05,
+          "max_abs": 0.0024863258004188538,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7150694830060672e-05,
+          "max_abs": 0.0027208328247070312,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6253538589659617e-05,
+          "max_abs": 0.0031670331954956055,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6372986620297727e-05,
+          "max_abs": 0.0024863258004188538,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7150694830060672e-05,
+          "max_abs": 0.0027208328247070312,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.6253538589659617e-05,
+          "max_abs": 0.0031670331954956055,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2356568044959388e-05,
+          "max_abs": 0.002270534634590149,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4096514606317252e-05,
+          "max_abs": 0.002489447593688965,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9462654369566377e-05,
+          "max_abs": 0.003080178052186966,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2356568044959388e-05,
+          "max_abs": 0.002270534634590149,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4096514606317252e-05,
+          "max_abs": 0.002489447593688965,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9462654369566377e-05,
+          "max_abs": 0.003080178052186966,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4640574148412768e-05,
+          "max_abs": 0.0028677284717559814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5798678363062592e-05,
+          "max_abs": 0.0030395612120628357,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3627228287647974e-05,
+          "max_abs": 0.004143968224525452,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4640574148412768e-05,
+          "max_abs": 0.0028677284717559814,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5798678363062592e-05,
+          "max_abs": 0.0030395612120628357,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3627228287647974e-05,
+          "max_abs": 0.004143968224525452,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5335990703465162e-05,
+          "max_abs": 0.003537014126777649,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6256056608154855e-05,
+          "max_abs": 0.0030385106801986694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5499180235057962e-05,
+          "max_abs": 0.004253171384334564,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5335990703465162e-05,
+          "max_abs": 0.003537014126777649,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6256056608154855e-05,
+          "max_abs": 0.0030385106801986694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5499180235057962e-05,
+          "max_abs": 0.004253171384334564,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2446464339883236e-05,
+          "max_abs": 0.0025245249271392822,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.63524333881976e-05,
+          "max_abs": 0.0031186342239379883,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4383286406149567e-05,
+          "max_abs": 0.0035730749368667603,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2446464339883236e-05,
+          "max_abs": 0.0025245249271392822,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.63524333881976e-05,
+          "max_abs": 0.0031186342239379883,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4383286406149567e-05,
+          "max_abs": 0.0035730749368667603,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.465623816537094e-05,
+          "max_abs": 0.0034862160682678223,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5911409174763493e-05,
+          "max_abs": 0.0037187859416007996,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.49503714000134e-05,
+          "max_abs": 0.004183977842330933,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.465623816537094e-05,
+          "max_abs": 0.0034862160682678223,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5911409174763493e-05,
+          "max_abs": 0.0037187859416007996,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.49503714000134e-05,
+          "max_abs": 0.004183977842330933,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4675961077798082e-05,
+          "max_abs": 0.003555670380592346,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5306664086289786e-05,
+          "max_abs": 0.003371000289916992,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4954934382366573e-05,
+          "max_abs": 0.00442841649055481,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "q3_K",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4675961077798082e-05,
+          "max_abs": 0.003555670380592346,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5306664086289786e-05,
+          "max_abs": 0.003371000289916992,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4954934382366573e-05,
+          "max_abs": 0.00442841649055481,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2267468528603923e-05,
+          "max_abs": 0.002103269100189209,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.878167625141157e-05,
+          "max_abs": 0.0020085200667381287,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8375901461590628e-05,
+          "max_abs": 0.0029530227184295654,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2267468528603923e-05,
+          "max_abs": 0.002103269100189209,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.878167625141157e-05,
+          "max_abs": 0.0020085200667381287,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8375901461590628e-05,
+          "max_abs": 0.0029530227184295654,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.518807294115379e-05,
+          "max_abs": 0.0027757883071899414,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5872694314367698e-05,
+          "max_abs": 0.002334028482437134,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4798039004291345e-05,
+          "max_abs": 0.003550410270690918,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.518807294115379e-05,
+          "max_abs": 0.0027757883071899414,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5872694314367698e-05,
+          "max_abs": 0.002334028482437134,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4798039004291345e-05,
+          "max_abs": 0.003550410270690918,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6120705116054136e-05,
+          "max_abs": 0.0024244049564003944,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7511934883009222e-05,
+          "max_abs": 0.002813786268234253,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.619432183006831e-05,
+          "max_abs": 0.0029530227184295654,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6120705116054136e-05,
+          "max_abs": 0.0024244049564003944,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.7511934883009222e-05,
+          "max_abs": 0.002813786268234253,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.619432183006831e-05,
+          "max_abs": 0.0029530227184295654,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.210206279876633e-05,
+          "max_abs": 0.002273350954055786,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4016084014523026e-05,
+          "max_abs": 0.0027679651975631714,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.921478741331213e-05,
+          "max_abs": 0.003458455204963684,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.210206279876633e-05,
+          "max_abs": 0.002273350954055786,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4016084014523026e-05,
+          "max_abs": 0.0027679651975631714,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.921478741331213e-05,
+          "max_abs": 0.003458455204963684,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.445038837747368e-05,
+          "max_abs": 0.0027757883071899414,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.567918545577621e-05,
+          "max_abs": 0.002820149064064026,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3325163785806045e-05,
+          "max_abs": 0.004405677318572998,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.445038837747368e-05,
+          "max_abs": 0.0027757883071899414,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.567918545577621e-05,
+          "max_abs": 0.002820149064064026,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3325163785806045e-05,
+          "max_abs": 0.004405677318572998,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5052937092898075e-05,
+          "max_abs": 0.003646865487098694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6031086729527615e-05,
+          "max_abs": 0.003047347068786621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5025093453593095e-05,
+          "max_abs": 0.004185348749160767,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5052937092898075e-05,
+          "max_abs": 0.003646865487098694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6031086729527615e-05,
+          "max_abs": 0.003047347068786621,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5025093453593095e-05,
+          "max_abs": 0.004185348749160767,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2721493371570327e-05,
+          "max_abs": 0.0026641637086868286,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6611794751733866e-05,
+          "max_abs": 0.0031965672969818115,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4353895722262525e-05,
+          "max_abs": 0.0036413967609405518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2721493371570327e-05,
+          "max_abs": 0.0026641637086868286,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6611794751733866e-05,
+          "max_abs": 0.0031965672969818115,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4353895722262525e-05,
+          "max_abs": 0.0036413967609405518,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4698542767585951e-05,
+          "max_abs": 0.0033839046955108643,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5854701478013532e-05,
+          "max_abs": 0.003616645932197571,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4813148131811082e-05,
+          "max_abs": 0.00438506156206131,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4698542767585951e-05,
+          "max_abs": 0.0033839046955108643,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5854701478013532e-05,
+          "max_abs": 0.003616645932197571,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4813148131811082e-05,
+          "max_abs": 0.00438506156206131,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4466850226644307e-05,
+          "max_abs": 0.0036489367485046387,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.530728707655453e-05,
+          "max_abs": 0.0032137036323547363,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.469141469071592e-05,
+          "max_abs": 0.004590265452861786,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq3_xxs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4466850226644307e-05,
+          "max_abs": 0.0036489367485046387,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.530728707655453e-05,
+          "max_abs": 0.0032137036323547363,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.469141469071592e-05,
+          "max_abs": 0.004590265452861786,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2191112025387147e-05,
+          "max_abs": 0.0023450255393981934,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.772037670770424e-05,
+          "max_abs": 0.0020570028573274612,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8874734124312456e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.2191112025387147e-05,
+          "max_abs": 0.0023450255393981934,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.772037670770424e-05,
+          "max_abs": 0.0020570028573274612,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.8874734124312456e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.531605266569172e-05,
+          "max_abs": 0.003047734498977661,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5967330566868578e-05,
+          "max_abs": 0.0023011863231658936,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5086755352794073e-05,
+          "max_abs": 0.0036190971732139587,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.531605266569172e-05,
+          "max_abs": 0.003047734498977661,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5967330566868578e-05,
+          "max_abs": 0.0023011863231658936,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5086755352794073e-05,
+          "max_abs": 0.0036190971732139587,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6060581254973605e-05,
+          "max_abs": 0.0025023669004440308,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.736070408817566e-05,
+          "max_abs": 0.002788245677947998,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5940860008454956e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6060581254973605e-05,
+          "max_abs": 0.0025023669004440308,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.736070408817566e-05,
+          "max_abs": 0.002788245677947998,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5940860008454956e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.279498350725573e-05,
+          "max_abs": 0.0023450255393981934,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4320764182265395e-05,
+          "max_abs": 0.0025370419025421143,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9744309356137487e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.279498350725573e-05,
+          "max_abs": 0.0023450255393981934,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4320764182265395e-05,
+          "max_abs": 0.0025370419025421143,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.9744309356137487e-05,
+          "max_abs": 0.003138221800327301,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.452594391993324e-05,
+          "max_abs": 0.003047734498977661,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5806563635012907e-05,
+          "max_abs": 0.0029808878898620605,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3650990018714234e-05,
+          "max_abs": 0.004468418657779694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.452594391993324e-05,
+          "max_abs": 0.003047734498977661,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5806563635012907e-05,
+          "max_abs": 0.0029808878898620605,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.3650990018714234e-05,
+          "max_abs": 0.004468418657779694,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5246373425473514e-05,
+          "max_abs": 0.0035755038261413574,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6216605935594454e-05,
+          "max_abs": 0.0030696094036102295,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5439388808313123e-05,
+          "max_abs": 0.004155635833740234,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5246373425473514e-05,
+          "max_abs": 0.0035755038261413574,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6216605935594454e-05,
+          "max_abs": 0.0030696094036102295,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.5439388808313123e-05,
+          "max_abs": 0.004155635833740234,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2662156932585784e-05,
+          "max_abs": 0.002551168203353882,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6408281130981402e-05,
+          "max_abs": 0.003210097551345825,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.432393385426586e-05,
+          "max_abs": 0.0036194920539855957,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.2662156932585784e-05,
+          "max_abs": 0.002551168203353882,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.6408281130981402e-05,
+          "max_abs": 0.003210097551345825,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.432393385426586e-05,
+          "max_abs": 0.0036194920539855957,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4658603102106083e-05,
+          "max_abs": 0.003544539213180542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5914575810845254e-05,
+          "max_abs": 0.0038174837827682495,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.484465167920934e-05,
+          "max_abs": 0.0044378191232681274,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID broadcast",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.4658603102106083e-05,
+          "max_abs": 0.003544539213180542,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5914575810845254e-05,
+          "max_abs": 0.0038174837827682495,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.484465167920934e-05,
+          "max_abs": 0.0044378191232681274,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.458558467825357e-05,
+          "max_abs": 0.003516942262649536,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5271610670203336e-05,
+          "max_abs": 0.0032302439212799072,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4861025055499872e-05,
+          "max_abs": 0.004623234272003174,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "MUL_MAT_ID per-route",
+        "type": "iq4_xs",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "inputs_unchanged": true,
+        "padded_vs_compact_exact": true,
+        "cuda_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.458558467825357e-05,
+          "max_abs": 0.003516942262649536,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cpu_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.5271610670203336e-05,
+          "max_abs": 0.0032302439212799072,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        },
+        "cuda_vs_cpu": {
+          "pass": true,
+          "finite": true,
+          "nmse": 2.4861025055499872e-05,
+          "max_abs": 0.004623234272003174,
+          "nmse_limit": 0.0001,
+          "absolute_limit": 0.02
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 1,
+        "padded": false,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.0003400962981354727,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.422733846126983e-14,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 1,
+        "padded": true,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.0003400962981354727,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 1.422733846126983e-14,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 4,
+        "padded": false,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.0003400962981354727,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.667120403699925e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 4,
+        "padded": true,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.0003400962981354727,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 6.667120403699925e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 17,
+        "padded": false,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.00014130170863824176,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 3.973959578721201e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      },
+      {
+        "kind": "sigmoid+bias+sorted_top8+unbiased_norm*2.826",
+        "tokens": 17,
+        "padded": true,
+        "pass": true,
+        "ids_exact": true,
+        "inputs_unchanged": true,
+        "selection_margin_min": 0.00014130170863824176,
+        "weights_vs_scalar": {
+          "pass": true,
+          "finite": true,
+          "nmse": 3.973959578721201e-15,
+          "max_abs": 5.960464477539063e-08,
+          "nmse_limit": 1e-10,
+          "absolute_limit": 2e-06
+        }
+      }
+    ],
+    "device": "NVIDIA GeForce RTX 5090",
+    "cuda_backend": "CUDA0",
+    "cpu_role": "explicit test oracle only; CUDA graph executed directly without a fallback scheduler",
+    "case_count": 150
+  },
+  "result_sha256": "bcb11ab71c9a0a18897094863f973d7cc6790f45610f13c9a4041d6dfaa56efa"
+}

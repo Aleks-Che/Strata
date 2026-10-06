@@ -1,0 +1,881 @@
+{
+  "status": "pass",
+  "scope": "native/Python rendering and token IDs; no API or generation",
+  "runtime_adapter": true,
+  "case_count": 144,
+  "mismatch_count": 0,
+  "template_sha256": "7fc351fee674c13754656ba7f33a3ca426bfb7231039f48444360a3f3c5ecf3e",
+  "gguf_header_sha256": "f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9",
+  "oracle_provenance": {
+    "architecture": "hy_v3",
+    "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "renderer": "native-jinja-with-tool-json-normalization"
+  },
+  "template_binary_sha256": "c3a646d85ee97971ba641a8630cf0421b306bb2cd24fce0c371185e766d42f32",
+  "tokenizer_binary_sha256": "c5db3432d61db1d9923fde85513669015cd07ed6ecb77e0c109f8a20aeded939",
+  "cases": [
+    {
+      "name": "user/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "84ad7f74089907f545358d337fbca05091d70aafdc2533361c6d21078b76e7c3",
+      "token_count": 19
+    },
+    {
+      "name": "user/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "84ad7f74089907f545358d337fbca05091d70aafdc2533361c6d21078b76e7c3",
+      "token_count": 19
+    },
+    {
+      "name": "user/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "68a26fe53b93b398affe99b1b8e54c5630dc0856e19e02f0b1973538c1db34cf",
+      "token_count": 17
+    },
+    {
+      "name": "user/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "user/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "19f2815b769a51b8fbb1e0f9847d9ca6e03defaf7eb14882c345d04c92134051",
+      "token_count": 22
+    },
+    {
+      "name": "user/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "19f2815b769a51b8fbb1e0f9847d9ca6e03defaf7eb14882c345d04c92134051",
+      "token_count": 22
+    },
+    {
+      "name": "user/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "334fbf7c4f5f0c46b0b15ae73022c404a3a282fbd655a814414d31721ddd8c8a",
+      "token_count": 19
+    },
+    {
+      "name": "user/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "a95cc876be9f3b7b18245792edcdafc947f9d2cc5e51857d777fd525e0e7f67b",
+      "token_count": 19
+    },
+    {
+      "name": "systems/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "43c47052969f873653b287412bc1ad426290e074a6ad0ab87ad3f2965a03c4cc",
+      "token_count": 28
+    },
+    {
+      "name": "systems/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "43c47052969f873653b287412bc1ad426290e074a6ad0ab87ad3f2965a03c4cc",
+      "token_count": 28
+    },
+    {
+      "name": "systems/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "220b4ae01cbbc375f6308bd21f4ba2561bacad4496ad4c086d1e83cd1703f153",
+      "token_count": 26
+    },
+    {
+      "name": "systems/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "845c52671efd1631676cf58b6773191f91a71cff2428a42b506d4a91743504c4",
+      "token_count": 26
+    },
+    {
+      "name": "systems/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "95ca0a8ba26a1e397d4c19e06bb115f469471ec094105444093059b60d945a0a",
+      "token_count": 31
+    },
+    {
+      "name": "systems/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "95ca0a8ba26a1e397d4c19e06bb115f469471ec094105444093059b60d945a0a",
+      "token_count": 31
+    },
+    {
+      "name": "systems/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "37fe6785b13b95a445e9c40d2e2a324b0aeb39c129acc4ac8ea3233aa980254d",
+      "token_count": 28
+    },
+    {
+      "name": "systems/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "320ef9610f578bb32d8fe23ede8a3db51270a361d3c04ce0c3ed935422e2b8d7",
+      "token_count": 28
+    },
+    {
+      "name": "multiturn/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "4a6982b13cf530f063b01d46ef52df84acc291b2cb0617e26405360558156452",
+      "token_count": 34
+    },
+    {
+      "name": "multiturn/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "4a6982b13cf530f063b01d46ef52df84acc291b2cb0617e26405360558156452",
+      "token_count": 34
+    },
+    {
+      "name": "multiturn/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "235703a16a461cede68a9d74329b9f0090b5bba5b7283840dee7da0c99e31052",
+      "token_count": 32
+    },
+    {
+      "name": "multiturn/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "ddd39c5d427f0c29455edb82c84a613856be61ab3e1c889736139fc0b80cac0f",
+      "token_count": 32
+    },
+    {
+      "name": "multiturn/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "4ef4cf337131b6fca0778e866e9f3644f3cebe597e4d9ef6d7cc1d2ce83c4e4f",
+      "token_count": 37
+    },
+    {
+      "name": "multiturn/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "4ef4cf337131b6fca0778e866e9f3644f3cebe597e4d9ef6d7cc1d2ce83c4e4f",
+      "token_count": 37
+    },
+    {
+      "name": "multiturn/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "13d04ea1917b42c927f28581cbfc5cfb0755b5868248803abdda0ca48a563eff",
+      "token_count": 34
+    },
+    {
+      "name": "multiturn/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "b33552a0fb87b14fa318a4468d3fae42bdcef5a58d366536cf62e1fbc1ab0404",
+      "token_count": 34
+    },
+    {
+      "name": "preserved/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "c0ab58b1cb8cb78feff3dc932aaca5964d65e8c1a611e87ae166a7102cd5eae7",
+      "token_count": 38
+    },
+    {
+      "name": "preserved/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "c0ab58b1cb8cb78feff3dc932aaca5964d65e8c1a611e87ae166a7102cd5eae7",
+      "token_count": 38
+    },
+    {
+      "name": "preserved/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "b10408b2f98d82b3b0f9c8e9aabf0d49f4750adf00b4151d0b669e3f5f3fc6cf",
+      "token_count": 36
+    },
+    {
+      "name": "preserved/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "3a984be319c0eefbafb4c41b73e2bda079738b8034bb4e70ff84c717ccafbf62",
+      "token_count": 36
+    },
+    {
+      "name": "preserved/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "a2f316d082e0e14ce3ba4e5410577bc9b455b40b63221fd38072c4b2c62ffa06",
+      "token_count": 41
+    },
+    {
+      "name": "preserved/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "a2f316d082e0e14ce3ba4e5410577bc9b455b40b63221fd38072c4b2c62ffa06",
+      "token_count": 41
+    },
+    {
+      "name": "preserved/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "30c62beed56d4ae9611ab4930930e0c51463cd0c5b2542b5f435452fa38a715a",
+      "token_count": 38
+    },
+    {
+      "name": "preserved/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "cd2d93545cc27579346210d006c23c3da5a3e7e87619366c3ac83c2c4c37baee",
+      "token_count": 38
+    },
+    {
+      "name": "training/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "3de5cca5ed02aea537477e43f27fda263e55754ace77af174a732a7192bb944c",
+      "token_count": 30
+    },
+    {
+      "name": "training/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "3de5cca5ed02aea537477e43f27fda263e55754ace77af174a732a7192bb944c",
+      "token_count": 30
+    },
+    {
+      "name": "training/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "c60bb8c4d31c9d79d30f542a427a43d3e3a691a56d406e5f84f3a60a9fa07cad",
+      "token_count": 28
+    },
+    {
+      "name": "training/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "fdc5f13f4808b4444735f134a92f2fc51da5c61e478d6a33324e2d4b0258f5ba",
+      "token_count": 28
+    },
+    {
+      "name": "training/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "3de5cca5ed02aea537477e43f27fda263e55754ace77af174a732a7192bb944c",
+      "token_count": 30
+    },
+    {
+      "name": "training/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "3de5cca5ed02aea537477e43f27fda263e55754ace77af174a732a7192bb944c",
+      "token_count": 30
+    },
+    {
+      "name": "training/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "c60bb8c4d31c9d79d30f542a427a43d3e3a691a56d406e5f84f3a60a9fa07cad",
+      "token_count": 28
+    },
+    {
+      "name": "training/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "fdc5f13f4808b4444735f134a92f2fc51da5c61e478d6a33324e2d4b0258f5ba",
+      "token_count": 28
+    },
+    {
+      "name": "raw_assistant/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "93a3cbcbb2374f5bda1a8a9209abf91268dce8a00943e73442e1900b5fa78fab",
+      "token_count": 23
+    },
+    {
+      "name": "raw_assistant/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "93a3cbcbb2374f5bda1a8a9209abf91268dce8a00943e73442e1900b5fa78fab",
+      "token_count": 23
+    },
+    {
+      "name": "raw_assistant/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "d557a49a16ee227cdfacf7950ebdc0e20bd628e46ad93dcef0e28a7e777d0929",
+      "token_count": 21
+    },
+    {
+      "name": "raw_assistant/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "9d671e619eaf14eda101fb0e518213dba047c7ab63b6a921407394b60b6ca00d",
+      "token_count": 21
+    },
+    {
+      "name": "raw_assistant/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "93a3cbcbb2374f5bda1a8a9209abf91268dce8a00943e73442e1900b5fa78fab",
+      "token_count": 23
+    },
+    {
+      "name": "raw_assistant/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "93a3cbcbb2374f5bda1a8a9209abf91268dce8a00943e73442e1900b5fa78fab",
+      "token_count": 23
+    },
+    {
+      "name": "raw_assistant/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "d557a49a16ee227cdfacf7950ebdc0e20bd628e46ad93dcef0e28a7e777d0929",
+      "token_count": 21
+    },
+    {
+      "name": "raw_assistant/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "9d671e619eaf14eda101fb0e518213dba047c7ab63b6a921407394b60b6ca00d",
+      "token_count": 21
+    },
+    {
+      "name": "text_parts/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "42271f3d186d96d97b58d7708a9107a6ffb0b2893eb2d589f306d81cba37682d",
+      "token_count": 15
+    },
+    {
+      "name": "text_parts/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "42271f3d186d96d97b58d7708a9107a6ffb0b2893eb2d589f306d81cba37682d",
+      "token_count": 15
+    },
+    {
+      "name": "text_parts/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "ac82e8d1ce8303468c495caf4f0d24799f9eb381c43cd82e29f1c90a6e2fb794",
+      "token_count": 13
+    },
+    {
+      "name": "text_parts/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "bd17e53ba0a8477de1a9af93a2df47f27a3628206fb05eb11735e89cd5b3f805",
+      "token_count": 13
+    },
+    {
+      "name": "text_parts/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "accbd932bf31672f54ae1bac2b1afe54498d48309b705ffc8949704a5a7c8640",
+      "token_count": 18
+    },
+    {
+      "name": "text_parts/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "accbd932bf31672f54ae1bac2b1afe54498d48309b705ffc8949704a5a7c8640",
+      "token_count": 18
+    },
+    {
+      "name": "text_parts/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "bc60a35cb0bb107d9d535768c5f7622185d504a94e72284449278d83ddec99fc",
+      "token_count": 15
+    },
+    {
+      "name": "text_parts/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "accceb7073d1db8dee99ff1cb5cf3a2bd8a64e82bad57644bce5b6d4822c781a",
+      "token_count": 15
+    },
+    {
+      "name": "tools/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "d00d03ed487e9fb52f530b9a5e0c8b1a69467d76404648c250ed0136119b0ed8",
+      "token_count": 185
+    },
+    {
+      "name": "tools/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "d00d03ed487e9fb52f530b9a5e0c8b1a69467d76404648c250ed0136119b0ed8",
+      "token_count": 185
+    },
+    {
+      "name": "tools/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "01331fc8cbd308d82c3639975184fffd7ef9da6cd46f08800a7d08a899d54cfa",
+      "token_count": 183
+    },
+    {
+      "name": "tools/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "a72132a16bbb70a84cd04c9a22381c540d87f97b728caf1dbdf94a21fd632009",
+      "token_count": 183
+    },
+    {
+      "name": "tools/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "713c985d4c7c88e5dda1d8c8f609d5fb9853a186a321dbd468f5bcc3a20a6060",
+      "token_count": 188
+    },
+    {
+      "name": "tools/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "713c985d4c7c88e5dda1d8c8f609d5fb9853a186a321dbd468f5bcc3a20a6060",
+      "token_count": 188
+    },
+    {
+      "name": "tools/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "0c2c34fb6302778cb6af1ece063019e0b71df28af48bfaf7fd5ed512cd733a67",
+      "token_count": 185
+    },
+    {
+      "name": "tools/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "e8269bd29c9f6d6533eaa5cba27919fc2886c0e5572d2695a6eb9d81477d65dc",
+      "token_count": 185
+    },
+    {
+      "name": "call/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "call/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "call/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "0e725fecbc373f0718864d77289c9a50eed14e8b44847050168c4e3e5367d51b",
+      "token_count": 262
+    },
+    {
+      "name": "call/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "3a52b9c191ec592ca72f38a7f752afae1dafa03cb3d7cff0ed18c9f4c595d492",
+      "token_count": 262
+    },
+    {
+      "name": "call/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "call/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "call/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "0e725fecbc373f0718864d77289c9a50eed14e8b44847050168c4e3e5367d51b",
+      "token_count": 262
+    },
+    {
+      "name": "call/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "3a52b9c191ec592ca72f38a7f752afae1dafa03cb3d7cff0ed18c9f4c595d492",
+      "token_count": 262
+    },
+    {
+      "name": "result/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "8c46be9242362daa4f8cd8d406391af29bfe1c2435d77f3b040c8ca1a993e964",
+      "token_count": 276
+    },
+    {
+      "name": "result/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "8c46be9242362daa4f8cd8d406391af29bfe1c2435d77f3b040c8ca1a993e964",
+      "token_count": 276
+    },
+    {
+      "name": "result/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "9dd016b080a424d7d96de3bbce7855af05b48880f0f20fc37b4e1d39a9b356df",
+      "token_count": 274
+    },
+    {
+      "name": "result/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "c512dc818ee3bf1222be5c48ea0cec9a96feee9dc745e8ffc387364bd6241791",
+      "token_count": 274
+    },
+    {
+      "name": "result/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "96ba9a23fde51dbadb9b4472fd53624bc01792378e4402c3228f7c0c51e0486f",
+      "token_count": 279
+    },
+    {
+      "name": "result/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "96ba9a23fde51dbadb9b4472fd53624bc01792378e4402c3228f7c0c51e0486f",
+      "token_count": 279
+    },
+    {
+      "name": "result/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "f76a294645e4360dc073afe31ecdb628bb2f25d9cda78af41e4ae47b312ee8b1",
+      "token_count": 276
+    },
+    {
+      "name": "result/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "b4a923ac45031316486adc1a9cac696785bc791a58313f368250bd284c4ebb94",
+      "token_count": 276
+    },
+    {
+      "name": "after_result/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "b41f215b8365b7f29a81cc2ee575a426593ae6b8d977e5256d57aa9621ecf7ae",
+      "token_count": 286
+    },
+    {
+      "name": "after_result/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "b41f215b8365b7f29a81cc2ee575a426593ae6b8d977e5256d57aa9621ecf7ae",
+      "token_count": 286
+    },
+    {
+      "name": "after_result/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "e8f414c18bad4dff56c6963de5fa08f2d8ba088c19dd8ca33aae0168d56bf7eb",
+      "token_count": 284
+    },
+    {
+      "name": "after_result/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "b4da4f7eaf21ed14c60cf4b8495c9efdfa66bed043a81f1adb4e386db017b91a",
+      "token_count": 284
+    },
+    {
+      "name": "after_result/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "b41f215b8365b7f29a81cc2ee575a426593ae6b8d977e5256d57aa9621ecf7ae",
+      "token_count": 286
+    },
+    {
+      "name": "after_result/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "b41f215b8365b7f29a81cc2ee575a426593ae6b8d977e5256d57aa9621ecf7ae",
+      "token_count": 286
+    },
+    {
+      "name": "after_result/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "e8f414c18bad4dff56c6963de5fa08f2d8ba088c19dd8ca33aae0168d56bf7eb",
+      "token_count": 284
+    },
+    {
+      "name": "after_result/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "b4da4f7eaf21ed14c60cf4b8495c9efdfa66bed043a81f1adb4e386db017b91a",
+      "token_count": 284
+    },
+    {
+      "name": "next_user_after_result/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "a5a87e3cca3f8aaddc3ae4a5bda97630fc9b30b77d02cc28fdf184625be7f5df",
+      "token_count": 284
+    },
+    {
+      "name": "next_user_after_result/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "a5a87e3cca3f8aaddc3ae4a5bda97630fc9b30b77d02cc28fdf184625be7f5df",
+      "token_count": 284
+    },
+    {
+      "name": "next_user_after_result/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "40f5293c2ae65e9c5931f3586b4bfcbd9b0618731e3c060ff8a1574ec0264ca2",
+      "token_count": 282
+    },
+    {
+      "name": "next_user_after_result/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "b5f069f0a6cdde50ace3fefb9d2e12e6c74f2ca3e5cbf367eeff8e3025dacc64",
+      "token_count": 282
+    },
+    {
+      "name": "next_user_after_result/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "16a81ff2b95ade7c2f8631a71b7d76d855d7a892cea55c18693f7db43571d291",
+      "token_count": 287
+    },
+    {
+      "name": "next_user_after_result/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "16a81ff2b95ade7c2f8631a71b7d76d855d7a892cea55c18693f7db43571d291",
+      "token_count": 287
+    },
+    {
+      "name": "next_user_after_result/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "d2852dac58fdb9f2921b98374ab3a3039e29f818104f8355f6dc0ecc258c5a13",
+      "token_count": 284
+    },
+    {
+      "name": "next_user_after_result/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "6e6b8721d8d9f42972e2b73704ea2488c67828650ea5efff606f38487d17798b",
+      "token_count": 284
+    },
+    {
+      "name": "multiple_results/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "e780e4b20279a9d3378e1e34c1feecedd3393648f58d3bc4d2d732294f715a05",
+      "token_count": 282
+    },
+    {
+      "name": "multiple_results/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "e780e4b20279a9d3378e1e34c1feecedd3393648f58d3bc4d2d732294f715a05",
+      "token_count": 282
+    },
+    {
+      "name": "multiple_results/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "1181f51a65a1bfb72bae6655695ecb53bfc5e0313e02b52e86091ccee248d71b",
+      "token_count": 280
+    },
+    {
+      "name": "multiple_results/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "46fe402b49815debc102bf3dc2b7e1ff898b6b530aad4e1f7b9e143d0d989b2d",
+      "token_count": 280
+    },
+    {
+      "name": "multiple_results/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "c2e0943ffb13591e7bef0bbbfe7984db3637468002c85aee197457d7ad87872e",
+      "token_count": 285
+    },
+    {
+      "name": "multiple_results/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "c2e0943ffb13591e7bef0bbbfe7984db3637468002c85aee197457d7ad87872e",
+      "token_count": 285
+    },
+    {
+      "name": "multiple_results/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "ff04cd826af36883d864f62d00be3423ca995d898d2f9346f9d3fadcd7400655",
+      "token_count": 282
+    },
+    {
+      "name": "multiple_results/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "5b029e5201d345cd1d01aca416b46f093d4fd2a596c4bf2ab5f83d8ca508d26a",
+      "token_count": 282
+    },
+    {
+      "name": "null_content/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "4575729e34968acdf0ea647d4cfb82bd19fff5162f56fb7659d132f1ded1c80b",
+      "token_count": 14
+    },
+    {
+      "name": "null_content/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "4575729e34968acdf0ea647d4cfb82bd19fff5162f56fb7659d132f1ded1c80b",
+      "token_count": 14
+    },
+    {
+      "name": "null_content/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "a022a08e5de70f0eb293cf0f0e4df9d4cc6274790bd533e76171ae709b3c35cf",
+      "token_count": 12
+    },
+    {
+      "name": "null_content/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "de7a88290f6c79d97a4cbf9bc230a611fb2025d365c03116edf8fcae76309cc1",
+      "token_count": 12
+    },
+    {
+      "name": "null_content/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "4575729e34968acdf0ea647d4cfb82bd19fff5162f56fb7659d132f1ded1c80b",
+      "token_count": 14
+    },
+    {
+      "name": "null_content/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "4575729e34968acdf0ea647d4cfb82bd19fff5162f56fb7659d132f1ded1c80b",
+      "token_count": 14
+    },
+    {
+      "name": "null_content/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "a022a08e5de70f0eb293cf0f0e4df9d4cc6274790bd533e76171ae709b3c35cf",
+      "token_count": 12
+    },
+    {
+      "name": "null_content/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "de7a88290f6c79d97a4cbf9bc230a611fb2025d365c03116edf8fcae76309cc1",
+      "token_count": 12
+    },
+    {
+      "name": "fallback/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "fallback/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "d32bae719ba781acabc5d585d45bbe6fb05c6dee45f1b484d8597d000c8c074b",
+      "token_count": 17
+    },
+    {
+      "name": "string_arguments/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "string_arguments/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "string_arguments/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "0e725fecbc373f0718864d77289c9a50eed14e8b44847050168c4e3e5367d51b",
+      "token_count": 262
+    },
+    {
+      "name": "string_arguments/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "3a52b9c191ec592ca72f38a7f752afae1dafa03cb3d7cff0ed18c9f4c595d492",
+      "token_count": 262
+    },
+    {
+      "name": "string_arguments/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "string_arguments/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "78d0eb9761b2655b1b6d562fa722d364e35c0c50f782f8f1d38af029299a9ca2",
+      "token_count": 264
+    },
+    {
+      "name": "string_arguments/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "0e725fecbc373f0718864d77289c9a50eed14e8b44847050168c4e3e5367d51b",
+      "token_count": 262
+    },
+    {
+      "name": "string_arguments/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "3a52b9c191ec592ca72f38a7f752afae1dafa03cb3d7cff0ed18c9f4c595d492",
+      "token_count": 262
+    },
+    {
+      "name": "two_calls/gen=False/effort=default",
+      "pass": true,
+      "render_sha256": "a2850686086cdfd4e01fded3d7a61c33162d5d53aa2bebb7234e3a8b77a5279e",
+      "token_count": 278
+    },
+    {
+      "name": "two_calls/gen=False/effort=no_think",
+      "pass": true,
+      "render_sha256": "a2850686086cdfd4e01fded3d7a61c33162d5d53aa2bebb7234e3a8b77a5279e",
+      "token_count": 278
+    },
+    {
+      "name": "two_calls/gen=False/effort=low",
+      "pass": true,
+      "render_sha256": "f680b4ba9f69294a0b2f6d5ecff7d688f014347202f2da56dc82eef72ae8fd4d",
+      "token_count": 276
+    },
+    {
+      "name": "two_calls/gen=False/effort=high",
+      "pass": true,
+      "render_sha256": "788ffbcb318a824e3eac8b5dd957f616e18f6313ce5e95c6af3bbe8424cde4f9",
+      "token_count": 276
+    },
+    {
+      "name": "two_calls/gen=True/effort=default",
+      "pass": true,
+      "render_sha256": "a2850686086cdfd4e01fded3d7a61c33162d5d53aa2bebb7234e3a8b77a5279e",
+      "token_count": 278
+    },
+    {
+      "name": "two_calls/gen=True/effort=no_think",
+      "pass": true,
+      "render_sha256": "a2850686086cdfd4e01fded3d7a61c33162d5d53aa2bebb7234e3a8b77a5279e",
+      "token_count": 278
+    },
+    {
+      "name": "two_calls/gen=True/effort=low",
+      "pass": true,
+      "render_sha256": "f680b4ba9f69294a0b2f6d5ecff7d688f014347202f2da56dc82eef72ae8fd4d",
+      "token_count": 276
+    },
+    {
+      "name": "two_calls/gen=True/effort=high",
+      "pass": true,
+      "render_sha256": "788ffbcb318a824e3eac8b5dd957f616e18f6313ce5e95c6af3bbe8424cde4f9",
+      "token_count": 276
+    },
+    {
+      "name": "bad-effort-medium",
+      "pass": true,
+      "python_error": "Hy3 reasoning_effort must be no_think, low or high",
+      "native_error": "\n------------\nWhile executing CallExpression at line 46, column 28 in source:\n... {%- else %}↵        {{- raise_exception('reasoning_effort error : ' + reasoning...\n                                           ^\nError: Jinja Exception: reasoning_effort error : medium, should be no_think/low/high"
+    },
+    {
+      "name": "bad-effort-",
+      "pass": true,
+      "python_error": "Hy3 reasoning_effort must be no_think, low or high",
+      "native_error": "\n------------\nWhile executing CallExpression at line 46, column 28 in source:\n... {%- else %}↵        {{- raise_exception('reasoning_effort error : ' + reasoning...\n                                           ^\nError: Jinja Exception: reasoning_effort error : , should be no_think/low/high"
+    },
+    {
+      "name": "bad-effort-None",
+      "pass": true,
+      "python_error": "Hy3 reasoning_effort must be no_think, low or high",
+      "native_error": "\n------------\nWhile executing CallExpression at line 44, column 28 in source:\n...t is none %}↵        {{- raise_exception('reasoning_effort error : None, should ...\n                                           ^\nError: Jinja Exception: reasoning_effort error : None, should be no_think/low/high"
+    },
+    {
+      "name": "bad-effort-1",
+      "pass": true,
+      "python_error": "Hy3 reasoning_effort must be no_think, low or high",
+      "native_error": "\n------------\nWhile executing CallExpression at line 46, column 28 in source:\n... {%- else %}↵        {{- raise_exception('reasoning_effort error : ' + reasoning...\n                                           ^\nError: Jinja Exception: reasoning_effort error : 1, should be no_think/low/high"
+    },
+    {
+      "name": "bad-args-{bad",
+      "pass": true,
+      "python_error": "Hy3 arguments must be an unambiguous finite JSON object",
+      "native_error": "[json.exception.parse_error.101] parse error at line 1, column 2: syntax error while parsing object key - invalid literal; last read: '{b'; expected string literal"
+    },
+    {
+      "name": "bad-args-[]",
+      "pass": true,
+      "python_error": "Hy3 arguments must be an unambiguous finite JSON object",
+      "native_error": "tool arguments must be a JSON object"
+    },
+    {
+      "name": "bad-args-42",
+      "pass": true,
+      "python_error": "Hy3 arguments must be an unambiguous finite JSON object",
+      "native_error": "tool arguments must be a JSON object"
+    },
+    {
+      "name": "manual-default-prefix",
+      "pass": true
+    }
+  ]
+}

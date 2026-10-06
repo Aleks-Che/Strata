@@ -17,8 +17,16 @@
 лишних MTP-весов при off отдельным generated patch. CUDA/граф остаются следующими.
 Отчёты и точные границы проверки — в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 
-Генерация Hy3 не запускалась;
-локальных измерений токенов/с, качества, TTFT и пиков памяти нет.
+Обновление HY3-03, 2026-10-06: CUDA admission P0 завершён; native pipe engine
+генерирует на полном GGUF. P1.1–P1.3 выполнены: синхронный перенос выбранных
+экспертов даёт побитово одинаковые logits и greedy IDs с native selected-copy.
+Измерены TTFT, prefill/decode, H2D и память; cancellation/unload/reload проверены.
+HY3-04 добавил отказ pinned allocation, реальную ошибку ReadFile после частичного
+переноса, simulated RAM/VRAM pressure и восстановление; всего32 runtime checks.
+Исправлена граница исключений C++ при отказе memory admission на MSVC.
+P1.4 остаётся частично открытым для настоящего driver OOM и внешнего pressure.
+Базовый pinned-режим дал 1,219 токена/с на 37 decode-шагов английского и кода;
+это последовательный correctness-прогон, не оптимизированный профиль или A/B.
 Ниже размеры весов рассчитаны по tensor directory; бюджеты и настройки —
 исходные варианты экспериментов, а не готовый быстрый профиль.
 
@@ -228,16 +236,31 @@ CPU-expert режим, если понадобится, оценивать по�
 
 - **P1.1:** `strata-hy3` с pipe-протоколом Strata, загрузкой по validated ranges,
   bounded mmap/reader, точными INFO capabilities и отменой запроса.
+  **DONE HY3-03:** Windows pipe, native contract до allocations, ENC/GEN/STOP/QUIT,
+  свежий KV на запрос; 22 protocol checks. HTTP и сохранение сессий не включены.
 - **P1.2:** синхронно копировать на GPU только выбранные gate/up/down матрицы;
   сначала без adaptive cache, pipeline, MTP и сохранения сессий.
   Проверять GPU execution всех model matmuls, включая router и shared FFN.
+  **DONE HY3-03:** native file read → pinned16 МиБ → GPU, синхронные fences,
+  проверка GPU bytes, mixed types и переноса больше staging; 19 runtime checks.
+  GPU audit отклоняет CPU math и whole-expert copies до выполнения.
 - **P1.3:** сравнить logits и greedy token IDs с графом выбранной зависимости
   на тех же квантах и input IDs. Референс допускает медленное offload-исполнение;
   не требовать полного GPU-resident размещения 125 ГиБ весов.
   Корпус: русский/английский/китайский, код, числа, короткий и длинный prompt.
+  **DONE HY3-03:** шесть prompts, включая 362 токена, и два повтора в каждом
+  режиме; все token IDs и полные logits совпали побитово. F32 KV, batch17,
+  context2048; TF32, CUDA fusion, MTP/cache/pipeline выключены.
 - **P1.4:** измерить load, prefill, TTFT, decode, реальные H2D bytes,
   working set/commit/pinned RAM, global VRAM; проверить OOM/error recovery,
   cancellation и unload/reload. Не запускать тяжёлый тест при отсутствии бюджета.
+  **ЧАСТИЧНО HY3-03/HY3-04:** метрики, sampled global память, отмена/повтор и два
+  load/unload прошли; [полный отчёт](HY3_MODEL_VALIDATION.json). Host working set
+  ограничен по system target93%, global guard95%. В HY3-04 проверены injected
+  pinned OOM, ReadFile error, partial-copy cancel, simulated pressure,
+  unload/reload и точные logits после каждого отказа —
+  [32 runtime checks](HY3_RECOVERY_VALIDATION.json). Реальное заполнение памяти,
+  driver OOM/device loss и восстановление при внешнем pressure не проверены.
 
 **Готово:** осмысленная генерация и сравнение с oracle на полном локальном GGUF,
 без скрытого CPU matmul; сохранён воспроизводимый baseline.
@@ -252,11 +275,18 @@ CPU-expert режим, если понадобится, оценивать по�
 - **P2.2:** renderer локального Jinja template; режимы `no_think`/`low`/`high`,
   `preserved_thinking`, несколько system-сообщений, tool results,
   `raw_last_assistant`, generation prefix. Тестировать fixtures against oracle.
+  **DONE HY3-04:** `Hy3Template`, неизменённый fixture10223 bytes, все144
+  native rendering/token-ID comparisons прошли для нового adapter.
 - **P2.3:** потоковый parser для `<think:opensource>`, `<tool_calls:opensource>`,
   `<tool_call:opensource>`, `<tool_sep:opensource>`, `<arg_key:opensource>`
   и `<arg_value:opensource>` с закрывающими тегами. Проверять разрыв любого
   тега/UTF-8 между chunks, несколько вызовов, строки и JSON-значения аргументов,
   escaping, неполный вывод и stop внутри reasoning/toolcall.
+  **DONE HY3-04, CPU:** `Hy3OutputParser`/`Hy3StopParser`, 17 tests и7327
+  fragmentation sequences. Вызовы выдаются после проверки целой группы;
+  malformed/truncated/undeclared calls остаются текстом. Нативные raw strings
+  не XML-escaped; неоднозначные delimiter/follower sequences отвергаются
+  renderer. Base-type conversion не заменяет полную JSON Schema validation.
 - **P2.4:** отдельный `serve/hy3.py`: OpenAI/Anthropic request/response,
   reasoning, JSON/SSE, usage/finish_reason, tools, отмена и следующий запрос.
   Преобразовать строковые OpenAI arguments в mapping до Jinja `.items()`;
@@ -353,8 +383,10 @@ CPU-expert режим, если понадобится, оценивать по�
 
 ## 5. Стартовые варианты экспериментов
 
-Это предполагаемые параметры будущих проверок; генерационный CLI Hy3 ещё не создан.
-Доступны только отдельные inspector/loader/tokenizer/template tools; generation CLI отсутствует.
+Native pipe CLI уже создан; команды приведены в
+[README](../../backends/hy3/README.md#windows-synchronous-baseline).
+Текущий baseline: context2048, batch17, F32 KV, pinned16 МиБ, один синхронный
+file read; MTP/cache/pipeline/fusion выключены. Остальной перебор ниже — будущая работа.
 
 | Параметр | Начальное значение / перебор |
 |---|---|
@@ -371,13 +403,14 @@ CPU-expert режим, если понадобится, оценивать по�
 Даже 16 ГиБ кэша не являются гарантированно допустимыми: к ним добавляются
 8,604 ГиБ базовых весов, KV, граф, scratch и внешняя нагрузка.
 95% — верхняя граница полезного размещения, а не требование заполнить память.
-При исследовании GPU уже был занят другими задачами; Hy3 не запускалась.
-Перед будущим тестом заново измерить свободную память, не завершать чужие процессы.
+Перед каждым тестом заново измерять свободную память, не завершать чужие процессы.
+В HY3-03 sampled global память не превысила95%; это не заменяет pressure tests.
 
 ## 6. Карта будущих изменений и порядок
 
-Inspector, contract, CPU oracles и проверки tokenizer/template уже созданы в HY3-01.
-Остальные имена ниже задают дальнейшие работы, а не готовые возможности.
+Inspector, contract, CPU oracles и проверки tokenizer/template созданы в HY3-01;
+CUDA fixtures — HY3-02; pipe engine, runtime/model checks — HY3-03.
+HTTP, profile и MTP checker в таблице ниже пока задают дальнейшие работы.
 
 | Область | Планируемые файлы |
 |---|---|
@@ -391,13 +424,13 @@ Inspector, contract, CPU oracles и проверки tokenizer/template уже �
 Порядок: **P0 → P1 → P2/P3 → P4 → P5 → P6**. Tokenizer P2.1 можно
 делать во время P0. MTP-probe после P1/P3 допустим до полной готовности P4,
 но не должен объявлять поддержку MTP sessions до проверки rollback/restore.
-Следующий результат — CUDA fixtures и числовая проверка графа/MTP;
+Следующий результат — P2.4/P2.5: подключение adapter к Service, оба HTTP API и профиль;
 подробнее в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 
 ## 7. Контроль завершения
 
 - [x] Строгий contract принят для локального GGUF, dependency закреплена (HY3-01).
-- [ ] Full-model inference и logits/token parity подтверждены на GPU.
+- [x] Full-model inference и logits/token parity подтверждены на GPU (HY3-03, MTP-off).
 - [ ] Реализованы tokenizer/template, reasoning, tools и API.
 - [ ] Кэш и асинхронный pipeline корректны и дают измеренный эффект.
 - [ ] Глобальные бюджеты RAM/VRAM и pressure/cancel/unload проверены.

@@ -1,0 +1,477 @@
+{
+  "status": "pass",
+  "kind": "runtime",
+  "scope": "synthetic correctness, no inference throughput",
+  "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+  "binary_sha256": "bd054669de56c7296f5b084485d6e56167bb9176b18c616287239f39b0c793d9",
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:5026674f9c59f66cc84ed50e50d1390b4b1ef86ad17554cff1448e32037540b1;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "manifest_sha256": "bae90415b3e9c95a9ef9f4823f2335bec2493f1035b3a300f3e2a7d2c2cd0a5b",
+  "samples": [
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113436692480,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2429550592
+      },
+      "seconds": 0.06300000002374873,
+      "process_rss": 144834560,
+      "process_peak_wset": 144838656
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112951529472,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2429550592
+      },
+      "seconds": 0.5780000000377186,
+      "process_rss": 383479808,
+      "process_peak_wset": 384020480
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 111847243776,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2429550592
+      },
+      "seconds": 1.0940000000409782,
+      "process_rss": 534134784,
+      "process_peak_wset": 560304128
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 111769735168,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2429550592
+      },
+      "seconds": 1.6089999999967404,
+      "process_rss": 539066368,
+      "process_peak_wset": 560304128
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 111736004608,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2968518656
+      },
+      "seconds": 2.1880000000237487,
+      "process_rss": 558850048,
+      "process_peak_wset": 562573312
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 113278525440,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2968518656
+      },
+      "seconds": 2.6880000000237487,
+      "process_rss": 702005248,
+      "process_peak_wset": 702009344
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112551682048,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2968518656
+      },
+      "seconds": 3.2030000000377186,
+      "process_rss": 855113728,
+      "process_peak_wset": 855117824
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112708612096,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2968518656
+      },
+      "seconds": 3.7339999999967404,
+      "process_rss": 790175744,
+      "process_peak_wset": 855117824
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112917413888,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3026190336
+      },
+      "seconds": 4.313000000023749,
+      "process_rss": 5664768,
+      "process_peak_wset": 855117824
+    }
+  ],
+  "sampling_seconds": 0.5,
+  "gpu_sampling_seconds": 2,
+  "ceiling_fraction": 0.95,
+  "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-tests\\runtime-recovery-03\\fixture"
+  ],
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 113550086144,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2429550592
+    }
+  },
+  "exit_code": 0,
+  "wall_seconds": 4.813000000023749,
+  "result": {
+    "status": "pass",
+    "scope": "synthetic resident/native-selected/pinned-file byte and logit parity",
+    "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "patch_set": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "cuda_fusion": false,
+    "cases": [
+      {
+        "name": "f32/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 169880064,
+          "h2d_bytes": 169880064,
+          "ranges": 102,
+          "chunks": 102,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 13.431700000000001,
+          "h2d_ms": 8.432900000000002
+        },
+        "verified_gpu_bytes": 169880064
+      },
+      {
+        "name": "f32/batch=4/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=4/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 84937728,
+          "h2d_bytes": 84937728,
+          "ranges": 45,
+          "chunks": 45,
+          "staging_bytes": 16777216,
+          "compute_calls": 13,
+          "gpu_nodes": 1027,
+          "expert_nodes": 39,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 9.003399999999997,
+          "h2d_ms": 3.8469999999999995
+        },
+        "verified_gpu_bytes": 84937728
+      },
+      {
+        "name": "f32/batch=17/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=17/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 63704064,
+          "h2d_bytes": 63704064,
+          "ranges": 36,
+          "chunks": 36,
+          "staging_bytes": 16777216,
+          "compute_calls": 10,
+          "gpu_nodes": 790,
+          "expert_nodes": 30,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 11.1342,
+          "h2d_ms": 3.042100000000001
+        },
+        "verified_gpu_bytes": 63704064
+      },
+      {
+        "name": "mixed/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 18369024,
+          "h2d_bytes": 18369024,
+          "ranges": 102,
+          "chunks": 102,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 1.2160999999999997,
+          "h2d_ms": 3.0394
+        },
+        "verified_gpu_bytes": 18369024
+      },
+      {
+        "name": "mixed/batch=4/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=4/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 9182208,
+          "h2d_bytes": 9182208,
+          "ranges": 45,
+          "chunks": 45,
+          "staging_bytes": 16777216,
+          "compute_calls": 13,
+          "gpu_nodes": 1027,
+          "expert_nodes": 39,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 0.3374000000000002,
+          "h2d_ms": 1.1976
+        },
+        "verified_gpu_bytes": 9182208
+      },
+      {
+        "name": "mixed/batch=17/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=17/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 6887424,
+          "h2d_bytes": 6887424,
+          "ranges": 36,
+          "chunks": 36,
+          "staging_bytes": 16777216,
+          "compute_calls": 10,
+          "gpu_nodes": 790,
+          "expert_nodes": 30,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 0.23809999999999998,
+          "h2d_ms": 1.0467
+        },
+        "verified_gpu_bytes": 6887424
+      },
+      {
+        "name": "wide/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "wide/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 1528834560,
+          "h2d_bytes": 1528834560,
+          "ranges": 102,
+          "chunks": 162,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 182.90569999999997,
+          "h2d_ms": 36.081800000000015
+        },
+        "verified_gpu_bytes": 1528834560
+      },
+      {
+        "name": "cancel_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_cancel",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "reject_cpu_tensor_math_before_copy",
+        "pass": true
+      },
+      {
+        "name": "fixture_requires_explicit_flag",
+        "pass": true
+      },
+      {
+        "name": "reject_truncated_before_weight_allocation",
+        "pass": true
+      },
+      {
+        "name": "injected_pinned_oom_before_upload",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_pinned_oom",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "read_error_after_partial_upload",
+        "pass": true,
+        "completed_upload_bytes": 225792,
+        "seconds_until_failure": 0.0010733
+      },
+      {
+        "name": "recovery_after_partial_read_error",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cancel_after_partial_upload",
+        "pass": true,
+        "completed_upload_bytes": 225792,
+        "seconds_until_failure": 0.0009148
+      },
+      {
+        "name": "recovery_after_partial_cancel",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "simulated_ram_pressure_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_ram_pressure",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "simulated_vram_pressure_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_vram_pressure",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "reject_impossible_gpu_reserve_without_allocation",
+        "pass": true
+      },
+      {
+        "name": "unload_releases_registered_sources",
+        "pass": true
+      },
+      {
+        "name": "reload_after_failures",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      }
+    ],
+    "case_count": 32
+  },
+  "result_sha256": "5daef50f0550efa19c7623b4a6b783e16a99417a7f19cebd14f46a2ca1eb8847"
+}

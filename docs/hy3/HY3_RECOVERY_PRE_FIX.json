@@ -1,0 +1,154 @@
+{
+  "status": "error",
+  "kind": "runtime",
+  "scope": "synthetic correctness, no inference throughput",
+  "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+  "binary_sha256": "539bf98874a81c431f8cf09958106334a6f5f88429941c4b7881b6d25a9a24a4",
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:5026674f9c59f66cc84ed50e50d1390b4b1ef86ad17554cff1448e32037540b1;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "manifest_sha256": "bae90415b3e9c95a9ef9f4823f2335bec2493f1035b3a300f3e2a7d2c2cd0a5b",
+  "samples": [
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115843665920,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2384461824
+      },
+      "seconds": 0.0470000000204891,
+      "process_rss": 96849920,
+      "process_peak_wset": 96854016
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115525591040,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2384461824
+      },
+      "seconds": 0.5630000000237487,
+      "process_rss": 383266816,
+      "process_peak_wset": 383995904
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115426357248,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2384461824
+      },
+      "seconds": 1.0630000000237487,
+      "process_rss": 534511616,
+      "process_peak_wset": 560558080
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115419365376,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2384461824
+      },
+      "seconds": 1.5780000000377186,
+      "process_rss": 551223296,
+      "process_peak_wset": 560558080
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115302936576,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2966421504
+      },
+      "seconds": 2.125,
+      "process_rss": 663580672,
+      "process_peak_wset": 663584768
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115107762176,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2966421504
+      },
+      "seconds": 2.6410000000032596,
+      "process_rss": 815636480,
+      "process_peak_wset": 815640576
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115140812800,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2966421504
+      },
+      "seconds": 3.1560000000172295,
+      "process_rss": 795779072,
+      "process_peak_wset": 854446080
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 115235225600,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2966421504
+      },
+      "seconds": 3.6560000000172295,
+      "process_rss": 587825152,
+      "process_peak_wset": 854446080
+    }
+  ],
+  "sampling_seconds": 0.5,
+  "gpu_sampling_seconds": 2,
+  "ceiling_fraction": 0.95,
+  "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-tests\\runtime-recovery-02\\fixture"
+  ],
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 115917660160,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2384461824
+    }
+  },
+  "exit_code": 3221226356,
+  "wall_seconds": 4.219000000040978,
+  "error": "[Errno 2] No such file or directory: 'C:\\\\work\\\\git\\\\my-repos\\\\Strata\\\\build-local\\\\hy3-tests\\\\runtime-recovery-02\\\\fixture\\\\runtime-report.json'"
+}

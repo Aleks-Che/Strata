@@ -10,6 +10,8 @@
   "generator": "@CMAKE_GENERATOR@",
   "build_type": "@CMAKE_BUILD_TYPE@",
   "cuda": @hy3_cuda_json@,
+  "runtime": "@STRATA_HY3_RUNTIME@",
+  "runtime_generated_hashes": "@hy3_runtime_hashes@",
   "cuda_compiler_version": "@CMAKE_CUDA_COMPILER_VERSION@",
   "cuda_architectures": "@CMAKE_CUDA_ARCHITECTURES@",
   "cuda_mmf_generated_sha256": "@hy3_mmf_generated_sha256@",
