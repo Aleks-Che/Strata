@@ -1,4 +1,5 @@
 #include "../common/expert_pipeline.hpp"
+#include "host_copy.hpp"
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
@@ -21,13 +22,16 @@ int main(int argc,char ** argv) {
     json cases=json::array();
     try {
         check(cudaSetDevice(0));
-        const size_t bytes=18*1024*1024+513,guard=64;
+        const size_t bytes=66*1024*1024+513,guard=64;
         std::vector<uint8_t> source(bytes),actual(bytes+2*guard);
         for(size_t i=0;i<bytes;++i)source[i]=uint8_t((i*131+i/4093)%251);
         Device target(actual.size());Stream consumer;
-        for(int chunk:{4,8,16})for(int readers:{1,2}) {
-            StrataExpertPipeline pipe(0,size_t(chunk)<<20,false,readers,0,{},readers,false);
-            const std::string name="readers="+std::to_string(readers)+"/chunk="+std::to_string(chunk);
+        for(int chunk:{4,8,16})for(int readers:{1,2})for(bool early:{false,true})for(bool wc:{false,true})for(int copy:{0,1,2}) {
+            auto host=std::make_shared<step35::HostCopyState>();host->configure(copy==2?1:0,copy!=0);
+            StrataExpertPipeline::HostCopy callback;
+            if(copy)callback=[host](void*d,const void*s,size_t n){(*host)(d,s,n);};
+            StrataExpertPipeline pipe(0,size_t(chunk)<<20,wc,readers,0,{},readers,early,callback);
+            const std::string name="readers="+std::to_string(readers)+"/chunk="+std::to_string(chunk)+"/early="+std::to_string(early)+"/wc="+std::to_string(wc)+"/copy="+std::to_string(copy);
             auto test=[&](const char * suffix,bool ok){cases.push_back({{"name",name+suffix},{"pass",ok}});require(ok,suffix);};
             auto transfer=[&]{
                 check(cudaMemsetAsync(target.data,0xFE,actual.size(),consumer.value));
@@ -45,6 +49,8 @@ int main(int argc,char ** argv) {
             auto c=pipe.counters();
             require(c.h2d_bytes==bytes && c.d2d_bytes==bytes && !c.unused_bytes &&
                     c.chunks==(bytes+(size_t(chunk)<<20)-1)/(size_t(chunk)<<20),"chunk accounting failed");
+            const auto h=host->snapshot();
+            require(copy ? (h.bytes==bytes && h.copies==c.chunks && h.wall_ns) : !h.copies,"host callback accounting failed");
             pipe.start({{source.data(),bytes,true}});
             test("/reject_mismatched_source",!pipe.transfer(target.data+guard,source.data()+1,bytes-1,consumer.value));
             pipe.finish();
@@ -59,7 +65,17 @@ int main(int argc,char ** argv) {
             pipe.start({{source.data(),bytes,false}});
             test("/cancel_restart_fresh_source",transfer());
         }
-        require(cases.size()==18,"wrong pipeline case count");report["status"]="pass";
+        {
+            StrataExpertPipeline broken(0,4<<20,false,2,0,{},2,true,
+                [](void*,const void*,size_t){throw std::runtime_error("injected host copy failure");});
+            broken.start({{source.data(),bytes,true}});
+            bool rejected=false;try{broken.transfer(target.data,source.data(),bytes,consumer.value);}
+            catch(const std::runtime_error&){rejected=true;}
+            broken.finish(false);
+            require(rejected && !broken.counters().reader_owned_bytes,"host copy exception not drained");
+            cases.push_back({{"name","host_copy_exception_propagates_and_drains"},{"pass",true}});
+        }
+        require(cases.size()==217,"wrong pipeline case count");report["status"]="pass";
     } catch(const std::exception & error){report["error"]=error.what();}
     report["case_count"]=cases.size();report["cases"]=cases;
     if(argc==2){std::ofstream out(argv[1]);out<<report.dump(2)<<'\n';}

@@ -1,6 +1,7 @@
 // Included only in the generated Step ggml-backend.cpp.
 #include "sync_runtime.h"
 #include "expert_cache.hpp"
+#include "host_copy.hpp"
 #include "../common/expert_pipeline.hpp"
 #include "gpu_trace.hpp"
 #include <set>
@@ -10,6 +11,7 @@
 static thread_local int step_sync_mode = 0;
 static thread_local int step_request_phase = 0;
 static thread_local bool step_prefill_admission = true;
+static thread_local bool step_cache_profiling = false;
 static thread_local strata_step_sync_stats step_sync_stats{};
 static thread_local ggml_backend_buffer_t step_sync_staging = nullptr;
 static thread_local strata_step_copy_observer step_sync_observer = nullptr;
@@ -29,14 +31,18 @@ static thread_local std::string step_model_identity;
 static thread_local uint64_t step_generation=0;
 static thread_local cudaStream_t step_cache_stream=nullptr;
 static thread_local std::unique_ptr<StrataExpertPipeline> step_pipeline;
+static thread_local std::shared_ptr<step35::HostCopyState> step_host_copy;
+static thread_local step35::HostCopyState::Counters step_host_accounted{};
 static thread_local std::unique_ptr<step35::GpuTrace> step_trace;
 static thread_local StrataExpertPipeline::Counters step_pipeline_accounted{};
 static void step_end_plan(bool cancelled);
 static void step_account_pipeline();
 static bool step_pipeline_copy(ggml_backend_t,ggml_tensor *,const ggml_tensor *,size_t,size_t);
 extern "C" void strata_step_cache_begin(const char * identity,size_t cap) {
+    step_cache_profiling=false;
     step_request_phase=0;step_prefill_admission=true;
     step_end_plan(true);step_pipeline.reset();step_trace.reset();step_pipeline_accounted={};
+    step_host_copy.reset();step_host_accounted={};
     if (step_cache_stream) step35::cuda_check(cudaStreamSynchronize(step_cache_stream));
     step_cache.reset(); step_tensors.clear(); step_model_identity=identity?identity:"";
     ++step_generation;
@@ -62,6 +68,15 @@ extern "C" void strata_step_cache_reuse(bool enabled) {
     step_end_plan(false);
     if (step_cache) step_cache->set_reuse_allocations(enabled);
 }
+extern "C" void strata_step_cache_profile(bool enabled) noexcept(false) {
+    step_end_plan(false);
+    if (step_cache) step_cache->set_profile(enabled);
+    step_cache_profiling=enabled;
+}
+extern "C" void strata_step_cache_fast_scan(bool enabled) noexcept(false) {
+    step_end_plan(false);
+    if (step_cache) step_cache->set_fast_scan(enabled);
+}
 extern "C" int strata_step_request_phase(int phase) {
     if (phase<0 || phase>2) throw std::invalid_argument("invalid Step request phase");
     const int previous=step_request_phase;step_request_phase=phase;return previous;
@@ -85,6 +100,7 @@ extern "C" void strata_step_sync_reset() {
     if (step_sync_staging) step_sync_stats.staging_bytes = ggml_backend_buffer_get_size(step_sync_staging);
     if (step_cache) step_cache->reset_counters();
     if (step_pipeline) step_pipeline_accounted=step_pipeline->counters();
+    if (step_host_copy) step_host_accounted=step_host_copy->snapshot();
 }
 extern "C" strata_step_sync_stats strata_step_sync_snapshot() {
     step_account_pipeline();
@@ -94,6 +110,10 @@ extern "C" strata_step_sync_stats strata_step_sync_snapshot() {
         s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;s.cache_bypasses=c.bypasses;
         s.cache_oom=c.oom;s.cache_rejected=c.rejected;s.cache_bytes=step_cache->resident_bytes();s.cache_limit=step_cache->budget();
         s.cache_allocations=c.allocations;s.cache_reuses=c.reuses;
+        s.cache_get_ms=c.get_ms;s.cache_admit_ms=c.admit_ms;s.cache_refresh_ms=c.refresh_ms;
+        s.memory_probe_ms=c.probe_ms;s.cache_protect_ms=c.protect_ms;s.cache_trim_ms=c.trim_ms;
+        s.cache_victim_ms=c.victim_ms;s.cache_allocate_ms=c.allocate_ms;s.cache_free_ms=c.free_ms;
+        s.cache_victim_candidates=c.victim_candidates;
         s.gpu_free=m.gpu_free;s.gpu_total=m.gpu_total;s.ram_free=m.ram_free;s.ram_total=m.ram_total;s.memory_samples=c.samples;
     }
     return s;
@@ -103,11 +123,13 @@ extern "C" void strata_step_sync_observer(strata_step_copy_observer observer, vo
 }
 extern "C" void strata_step_sync_release() {
     step_end_plan(true);step_pipeline.reset();step_trace.reset();step_pipeline_accounted={};
+    step_host_copy.reset();step_host_accounted={};
     if (step_cache_stream) {cudaStreamSynchronize(step_cache_stream);cudaStreamDestroy(step_cache_stream);step_cache_stream=nullptr;}
     step_cache.reset();step_tensors.clear();step_model_identity.clear();
     ggml_backend_buffer_free(step_sync_staging); step_sync_staging = nullptr;
     step_sync_mode = 0; step_sync_observer = nullptr; step_sync_owner = nullptr;
     step_request_phase=0;step_prefill_admission=true;
+    step_cache_profiling=false;
 }
 static bool step_expert_weight(const ggml_tensor * tensor) {
     const char * suffix = "_exps.weight";

@@ -87,6 +87,100 @@ allocation sizes and exact GPU bytes/logits through a 513-token prompt.
 Measured results and reproduction commands:
 [cache reuse trials](../../docs/Step-3.7-Flash/STEP37_FLASH_CACHE_REUSE.md).
 
+`--pipeline-modes baseline,early,batch,batch-early` sweeps two additional
+probe-only options. `early` refills the pinned host slot after its previous H2D
+event; the device slot still waits for its consumer event. `batch` delivers all
+selected expert matrices of one scheduler input, then fences once before that
+input is used. The native scratch dependency fence remains. Plan pins protect
+cached sources; temporary pins protect newly admitted cache destinations until
+the copy stream has drained, including exception cleanup. There is no CUDA work
+using those cache entries after the tensor-copy function returns.
+
+Both options default to off. The original pipeline API delegates to that default;
+only the probe and CUDA checks select the extended API. Changing batch delivery
+alone preserves the ring. Changing early refill recreates it between requests,
+outside the request timer; if needed, the cache releases the replacement memory
+shortfall plus 64 MiB before the unchanged budget check. Capacity is unchanged.
+`generation_io.pipeline_copy_fences` counts copy-stream host fences;
+it excludes backend scratch fences. `pipeline_batch_ms` measures the complete
+batched delivery wall time, including source waits and cache admission. In batch
+mode individual `d2d_ms` is not measured (zero); neither field is CUDA D2D duration.
+Paired measurements and limits:
+[batched copy trials](../../docs/Step-3.7-Flash/STEP37_FLASH_BATCH_COPY.md).
+
+The probe also accepts `--pipeline-readers 1,2` and
+`--pipeline-chunks 4,8,16` for a Cartesian sweep with the selected copy modes.
+Defaults remain one reader and 8 MiB per slot. Every result acknowledges both
+settings and records `pipeline_configure_ms` separately from request time;
+READY describes only the initial ring. Changing readers or capacity recreates
+the drained ring and can trim a small amount of expert cache for headroom.
+Older preserved probes can still run the historical fixed 1-reader/8-MiB
+commands; non-default settings require explicit acknowledgement.
+The runner also samples system and child CPU time around each request. Its
+`cpu_load` percentages use the whole PC's CPU capacity; `other_percent` is the
+system busy time minus the probe's busy time, not a list of other applications.
+These observations help identify background load and do not control it.
+The completed reader/chunk/depth sweeps did not establish a reproducible
+additional gain; keep the STEP-13 candidate pending broader admission. Results:
+[pipeline tuning](../../docs/Step-3.7-Flash/STEP37_FLASH_PIPELINE_TUNING.md).
+
+`--pipeline-host cached,wc` compares ordinary cacheable pinned host buffers
+with `cudaHostAllocWriteCombined` buffers. Both use the same four slots and
+device buffers, source copies, ready/used events and residency pins. CPU only
+writes the staging payload; the GPU reads it. The host policy is acknowledged
+as `pipeline_write_combined` in each result. Changing it recreates the drained
+ring before request timing. The default and both earlier configuration APIs
+retain cacheable pinned RAM; the new staging API is opt-in.
+
+Pipeline configuration entry points explicitly declare `noexcept(false)`.
+This preserves the intended C++ guard/recovery behavior under MSVC `/EHsc`,
+which otherwise assumes C-linkage functions do not throw. The runtime fixture
+includes rejection of WC without readers and cold uploads after changing the
+host policy through both the new and legacy APIs.
+WC did not improve the completed local comparisons; cacheable RAM remains
+the candidate. The paired results, unequal background CPU load and initial
+exception-check failure are retained in the
+[write-combined trials](../../docs/Step-3.7-Flash/STEP37_FLASH_WRITE_COMBINED.md).
+
+`--cache-profile` enables host wall-time counters for cache lookup/admission,
+victim selection, allocation/free, global memory sampling and router planning.
+They include CPU waits/preemption; admission includes victim/refresh/allocation,
+and plan build includes pins. Do not sum nested timers or interpret them as a
+GPU timeline. Disabled timers do not read the clock. `generation_io` contains
+decode deltas and the memory sample count.
+
+`--cache-scan baseline,direct` compares the existing victim scan with direct
+LRU entry pointers and one frequency lookup per candidate. The first minimum
+still wins, pinned entries remain excluded, and a zero score ends the scan.
+Map nodes have stable addresses; eviction removes their LRU node first. The
+default is `baseline`. Every result acknowledges `cache_fast_scan` and
+`cache_profile`; unsupported experimental settings are rejected by the runner.
+The global budget95 policy and sampling cadence are unchanged. Measurements:
+[cache profiling](../../docs/Step-3.7-Flash/STEP37_FLASH_CACHE_PROFILE.md).
+
+`--host-copy crt,avx2` compares the CRT copy with an AVX2 temporal-store loop
+for mmap-to-pinned staging. The AVX2 function is a separate compilation unit;
+CPU/OS dispatch rejects unsupported explicit requests. The default remains
+CRT, and legacy pipeline configuration restores CRT. Changing only this option
+between drained requests preserves the ring and cache. The shared pipeline's
+optional host-copy callback retains its original memcpy when absent; slot
+ownership, buffers, ready/used events and cancellation rules are unchanged.
+
+`--pipeline-profile` is a no-MTP diagnostic: host copy wall time/thread cycles
+and CUDA events on H2D/compute streams, up to 128 graphs per request. It exports
+raw trace files and retains graph summaries in the report. It recreates the
+ring for each new trace and perturbs execution; disable it for final timing.
+Uncovered GPU spans also contain untraced D2D and are not a GPU-idle metric.
+Windows process page-fault deltas include soft/hard faults from all request
+work, not just experts. CPU cycles are not converted to time. Byte/guard,
+ring/runtime checks and paired full-model measurements:
+[host copy trials](../../docs/Step-3.7-Flash/STEP37_FLASH_HOST_COPY.md).
+On Windows/9950X/RTX 5090, the four-round MTP2 comparison measured
+13.803 → 14.777 tokens/s (+7.06%) with AVX2 and 10.95% less process CPU time
+per response. The no-MTP confirmation did not reproduce a decode gain.
+Concurrent CPU load was not controlled; these are short greedy checker
+results, and native/HTTP defaults remain unchanged.
+
 Progress and remaining gates:
 [plan](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_PLAN.md),
 [status](../../docs/Step-3.7-Flash/STEP37_FLASH_IMPLEMENTATION_STATUS.md).

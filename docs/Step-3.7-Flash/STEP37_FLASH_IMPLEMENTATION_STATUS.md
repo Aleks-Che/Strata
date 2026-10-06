@@ -1,6 +1,6 @@
 # Статус внедрения Step-3.7-Flash
 
-Обновлено: **2026-10-05**, `Asia/Yekaterinburg`.
+Обновлено: **2026-10-06**, `Asia/Yekaterinburg`.
 План: [STEP37_FLASH_IMPLEMENTATION_PLAN.md](STEP37_FLASH_IMPLEMENTATION_PLAN.md).
 
 Файл хранит проверенный прогресс и точку продолжения. План задаёт критерии,
@@ -15,10 +15,10 @@
 | Поле | Значение |
 |---|---|
 | Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4 TODO; P5 IN_PROGRESS (P5.1 DONE, P5.2–P5.5 частично); P6–P7 TODO |
-| Проверенная ревизия Strata | `c81b0c0b92d63e8c24aef24446dadb9d71dc178d` перед STEP-12, дерево было чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
-| Последняя выполненная работа | STEP-12: opt-in GPU allocation reuse; без MTP 9,363 →9,873 (+5,45%), с MTP2 10,355 →11,560 токена/с (+11,64%); 40 exact responses, 117 runtime и23 cache checks PASS |
-| Активная задача / исполнитель | Нет активного исполнителя; STEP-12 завершён в объёме offline cache/speed trials |
-| Следующая задача | STEP-13 / P3,P6: подключить reuse как opt-in native pipe и проверить длинные запросы, cancel/recovery и pressure перед сменой default. P5 SWA512 rollback/stop/cancel/MTP integration и остаток P2.5–P2.6 также остаются открытыми |
+| Проверенная ревизия Strata | `9c457bf526e5916d513bedccf0a25878cf36d026` перед STEP-13, дерево было чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
+| Последняя выполненная работа | STEP-17: AVX2 host copy + pipeline profiling. MTP2:13,803 →14,777 токена/с (+7,06%), CPU-с/ответ −10,95%; четыре парных раунда положительные. Без MTP повтор не подтвердил ускорение.72 exact responses,828 byte/guard +3 profile/217 ring/217 runtime/24 Python checks PASS |
+| Активная задача / исполнитель | Нет; STEP-17 завершён в границах offline-эксперимента, CPU-нагрузка проверена, результаты сохранены |
+| Следующая задача | STEP-18 / P3,P6: admission reuse/batching и opt-in AVX2 в native pipe/HTTP с long/cancel/recovery/pressure gates и контролем CPU. Входы — STEP-13/STEP-17 и профиль8GiB; offline cap16GiB автоматически не переносить. P5 SWA512/MTP и остаток P2.5–P2.6 открыты |
 | Основная модель | `H:\models\Step-3.7-Flash\UD-Q4_K_S` |
 | Входной файл | `Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf` |
 | Фактическая архитектура | GGUF `step35`; display name `Step-3.7-Flash`; 45 основных блоков, 42 MoE, 12 full + 33 SWA |
@@ -28,7 +28,7 @@
 | Step backend / профиль | Отдельный native `strata-step35`; experimental HTTP profile: `build-local/step35-cuda/step10-http-profile-8g/step37.json`, создаётся `tools/prepare_step35_profile.py`. Активный профиль приложения не заменён |
 | Step dependency pin | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`; Step patches дополнены `step-prefill-cache-admission`; отдельная сборка |
 | Step tokenizer / API | deepseek-v3 и exported tokenizer по 2190/2190 native checks; Step template 215/215; parser/request adapters и HTTP registration готовы. Native EOG [1,128007], PAD2 не EOG; JSON/SSE, stop strings и low/medium/high effort подключены |
-| Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. STEP-11: +15,9% decode от MTP; STEP-12: дополнительный paired reuse gain +11,64%, до11,560 токена/с. Это разные серии; native pipe/HTTP MTP пока не подключён |
+| Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. STEP-17: MTP2/shared embedding/reuse/batch+early/AVX2 —14,777 токена/с на двух P1 prompts, +7,06% к paired CRT control13,803. Нагрузка CPU менялась; исторические абсолютные скорости не A/B. Native pipe/HTTP MTP пока не подключён |
 | Vision | Локального mmproj нет; отдельный P7 |
 | Измеренная скорость / runtime память Step | STEP-08: context4096, batch17, pipeline1/cacheauto/F32: prefill511 57,376 → 40,281 с; весь запрос511+16 60,137 → 43,550 с. Повторный короткий decode при prefill-off 8,505 токена/с; tradeoff и память ниже. Старый STEP-06 sync/pipeline comparison сохранён |
 | Блокеры | Для P0–P3 внешних блокеров не выявлено. Draft для P5 получен; остаются integration/state gates. Для P7 по-прежнему нет mmproj |
@@ -89,7 +89,7 @@ Native inference полной модели выполнен; установка 
 | P0. Inventory, pin, oracles | DONE | P0.1–P0.5; 78/78 kernels, 75/75 graph/state, 215/215 template, tokenizer PASS | Полная модель относится к P1 |
 | P1. GPU baseline | IN_PROGRESS | P1.1–P1.3 DONE; полный GGUF, exact logits/IDs. P1.4: global samples, cache trim и RAM admission реализованы | Startup/native OOM и предельная pressure остаются; bounded external pressure и context4096 прошли STEP-07 |
 | P2. Tokenizer/API | IN_PROGRESS | P2.1–P2.3 DONE в adapter/pipe: native renderer 215/215, parser 3415 sequences, реальный tool dialogue | API EOG/capabilities, HTTP/profile, stop strings и disconnect/cancel |
-| P3. Pipeline/cache | IN_PROGRESS | P3.1–P3.2/P3.4 DONE; shared ring, 973 real-byte checks, context4096 и bounded external pressure PASS | Prefill admission on/off проверен STEP-08; остаются startup OOM/предельная pressure, early refill, 4/16 MiB tuning и async cache leases при снятии D2D sync |
+| P3. Pipeline/cache | IN_PROGRESS | P3.1–P3.2/P3.4 DONE; shared ring,973 real-byte checks,context4096/pressure PASS; STEP-13–17 batching/reuse/readers/chunks/WC/cache scan/AVX2 измерены, MTP2 AVX2 +7,06% | Остаются startup OOM/предельная pressure и production admission новых options; cache copies завершаются до возврата из tensor-copy |
 | P4. Sessions/context | TODO | В P0 проверен in-process KV checkpoint на synthetic Step | Runtime sessions, budgets, sampler/output state, полная модель и длинные контексты |
 | P5. MTP | IN_PROGRESS | P5.1 DONE; официальный Q8, separate draft context/hidden/greedy verify, off/1/2/3, 60 exact MTP requests, RAM/VRAM trials в checker | Pipe/HTTP integration, SWA512 rollback, stochastic, stop/cancel/sessions, длинные и разнообразные prompts |
 | P6. Profile/release | TODO | Определена методика | Setup/profile, controls/benchmarks, регрессии и capabilities |
@@ -128,7 +128,27 @@ Native inference полной модели выполнен; установка 
 | BLOCKED | Указаны воспроизводимое препятствие и условие разблокировки |
 | DONE | Конкретный критерий выполнен и подтверждён |
 
-## Точка продолжения
+## Точка продолжения после STEP-17
+
+**STEP-18 — проверить перенос ускорений в native pipe/HTTP.**
+
+1. Входы: [STEP-13](STEP37_FLASH_BATCH_COPY.md),
+   [STEP-17](STEP37_FLASH_HOST_COPY.md), неизменённый рабочий engine и
+   experimental HTTP profile `build-local/step35-cuda/step10-http-profile-8g/step37.json`.
+2. Переносить reuse/batching и explicit AVX2 отдельными опциями. Без MTP
+   кандидат batch/CRT; с MTP2 — batch+early/AVX2. Предыдущие defaults и
+   пути других моделей сохранить. Прежний no-MTP AVX2 gain не воспроизвёлся.
+3. Проверить длинный prefill/decode, stop/cancel, следующий запрос после
+   ошибки/отмены, unload/reload и давление памяти. Использовать HTTP budget8GiB;
+   offline cap16GiB не переносить без проверки lifecycle пиков. Сохранять
+   CPU seconds/request и общую CPU-нагрузку рядом со скоростью.
+4. MTP не включать в production до SWA512 rollback, stochastic/state и
+   pipe/HTTP gates. STEP-17 проверяет только короткий greedy checker.
+
+Критерий: exact IDs/logits относительно прежнего пути, сохранённые resource
+guards и воспроизводимый выигрыш на полном запросе без поломки lifecycle.
+
+### Архивная точка продолжения после STEP-07
 
 **STEP-08 — измерить admission policy для prefill.**
 
@@ -1242,3 +1262,244 @@ cancel/recovery и pressure. Затем выбирать default. Следующ
 кандидаты: объединение D2D-синхронизаций с event/lease защитой и early host refill;
 их дополнительный выигрыш пока не измерен. P5 state/SWA rollback и production
 MTP integration остаются отдельными обязательными этапами.
+
+## STEP-13 — групповые копии и early refill (2026-10-05–06)
+
+Добавлен opt-in путь копирования всех выбранных экспертных матриц одного
+весового тензора с одним финальным copy-stream fence. Native scratch fence
+сохранён. Router-plan pins защищают cache sources; временные pins защищают
+незавершённые cache fills до stream drain, включая exception cleanup.
+Отдельно включён для испытаний существующий early-refill режим shared primitive;
+общие файлы и другие backends не изменены.
+
+Контроль уже включает allocation reuse из STEP-12. На том же Windows/9950X/
+128GiB/RTX5090, context2048/batch17/F32/pipeline1/chunk8MiB/cachecap16384:
+
+| Режим | Контроль | Batch | Batch+early |
+|---|---:|---:|---:|
+| Без MTP, токена/с | 9,546 | 11,364 (+19,04%) | 11,397 (+19,39%) |
+| MTP2, токена/с | 11,194 | 13,655 (+21,98%) | 13,941 (+24,54%) |
+| Без MTP, пара с prefill | 19,023с | 16,137с | 16,171с |
+| MTP2, пара с prefill | 17,218с | 14,362с | 14,107с |
+
+Четыре раунда после прогрева, порядок конфигураций обращается; два коротких P1
+prompts. Batch выигрывает во всех раундах. Early отдельно почти не помогает
+без MTP; с MTP2 добавляет к batch2,10% в этой серии. Кандидаты: batch для no-MTP,
+batch+early для MTP2. Copy-stream host fences за ответ снизились в среднем
+71146 →8820 без MTP и55813 →3402 с MTP2; routing и математика сохранены.
+
+**84/84** responses успешных серий exact, из них30 с MTP. Acceptance92,55%.
+157 runtime cases с bit-exact logits/bytes,36 pipeline ring checks и24 Step
+Python tests PASS. Пики успешных серий: RAM до91,971GiB, VRAM до30265MiB;
+monitor95 не сработал. Первая попытка остановлена после8 exact warmups из-за
+нехватки резерва для замены ring рядом с заполненным кэшем, без превышения95%.
+Теперь смена batching сохраняет ring; при необходимой замене освобождается
+shortfall+64MiB с повторной проверкой бюджета. Исправленная полная серия PASS.
+
+Отчёт: [STEP37_FLASH_BATCH_COPY.md](STEP37_FLASH_BATCH_COPY.md).
+IDs/timings/hashes/commands/checks и неуспешная попытка:
+[STEP37_FLASH_BATCH_COPY.json](STEP37_FLASH_BATCH_COPY.json).
+Raw: `build-local/step35-cuda/step13-copy/`. Проверенный probe сохранён как
+`strata-step35-mtp-check-batch-copy-tested.exe`, SHA-256
+`da5568b807e0695aab28f36fcbeb97ac49fb5b18f0bd7f17251706e7ba6bf723`.
+
+Рабочий `strata-step35.exe` сохранил прежний SHA
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+Default API конвейера оставляет новые options выключенными. Перед production
+admission нужны длинные native pipe/HTTP запросы, cancel/recovery и pressure.
+MTP state/SWA512 gates остаются. Следующий performance sweep —1/2 readers уже
+с batching; старые результаты reader2 нельзя автоматически переносить сюда.
+
+## STEP-14 — readers/chunks и повторный MTP tuning (2026-10-06)
+
+В offline checker добавлены per-request readers1/2 и slots4/8/16 МиБ,
+подтверждение параметров в RESULT и отдельное время смены конфигурации.
+Python runner выполняет декартов sweep, проверяет каждый ответ и сохраняет
+CPU time системы/model child. Shared transport, рабочий engine и HTTP-профиль
+не изменялись. Старые1/8 команды сохранённых probe binaries поддерживаются.
+
+На Windows/9950X/128GiB/RTX5090, context2048/batch17/F32/cachecap16384/reuse on:
+
+- Без MTP, batch:1/2 readers —10,224/10,188 токена/с, выигрыша нет.
+- Первый MTP2/batch+early sweep:1/2 readers —12,203/12,572 (+3,03%).
+- MTP2/readers2, slots4/8/16 МиБ —13,215/13,325/13,384. Разница8/16 всего0,44%.
+- MTP1/2/3/readers2 —11,956/12,576/12,986; предварительный выбор MTP3.
+- **Повторный контроль** MTP2/1, MTP2/2, MTP3/1, MTP3/2:
+  **13,359 /13,109 /13,434 /13,444 токена/с**. Выигрыш reader2 не воспроизвёлся;
+  лучшее среднее лишь на0,63% выше текущего кандидата, преимущество не во всех раундах.
+
+Дополнительное ускорение **не принято**. Сохраняются кандидаты STEP-13:
+no-MTP —batch/readers1/chunk8; MTP —depth2/batch+early/readers1/chunk8,
+Q8 shared embedding, p_min0.6. В обоих reuse on. Это по-прежнему offline
+кандидаты; рабочие defaults не переключены.
+
+Наблюдалась сторонняя CPU-нагрузка; чужие процессы не останавливались.
+В заключительном контроле средняя нагрузка вне model process7,78–9,00%
+всей мощности ПК. Поэтому абсолютные цифры этих серий нельзя напрямую
+сравнивать с предыдущими STEP-13. H2D в финальном контроле72,84–73,84 ГиБ/ответ;
+заметного уменьшения переноса весов не получено.
+
+**128/128** ответов exact, из них108 с MTP,28 warmups. Это два повторяемых P1
+prompts. Пять процессов завершились с кодом0; monitor95 не срабатывал.
+Общие пики: RAM76,52%, VRAM30215MiB/92,66%.24 Step Python tests,
+арифметика CPU telemetry, `py_compile` и `git diff --check` PASS.
+36 ring/157 runtime checks относятся к STEP-13 и здесь повторно не запускались:
+transport/kernel code в этом этапе не менялся.
+
+Отчёт: [STEP37_FLASH_PIPELINE_TUNING.md](STEP37_FLASH_PIPELINE_TUNING.md).
+IDs/timings/hashes/commands: [STEP37_FLASH_PIPELINE_TUNING.json](STEP37_FLASH_PIPELINE_TUNING.json).
+Raw: `build-local/step35-cuda/step14-readers/`. Сохранённый probe:
+`strata-step35-mtp-check-tuning-tested.exe`, SHA-256
+`3a3b09687432a1842662b65a56ac532f18dcb7037da213c891e24a7af66c51cb`.
+Рабочий engine сохранил SHA
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+
+Дальше — проверка write-combined staging как отдельного speed-кандидата и
+production admission уже подтверждённых batching/reuse. Не включать MTP или
+новые transport defaults в HTTP без длинных/state/cancel/pressure gates.
+
+## STEP-15 — write-combined pinned staging (2026-10-06)
+
+В Step-only checker добавлен выбор `--pipeline-host cached,wc`. Новый API
+конфигурации передаёт существующему shared primitive флаг host allocation;
+shared header не менялся. Смена policy пересоздаёт drained ring с прежними
+resource guards; старые API возвращают cacheable pinned RAM. Payload CPU
+только записывает, GPU читает. GPU slots/events/pins и объёмы буферов прежние.
+
+На том же Windows/9950X/128GiB/RTX5090, context2048/batch17/F32/readers1/chunk8,
+cachecap16384/reuse on/prefill off, два P1 prompts, четыре парных раунда:
+
+| Режим | Cached →WC, токена/с | Полная пара, с |
+|---|---:|---:|
+| Без MTP /batch | 11,697 →11,123 (−4,90%) | 15,597 →16,395 |
+| Q8 shared MTP2 /batch+early | 13,701 →13,401 (−2,19%) | 14,273 →14,571 |
+
+WC не выбирается. Нагрузка вне model process различалась:11,90/12,93% без MTP,
+11,22/20,19% с MTP. Поэтому собственное влияние WC не отделено от фона,
+особенно в MTP серии. Вывод — ускорение не подтверждено, а не универсальное
+замедление данного типа памяти. Прежний кандидат cached/STEP-13 сохранён.
+
+Первый runtime checker аварийно завершился с кодом−1073740791 на проверке
+намеренно неверной конфигурации. Минимальный MSVC `/EHsc` reproducer подтвердил
+проблему исключения из C-linkage функции; `noexcept(false)` исправил catch.
+Три entry points конфигурации теперь имеют явный throwing contract. Итоговый
+runtime checker без диагностических вставок прошёл201 cases. Это не изменение
+математики и не заявление о полном аудите всех C APIs.
+
+**72 ring checks,201 runtime cases,40/40 полных ответов exact**,24 Step Python
+tests PASS. Из40 ответов20 с MTP,8 warmups; это повторения двух P1 prompts.
+SWA513 в runtime fixture без speculative rollback; MTP checker по-прежнему
+ограничен480 позициями. Пики RAM74,28/77,29%, VRAM30217/30277MiB; monitor95
+не срабатывал, оба model process завершились с кодом0.
+
+Отчёт: [STEP37_FLASH_WRITE_COMBINED.md](STEP37_FLASH_WRITE_COMBINED.md).
+IDs/timings/hashes/commands/checks и initial failure:
+[STEP37_FLASH_WRITE_COMBINED.json](STEP37_FLASH_WRITE_COMBINED.json).
+Raw: `build-local/step35-cuda/step15-wc/`. Probe:
+`strata-step35-mtp-check-wc-tested.exe`, SHA-256
+`ba77cb78457f323c644f2777e34b07fa24e42cac727934154790378960121651`.
+Рабочий `strata-step35.exe` и HTTP-профиль не заменены; прежний SHA engine
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3` подтверждён.
+
+Следующий performance-шаг — измерить накладные расходы admission/построения
+plan и опроса global memory. Их значимый вклад пока не установлен. Снижение
+частоты resource checks или смена cache policy не выполнялись.
+
+## STEP-16 — CPU profiling и direct victim scan (2026-10-06)
+
+Добавлены opt-in host timers для cache get/admission, victim scan, allocation,
+global memory probe, pins/trim и router plan. Это inclusive wall time CPU,
+включая ожидания/OS preemption; вложенные интервалы нельзя складывать. По
+умолчанию clock не читается. RESULT подтверждает профиль и алгоритм поиска.
+
+Первый контроль без MTP: victim scan219,945 мс/ответ (3,510% generation),
+cache get209,307 мс, memory probe2,695 мс (0,043%). Частота memory checks и
+budget95 не менялись. Кандидат `--cache-scan direct` хранит стабильный адрес
+map entry в LRU node, читает score один раз на кандидата, заканчивает на
+первом score0. Прежние pins, окно32, oldest tie, decay и admission policy сохранены.
+
+Парное профилирование: scan218,723 →148,207 мс (−32,24%), admission259,950
+→189,818 мс; throughput всего+0,30%, противоположные знаки двух раундов.
+Финальные четыре раунда без новых timers на Windows/9950X/128GiB/RTX5090,
+context2048/batch17/F32/reader1/chunk8/cachecap16384/reuse/cached:
+
+| Режим | Baseline →direct, токенов/с | Полная пара, с |
+|---|---:|---:|
+| Без MTP /batch | 11,692 →11,521 (−1,46%) | 15,657 →15,884 |
+| Q8 shared MTP2 /batch+early | 13,761 →13,698 (−0,45%) | 14,280 →14,317 |
+
+**Ускорение не подтверждено; direct остаётся opt-in.** Средняя сопутствующая
+CPU-нагрузка7,59/14,39% без MTP и11,81/12,69% с MTP; per-round MTP delta
+от−7,90% до+5,15%. Это не изолированная оценка собственной цены алгоритма.
+Экономия одного CPU scope частично перекрывается с работой producer. Source
+wall time контрольного no-MTP3,906 с/ответ, consumer wait1,631 с: следующий
+кандидат — разобраться в staging/H2D ожиданиях, сохраняя guards и данные.
+
+25 cache checks:131200 решений/member sets совпали с baseline, включая два
+decay epochs, pins, разные allocation sizes, trim, live mode switch и score0.
+204 runtime cases PASS: bytes/logits, F32/mixed, eviction,1/2 readers,
+early/batch/cached/WC, prompt513, profiling off/on/off.24 Python tests PASS.
+**58/58** responses exact,20 с MTP,14 warmups; это повторения двух P1 prompts.
+Четыре model process exit0, monitor95 без срабатываний. Пики RAM75,49%,
+VRAM30238MiB/92,735%. MTP acceptance348/376 для каждого варианта финальной серии.
+
+Отчёт: [STEP37_FLASH_CACHE_PROFILE.md](STEP37_FLASH_CACHE_PROFILE.md).
+IDs/timings/memory/CPU/commands/hashes/checks:
+[STEP37_FLASH_CACHE_PROFILE.json](STEP37_FLASH_CACHE_PROFILE.json).
+Raw: `build-local/step35-cuda/step16-cache/`. Probe
+`strata-step35-mtp-check-direct-scan-tested.exe`, SHA-256
+`5401731cd52462593b424b1eef1709743a0f2a07a6bc3a2e973896d7898c52cf`.
+Рабочий engine SHA прежний:
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+Shared pipeline/frequency/memory headers не менялись; native HTTP/MTP defaults
+не переключены. Long-context/SWA rollback/cancel/pressure admission остаётся.
+
+## STEP-17 — AVX2 host copy и source/H2D profiling (2026-10-06)
+
+Добавлен optional callback в shared pipeline: без callback остаётся memcpy.
+Только Step передаёт HostCopyState; AVX2 функция в отдельном translation unit,
+CPU/OS dispatch проверяется до выбора. CRT остаётся default. Slot ownership,
+ready/used events, cancellation и memory guards прежние. Новые timers и
+GpuTrace включаются только для диагностики; финальные серии без них.
+
+В диагностике CPU-copy20,120 →30,000 ГиБ/с, cycles/byte0,19957 →0,13343;
+consumer wait1503 →1059 мс/ответ, но H2D2259 →2601 мс и ожидание свободного
+слота выросли. Общий decode в этой серии почти равен. Uncovered GPU span
+включает D2D/host gaps; он не доказывает простой GPU.
+
+На Windows/9950X/128GiB/RTX5090, context2048/batch17/F32, reader1/chunk8,
+cachecap16384/reuse/cached, четыре парных раунда по двум P1 prompts:
+
+| Режим | CRT → AVX2, токенов/с | Полная пара, с | CPU-с/ответ |
+|---|---:|---:|---:|
+| Без MTP /batch, подтверждение | 11,268 →11,214 (−0,48%) | 16,202 →15,817 | 11,600 →10,832 |
+| Q8 shared MTP2 /batch+early | 13,803 →14,777 (+7,06%) | 14,179 →12,899 | 10,146 →9,035 |
+
+MTP2: все четыре пары положительные (+9,31/+6,68/+3,63/+8,71%), acceptance
+348/376 у обоих вариантов. AVX2 сохранён как offline MTP-кандидат. No-MTP
+первый sweep+1,69% не подтвердился новым процессом и обратным порядком;
+default CRT сохранён. Новые настройки не включены в рабочее приложение.
+
+По замечанию пользователя проверен CPU. Во время no-MTP контроля model
+process4,47/4,28% полной мощности32 logical CPUs; остальная система32,21/31,82%.
+После завершения теста отдельный3-секундный снимок: общий CPU33,28%, Blender
+23,44%, Telegram3,08%. Нагрузка сохранялась без движка. Это отдельный снимок,
+не разложение предыдущего замера; `other_percent` также включает ОС/драйвер.
+Чужие процессы не менялись. Неконтролируемый фон ограничивает сравнение
+абсолютных скоростей между сериями. CPU time MTP-ответа снизился на10,95%.
+
+828 byte/guard +3 profile/invalid checks,217 ring checks,217 runtime cases,
+24 Python tests PASS. **72/72 ответов exact**,20 warmups,20 MTP; четыре
+model process exit0. Monitor95 не срабатывал; пики RAM75,24%, VRAM30257MiB
+(92,79%). Это повторения двух prompts, не проверка MTP на длинном контексте.
+
+Отчёт: [STEP37_FLASH_HOST_COPY.md](STEP37_FLASH_HOST_COPY.md).
+IDs/timings/CPU/memory/commands/source hashes/units:
+[STEP37_FLASH_HOST_COPY.json](STEP37_FLASH_HOST_COPY.json).
+Raw: `build-local/step35-cuda/step17-host/`. Сохранённый probe:
+`strata-step35-mtp-check-host-copy-tested.exe`, SHA-256
+`6d203f6a5afa94d17793d15f6d485a3de5ed8e7525066861602ceeb60b801509`.
+Рабочий engine сохранил SHA
+`32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
+Shared header изменён только для optional callback; production defaults и
+бинарники остальных моделей не заменены. Дальше — STEP-18 admission с gates.

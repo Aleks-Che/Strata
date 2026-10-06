@@ -165,11 +165,43 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
         "invalid depth/probability");
     require(depth == 0 || dft, "MTP requires --draft");
     require(depth<=active_heads,"requested depth exceeds resident heads");
+    const std::string pipeline_mode=request.value("pipeline_mode",std::string("baseline"));
+    require(pipeline_mode=="baseline" || pipeline_mode=="early" || pipeline_mode=="batch" || pipeline_mode=="batch-early",
+        "invalid pipeline mode");
+    const int readers=request.value("pipeline_readers",1), chunk_mib=request.value("pipeline_chunk_mib",8);
+    require((readers==1 || readers==2) && (chunk_mib==4 || chunk_mib==8 || chunk_mib==16),
+        "invalid pipeline readers/chunk size");
+    const bool write_combined=request.value("pipeline_write_combined",false);
+    const std::string host_copy=request.value("host_copy",std::string("crt"));
+    const bool pipeline_profile=request.value("pipeline_profile",false);
+    const std::string trace_path=request.value("pipeline_trace_path",std::string());
+    require(host_copy=="crt" || host_copy=="avx2","invalid host copy mode");
+    require(!pipeline_profile || (depth==0 && !trace_path.empty()),"pipeline profile needs no-MTP and a trace path");
     const auto * vocab = llama_model_get_vocab(llama_get_model(ctx));
     for (auto id : prompt) require(id >= 0 && id < llama_vocab_n_tokens(vocab), "invalid prompt token");
     clear(ctx); if (dft) clear(dft);
     const bool cache_reuse=request.value("cache_reuse",false);
     strata_step_cache_reuse(cache_reuse);
+    const bool cache_profile=request.value("cache_profile",false);
+    strata_step_cache_profile(cache_profile);
+    const bool cache_fast_scan=request.value("cache_fast_scan",false);
+    strata_step_cache_fast_scan(cache_fast_scan);
+    static std::string previous_pipeline="baseline";
+    static int previous_readers=1, previous_chunk_mib=8;
+    static bool previous_write_combined=false;
+    static std::string previous_host_copy="crt";
+    static bool previous_pipeline_profile=false;
+    const auto configure=Clock::now();
+    if (pipeline_mode!=previous_pipeline || readers!=previous_readers || chunk_mib!=previous_chunk_mib ||
+        write_combined!=previous_write_combined || host_copy!=previous_host_copy || pipeline_profile || previous_pipeline_profile) {
+        strata_step_pipeline_config_copy(readers,chunk_mib,pipeline_profile?128:0,pipeline_mode=="early" || pipeline_mode=="batch-early",
+            pipeline_mode=="batch" || pipeline_mode=="batch-early",write_combined,host_copy=="avx2"?1:0,pipeline_profile);
+        previous_pipeline=pipeline_mode;
+        previous_readers=readers; previous_chunk_mib=chunk_mib;
+        previous_write_combined=write_combined;
+        previous_host_copy=host_copy;previous_pipeline_profile=pipeline_profile;
+    }
+    const double configure_ms=ms(configure);
     llama_set_embeddings_nextn(ctx,depth > 0,false);
     common_speculative_ptr spec;
     if (depth) {
@@ -227,8 +259,16 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
     }
     const double generation_ms = ms(generation);
     const auto stats = strata_step_sync_snapshot();
-    return json{{"ids",out},{"depth",depth},{"p_min",p_min},{"cache_reuse",cache_reuse},{"prefill_ms",prefill_ms},
-        {"generation_ms",generation_ms},{"request_ms",ms(start)},
+    const double request_ms=ms(start);
+    if(pipeline_profile)strata_step_trace_write(trace_path.c_str());
+    return json{{"ids",out},{"depth",depth},{"p_min",p_min},{"cache_reuse",cache_reuse},{"pipeline_mode",pipeline_mode},{"prefill_ms",prefill_ms},
+        {"pipeline_readers",readers},{"pipeline_chunk_mib",chunk_mib},{"pipeline_configure_ms",configure_ms},
+        {"pipeline_write_combined",write_combined},
+        {"cache_profile",cache_profile},
+        {"cache_fast_scan",cache_fast_scan},
+        {"host_copy",host_copy},{"pipeline_profile",pipeline_profile},{"pipeline_trace_path",trace_path},
+        {"trace_prefill_graphs",(prompt.size()+16)/17},
+        {"generation_ms",generation_ms},{"request_ms",request_ms},
         {"decode_tokens_per_second",out.size()*1000.0/generation_ms},
         {"prefill_target_ms",prefill_target_ms},{"prefill_draft_ms",prefill_draft_ms},
         {"target_verify_ms",target_ms},{"draft_ms",draft_ms},{"catchup_ms",catchup_ms},
@@ -237,9 +277,32 @@ static json run(llama_context * ctx, llama_context * dft, const json & request, 
         {"h2d_bytes",stats.h2d_bytes},{"source_bytes",stats.source_bytes},
         {"cache_bytes",stats.cache_bytes},{"cache_hits",stats.cache_hits},{"cache_misses",stats.cache_misses},
         {"generation_io",{{"h2d_bytes",stats.h2d_bytes-prefill_stats.h2d_bytes},
+            {"host_copy_calls",stats.host_copy_calls-prefill_stats.host_copy_calls},
+            {"host_copy_bytes",stats.host_copy_bytes-prefill_stats.host_copy_bytes},
+            {"host_copy_wall_ns",stats.host_copy_wall_ns-prefill_stats.host_copy_wall_ns},
+            {"host_copy_cycles",stats.host_copy_cycles-prefill_stats.host_copy_cycles},
+            {"host_copy_slow",stats.host_copy_slow-prefill_stats.host_copy_slow},
+            {"memory_samples",stats.memory_samples-prefill_stats.memory_samples},
+            {"cache_get_ms",stats.cache_get_ms-prefill_stats.cache_get_ms},
+            {"cache_admit_ms",stats.cache_admit_ms-prefill_stats.cache_admit_ms},
+            {"cache_refresh_ms",stats.cache_refresh_ms-prefill_stats.cache_refresh_ms},
+            {"memory_probe_ms",stats.memory_probe_ms-prefill_stats.memory_probe_ms},
+            {"cache_protect_ms",stats.cache_protect_ms-prefill_stats.cache_protect_ms},
+            {"cache_trim_ms",stats.cache_trim_ms-prefill_stats.cache_trim_ms},
+            {"cache_victim_ms",stats.cache_victim_ms-prefill_stats.cache_victim_ms},
+            {"cache_allocate_ms",stats.cache_allocate_ms-prefill_stats.cache_allocate_ms},
+            {"cache_free_ms",stats.cache_free_ms-prefill_stats.cache_free_ms},
+            {"cache_victim_candidates",stats.cache_victim_candidates-prefill_stats.cache_victim_candidates},
+            {"plan_build_ms",stats.plan_build_ms-prefill_stats.plan_build_ms},
+            {"plan_end_ms",stats.plan_end_ms-prefill_stats.plan_end_ms},
             {"source_ms",stats.source_ms-prefill_stats.source_ms},
             {"d2d_ms",stats.d2d_ms-prefill_stats.d2d_ms},
             {"pipeline_wait_us",stats.pipeline_wait_us-prefill_stats.pipeline_wait_us},
+            {"pipeline_slot_wait_us",stats.pipeline_slot_wait_us-prefill_stats.pipeline_slot_wait_us},
+            {"pipeline_submit_us",stats.pipeline_submit_us-prefill_stats.pipeline_submit_us},
+            {"pipeline_copy_batches",stats.pipeline_copy_batches-prefill_stats.pipeline_copy_batches},
+            {"pipeline_copy_fences",stats.pipeline_copy_fences-prefill_stats.pipeline_copy_fences},
+            {"pipeline_batch_ms",stats.pipeline_batch_ms-prefill_stats.pipeline_batch_ms},
             {"cache_allocations",stats.cache_allocations-prefill_stats.cache_allocations},
             {"cache_reuses",stats.cache_reuses-prefill_stats.cache_reuses},
             {"cache_evictions",stats.cache_evictions-prefill_stats.cache_evictions},
@@ -282,7 +345,9 @@ int main(int argc, char ** argv) {
             std::cout << "READY " << json{{"draft",bool(dft)},{"draft_placement",placement},{"cache_mib",cache_mib},
                 {"prefault_experts",prefault_result},
                 {"active_heads",active_heads},{"catchup",STRATA_STEP_MTP_ACTIVE_CATCHUP ? "requested-heads-only" : "upstream-all-heads"},
-                {"context",2048},{"batch",17},{"kv","f32"},{"pipeline_readers",1},
+                {"context",2048},{"batch",17},{"kv","f32"},{"pipeline_readers",1},{"pipeline_chunk_mib",8},
+                {"pipeline_request_configuration",true},
+                {"pipeline_write_combined",false},
                 {"max_total_positions",480},{"greedy_only",true}}.dump() << std::endl;
             std::string line;
             while (std::getline(std::cin,line) && line!="QUIT") {

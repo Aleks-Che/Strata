@@ -310,6 +310,39 @@ reasoning не выдаётся за гарантированный лимит �
   4/8/16 МиБ как измеряемые варианты; early host refill — отдельный opt-in тест.
   STEP-06: все конфигурации прошли fixture, throughput1/2readers измерен на8 МиБ;
   early refill выключен, full-model chunk4/16 tuning остаётся.
+  STEP-13: opt-in tensor batching с pins до финального fence и early refill
+  проверены:36 ring checks,157 runtime cases и84 полных exact responses.
+  Batch: +19,04% без MTP, +21,98% с MTP2; batch+early/MTP2: +24,54%,13,941 токена/с.
+  Обычный API сохраняет прежний default. Отчёт: `STEP37_FLASH_BATCH_COPY.md/json`.
+  STEP-14: reader1/2 с batch path, chunks4/8/16 и MTP1/2/3 измерены на полной
+  модели:128 exact responses. Первые около3% не подтвердились повторным
+  контролем, лучшее отличие только0,63%; прежний кандидат сохранён. Добавлена
+  CPU telemetry для сопутствующей нагрузки. Production admission остаётся;
+  следующий отдельный speed-кандидат — write-combined staging.
+  Отчёт: `STEP37_FLASH_PIPELINE_TUNING.md/json`.
+  STEP-15: cached/WC host staging проверены,72 ring/201 runtime/40 full-model
+  responses PASS. Ускорение WC не получено (−4,90% без MTP,−2,19% с MTP;
+  сопутствующая CPU-нагрузка различалась), cached сохранён. Исправлен явный
+  exception contract трёх config APIs для MSVC `/EHsc`.
+  Отчёт: `STEP37_FLASH_WRITE_COMBINED.md/json`. Перед дальнейшей сменой cache
+  algorithm измерить admission/router planning/global memory sampling overhead.
+  STEP-16: opt-in CPU profiling и direct victim scan проверены. Victim scan
+  218,723 →148,207 мс/ответ (−32,24%), memory probe лишь0,043% generation.
+  Итоговое ускорение не подтверждено: no-MTP11,692 →11,521, MTP2
+  13,761 →13,698 токена/с; сопутствующая CPU-нагрузка менялась. Default baseline
+  сохранён.25 cache/204 runtime/24 Python checks,58 exact responses PASS.
+  Отчёт: `STEP37_FLASH_CACHE_PROFILE.md/json`. Следующий кандидат — source
+  staging/H2D ready и consumer wait; resource polling cadence не менялась.
+  STEP-17: mmap-to-pinned AVX2 copy и source/GPU trace проверены. В diagnostic
+  copy20,120 →30,000 ГиБ/с, cycles/byte0,19957 →0,13343, но H2D дольше.
+  Без timers MTP2:13,803 →14,777 токена/с (+7,06%), все четыре парных раунда
+  положительные; CPU time10,146 →9,035 CPU-с/ответ (−10,95%). No-MTP повтор
+  ускорения не подтвердил (11,268 →11,214). CPU background менялся.
+  828 byte/guard +3 profile checks,217 ring/217 runtime/24 Python checks,
+  72 exact full-model responses PASS. В shared primitive только optional
+  host-copy callback; default CRT сохранён. AVX2 — offline MTP-кандидат.
+  Отчёт: `STEP37_FLASH_HOST_COPY.md/json`. Далее admission reuse/batching/AVX2
+  в native pipe/HTTP с long/cancel/recovery/pressure gates; MTP отдельно.
 - [x] **P3.4:** реальные матрицы из всех shards и ранних/средних/поздних слоёв:
   byte parity, tails, guards, два streams, hit/miss/eviction/cancel/reload.
   Затем полные logits/IDs против P1 при pipeline on/off.

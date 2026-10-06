@@ -15,6 +15,15 @@
 #include <vector>
 
 namespace step35 {
+// Opt-in host wall time, including waits/preemption. Nested scopes are inclusive
+// and must not be added together. Disabled scopes do not read the clock.
+class CpuTimer {
+    double * total;
+    std::chrono::steady_clock::time_point start;
+public:
+    explicit CpuTimer(double * value):total(value) {if (total) start=std::chrono::steady_clock::now();}
+    ~CpuTimer() {if (total) *total+=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();}
+};
 inline void cuda_check(cudaError_t error) {
     if (error != cudaSuccess) throw std::runtime_error(std::string("Step CUDA: ")+cudaGetErrorString(error));
 }
@@ -54,9 +63,10 @@ struct MatrixHash {
         return std::hash<uint64_t>{}(k.generation) ^ (size_t(k.tensor)<<16) ^ k.expert;
     }
 };
-// Synchronous cache: every caller must complete D2D reads before another lookup,
-// trim or admission. There are no outstanding leases/retired allocations here.
-// Async delivery must introduce event-protected leases before relaxing this rule.
+// Callers normally complete D2D reads before another lookup/trim/admission.
+// The tensor-batched pipeline may queue copies only while PlanPins protect ALL
+// pending cache sources and destinations. It must drain its CUDA stream before
+// releasing any of those pins, including on exceptions. No retired pool exists.
 class ExpertCache {
 public:
     using Probe=std::function<MemorySample()>;
@@ -64,14 +74,23 @@ public:
     struct Counters {
         uint64_t hits=0,misses=0,evictions=0,bypasses=0,oom=0,rejected=0,samples=0;
         uint64_t allocations=0,reuses=0;
+        uint64_t victim_candidates=0;
+        double get_ms=0,admit_ms=0,refresh_ms=0,probe_ms=0,protect_ms=0,trim_ms=0;
+        double victim_ms=0,allocate_ms=0,free_ms=0;
     };
 private:
-    struct Entry { void * data; size_t bytes,allocated; std::list<MatrixKey>::iterator order; size_t pins=0; };
+    struct Entry;
+    // std::map nodes keep their addresses until erased. Remove the order node
+    // before its entry on every eviction, including allocation reuse.
+    struct OrderItem {MatrixKey key; Entry * entry;};
+    struct Entry { void * data; size_t bytes,allocated; std::list<OrderItem>::iterator order; size_t pins=0; };
     std::map<MatrixKey,Entry> entries;
-    std::list<MatrixKey> order;
+    std::list<OrderItem> order;
     StrataExpertFrequencyHistory<MatrixKey,MatrixHash> history{65536};
     size_t cap=0,limit=0,resident=0,growth=0;
     bool reuse_allocations=false;
+    bool profile=false;
+    bool fast_scan=false;
     Probe probe;
     Allocate allocate;
     MemorySample sample{};
@@ -82,7 +101,8 @@ private:
         if (current!=device) throw std::runtime_error("Step cache device changed");
     }
     void erase(std::map<MatrixKey,Entry>::iterator it) {
-        cuda_check(cudaFree(it->second.data)); resident-=it->second.allocated;
+        { CpuTimer timer(profile?&counts.free_ms:nullptr); cuda_check(cudaFree(it->second.data)); }
+        resident-=it->second.allocated;
         order.erase(it->second.order); entries.erase(it); ++counts.evictions;
     }
 public:
@@ -105,6 +125,7 @@ public:
         return it!=entries.end();
     }
     std::unique_ptr<PlanPins> protect(const std::vector<MatrixKey> & keys) {
+        CpuTimer timer(profile?&counts.protect_ms:nullptr);
         check_device();
         std::vector<MatrixKey> hits;hits.reserve(keys.size());
         for (const auto & key:keys) if (entries.count(key)) hits.push_back(key);
@@ -121,9 +142,11 @@ public:
         cudaSetDevice(previous);
     }
     void refresh() {
+        CpuTimer timer(profile?&counts.refresh_ms:nullptr);
         check_device(); ++counts.samples;
         // Fail closed on unavailable global readings, including WDDM/NVML.
-        limit=0; sample=probe();
+        limit=0;
+        { CpuTimer probe_timer(profile?&counts.probe_ms:nullptr); sample=probe(); }
         if (!sample.gpu_total || sample.gpu_free>sample.gpu_total || !sample.ram_total || sample.ram_free>sample.ram_total)
             throw std::runtime_error("invalid Step memory sample");
         if (resident>sample.gpu_total-sample.gpu_free) {
@@ -146,13 +169,15 @@ public:
             throw std::runtime_error("Step fixed/external VRAM exceeds budget95");
     }
     void trim(size_t bytes) {
+        CpuTimer timer(profile?&counts.trim_ms:nullptr);
         check_device(); limit=std::min(limit,bytes);
         for (auto key=order.begin();resident>limit && key!=order.end();) {
-            auto it=entries.find(*key++);
+            auto it=entries.find((key++)->key);
             if (!it->second.pins) erase(it);
         }
     }
     void * get(const MatrixKey & key,size_t bytes) {
+        CpuTimer timer(profile?&counts.get_ms:nullptr);
         check_device(); history.record(key);
         const auto it=entries.find(key);
         if (it==entries.end()) {++counts.misses;return nullptr;}
@@ -160,6 +185,7 @@ public:
         ++counts.hits; order.splice(order.end(),order,it->second.order); return it->second.data;
     }
     void * admit(const MatrixKey & key,size_t bytes) {
+        CpuTimer timer(profile?&counts.admit_ms:nullptr);
         check_device();
         if (entries.count(key)) throw std::runtime_error("duplicate Step cache admission");
         if (growth>=64*1024*1024) refresh();
@@ -171,11 +197,29 @@ public:
             // Bounded scan of the oldest entries; shared decaying frequency
             // history avoids admitting every one-off prefill matrix.
             int scanned=0;
-            for (auto it=order.begin();it!=order.end() && scanned<32;++it) {
-                auto candidate=entries.find(*it);
-                if (candidate->second.pins) continue;
-                ++scanned;
-                if (victim==entries.end() || history.score(candidate->first)<history.score(victim->first)) victim=candidate;
+            {
+            CpuTimer victim_timer(profile?&counts.victim_ms:nullptr);
+            if (fast_scan) {
+                const MatrixKey * best=nullptr;unsigned best_score=0;
+                for (const auto & item:order) {
+                    if (item.entry->pins) continue;
+                    ++scanned;
+                    const unsigned score=history.score(item.key);
+                    if (!best || score<best_score) {best=&item.key;best_score=score;}
+                    // Scores cannot be negative; the first minimum wins ties.
+                    // No history.record() occurs during this scan.
+                    if (!best_score || scanned==32) break;
+                }
+                if (best) victim=entries.find(*best);
+            } else {
+                for (auto it=order.begin();it!=order.end() && scanned<32;++it) {
+                    auto candidate=entries.find(it->key);
+                    if (candidate->second.pins) continue;
+                    ++scanned;
+                    if (victim==entries.end() || history.score(candidate->first)<history.score(victim->first)) victim=candidate;
+                }
+            }
+            if (profile) counts.victim_candidates+=scanned;
             }
             if (victim==entries.end()) {++counts.bypasses;return nullptr;}
             if (history.score(key)<history.score(victim->first)) {++counts.rejected;return nullptr;}
@@ -194,15 +238,18 @@ public:
         }
         if (!data) {
             ++counts.allocations;
+            CpuTimer allocation_timer(profile?&counts.allocate_ms:nullptr);
             const auto error=allocate(&data,charged);
             if (error==cudaErrorMemoryAllocation) {cudaGetLastError();++counts.oom;++counts.bypasses;return nullptr;}
             cuda_check(error);
         }
         try {
-            order.push_back(key);
+            order.push_back({key,nullptr});
             try {
-                if (!entries.emplace(key,Entry{data,bytes,charged,std::prev(order.end())}).second)
+                auto inserted=entries.emplace(key,Entry{data,bytes,charged,std::prev(order.end())});
+                if (!inserted.second)
                     throw std::runtime_error("duplicate Step cache admission");
+                order.back().entry=&inserted.first->second;
             } catch (...) {order.pop_back();throw;}
         } catch (...) {cudaFree(data);throw;}
         resident+=charged; growth+=charged; return data;
@@ -214,5 +261,7 @@ public:
     Counters counters() const {return counts;}
     void reset_counters() {counts={};}
     void set_reuse_allocations(bool enabled) {check_device();reuse_allocations=enabled;}
+    void set_profile(bool enabled) {check_device();profile=enabled;}
+    void set_fast_scan(bool enabled) {check_device();fast_scan=enabled;}
 };
 } // namespace step35

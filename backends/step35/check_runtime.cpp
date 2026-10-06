@@ -243,6 +243,111 @@ int main(int argc, char ** argv) {
             c["cache"]=cache_stats();c["verified_gpu_bytes"]=observer.bytes;cases.push_back(c);
             strata_step_sync_observer(nullptr,nullptr);strata_step_sync_release();
         }
+        for (bool quant:{false,true}) for (int readers:{1,2}) for (int mode:{1,2,3}) for (int cap:{1,64}) for (bool wc:{false,true}) {
+            const auto path=(directory/(quant?"step-mixed.gguf":"step-f32.gguf")).string();
+            auto model=load(path);auto ctx=context(model.get(),2048,17);
+            strata_step_sync_mode(2);strata_step_cache_begin(path.c_str(),0);
+            const auto reference=run(ctx.get(),513,17);
+            register_cache(model.get(),path,size_t(cap)<<20);
+            strata_step_pipeline_config_staging(readers,8,0,mode&1,mode&2,wc);strata_step_cache_reuse(true);
+            strata_step_cache_fast_scan(cap==1);
+            const std::string name=std::string(quant?"mixed":"f32")+"/copy_options/readers="+std::to_string(readers)+
+                "/mode="+std::to_string(mode)+"/cap="+std::to_string(cap)+"/wc="+std::to_string(wc)+"/direct="+std::to_string(cap==1);
+            Observer observer;strata_step_sync_observer(Observer::copy,&observer);strata_step_sync_reset();
+            auto c=compare(name,run(ctx.get(),513,17),reference);
+            auto s=strata_step_sync_snapshot();
+            require(s.pipeline_chunks && observer.bytes==s.d2d_bytes && s.cache_bytes<=s.cache_limit &&
+                    bool(s.pipeline_copy_batches)==bool(mode&2),"copy options byte/batch accounting failed");
+            c["cache"]=cache_stats();c["verified_gpu_bytes"]=observer.bytes;
+            c["copy_batches"]=s.pipeline_copy_batches;c["copy_fences"]=s.pipeline_copy_fences;cases.push_back(c);
+            if (cap==64) {
+                strata_step_sync_reset();observer={};
+                c=compare(name+"/warm",run(ctx.get(),513,17),reference);s=strata_step_sync_snapshot();
+                require(!s.h2d_bytes && !s.cache_misses && observer.bytes==s.d2d_bytes,
+                        "copy options all-hit case unexpectedly uploaded");
+                c["cache"]=cache_stats();cases.push_back(c);
+            }
+            if (quant && readers==1 && mode==3 && cap==64) for (int next:{0,2,0,3}) {
+                strata_step_pipeline_config_ex(1,8,0,next&1,next&2);
+                strata_step_sync_reset();observer={};
+                c=compare(name+"/switch="+std::to_string(next),run(ctx.get(),513,17),reference);
+                s=strata_step_sync_snapshot();
+                require(!s.h2d_bytes && !s.cache_misses && observer.bytes==s.d2d_bytes &&
+                        bool(s.pipeline_copy_batches)==bool(next&2),"copy-mode switch lost cache/parity");
+                c["cache"]=cache_stats();cases.push_back(c);
+            }
+            if (wc && quant && readers==1 && mode==3 && cap==64) for (bool next:{true,false,true}) {
+                if (next) strata_step_pipeline_config_staging(1,8,0,true,true,true);
+                else strata_step_pipeline_config_ex(1,8,0,true,true);
+                // Force uploads after each host-policy change, including a
+                // legacy API call restoring the cacheable-host default.
+                strata_step_cache_trim(0);strata_step_sync_reset();observer={};
+                c=compare(name+"/host_switch="+std::to_string(next),run(ctx.get(),513,17),reference);
+                s=strata_step_sync_snapshot();
+                require(s.h2d_bytes && s.pipeline_chunks && s.pipeline_copy_batches && observer.bytes==s.d2d_bytes &&
+                        s.cache_bytes<=s.cache_limit,"host-policy switch upload/parity failed");
+                c["cache"]=cache_stats();c["verified_gpu_bytes"]=observer.bytes;cases.push_back(c);
+            }
+            strata_step_sync_observer(nullptr,nullptr);strata_step_sync_release();
+        }
+        {
+            bool rejected=false;
+            try {strata_step_pipeline_config_staging(0,8,0,false,false,true);}
+            catch(const std::runtime_error &){rejected=true;}
+            cases.push_back({{"name","reject_write_combined_without_readers"},{"pass",rejected}});
+        }
+        {
+            const auto path=(directory/"step-mixed.gguf").string();
+            auto model=load(path);auto ctx=context(model.get(),2048,17);
+            strata_step_sync_mode(2);strata_step_cache_begin(path.c_str(),0);
+            const auto reference=run(ctx.get(),19,17);
+            register_cache(model.get(),path,1024*1024);
+            strata_step_pipeline_config_ex(1,8,0,true,true);strata_step_cache_reuse(true);
+            for (bool enabled:{false,true,false}) {
+                strata_step_cache_fast_scan(enabled);
+                strata_step_cache_profile(enabled);strata_step_cache_trim(0);strata_step_sync_reset();
+                Observer observer;strata_step_sync_observer(Observer::copy,&observer);
+                auto c=compare("cache_profile="+std::to_string(enabled),run(ctx.get(),19,17),reference);
+                const auto s=strata_step_sync_snapshot();
+                require(bool(s.cache_get_ms)==enabled && bool(s.cache_admit_ms)==enabled &&
+                    bool(s.cache_refresh_ms)==enabled && bool(s.memory_probe_ms)==enabled &&
+                    bool(s.cache_protect_ms)==enabled && bool(s.plan_build_ms)==enabled &&
+                    bool(s.plan_end_ms)==enabled && observer.bytes==s.d2d_bytes,
+                    "cache profiling enable/disable or parity failed");
+                c["get_ms"]=s.cache_get_ms;c["admit_ms"]=s.cache_admit_ms;c["probe_ms"]=s.memory_probe_ms;
+                c["plan_build_ms"]=s.plan_build_ms;c["plan_end_ms"]=s.plan_end_ms;
+                cases.push_back(c);strata_step_sync_observer(nullptr,nullptr);
+            }
+            strata_step_sync_release();
+        }
+        for(bool quant:{false,true})for(int readers:{1,2}) {
+            const auto path=(directory/(quant?"step-mixed.gguf":"step-f32.gguf")).string();
+            auto model=load(path);auto ctx=context(model.get(),2048,17);
+            strata_step_sync_mode(2);strata_step_cache_begin(path.c_str(),0);
+            const auto reference=run(ctx.get(),513,17);
+            register_cache(model.get(),path,1024*1024);strata_step_cache_reuse(true);
+            for(int copy:{1,0,1}) {
+                if(copy)strata_step_pipeline_config_copy(readers,8,0,readers==2,true,false,copy,true);
+                else strata_step_pipeline_config_ex(readers,8,0,readers==2,true);
+                strata_step_cache_trim(0);strata_step_sync_reset();
+                Observer observer;strata_step_sync_observer(Observer::copy,&observer);
+                auto c=compare(std::string(quant?"mixed":"f32")+"/host_copy="+std::to_string(copy)+
+                    "/readers="+std::to_string(readers),run(ctx.get(),513,17),reference);
+                const auto s=strata_step_sync_snapshot();
+                require(s.h2d_bytes && observer.bytes==s.d2d_bytes && s.cache_evictions && s.cache_bytes<=s.cache_limit &&
+                    (copy ? (s.host_copy_bytes==s.h2d_bytes && s.host_copy_calls==s.pipeline_chunks && s.host_copy_wall_ns) : !s.host_copy_calls),
+                    "host copy switch/parity/accounting failed");
+                c["verified_gpu_bytes"]=observer.bytes;c["host_copy_wall_ns"]=s.host_copy_wall_ns;
+                cases.push_back(c);strata_step_sync_observer(nullptr,nullptr);
+            }
+            strata_step_sync_release();
+        }
+        {
+            bool rejected=false;
+            try{strata_step_pipeline_config_copy(0,8,0,false,false,false,2,false);}
+            catch(const std::runtime_error&){rejected=true;}
+            cases.push_back({{"name","reject_invalid_host_copy_mode"},{"pass",rejected}});
+        }
         // Deliberately force a model operation onto CPU. Admission must fail
         // before weights are copied or any compute split is submitted.
         auto model = load((directory/"step-f32.gguf").string(),false,true);
@@ -254,7 +359,7 @@ int main(int argc, char ** argv) {
         const auto s = strata_step_sync_snapshot();
         cases.push_back({{"name","reject_cpu_embedding_before_compute"},
             {"pass",rejected && s.rejected_cpu_nodes > 0 && s.compute_calls == 0 && s.h2d_bytes == 0}});
-        require(cases.size() == 117,"wrong runtime case count");
+        require(cases.size() == 217,"wrong runtime case count");
         bool pass = true; for (const auto & c : cases) pass &= c["pass"].get<bool>();
         report["status"] = pass ? "pass" : "fail";
     } catch (const std::exception & error) { report["error"] = error.what(); }

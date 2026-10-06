@@ -81,6 +81,51 @@ int main(int argc,char ** argv) {
         test("reuse_different_size_allocates",mixed.admit(large,70000) && mixed.counters().reuses==0 &&
              mixed.counters().allocations==3 && mixed.counters().evictions==2 && mixed.resident_bytes()==131072);
         mixed.trim(0);test("reuse_trim_has_no_hidden_pool",mixed.resident_bytes()==0 && mixed.size()==0);
+        {
+            ExpertCache baseline(32*65536,[&]{return sample;}), direct(32*65536,[&]{return sample;});
+            baseline.set_reuse_allocations(true);direct.set_reuse_allocations(true);
+            direct.set_fast_scan(true);baseline.refresh();direct.refresh();
+            uint32_t random=0x5a17beef;
+            auto key=[](unsigned i){return MatrixKey{7,i/16,i%16};};
+            auto size=[](unsigned i)->size_t{return i%5==0?70000:1024;};
+            // Cross two decay boundaries, mix allocation sizes, revisit pinned
+            // entries, trim, and switch modes on the same live cache. Compare
+            // each decision and full membership, not only aggregate hit rate.
+            bool parity=true;
+            for (unsigned block=0;block<2050;++block) {
+                std::vector<MatrixKey> held;
+                for(unsigned i=0;i<8;++i)held.push_back(key((block+i)%64));
+                auto pa=baseline.protect(held),pb=direct.protect(held);
+                for(unsigned j=0;j<64;++j) {
+                    random^=random<<13;random^=random>>17;random^=random<<5;
+                    const unsigned i=(block%4==0)?block%64:random%64;
+                    const bool a_hit=bool(baseline.get(key(i),size(i))), b_hit=bool(direct.get(key(i),size(i)));
+                    parity &= a_hit==b_hit;
+                    if(!a_hit && !b_hit) {
+                        parity &= bool(baseline.admit(key(i),size(i)))==bool(direct.admit(key(i),size(i)));
+                        for(unsigned k=0;k<64;++k)parity &= baseline.contains(key(k),size(k))==direct.contains(key(k),size(k));
+                    }
+                    if(!parity)throw std::runtime_error("direct victim policy differs");
+                }
+                if(block%127==0) {baseline.trim(0);direct.trim(0);}
+                pa.reset();pb.reset();
+                if(block%127==0) {baseline.refresh();direct.refresh();}
+                direct.set_fast_scan(block%5!=0);
+            }
+            auto a=baseline.counters(),b=direct.counters();
+            test("direct_scan_131200_decisions_membership_parity",parity && a.hits==b.hits && a.misses==b.misses &&
+                a.evictions==b.evictions && a.rejected==b.rejected && a.bypasses==b.bypasses && a.samples==b.samples &&
+                a.allocations==b.allocations && a.reuses==b.reuses && baseline.resident_bytes()==direct.resident_bytes());
+        }
+        {
+            ExpertCache zeros(64*65536,[&]{return sample;});zeros.set_reuse_allocations(true);
+            zeros.set_fast_scan(true);zeros.set_profile(true);zeros.refresh();
+            for(unsigned i=0;i<64;++i) {MatrixKey k{9,0,i};zeros.get(k,1024);zeros.admit(k,1024);}
+            for(unsigned i=0;i<65536;++i)zeros.get({9,0,63},1024);
+            zeros.reset_counters();zeros.get({9,1,0},1024);zeros.admit({9,1,0},1024);
+            test("direct_scan_first_zero_is_oldest_minimum",zeros.counters().victim_candidates==1 &&
+                !zeros.contains({9,0,0},1024) && zeros.contains({9,0,1},1024) && zeros.contains({9,1,0},1024));
+        }
         report["status"]="pass";
     } catch(const std::exception & e) {report["error"]=e.what();}
     report["case_count"]=cases.size();report["cases"]=cases;

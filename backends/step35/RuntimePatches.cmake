@@ -28,6 +28,8 @@ function(step_runtime_source target relative expected output)
     step_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n${anchor}\n#include \"gpu_only_audit.inc\"\n    StepPlanScope step_scope;")
     step_replace_once(content "                        prev_ids_tensor = ids_tensor;"
       "#include \"pipeline_sched.inc\"\n                        prev_ids_tensor = ids_tensor;")
+    step_replace_once(content "                    // group consecutive experts and copy them together"
+      "                    if (step_sync_mode == 2 && step_pipeline && step_pipeline_batch) {\n                        if (!step_pipeline_copy_tensor(split_backend, input_cpy, input)) return GGML_STATUS_FAILED;\n                        continue;\n                    }\n\n                    // group consecutive experts and copy them together")
     step_replace_once(content "        prev_backend_id = split_backend_id;\n    }\n\n    return GGML_STATUS_SUCCESS;"
       "        prev_backend_id = split_backend_id;\n    }\n\n    if (!step_scope.finish()) return GGML_STATUS_FAILED;\n    return GGML_STATUS_SUCCESS;")
     step_replace_once(content "ggml_backend_graph_compute_async(split_backend, &split->graph)" "step_graph_compute(split_backend, &split->graph)")
@@ -75,6 +77,6 @@ string(APPEND step_patch_set ",step-sync-selected-copy-gpu-audit-mmap-demand")
 string(APPEND step_patch_set ",step-bounded-expert-cache")
 string(APPEND step_patch_set ",step-router-lookahead-pipeline")
 string(APPEND step_patch_set ",step-prefill-cache-admission")
-target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
+target_link_libraries(ggml-base PRIVATE CUDA::cudart_static strata-step35-host-copy)
 target_compile_features(ggml-base PRIVATE cxx_std_17)
 target_include_directories(ggml-base PRIVATE "${step_source}/vendor")
