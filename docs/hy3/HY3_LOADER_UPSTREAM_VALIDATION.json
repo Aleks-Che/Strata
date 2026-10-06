@@ -1,0 +1,147 @@
+{
+  "status": "pass",
+  "scope": "compiled tensor registration, no_alloc, no payload reads or inference",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "runs": [
+    {
+      "load_mtp": false,
+      "main_blocks": 80,
+      "all_blocks": 81,
+      "main_tensors": 1278,
+      "main_logical_bytes": 134592752896,
+      "mtp_logical_bytes": 1740784384,
+      "mtp_tensors": [
+        {
+          "name": "blk.80.ffn_gate_inp.weight",
+          "bytes": 3145728
+        },
+        {
+          "name": "blk.80.exp_probs_b",
+          "bytes": 768
+        },
+        {
+          "name": "blk.80.ffn_down_exps.weight",
+          "bytes": 679477248
+        },
+        {
+          "name": "blk.80.ffn_gate_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_up_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_gate_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_up_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_down_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.nextn.shared_head_norm.weight",
+          "bytes": 16384
+        }
+      ],
+      "allocated_weight_bytes": 0
+    },
+    {
+      "load_mtp": true,
+      "main_blocks": 80,
+      "all_blocks": 81,
+      "main_tensors": 1278,
+      "main_logical_bytes": 134592752896,
+      "mtp_logical_bytes": 1856718592,
+      "mtp_tensors": [
+        {
+          "name": "blk.80.attn_norm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.attn_q.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.attn_k.weight",
+          "bytes": 4456448
+        },
+        {
+          "name": "blk.80.attn_v.weight",
+          "bytes": 4456448
+        },
+        {
+          "name": "blk.80.attn_output.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.attn_q_norm.weight",
+          "bytes": 512
+        },
+        {
+          "name": "blk.80.attn_k_norm.weight",
+          "bytes": 512
+        },
+        {
+          "name": "blk.80.ffn_norm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.ffn_gate_inp.weight",
+          "bytes": 3145728
+        },
+        {
+          "name": "blk.80.exp_probs_b",
+          "bytes": 768
+        },
+        {
+          "name": "blk.80.ffn_down_exps.weight",
+          "bytes": 679477248
+        },
+        {
+          "name": "blk.80.ffn_gate_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_up_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_gate_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_up_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_down_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.nextn.eh_proj.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.nextn.enorm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.nextn.hnorm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.nextn.shared_head_norm.weight",
+          "bytes": 16384
+        }
+      ],
+      "allocated_weight_bytes": 0
+    }
+  ],
+  "binary_sha256": "5aeff73709140f71b37aa4314e4823bdba667ca83d7d32f1e4ccd21c2bd3a32e",
+  "gguf_header_sha256": "f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9"
+}

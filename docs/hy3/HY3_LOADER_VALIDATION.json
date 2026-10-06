@@ -1,0 +1,113 @@
+{
+  "status": "pass",
+  "scope": "compiled tensor registration, no_alloc, no payload reads or inference",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "patches": "hy3-mtp-load-flags",
+  "runs": [
+    {
+      "load_mtp": false,
+      "main_blocks": 80,
+      "all_blocks": 81,
+      "main_tensors": 1278,
+      "main_logical_bytes": 134592752896,
+      "mtp_logical_bytes": 0,
+      "mtp_tensors": [],
+      "allocated_weight_bytes": 0
+    },
+    {
+      "load_mtp": true,
+      "main_blocks": 80,
+      "all_blocks": 81,
+      "main_tensors": 1278,
+      "main_logical_bytes": 134592752896,
+      "mtp_logical_bytes": 1856718592,
+      "mtp_tensors": [
+        {
+          "name": "blk.80.attn_norm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.attn_q.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.attn_k.weight",
+          "bytes": 4456448
+        },
+        {
+          "name": "blk.80.attn_v.weight",
+          "bytes": 4456448
+        },
+        {
+          "name": "blk.80.attn_output.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.attn_q_norm.weight",
+          "bytes": 512
+        },
+        {
+          "name": "blk.80.attn_k_norm.weight",
+          "bytes": 512
+        },
+        {
+          "name": "blk.80.ffn_norm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.ffn_gate_inp.weight",
+          "bytes": 3145728
+        },
+        {
+          "name": "blk.80.exp_probs_b",
+          "bytes": 768
+        },
+        {
+          "name": "blk.80.ffn_down_exps.weight",
+          "bytes": 679477248
+        },
+        {
+          "name": "blk.80.ffn_gate_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_up_exps.weight",
+          "bytes": 519045120
+        },
+        {
+          "name": "blk.80.ffn_gate_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_up_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.ffn_down_shexp.weight",
+          "bytes": 6684672
+        },
+        {
+          "name": "blk.80.nextn.eh_proj.weight",
+          "bytes": 35651584
+        },
+        {
+          "name": "blk.80.nextn.enorm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.nextn.hnorm.weight",
+          "bytes": 16384
+        },
+        {
+          "name": "blk.80.nextn.shared_head_norm.weight",
+          "bytes": 16384
+        }
+      ],
+      "allocated_weight_bytes": 0
+    }
+  ],
+  "binary_sha256": "cd7264e56876c57168df54a7a4d80839a33151873baf39810a554a1ad851185d",
+  "gguf_header_sha256": "f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9",
+  "mtp_off_skips_all_weights": true
+}

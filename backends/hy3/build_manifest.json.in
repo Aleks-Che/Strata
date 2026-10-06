@@ -1,0 +1,17 @@
+{
+  "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+  "source_revision": "@STRATA_HY3_SOURCE_SHA@",
+  "archive_sha256": "@STRATA_HY3_ARCHIVE_SHA256@",
+  "loader_sha256": "@STRATA_HY3_LOADER_SHA256@",
+  "patches": "@hy3_patch_set@",
+  "compiled_loader_sha256": "@hy3_generated_sha256@",
+  "compiler": "@CMAKE_CXX_COMPILER_ID@",
+  "compiler_version": "@CMAKE_CXX_COMPILER_VERSION@",
+  "generator": "@CMAKE_GENERATOR@",
+  "build_type": "@CMAKE_BUILD_TYPE@",
+  "cuda": @hy3_cuda_json@,
+  "cuda_compiler_version": "@CMAKE_CUDA_COMPILER_VERSION@",
+  "cuda_architectures": "@CMAKE_CUDA_ARCHITECTURES@",
+  "cuda_mmf_generated_sha256": "@hy3_mmf_generated_sha256@",
+  "cuda_dispatch_generated_sha256": "@hy3_dispatch_generated_sha256@"
+}
