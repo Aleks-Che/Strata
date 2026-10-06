@@ -1,0 +1,58 @@
+{
+  "status": "pass",
+  "matrix_count": 948,
+  "charged_bytes": 2642411520,
+  "runs": [
+    {
+      "mode": "individual",
+      "global_before": 3675410432,
+      "global_after": 7684902912,
+      "global_released": 3652407296,
+      "cuda_before": 1852375040,
+      "cuda_after": 5862129664,
+      "allocate_touch_ms": 86.6567,
+      "global_delta_bytes": 4009492480,
+      "cuda_delta_bytes": 4009754624,
+      "cuda_overhead_bytes": 1367343104
+    },
+    {
+      "mode": "arena",
+      "global_before": 3652079616,
+      "global_after": 6285971456,
+      "global_released": 3632156672,
+      "cuda_before": 1852375040,
+      "cuda_after": 4494786560,
+      "allocate_touch_ms": 27.4274,
+      "global_delta_bytes": 2633891840,
+      "cuda_delta_bytes": 2642411520,
+      "cuda_overhead_bytes": 0
+    },
+    {
+      "mode": "individual",
+      "global_before": 3632156672,
+      "global_after": 7642173440,
+      "global_released": 3632418816,
+      "cuda_before": 1852375040,
+      "cuda_after": 5862129664,
+      "allocate_touch_ms": 103.514,
+      "global_delta_bytes": 4010016768,
+      "cuda_delta_bytes": 4009754624,
+      "cuda_overhead_bytes": 1367343104
+    }
+  ],
+  "hardware": "Windows, RTX 5090 32607 MiB, CUDA 13.0, driver 581.80",
+  "scope": "Synthetic allocation-size distribution from full HY3 header, 948 touched allocations vs a single arena; not an inference-speed or production-cache test.",
+  "model_header_sha256": "f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9",
+  "source": "backends/hy3/check_vram_alloc.cpp",
+  "source_sha256": "bf61117f9220b4bb4add01ec5f1ddf53cb10f8cd523c7ac73c1950c63acbe31e",
+  "binary": "build-local/hy3-vram-alloc.exe",
+  "binary_sha256": "c84285368bb81abea3b74dbbcf4095629854a86877d1413b4a869eeb5d1a057d",
+  "command": "cmd /c build-local/check-hy3-vram-alloc.bat",
+  "raw_report": "build-local\\hy3-vram-alloc.json",
+  "raw_sha256": "7e5e6e9781a3da9f7b0e4f2aa04a834502c57937ac94232fb402e2a0ee8d73a3",
+  "caveats": [
+    "Global NVML deltas include external desktop fluctuation; CUDA per-process deltas are diagnostic only, never the global budget guard.",
+    "Allocation/touch time includes global sampling before every allocation and is not an inference throughput result.",
+    "All variants were freed before the following measurement. Global 95% guard retained."
+  ]
+}

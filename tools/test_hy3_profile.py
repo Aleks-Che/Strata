@@ -12,6 +12,24 @@ from serve.test_hy3_http import Tokenizer
 
 
 class ProfileTests(unittest.TestCase):
+    def test_invalid_gpu_allocator_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value in ('', 'pool', 1, None):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',gpu_cache_allocator=value)
+            inspect.assert_not_called()
+    def test_invalid_mtp_scratch_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for shared,depth,placement in ((1,1,'streamed'),(True,0,'streamed'),(True,1,'resident'),(None,1,'streamed')):
+                with self.subTest(shared=shared,depth=depth,placement=placement), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',mtp=depth,mtp_experts=placement,mtp_shared_scratch=shared)
+            inspect.assert_not_called()
+    def test_invalid_mtp_placement_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for placement,depth in (('',1),('auto',1),(None,1),('streamed',0)):
+                with self.subTest(placement=placement,depth=depth), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',mtp=depth,mtp_experts=placement)
+            inspect.assert_not_called()
     def test_invalid_gpu_policy_refused_before_inspection(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
             for value in ('', 'prefill', 1, None):
@@ -110,6 +128,12 @@ class ProfileTests(unittest.TestCase):
                             mtp_cfg=json.loads(mtp_profile.read_text(encoding='utf8'))
                             self.assertEqual(mtp_cfg['args'][-2:],['--mtp',str(depth)])
                             self.assertEqual(mtp_cfg['sampling']['temperature'],0)
+                        streamed=setup.prepare('model',exe,base/'mtp-streamed',mtp=1,mtp_experts='streamed')
+                        args=json.loads(streamed.read_text(encoding='utf8'))['args']
+                        self.assertEqual(args[args.index('--mtp-experts')+1],'streamed')
+                        shared=setup.prepare('model',exe,base/'mtp-shared',mtp=1,mtp_experts='streamed',mtp_shared_scratch=True)
+                        args=json.loads(shared.read_text(encoding='utf8'))['args']
+                        self.assertEqual(args[args.index('--mtp-shared-scratch')+1],'1')
                         self.assertEqual(json.loads(profile.read_text(encoding='utf8')), cfg)
                         for cap in ('auto',8192):
                             ram=setup.prepare('model',exe,base/f'ram{cap}',cache_mib=8192,pipeline_readers=2,mtp=1,ram_cache_mib=cap)
@@ -120,6 +144,9 @@ class ProfileTests(unittest.TestCase):
                         gpu=setup.prepare('model',exe,base/'gpu-decode',cache_mib=11264,ram_cache_mib=65536,gpu_cache_policy='decode')
                         args=json.loads(gpu.read_text(encoding='utf8'))['args']
                         self.assertEqual(args[args.index('--gpu-cache-policy')+1],'decode')
+                        arena=setup.prepare('model',exe,base/'gpu-arena',cache_mib=16384,gpu_cache_allocator='arena')
+                        args=json.loads(arena.read_text(encoding='utf8'))['args']
+                        self.assertEqual(args[args.index('--gpu-cache-allocator')+1],'arena')
 
 
 if __name__ == '__main__':

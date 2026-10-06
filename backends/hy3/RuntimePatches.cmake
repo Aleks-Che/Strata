@@ -24,6 +24,8 @@ function(hy3_runtime_source target relative expected output)
   endif()
   file(READ "${original}" content)
   if(target STREQUAL "ggml-base")
+    string(PREPEND content "#include \"shared_scratch.h\"\n")
+    string(APPEND content "\n#include \"shared_scratch_sched.inc\"\n")
     set(anchor "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {")
     hy3_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n${anchor}\n#include \"gpu_only_audit.inc\"\n    Hy3PlanScope hy3_scope;")
     hy3_replace_once(content "                        prev_ids_tensor = ids_tensor;"
@@ -88,7 +90,12 @@ hy3_runtime_source(llama src/llama-model-loader.cpp
 hy3_runtime_source(llama src/llama-mmap.cpp
   3ca6869dfccbdbbafad0802e1a3d7db52174347d36174a982c1a662d7034b9c6 strata-hy3-mmap.cpp)
 get_property(hy3_runtime_hashes GLOBAL PROPERTY HY3_RUNTIME_HASHES)
-set(cache_dependencies "${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc"
+include(SharedScratchPatches.cmake)
+set(cache_dependencies "${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch_alloc.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch_sched.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/gpu_arena.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/host_cache.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc"
   "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc"
@@ -106,7 +113,7 @@ foreach(dependency IN LISTS cache_dependencies)
   get_filename_component(dependency_name "${dependency}" NAME)
   list(APPEND hy3_runtime_hashes "${dependency_name}:${dependency_hash}")
 endforeach()
-string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy")
+string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy,hy3-gpu-arena,hy3-streamed-mtp,hy3-shared-scratch")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
 target_include_directories(ggml-base PRIVATE "${hy3_source}/vendor")
 target_compile_features(ggml-base PRIVATE cxx_std_17)

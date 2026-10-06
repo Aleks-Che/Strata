@@ -1,0 +1,331 @@
+{
+  "date": "2026-10-06",
+  "status": "resolved in tested scope",
+  "finding": "Intermittent initial synthetic-context logits mismatch also occurred in synchronous mode. Delivered expert bytes remained exact. Later tests using clear(ctx) passed. Reference and pipe requests already cleared KV before first decode, but newly created cached fixture contexts did not.",
+  "repair": "Immediately synchronize and clear KV data after llama_init_from_model, before first decode. Six consecutive212-case runs passed without tolerance changes. Production pipe keeps per-request clear.",
+  "limitation": "The exact lower-level mechanism by which uncleared storage affected outputs has not been fully localized. Repeated passes establish the tested initialization path, not a proof about all backend configurations.",
+  "rejected_hypotheses": "Disabling PDL or fusion did not eliminate failure; both policies remain unchanged in final runtime.",
+  "trials": [
+    {
+      "name": "pipeline-runtime-initial",
+      "report_sha256": "4578012895ddbc483e2bda9e022a1fd08980a3640aaa02fa737ff81c19465c10",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-initial\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "7287fcd43240b1bbcc77f357ffca8510d46a15d4cd0dd7651a0ad840ff3616ff",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-guards",
+      "report_sha256": "2f947bfd77c3d0cbbf7676567f8200b7665518cc0714651bdcaefd3ca70f4b38",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-guards\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "0465624fad267aa9d9f1920d5fdae936c768852507e8b32fff06f53ee4a9ad6a",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-budget",
+      "report_sha256": "0115990977c20fadfc1eaddff2b109a260c694413a4b8783946a036a93f4c3f0",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-budget\\run-report.json",
+      "status": "fail",
+      "binary_sha256": "2cfe3dc2443ac9a175124995e944d13fb8830a9d118263884011c9cf3df8a0c7",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 211,
+      "case_count": 212,
+      "failures": [
+        {
+          "name": "mixed/file_pipe_1_256/logits",
+          "pass": false,
+          "elements": 17472,
+          "max_abs": 0.000754818320274353,
+          "nmse": 7.430618923622927e-07,
+          "bit_exact": false,
+          "exact_required": true
+        }
+      ]
+    },
+    {
+      "name": "pipeline-runtime-diagnostic-1",
+      "report_sha256": "b6947e904360fff9cfbf1651f3ed29865f5d4cba4edd652d187f99fc9ef22c9e",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-diagnostic-1\\run-report.json",
+      "status": "fail",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 210,
+      "case_count": 212,
+      "failures": [
+        {
+          "name": "f32/mmap_cache_8/logits",
+          "pass": false,
+          "elements": 17472,
+          "max_abs": 0.0005061784759163857,
+          "nmse": 5.205076543895109e-07,
+          "bit_exact": false,
+          "exact_required": true,
+          "first_different": 0,
+          "different_values": 17472,
+          "worst_index": 12975,
+          "actual_worst": -0.007712889462709427,
+          "expected_worst": -0.008219067938625813
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/logits",
+          "pass": false,
+          "elements": 17472,
+          "max_abs": 0.000754818320274353,
+          "nmse": 7.430618923622927e-07,
+          "bit_exact": false,
+          "exact_required": true,
+          "first_different": 0,
+          "different_values": 17471,
+          "worst_index": 986,
+          "actual_worst": 0.17836076021194458,
+          "expected_worst": 0.17911557853221893
+        }
+      ]
+    },
+    {
+      "name": "pipeline-runtime-pdl0-1",
+      "report_sha256": "7e17473cc0404d6df06a5db6e9749f367c4e1a9e900a375228dce70f5d5887d3",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-pdl0-1\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": "0",
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-pdl0-2",
+      "report_sha256": "cd246281c71d62ad8f0f2bd2acd68ea31e9d31a7c090baad9ab7604f9d401da3",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-pdl0-2\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": "0",
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-pdl0-stress3",
+      "report_sha256": "75cff10d36ebffb2bb408e5dc79e6c42ef864942326ea08cf5c867bed289354b",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-pdl0-stress3\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": "0",
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-pdl0-stress4",
+      "report_sha256": "f219347a41d2104ae9f66cb96fe3a20b33226c91334fe11414dfd96787413509",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-pdl0-stress4\\run-report.json",
+      "status": "fail",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": "0",
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 211,
+      "case_count": 212,
+      "failures": [
+        {
+          "name": "mixed/mmap_cache_256/logits",
+          "pass": false,
+          "elements": 17472,
+          "max_abs": 0.000754818320274353,
+          "nmse": 7.430618923622927e-07,
+          "bit_exact": false,
+          "exact_required": true,
+          "first_different": 0,
+          "different_values": 17471,
+          "worst_index": 986,
+          "actual_worst": 0.17836076021194458,
+          "expected_worst": 0.17911557853221893
+        }
+      ]
+    },
+    {
+      "name": "pipeline-runtime-no-fusion1",
+      "report_sha256": "19766bab19d564f0200b23e7c84a88951460c9fc3503ce57ace17ae4cfcae56c",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-no-fusion1\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-no-fusion2",
+      "report_sha256": "ff90feb8bdebb14fc8916fc83c54426e163a264c7375589c71d1590ccc99e615",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-no-fusion2\\run-report.json",
+      "status": "pass",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 212,
+      "case_count": 212,
+      "failures": []
+    },
+    {
+      "name": "pipeline-runtime-no-fusion3",
+      "report_sha256": "cc924b7e19d3c9daac845f722d881114d9e62bbe89bf1a12c1cf7380f978127b",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-no-fusion3\\run-report.json",
+      "status": "fail",
+      "binary_sha256": "c8e56bd3d615a78c9261d016ee2f12bb139d425e6cb8205388a096d48a0c3936",
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      },
+      "passed": 211,
+      "case_count": 212,
+      "failures": [
+        {
+          "name": "f32/mmap_cache_256/logits",
+          "pass": false,
+          "elements": 17472,
+          "max_abs": 0.0005056243389844894,
+          "nmse": 5.205618404116674e-07,
+          "bit_exact": false,
+          "exact_required": true,
+          "first_different": 0,
+          "different_values": 17471,
+          "worst_index": 12975,
+          "actual_worst": -0.007712889462709427,
+          "expected_worst": -0.008218513801693916
+        }
+      ]
+    }
+  ],
+  "repair_runs": [
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init1",
+      "exit_code": 0
+    },
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init2",
+      "exit_code": 0
+    },
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init3",
+      "exit_code": 0
+    },
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init4",
+      "exit_code": 0
+    },
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init5",
+      "exit_code": 0
+    },
+    {
+      "path": "build-local/mimo2-validation/pipeline-runtime-kv-init6",
+      "exit_code": 0
+    }
+  ],
+  "excluded_benchmark": {
+    "path": "build-local\\mimo2-validation\\pipeline-final-baseline",
+    "reason": "Interrupted own benchmark process after runtime diagnostic failure; excluded from performance claims and replaced with the measured series after KV initialization fix."
+  },
+  "final_cuda_trace_summary": [
+    {
+      "cancelled": false,
+      "compute_ms": 141.99829530715942,
+      "compute_splits": 142,
+      "h2d_ms": 343.37559509277344,
+      "h2d_submissions": 5364,
+      "overlap_ms": 0.1768035888671875
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 62.36760939657688,
+      "compute_splits": 142,
+      "h2d_ms": 355.394198179245,
+      "h2d_submissions": 4308,
+      "overlap_ms": 0.0
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 17.285048216581345,
+      "compute_splits": 142,
+      "h2d_ms": 83.35540330410004,
+      "h2d_submissions": 1128,
+      "overlap_ms": 0.0
+    },
+    {
+      "cancelled": false,
+      "compute_ms": 17.290498226881027,
+      "compute_splits": 142,
+      "h2d_ms": 51.28968286514282,
+      "h2d_submissions": 1098,
+      "overlap_ms": 0.050445556640625
+    }
+  ],
+  "overlap_interpretation": "CUDA stream event graph intervals contain CPU submission gaps and are not per-kernel occupancy. Final four graphs show small/zero overlaps; two decode graphs show0 and approximately0.050ms. No claim of substantial H2D/SM overlap. Speed improvement is consistent with producer prefetch and reduced synchronous host/driver work, not isolated by this trace."
+}

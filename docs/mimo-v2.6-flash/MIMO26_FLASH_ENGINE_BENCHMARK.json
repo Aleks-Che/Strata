@@ -1,0 +1,4028 @@
+{
+  "status": "pass",
+  "scope": "synchronous GPU pipe baseline, no cache/pipeline/MTP/API",
+  "model": "H:\\models\\mimo-v2.6-flash\\MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf",
+  "model_bytes": 134982426368,
+  "suite": "repeat",
+  "binary_sha256": "5af6f9afe824a3648f7123d5c45f80bc1f102dd1c6fd0c8fa86d6b4af8fd290c",
+  "manifest": {
+    "scope": "MiMo oracles, synthetic CUDA fixtures and optional synchronous selected-expert engine",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "patches": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision,mimo-sync-selected-file-copy-gpu-audit-demand-mmap",
+    "generated_mmf_sha256": "35ce8b9b5c7b6feb651167523d602ed0bad27dec70cb07a8437c67dbc7302975",
+    "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+    "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "runtime": true,
+    "runtime_generated_hashes": "strata-mimo2-backend.cpp:9e77d7f74dce7b09c391c8bd106d8eca28fe772422cba4e2ab085af3504b7f9e;strata-mimo2-loader.cpp:3e42489459ae39a3cc5807a8cc3593451ba06b595492b81dd8efae78bfc98493;strata-mimo2-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558"
+  },
+  "manifest_sha256": "75613c25fac7c97ae793d2b2c758979bb9dae71c2f2798fc5d5b2850cc9fbb52",
+  "modes": [
+    {
+      "mode": "native",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2.exe",
+        "--native",
+        "H:\\models\\mimo-v2.6-flash\\MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf",
+        "--serve",
+        "--max-context",
+        "512",
+        "--batch-size",
+        "8",
+        "--copy-mode",
+        "native",
+        "--logits-file",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\full-repeat\\native\\logits.f32"
+      ],
+      "cases": [
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 16881.2 18277.9 length 0 0 0",
+          "name": "en-repeat-1",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        },
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 6362.37 11947 length 0 0 0",
+          "name": "en-repeat-2",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        },
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 4438.87 11112.3 length 0 0 0",
+          "name": "en-repeat-3",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        }
+      ],
+      "samples": [
+        {
+          "ram_total": 134813700096,
+          "ram_available": 110945169408,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 2643460096
+          },
+          "seconds": 0.0,
+          "process_rss": 121864192,
+          "process_peak_wset": 121868288
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 109780049920,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15233712128
+          },
+          "seconds": 1.0630000000237487,
+          "process_rss": 1249026048,
+          "process_peak_wset": 1249030144
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 106800472064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15232663552
+          },
+          "seconds": 2.125,
+          "process_rss": 4248522752,
+          "process_peak_wset": 4248522752
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 103133999104,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15200157696
+          },
+          "seconds": 3.1880000000237487,
+          "process_rss": 7194144768,
+          "process_peak_wset": 7194148864
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 100680142848,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15200157696
+          },
+          "seconds": 4.25,
+          "process_rss": 9247162368,
+          "process_peak_wset": 9247166464
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 98782121984,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15200157696
+          },
+          "seconds": 5.344000000040978,
+          "process_rss": 12253450240,
+          "process_peak_wset": 12253454336
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 96393785344,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 6.375,
+          "process_rss": 14637973504,
+          "process_peak_wset": 14637977600
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93708587008,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 7.438000000023749,
+          "process_rss": 17330311168,
+          "process_peak_wset": 17330315264
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91062427648,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 8.5,
+          "process_rss": 19936464896,
+          "process_peak_wset": 19936468992
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 88498085888,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 9.563000000023749,
+          "process_rss": 22539280384,
+          "process_peak_wset": 22539284480
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 85738856448,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 10.625,
+          "process_rss": 25301155840,
+          "process_peak_wset": 25301159936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 83240591360,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 11.672000000020489,
+          "process_rss": 27786113024,
+          "process_peak_wset": 27786117120
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 80559837184,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 12.735000000044238,
+          "process_rss": 30481223680,
+          "process_peak_wset": 30481227776
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 78728007680,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 13.75,
+          "process_rss": 32336039936,
+          "process_peak_wset": 32336048128
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 76861231104,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 14.813000000023749,
+          "process_rss": 34189791232,
+          "process_peak_wset": 34189795328
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 75266981888,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 15.875,
+          "process_rss": 35799633920,
+          "process_peak_wset": 35799638016
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 73519177728,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 16.93800000002375,
+          "process_rss": 37552517120,
+          "process_peak_wset": 37552521216
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 71441084416,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 17.985000000044238,
+          "process_rss": 39598108672,
+          "process_peak_wset": 39598112768
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 69491236864,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 19.01600000000326,
+          "process_rss": 41569308672,
+          "process_peak_wset": 41569320960
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 67585015808,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 20.07900000002701,
+          "process_rss": 43456499712,
+          "process_peak_wset": 43456503808
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 66065334272,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 21.14100000000326,
+          "process_rss": 44972265472,
+          "process_peak_wset": 44972273664
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 64363347968,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 22.219000000040978,
+          "process_rss": 46681051136,
+          "process_peak_wset": 46681055232
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 63237316608,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17537433600
+          },
+          "seconds": 23.29700000002049,
+          "process_rss": 47798272000,
+          "process_peak_wset": 47798276096
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 62225997824,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 24.344000000040978,
+          "process_rss": 48792993792,
+          "process_peak_wset": 48793001984
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 61383290880,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 25.42200000002049,
+          "process_rss": 49633832960,
+          "process_peak_wset": 49633964032
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 60437225472,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17537433600
+          },
+          "seconds": 26.45400000002701,
+          "process_rss": 50595540992,
+          "process_peak_wset": 50595545088
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 59814817792,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17537433600
+          },
+          "seconds": 27.54700000002049,
+          "process_rss": 51216650240,
+          "process_peak_wset": 51216654336
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 57881104384,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 28.54700000002049,
+          "process_rss": 51989217280,
+          "process_peak_wset": 51989221376
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 58250940416,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 29.57900000002701,
+          "process_rss": 52393906176,
+          "process_peak_wset": 52393910272
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 57855160320,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 30.594000000040978,
+          "process_rss": 53157171200,
+          "process_peak_wset": 53157175296
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 57476128768,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 31.625,
+          "process_rss": 53529583616,
+          "process_peak_wset": 53529669632
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 56694775808,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 32.625,
+          "process_rss": 54312562688,
+          "process_peak_wset": 54312677376
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 56056545280,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17537433600
+          },
+          "seconds": 33.625,
+          "process_rss": 54779424768,
+          "process_peak_wset": 54779744256
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 55351611392,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17546870784
+          },
+          "seconds": 34.70400000002701,
+          "process_rss": 55357067264,
+          "process_peak_wset": 55357149184
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 54746910720,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 35.71900000004098,
+          "process_rss": 55946563584,
+          "process_peak_wset": 55946575872
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 54222372864,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 36.79700000002049,
+          "process_rss": 56380436480,
+          "process_peak_wset": 56380440576
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 53728972800,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 37.84400000004098,
+          "process_rss": 56840642560,
+          "process_peak_wset": 56840728576
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 53447405568,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 38.90700000000652,
+          "process_rss": 57228251136,
+          "process_peak_wset": 57228255232
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 53131694080,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 39.92200000002049,
+          "process_rss": 57617850368,
+          "process_peak_wset": 57617858560
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52918300672,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 41.0,
+          "process_rss": 57825378304,
+          "process_peak_wset": 57825615872
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52909817856,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 42.06300000002375,
+          "process_rss": 57830084608,
+          "process_peak_wset": 57830088704
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52866883584,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 43.125,
+          "process_rss": 57873199104,
+          "process_peak_wset": 57873203200
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52863303680,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 44.18800000002375,
+          "process_rss": 57885204480,
+          "process_peak_wset": 57885208576
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52848922624,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 45.26600000000326,
+          "process_rss": 57902985216,
+          "process_peak_wset": 57903001600
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52820324352,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 46.32900000002701,
+          "process_rss": 57917521920,
+          "process_peak_wset": 57917530112
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52800983040,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 47.36000000004424,
+          "process_rss": 57927229440,
+          "process_peak_wset": 57927589888
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52824354816,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 48.375,
+          "process_rss": 57926180864,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52829843456,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 49.45400000002701,
+          "process_rss": 57923403776,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52831424512,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 50.51600000000326,
+          "process_rss": 57919254528,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52840796160,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 51.59400000004098,
+          "process_rss": 57917411328,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 51683364864,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 52.65700000000652,
+          "process_rss": 57911308288,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52846989312,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17536385024
+          },
+          "seconds": 53.67200000002049,
+          "process_rss": 57911025664,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52832866304,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17577279488
+          },
+          "seconds": 54.73500000004424,
+          "process_rss": 57907773440,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52795543552,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17598251008
+          },
+          "seconds": 55.73500000004424,
+          "process_rss": 57905381376,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52815671296,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17573085184
+          },
+          "seconds": 56.82900000002701,
+          "process_rss": 57902735360,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52800438272,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17561550848
+          },
+          "seconds": 57.875,
+          "process_rss": 57901584384,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52794937344,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 58.95400000002701,
+          "process_rss": 57896931328,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52807585792,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 60.01600000000326,
+          "process_rss": 57905664000,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52814299136,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17531142144
+          },
+          "seconds": 61.04700000002049,
+          "process_rss": 57925509120,
+          "process_peak_wset": 57927655424
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52800069632,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17569939456
+          },
+          "seconds": 62.125,
+          "process_rss": 57935814656,
+          "process_peak_wset": 57935859712
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52781367296,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17569939456
+          },
+          "seconds": 63.18800000002375,
+          "process_rss": 57945464832,
+          "process_peak_wset": 57945473024
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52851781632,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17579376640
+          },
+          "seconds": 64.21900000004098,
+          "process_rss": 57944338432,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52846120960,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17554210816
+          },
+          "seconds": 65.25,
+          "process_rss": 57939423232,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52838199296,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 66.31300000002375,
+          "process_rss": 57935015936,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52868980736,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 67.375,
+          "process_rss": 57932406784,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52877828096,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 68.43800000002375,
+          "process_rss": 57926791168,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 53008285696,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 69.48500000004424,
+          "process_rss": 57924411392,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52879429632,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17545822208
+          },
+          "seconds": 70.53200000000652,
+          "process_rss": 57920020480,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52786454528,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17545822208
+          },
+          "seconds": 71.54700000002049,
+          "process_rss": 57915449344,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52774453248,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 72.64100000000326,
+          "process_rss": 57911181312,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52755210240,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 73.71900000004098,
+          "process_rss": 57908695040,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52837294080,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 74.81300000002375,
+          "process_rss": 57905651712,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 51656278016,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 75.89100000000326,
+          "process_rss": 57916448768,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52420882432,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 76.90700000000652,
+          "process_rss": 57923829760,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52829528064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 77.93800000002375,
+          "process_rss": 57929031680,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52822220800,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 78.95400000002701,
+          "process_rss": 57938825216,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52819783680,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 79.95400000002701,
+          "process_rss": 57942753280,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52825866240,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 81.03200000000652,
+          "process_rss": 57939800064,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52836126720,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 82.04700000002049,
+          "process_rss": 57931759616,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52842049536,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 83.14100000000326,
+          "process_rss": 57928560640,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52842840064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17544773632
+          },
+          "seconds": 84.21900000004098,
+          "process_rss": 57928343552,
+          "process_peak_wset": 57947078656
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 52844605440,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17545822208
+          },
+          "seconds": 85.29700000002049,
+          "process_rss": 57927520256,
+          "process_peak_wset": 57947078656
+        }
+      ],
+      "info": "INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0 expert_compute=gpu expert_storage=mmap expert_pipeline=0 expert_cache_mib=0 expert_copy=native-reference expert_stage_mib=0 memory_target_percent=95 kv=f32 flash_attention=1 tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645",
+      "load_wall_seconds": 5.5,
+      "error_recovery": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 1,
+        "tokens": [
+          16
+        ],
+        "progress": [
+          8,
+          16,
+          24
+        ],
+        "done": "DONE 1 24 5137.86 9.2689 length 0 0 0"
+      },
+      "cancel": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 8,
+        "tokens": [],
+        "progress": [
+          8
+        ],
+        "done": "DONE 0 24 0 1540.23 cancel 0 0 0"
+      },
+      "cancel_recovery": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 1,
+        "tokens": [
+          16
+        ],
+        "progress": [
+          8,
+          16,
+          24
+        ],
+        "done": "DONE 1 24 4361.49 8.1839 length 0 0 0"
+      },
+      "exit_code": 0,
+      "requests": [
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 16881.1902,
+          "ttft_ms": 16886.7233,
+          "generation_ms": 18277.9115,
+          "request_ms": 35159.1019,
+          "decode_steps": 31,
+          "decode_forward_ms": 18026.064199999997,
+          "decode_tokens_per_second": 1.7197320311330082,
+          "ranges": 47094,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16123232256,
+          "gpu_total": 34190917632,
+          "ram_free": 52923645952,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 6362.3727,
+          "ttft_ms": 6370.0511,
+          "generation_ms": 11946.9635,
+          "request_ms": 18309.3379,
+          "decode_steps": 31,
+          "decode_forward_ms": 11695.3564,
+          "decode_tokens_per_second": 2.650624653046058,
+          "ranges": 47094,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16118448128,
+          "gpu_total": 34190917632,
+          "ram_free": 52790358016,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 4438.8712,
+          "ttft_ms": 4447.6787,
+          "generation_ms": 11112.3014,
+          "request_ms": 15551.1728,
+          "decode_steps": 31,
+          "decode_forward_ms": 10850.3644,
+          "decode_tokens_per_second": 2.8570469024985004,
+          "ranges": 47094,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16115433472,
+          "gpu_total": 34190917632,
+          "ram_free": 52851499008,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 0,
+          "generated": 0,
+          "finish": "error",
+          "prefill_ms": 0.0,
+          "ttft_ms": 0.0,
+          "generation_ms": 2.2038,
+          "request_ms": 2.2039,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 0,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 0,
+          "prefill_h2d_bytes": 0,
+          "decode_h2d_bytes": 0,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 0,
+          "expert_nodes": 0,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 0,
+          "gpu_total": 0,
+          "ram_free": 0,
+          "ram_total": 0
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 1,
+          "finish": "length",
+          "prefill_ms": 5137.8578,
+          "ttft_ms": 5146.9885,
+          "generation_ms": 9.2689,
+          "request_ms": 5147.1268,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 13119,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 52013826048,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 0,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 5154,
+          "expert_nodes": 423,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16115433472,
+          "gpu_total": 34190917632,
+          "ram_free": 52816883712,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 0,
+          "finish": "cancel",
+          "prefill_ms": 0.0,
+          "ttft_ms": 0.0,
+          "generation_ms": 1540.229,
+          "request_ms": 1540.0054,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 4584,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 18499344896,
+          "prefill_h2d_bytes": 0,
+          "decode_h2d_bytes": 18499344896,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 3436,
+          "expert_nodes": 282,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16115433472,
+          "gpu_total": 34190917632,
+          "ram_free": 52828372992,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 1,
+          "finish": "length",
+          "prefill_ms": 4361.4912,
+          "ttft_ms": 4369.565,
+          "generation_ms": 8.1839,
+          "request_ms": 4369.6756,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 13119,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 52013826048,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 0,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 5154,
+          "expert_nodes": 423,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16114057216,
+          "gpu_total": 34190917632,
+          "ram_free": 52823302144,
+          "ram_total": 134813700096
+        }
+      ],
+      "logits_rows": 98,
+      "logits_sha256": "b5ed5d4c51f9035d1f597dc3b67d64adeb52e90a751ed88058b3a71ac27e9b3e"
+    },
+    {
+      "mode": "pinned",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2.exe",
+        "--native",
+        "H:\\models\\mimo-v2.6-flash\\MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf",
+        "--serve",
+        "--max-context",
+        "512",
+        "--batch-size",
+        "8",
+        "--copy-mode",
+        "pinned",
+        "--logits-file",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\full-repeat\\pinned\\logits.f32"
+      ],
+      "cases": [
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 10017.6 25347.2 length 0 0 0",
+          "name": "en-repeat-1",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        },
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 12068.2 28247 length 0 0 0",
+          "name": "en-repeat-2",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        },
+        {
+          "ids": [
+            151644,
+            872,
+            198,
+            2507,
+            504,
+            220,
+            16,
+            311,
+            220,
+            17,
+            15,
+            18663,
+            553,
+            76602,
+            13,
+            5145,
+            7069,
+            13,
+            151645,
+            151644,
+            77091,
+            198,
+            151667,
+            151668
+          ],
+          "requested": 32,
+          "tokens": [
+            16,
+            11,
+            220,
+            17,
+            11,
+            220,
+            18,
+            11,
+            220,
+            19,
+            11,
+            220,
+            20,
+            11,
+            220,
+            21,
+            11,
+            220,
+            22,
+            11,
+            220,
+            23,
+            11,
+            220,
+            24,
+            11,
+            220,
+            16,
+            15,
+            11,
+            220,
+            16
+          ],
+          "progress": [
+            8,
+            16,
+            24
+          ],
+          "done": "DONE 32 24 12048.7 25704.6 length 0 0 0",
+          "name": "en-repeat-3",
+          "text": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1"
+        }
+      ],
+      "samples": [
+        {
+          "ram_total": 134813700096,
+          "ram_available": 110797168640,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 2616197120
+          },
+          "seconds": 0.0,
+          "process_rss": 136323072,
+          "process_peak_wset": 136327168
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 109226749952,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15198060544
+          },
+          "seconds": 1.077999999979511,
+          "process_rss": 522350592,
+          "process_peak_wset": 522354688
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 107403661312,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15236857856
+          },
+          "seconds": 2.1719999999622814,
+          "process_rss": 3493687296,
+          "process_peak_wset": 3493691392
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 104388087808,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15245246464
+          },
+          "seconds": 3.23499999998603,
+          "process_rss": 6494031872,
+          "process_peak_wset": 6494035968
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 101782458368,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15241052160
+          },
+          "seconds": 4.296999999962281,
+          "process_rss": 9389953024,
+          "process_peak_wset": 9389957120
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 98871185408,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 15194914816
+          },
+          "seconds": 5.35999999998603,
+          "process_rss": 12319404032,
+          "process_peak_wset": 12319408128
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 98133794816,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 6.35999999998603,
+          "process_rss": 12646567936,
+          "process_peak_wset": 12646608896
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 97591107584,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 7.421999999962281,
+          "process_rss": 12646428672,
+          "process_peak_wset": 12646608896
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 97113325568,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 8.48499999998603,
+          "process_rss": 12646273024,
+          "process_peak_wset": 12646608896
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 96714158080,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 9.48499999998603,
+          "process_rss": 12667523072,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 96518246400,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 10.562999999965541,
+          "process_rss": 12667396096,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 96267632640,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 11.64100000000326,
+          "process_rss": 12667240448,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 96049803264,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 12.655999999959022,
+          "process_rss": 12667129856,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95869845504,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 13.73499999998603,
+          "process_rss": 12666994688,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95768289280,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 14.780999999959022,
+          "process_rss": 12666888192,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95566782464,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 15.84399999998277,
+          "process_rss": 12666982400,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95405371392,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17535336448
+          },
+          "seconds": 16.905999999959022,
+          "process_rss": 12666884096,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95261233152,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17610833920
+          },
+          "seconds": 17.95299999997951,
+          "process_rss": 12666720256,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95147028480,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17595105280
+          },
+          "seconds": 19.04699999996228,
+          "process_rss": 12666617856,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95101091840,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17575182336
+          },
+          "seconds": 20.07799999997951,
+          "process_rss": 12666494976,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95050395648,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17574133760
+          },
+          "seconds": 21.125,
+          "process_rss": 12666400768,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95004057600,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17574133760
+          },
+          "seconds": 22.155999999959022,
+          "process_rss": 12666298368,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94979207168,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17568890880
+          },
+          "seconds": 23.20299999997951,
+          "process_rss": 12666224640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94935195648,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17564696576
+          },
+          "seconds": 24.26600000000326,
+          "process_rss": 12666068992,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94909865984,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17563648000
+          },
+          "seconds": 25.35999999998603,
+          "process_rss": 12665962496,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94893187072,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 26.42199999996228,
+          "process_rss": 12665868288,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93502980096,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 27.46899999998277,
+          "process_rss": 12665827328,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93629448192,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 28.56299999996554,
+          "process_rss": 12665704448,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93248086016,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17553162240
+          },
+          "seconds": 29.60999999998603,
+          "process_rss": 12665581568,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93224968192,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 30.68799999996554,
+          "process_rss": 12665462784,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93188952064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 31.75,
+          "process_rss": 12665327616,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93153378304,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 32.82799999997951,
+          "process_rss": 12665221120,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93145194496,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 33.92199999996228,
+          "process_rss": 12665110528,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93290938368,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 35.01600000000326,
+          "process_rss": 12665012224,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92388823040,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 36.07799999997951,
+          "process_rss": 12664991744,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93270401024,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 37.07799999997951,
+          "process_rss": 12664918016,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93198352384,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 38.125,
+          "process_rss": 12664827904,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93216288768,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 39.18799999996554,
+          "process_rss": 12664786944,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93207752704,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 40.26600000000326,
+          "process_rss": 12664786944,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93250637824,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 41.31299999996554,
+          "process_rss": 12664844288,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93356597248,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 42.34399999998277,
+          "process_rss": 12664844288,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93490294784,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 43.40599999995902,
+          "process_rss": 12664844288,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93630947328,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 44.43799999996554,
+          "process_rss": 12664844288,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92549636096,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 45.43799999996554,
+          "process_rss": 12664840192,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93689925632,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 46.43799999996554,
+          "process_rss": 12664729600,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93695074304,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17554210816
+          },
+          "seconds": 47.53099999995902,
+          "process_rss": 12664639488,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93708611584,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17547919360
+          },
+          "seconds": 48.625,
+          "process_rss": 12664520704,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93697978368,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 49.625,
+          "process_rss": 12664377344,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93630119936,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 50.65599999995902,
+          "process_rss": 12664283136,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93651472384,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 51.65599999995902,
+          "process_rss": 12664229888,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93642686464,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 52.65599999995902,
+          "process_rss": 12664176640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93012725760,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 53.67199999996228,
+          "process_rss": 12664102912,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92363309056,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 54.67199999996228,
+          "process_rss": 12664025088,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93461352448,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 55.67199999996228,
+          "process_rss": 12663943168,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93346455552,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 56.68799999996554,
+          "process_rss": 12663943168,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93332070400,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17554210816
+          },
+          "seconds": 57.68799999996554,
+          "process_rss": 12663943168,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93300350976,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 58.68799999996554,
+          "process_rss": 12663943168,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93299908608,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 59.75,
+          "process_rss": 12663943168,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93279854592,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17553162240
+          },
+          "seconds": 60.75,
+          "process_rss": 12663881728,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93237194752,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 61.81299999996554,
+          "process_rss": 12663877632,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93177372672,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17532190720
+          },
+          "seconds": 62.85999999998603,
+          "process_rss": 12663758848,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93036015616,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 63.89100000000326,
+          "process_rss": 12663586816,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92970983424,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 64.92199999996228,
+          "process_rss": 12663529472,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92901765120,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 66.0,
+          "process_rss": 12663517184,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92875816960,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 67.01600000000326,
+          "process_rss": 12663484416,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91521880064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 68.09399999998277,
+          "process_rss": 12663435264,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91529850880,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17556307968
+          },
+          "seconds": 69.21899999998277,
+          "process_rss": 12663418880,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91548659712,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17554210816
+          },
+          "seconds": 70.29699999996228,
+          "process_rss": 12663390208,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91664191488,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17548967936
+          },
+          "seconds": 71.34399999998277,
+          "process_rss": 12663316480,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94211112960,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 72.34399999998277,
+          "process_rss": 12663369728,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92668882944,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 73.42199999996228,
+          "process_rss": 12663271424,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92677402624,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17555259392
+          },
+          "seconds": 74.46899999998277,
+          "process_rss": 12663222272,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92659159040,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17561550848
+          },
+          "seconds": 75.53099999995902,
+          "process_rss": 12663152640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92634284032,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17559453696
+          },
+          "seconds": 76.60999999998603,
+          "process_rss": 12663083008,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92660297728,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17545822208
+          },
+          "seconds": 77.65599999995902,
+          "process_rss": 12662996992,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92690649088,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 78.75,
+          "process_rss": 12662878208,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92662906880,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 79.81299999996554,
+          "process_rss": 12662755328,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92662960128,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17538482176
+          },
+          "seconds": 80.84399999998277,
+          "process_rss": 12662669312,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92558643200,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 82.0,
+          "process_rss": 12662640640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92435386368,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 83.04699999996228,
+          "process_rss": 12662640640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92642766848,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 84.14100000000326,
+          "process_rss": 12662640640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92806574080,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 85.15599999995902,
+          "process_rss": 12662640640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93013442560,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 86.21899999998277,
+          "process_rss": 12662640640,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92159574016,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 87.29699999996228,
+          "process_rss": 12662624256,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91678289920,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 88.39100000000326,
+          "process_rss": 12662562816,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93246750720,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17534287872
+          },
+          "seconds": 89.43799999996554,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93254627328,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 90.51600000000326,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93260095488,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 91.51600000000326,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93213118464,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 92.60999999998603,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93114470400,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 93.70299999997951,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93038882816,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17558405120
+          },
+          "seconds": 94.76600000000326,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92991737856,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17560502272
+          },
+          "seconds": 95.79699999996228,
+          "process_rss": 12662501376,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92923084800,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17562599424
+          },
+          "seconds": 96.84399999998277,
+          "process_rss": 12662366208,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92925890560,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17563648000
+          },
+          "seconds": 97.875,
+          "process_rss": 12662292480,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92914868224,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17547919360
+          },
+          "seconds": 98.875,
+          "process_rss": 12662276096,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92928745472,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 99.89100000000326,
+          "process_rss": 12662263808,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93048242176,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 100.92199999996228,
+          "process_rss": 12662132736,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92995387392,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 101.96899999998277,
+          "process_rss": 12662050816,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91916525568,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 103.0,
+          "process_rss": 12661968896,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92483784704,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 104.03099999995902,
+          "process_rss": 12661944320,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93018902528,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 105.09399999998277,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92982026240,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 106.17199999996228,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92846592000,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 107.23499999998603,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92869140480,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 108.23499999998603,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92851175424,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17543725056
+          },
+          "seconds": 109.25,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92815990784,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 110.31299999996554,
+          "process_rss": 12661911552,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92756811776,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 111.375,
+          "process_rss": 12661837824,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92803354624,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 112.375,
+          "process_rss": 12661764096,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 92791422976,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 113.375,
+          "process_rss": 12661645312,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91737284608,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17564696576
+          },
+          "seconds": 114.46899999998277,
+          "process_rss": 12661530624,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91518668800,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17566793728
+          },
+          "seconds": 115.46899999998277,
+          "process_rss": 12661493760,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 91549294592,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17566793728
+          },
+          "seconds": 116.46899999998277,
+          "process_rss": 12661379072,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 93180424192,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17562599424
+          },
+          "seconds": 117.54699999996228,
+          "process_rss": 12661293056,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94922063872,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17545822208
+          },
+          "seconds": 118.59399999998277,
+          "process_rss": 12661133312,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94987345920,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17543725056
+          },
+          "seconds": 119.59399999998277,
+          "process_rss": 12661178368,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94044442624,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 120.64100000000326,
+          "process_rss": 12661047296,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95269912576,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 121.70299999997951,
+          "process_rss": 12660948992,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95464394752,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 122.76600000000326,
+          "process_rss": 12660842496,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95497801728,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 123.82799999997951,
+          "process_rss": 12660731904,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95515852800,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 124.89100000000326,
+          "process_rss": 12660621312,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95534047232,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 125.95299999997951,
+          "process_rss": 12660502528,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95532056576,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 127.0,
+          "process_rss": 12660346880,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95531798528,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 128.06299999996554,
+          "process_rss": 12660191232,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95484694528,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 129.14100000000326,
+          "process_rss": 12660084736,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 94384340992,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 130.2029999999795,
+          "process_rss": 12659961856,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95529607168,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 131.21899999998277,
+          "process_rss": 12659884032,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95566942208,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 132.26600000000326,
+          "process_rss": 12659765248,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95614406656,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 133.29699999996228,
+          "process_rss": 12659654656,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95615852544,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 134.35999999998603,
+          "process_rss": 12659548160,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95621873664,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 135.42199999996228,
+          "process_rss": 12659441664,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95622488064,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 136.48499999998603,
+          "process_rss": 12659310592,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95677935616,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 137.54699999996228,
+          "process_rss": 12659220480,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95651164160,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17533239296
+          },
+          "seconds": 138.60999999998603,
+          "process_rss": 12659097600,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95604817920,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 139.67199999996228,
+          "process_rss": 12658950144,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95595769856,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17542676480
+          },
+          "seconds": 140.68799999996554,
+          "process_rss": 12658827264,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95632179200,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 141.75,
+          "process_rss": 12658720768,
+          "process_peak_wset": 12667559936
+        },
+        {
+          "ram_total": 134813700096,
+          "ram_available": 95588036608,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 17541627904
+          },
+          "seconds": 142.8279999999795,
+          "process_rss": 12658577408,
+          "process_peak_wset": 12667559936
+        }
+      ],
+      "info": "INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0 expert_compute=gpu expert_storage=mmap expert_pipeline=0 expert_cache_mib=0 expert_copy=pinned-file-sync expert_stage_mib=16 memory_target_percent=95 kv=f32 flash_attention=1 tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645",
+      "load_wall_seconds": 5.48499999998603,
+      "error_recovery": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 1,
+        "tokens": [
+          16
+        ],
+        "progress": [
+          8,
+          16,
+          24
+        ],
+        "done": "DONE 1 24 10211.6 9.3008 length 0 0 0"
+      },
+      "cancel": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 8,
+        "tokens": [],
+        "progress": [
+          8
+        ],
+        "done": "DONE 0 24 0 3961.77 cancel 0 0 0"
+      },
+      "cancel_recovery": {
+        "ids": [
+          151644,
+          872,
+          198,
+          2507,
+          504,
+          220,
+          16,
+          311,
+          220,
+          17,
+          15,
+          18663,
+          553,
+          76602,
+          13,
+          5145,
+          7069,
+          13,
+          151645,
+          151644,
+          77091,
+          198,
+          151667,
+          151668
+        ],
+        "requested": 1,
+        "tokens": [
+          16
+        ],
+        "progress": [
+          8,
+          16,
+          24
+        ],
+        "done": "DONE 1 24 9644.93 9.1475 length 0 0 0"
+      },
+      "exit_code": 0,
+      "requests": [
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 10017.6134,
+          "ttft_ms": 10026.1636,
+          "generation_ms": 25347.2342,
+          "request_ms": 35364.8479,
+          "decode_steps": 31,
+          "decode_forward_ms": 25066.329,
+          "decode_tokens_per_second": 1.2367187871825986,
+          "ranges": 47094,
+          "chunks": 47102,
+          "source_bytes": 171100101120,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 25031.325399999783,
+          "h2d_ms": 7489.691000000123,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16126377984,
+          "gpu_total": 34190917632,
+          "ram_free": 93175009280,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 12068.244,
+          "ttft_ms": 12077.9728,
+          "generation_ms": 28246.979,
+          "request_ms": 40315.2232,
+          "decode_steps": 31,
+          "decode_forward_ms": 27894.593999999997,
+          "decode_tokens_per_second": 1.1113264455471195,
+          "ranges": 47094,
+          "chunks": 47102,
+          "source_bytes": 171100101120,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 28938.653500000306,
+          "h2d_ms": 8048.682300000084,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16121593856,
+          "gpu_total": 34190917632,
+          "ram_free": 92662992896,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 32,
+          "finish": "length",
+          "prefill_ms": 12048.7304,
+          "ttft_ms": 12058.4921,
+          "generation_ms": 25704.5576,
+          "request_ms": 37753.2882,
+          "decode_steps": 31,
+          "decode_forward_ms": 25404.3962,
+          "decode_tokens_per_second": 1.2202612396668573,
+          "ranges": 47094,
+          "chunks": 47102,
+          "source_bytes": 171100101120,
+          "h2d_bytes": 171100101120,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 119086275072,
+          "source_ms": 26866.99160000017,
+          "h2d_ms": 7845.090500000103,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 58412,
+          "expert_nodes": 4794,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16116088832,
+          "gpu_total": 34190917632,
+          "ram_free": 94916739072,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 0,
+          "generated": 0,
+          "finish": "error",
+          "prefill_ms": 0.0,
+          "ttft_ms": 0.0,
+          "generation_ms": 0.1059,
+          "request_ms": 0.106,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 0,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 0,
+          "prefill_h2d_bytes": 0,
+          "decode_h2d_bytes": 0,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 0,
+          "expert_nodes": 0,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 0,
+          "gpu_total": 0,
+          "ram_free": 0,
+          "ram_total": 0
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 1,
+          "finish": "length",
+          "prefill_ms": 10211.6318,
+          "ttft_ms": 10220.8464,
+          "generation_ms": 9.3008,
+          "request_ms": 10220.9327,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 13119,
+          "chunks": 13127,
+          "source_bytes": 52013826048,
+          "h2d_bytes": 52013826048,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 0,
+          "source_ms": 7521.278999999961,
+          "h2d_ms": 2201.917899999996,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 5154,
+          "expert_nodes": 423,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16117727232,
+          "gpu_total": 34190917632,
+          "ram_free": 95489916928,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 0,
+          "finish": "cancel",
+          "prefill_ms": 0.0,
+          "ttft_ms": 0.0,
+          "generation_ms": 3961.7742,
+          "request_ms": 3961.3812,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 4584,
+          "chunks": 4590,
+          "source_bytes": 18499344896,
+          "h2d_bytes": 18499344896,
+          "prefill_h2d_bytes": 0,
+          "decode_h2d_bytes": 18499344896,
+          "source_ms": 2956.9569,
+          "h2d_ms": 823.0691999999983,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 3436,
+          "expert_nodes": 282,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16126902272,
+          "gpu_total": 34190917632,
+          "ram_free": 95610630144,
+          "ram_total": 134813700096
+        },
+        {
+          "prompt_tokens": 24,
+          "generated": 1,
+          "finish": "length",
+          "prefill_ms": 9644.9295,
+          "ttft_ms": 9653.9743,
+          "generation_ms": 9.1475,
+          "request_ms": 9654.0772,
+          "decode_steps": 0,
+          "decode_forward_ms": 0.0,
+          "decode_tokens_per_second": 0.0,
+          "ranges": 13119,
+          "chunks": 13127,
+          "source_bytes": 52013826048,
+          "h2d_bytes": 52013826048,
+          "prefill_h2d_bytes": 52013826048,
+          "decode_h2d_bytes": 0,
+          "source_ms": 7042.042799999967,
+          "h2d_ms": 2134.020000000006,
+          "staging_bytes": 16777216,
+          "gpu_nodes": 5154,
+          "expert_nodes": 423,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 16117923840,
+          "gpu_total": 34190917632,
+          "ram_free": 95598477312,
+          "ram_total": 134813700096
+        }
+      ],
+      "logits_rows": 98,
+      "logits_sha256": "b5ed5d4c51f9035d1f597dc3b67d64adeb52e90a751ed88058b3a71ac27e9b3e"
+    }
+  ],
+  "comparisons": [
+    {
+      "pass_": true,
+      "finite": true,
+      "bit_exact": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "elements": 4882432,
+      "name": "en-repeat-1"
+    },
+    {
+      "pass_": true,
+      "finite": true,
+      "bit_exact": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "elements": 4882432,
+      "name": "en-repeat-2"
+    },
+    {
+      "pass_": true,
+      "finite": true,
+      "bit_exact": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "elements": 4882432,
+      "name": "en-repeat-3"
+    }
+  ],
+  "memory_ceiling": 0.95,
+  "memory_sampling_seconds": 1,
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 111039393792,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2648702976
+    }
+  },
+  "parity": "bit-exact logits and greedy IDs",
+  "measurement_note": "Three fresh KV requests per mode, 24 prompt tokens and 32 sampled tokens (31 decode forwards each). Native ran before pinned; OS cache not flushed. This is a diagnostic baseline, not an order-controlled speedup claim. Timings include logits capture to disk."
+}

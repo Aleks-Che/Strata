@@ -1,0 +1,21 @@
+{
+  "scope": "MiMo oracles, synthetic CUDA fixtures and optional synchronous selected-expert engine",
+  "source_revision": "@STRATA_MIMO_SOURCE_SHA@",
+  "archive_sha256": "@STRATA_MIMO_ARCHIVE_SHA256@",
+  "loader_sha256": "@STRATA_MIMO_LOADER_SHA256@",
+  "patches": "@mimo_patch_set@",
+  "generated_mmf_sha256": "@mimo_mmf_generated_sha256@",
+  "generated_dispatch_sha256": "@mimo_dispatch_generated_sha256@",
+  "generated_mmq_sha256": "@mimo_mmq_generated_sha256@",
+  "compiler": "@CMAKE_CXX_COMPILER_ID@",
+  "compiler_version": "@CMAKE_CXX_COMPILER_VERSION@",
+  "generator": "@CMAKE_GENERATOR@",
+  "build_type": "@CMAKE_BUILD_TYPE@",
+  "cuda": @mimo_cuda_json@,
+  "cuda_compiler_version": "@CMAKE_CUDA_COMPILER_VERSION@",
+  "cuda_architectures": "@CMAKE_CUDA_ARCHITECTURES@",
+  "runtime": @mimo_runtime_json@,
+  "speculative_probe": @mimo_spec_json@,
+  "speculative_generated_hashes": "@mimo_spec_hashes@",
+  "runtime_generated_hashes": "@mimo_runtime_hashes@"
+}

@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "command": [
+    "C:\\Users\\Aleks\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "unittest",
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "exit_code": 0,
+  "seconds": 12.17692659999011,
+  "log": "build-local\\hy3-speed13-python-final.log",
+  "log_sha256": "9d8fe600d7d3aa66d34a8de1a5f0a605bb46c6984975bfa3a7d6d0bdd0e3cfa6",
+  "engine_sha256": "7be63e00a3a553063fb8c4172f6dcb373ceff6daa7732dc4a21e8b7c85b26247"
+}

@@ -12,9 +12,12 @@
 Стенд — Windows, 128 ГиБ RAM, RTX 5090 32 ГиБ; целевой глобальный бюджет
 до 95% RAM/VRAM. Существующие профили Qwen, DeepSeek, GLM, Step и Hy3 сохранить.
 
-Это план, а не отчёт о работающей поддержке. Прочитаны локальный GGUF header,
-tensor directory и исходники; генерация MiMo не запускалась.
-Размеры ниже рассчитаны по тензорам, скорость и пиковая память не измерены.
+MIMO-01/02 закрыли compatibility и числовые CUDA fixtures P0.
+MIMO-03/04 добавили GPU baseline и bounded cache на полном GGUF; MIMO-05 —
+асинхронный транспорт и проверку defaults reader1/chunk8. Измеренная прогретая
+скорость pipeline7,053 против sync5,103–5,160 ток/с в контрольной серии.
+Условия, память и ограничения приведены в статусе. Существенный H2D/compute
+overlap, API, сессии и установочный профиль ещё требуют работы.
 **В данном GGUF нет MTP, vision и audio weights.** Рабочий текстовый профиль
 без них — самостоятельный результат; P5/P7 описывают отдельные расширения.
 
@@ -22,7 +25,8 @@ tensor directory и исходники; генерация MiMo не запус�
 
 ### 1.1. Локальный GGUF и происхождение
 
-В каталоге найден один GGUF; split metadata отсутствует.
+При PREP-01 в каталоге был один GGUF; у основного файла split metadata отсутствует.
+В MIMO-06 дополнительно проверены пять MTP/DFlash sidecars, см. P5.
 
 | Параметр | Значение |
 |---|---|
@@ -92,11 +96,12 @@ Q/K norm weights отсутствуют. Router нормализует выбр�
 bias используется для выбора экспертов. `expert_weights_scale` в GGUF отсутствует:
 проверить default loader и не переносить multiplier2,826/3 из Hy3/Step.
 
-Публичный [config Xiaomi для RL](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/main/config.json)
+Закреплённый [config Xiaomi для RL](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/3b38d063180c3e4aed9691fdc735f3d10b266ee4/config.json)
 согласуется с hybrid pattern, разными K/V dimensions, отсутствием shared experts
 и тремя NextN-слоями исходного checkpoint. Последнее **не относится к этому
-экспорту**, где NextN=0. Прочитан `main`; сверку точного source revision
-и conversion mapping необходимо завершить в P0.
+экспорту**, где NextN=0. В MIMO-01 сверены точный source config и файл upstream
+loader: [46 проверок, 0 расхождений](MIMO26_FLASH_REFERENCE_VALIDATION.json).
+Conversion pipeline целиком не проверен, payload не сравнивался с источником.
 
 ### 1.3. Реальные кванты и доставка экспертов
 
@@ -166,18 +171,23 @@ Compact столбец — нижняя оценка payload, **не измер�
 
 Хэши архива, файла внутри архива и двух локальных копий проверены.
 Совпадение одного loader не означает совпадение всех dependency исходников.
-CUDA source содержит MXFP4 MMVQ/MMQ и Flash Attention вариант K192/V128;
-наличие кода не доказывает правильное выполнение на нашем GGUF.
+CUDA source содержит MXFP4 MMVQ/MMQ и Flash Attention вариант K192/V128.
+В MIMO-02 выполнены synthetic numerical checks на RTX5090, включая FA off/on;
+полный GGUF ещё не запускался. Native Blackwell MXFP4 MMQ с FP4-активациями
+не прошёл заданный допуск; выбран точный GPU baseline, см. README backend.
 
 Первый кандидат — этот локальный архив в **новом изолированном build**.
 P0 должен сопоставить его с revision `58367713a6935c0810103378144008df32e3d5db`,
 заявленной издателем, включая loader, converter, router, attention и KV.
-Точный upstream source этой ревизии в ходе подготовки не получен;
-эквивалентность двух pins пока не установлена. Выбрать dependency по проверкам,
+В MIMO-01 получен `src/models/mimo2.cpp` этой ревизии: он совпадает с кандидатом
+байт-в-байт. Эквивалентность converter и всего дерева двух pins не установлена.
+Для CUDA/runtime продолжить выбор dependency по числовым проверкам,
 зафиксировать source/archive/patch hashes; не обновлять общую dependency всех моделей.
 
-Новый backend — `backends/mimo2`, build — `build-local/mimo2-cuda`,
-отдельный профиль/engine `strata-mimo2`. Это предлагаемые имена, файлов ещё нет.
+Созданы [CPU/CUDA checks](../../backends/mimo2/README.md),
+build — `build-local/mimo2-oracles` и `build-local/mimo2-cuda`.
+В MIMO-03 создан отдельный pipe engine `strata-mimo2`; установочный профиль
+и HTTP adapter пока запланированы.
 Патчи TF32, routed strides и CUDA Graphs переносить только после проверки
 применимости к MiMo. Известные проблемы графов Hy3 не доказывают ни наличие,
 ни отсутствие такой же проблемы у MiMo.
@@ -203,25 +213,33 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
 
 ### P0. Формат, loader contract и эталоны
 
-- **P0.1:** постоянный inspector/JSON: metadata, все names/shapes/types/offsets,
+- **P0.1 — DONE (MIMO-01):** постоянный inspector/JSON: metadata, все names/shapes/types/offsets,
   группы памяти, full/SWA pattern, tokenizer/template hashes, source pins.
-  Подготовительное header-чтение выполнено; постоянных MiMo tools пока нет.
-- **P0.2:** строгий contract для text trunk: 48 блоков, dense0/MoE1..47,
+  [Отчёт инспекции](MIMO26_FLASH_INSPECTION.json), payload не читается.
+- **P0.2 — DONE (MIMO-01):** строгий contract для text trunk: 48 блоков, dense0/MoE1..47,
   fused QKV двух форм, 39 sinks, отсутствие shared и NextN tensors,
   `exp_probs_b.bias`, KV heads4/8, K192/V128, RoPE64 и каждый quant type.
   Проверить обязательные веса независимо от `TENSOR_NOT_REQUIRED` loader.
   Negative fixtures: неизвестные metadata, missing/extra tensor, несовпадение
   pattern/shapes, quant row geometry, duplicate/overlap/truncated/64-bit ranges.
-- **P0.3:** изолированная сборка, manifest source/compiler/CUDA/flags/patches;
+- **P0.3 — DONE, CPU (MIMO-01):** изолированная сборка, manifest source/compiler/CUDA/flags/patches;
   vocabulary-only, template и no-allocation loader oracles. Регистрация должна
   покрывать все 472 tensors, не добавлять MTP и shared-expert placeholders.
-- **P0.4:** числовые CUDA fixtures для Q2_K/Q3_K/MXFP4 и BF16/F32 matmuls:
+  [Сборка](MIMO26_FLASH_BUILD_VALIDATION.json),
+  [регистрация 472 тензоров при load_mtp=false/true](MIMO26_FLASH_LOADER_VALIDATION.json).
+- **P0.4 — DONE (MIMO-02):** числовые CUDA fixtures для Q2_K/Q3_K/MXFP4 и BF16/F32 matmuls:
   dense, routed batch1/multitoken, sigmoid+bias/top-8/normalization,
   разные strides gate/up/down и repeated expert IDs. Проверить TF32 policy.
-- **P0.5:** tiny full+SWA graph: fused QKV offsets, partial NeoX RoPE,
+  [96/96 PASS](MIMO26_FLASH_CUDA_KERNELS_VALIDATION.json); synthetic K512/M64,
+  experts256/top-8. Закреплены TF32/F32, routed strides и MXFP4 precision policies.
+- **P0.5 — DONE (MIMO-02):** tiny full+SWA graph: fused QKV offsets, partial NeoX RoPE,
   scale `1/sqrt(192)`, value scale0,707, sinks, masks, KV4/8.
   Сравнить с CPU/F32 oracle при FA off/on, если конкретный путь поддерживается.
   Обязательны позиции127/128/129 и255/256/257, prefill/decode и rollback.
+  [132/132 PASS](MIMO26_FLASH_CUDA_GRAPH_VALIDATION.json): 3 блока, hidden256,
+  experts16/top-8; реальные heads64, KV4/8, K192/V128. F32 и mixed-quants,
+  CPU/F32 dequantized oracle, FA off/on, SWA eviction и state restore.
+  CUDA Graphs/reuse отключены. Это проверка synthetic graph, не полного engine.
 
 **Готово:** воспроизводимые contract/oracles и числовые fixtures.
 Наличие parser и llama architecture entry само по себе P0 не закрывает.
@@ -243,6 +261,13 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
   KV allocation и резерв под ubatch до увеличения expert cache.
 
 **Готово:** корректный full-model baseline и проверяемый отчёт на этом ПК.
+
+**MIMO-03: выполнено для context512, batch8, F32 KV, FA on и greedy.**
+Два синхронных copy режима совпали побитно на6 случаях корпуса (включая249-token
+prompt через SWA128) и3 повторах по32 токена. Проверены cancel/error→fresh,
+GPU-only audit, EOF/ranges и unload. Результаты и ограничения измерений —
+[статус MIMO-03](MIMO26_FLASH_IMPLEMENTATION_STATUS.md).
+API, большой контекст, cache/pipeline и tuning не входят в этот baseline.
 Не объявлять tokens/s по скоростям отдельного kernel или другого checkpoint.
 
 ### P2. Tokenizer, reasoning, tools и API
@@ -252,10 +277,15 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
   Получить полный EOG-набор через oracle; не копировать stop IDs из другой модели
   и не считать наличие audio tokens поддержкой audio. Проверить UTF-8,
   special-token escaping, exact IDs и обратную сборку token pieces.
+  **MIMO-01: IDs/bytes PASS 614/614.** Изолирована native-нормализация `</s>`;
+  BOS11 не вставляется. Полный EOG записан в отчёте. В MIMO-03 runtime
+  останавливается только по EOS151645; BOS/PAD/FIM и `</s>` не останавливают ответ.
 - **P2.2:** сохранить и воспроизвести **встроенный** Jinja template.
   `enable_thinking=false` даёт prefix `<think></think>`; проверить default
   thinking, `reasoning_content` в history, system/tools и tool messages.
   Template SHA-256: `11ea52e156de38a458e6b7720ad45915d65b97d4ec979a09f55e3c9bd1b4d059`.
+  **MIMO-01: raw Jinja/template tokens PASS 85/85.** HTTP-нормализация arguments,
+  потоковый parser и полный tool round-trip ещё не реализованы.
 - **P2.3:** потоковый parser для `<think>`, `<tool_call><function=NAME>`,
   `<parameter=KEY>VALUE</parameter>` и закрывающих тегов. Строковые arguments
   в template выводятся иначе, чем mapping: задать явную нормализацию API.
@@ -272,6 +302,20 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
 проверены на текстовых диалогах, reasoning и tool continuation.
 
 ### P3. Кэши и конвейер STRATA
+
+**MIMO-05: P3.1 и транспорт P3.2 проверены; P3 целиком остаётся IN PROGRESS.**
+Добавлены bounded LRU, mixed-quants byte audit, reuse allocations, file/mmap,
+decode-only admission, ограничение working set и async reader/H2D ring с events.
+Проверены23 cache ownership cases и212 runtime cases, полный corpus/повторы
+с bit-exact transport parity. История замеров и defaults — в
+[статусе](MIMO26_FLASH_IMPLEMENTATION_STATUS.md). CUDA trace показывает небольшой
+overlap; существенное перекрытие H2D/compute, pressure и широкий benchmark TODO.
+
+Разбор от2026-10-07: [перенос оптимизаций GLM/Step/DeepSeek](MIMO26_FLASH_OPTIMIZATION_TRANSFER_REVIEW.md).
+Ближайшие отдельные опыты без MTP: slabs для уменьшения2-МиБ округления каждой
+матрицы, tensor-batched delivery, затем frequency admission. Allocation reuse
+и prefill hits уже реализованы. Числа других моделей не являются обещанием
+ускорения MiMo; новые defaults требуют собственного A/B и byte/logits parity.
 
 - **P3.1:** matrix key с model generation/layer/tensor/expert/type, byte-budget
   по реальным allocations. Mixed-format cache, pin активных entries,
@@ -314,7 +358,7 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
 **Готово:** заявленные контексты и сессии корректны при restore/shift/cancel;
 1M metadata не выдаётся за проверенную возможность профиля.
 
-### P5. MTP — дополнительный этап, нужны отдельные веса
+### P5. MTP / DFlash — дополнительный этап с отдельными весами
 
 **Текущий GGUF не позволяет включить native MTP:** `nextn_predict_layers=0`,
 нет NextN tensors и блоков≥48. Наличие `graph_mtp` в llama.cpp этого не меняет.
@@ -323,8 +367,11 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
 - **P5.1:** найти или отдельно экспортировать MTP из совместимой **RL** source
   revision; проверить checksum, tokenizer, hidden/output norms, layer mapping,
   shared embedding/head, draft attention/FFN и quantization. Публичный config
-  описывает три NextN, но совместимый sidecar пока не выбран и не проверен.
-  Не подключать draft от MOPD/V2 только потому, что совпадает архитектурное имя.
+  описывает три NextN. В MIMO-06 найдены3 native MTP и2 DFlash MOPD sidecars;
+  header/ranges/tokenizer/full SHA проверены. DFlash weights в официальных RL/MOPD
+  имеют одинаковые LFS hashes, но embedding/head локальных sidecars отличаются
+  от target RL. Проверять acceptance и target parity, а не только имя архитектуры.
+  Отчёты: `MIMO26_FLASH_DRAFT_INSPECTION.json`, `MIMO26_FLASH_DRAFT_RESEARCH.json`.
 - **P5.2:** отдельное размещение активных draft heads, без второй копии trunk;
   граф и hidden-state boundary сверить с oracle. По локальному коду MiMo
   передаёт hidden до final output norm — не переносить post-norm контракт Hy3.
@@ -339,7 +386,16 @@ P0 должен сопоставить его с revision `58367713a6935c0810103
   и H2D bytes на output token, а не только acceptance rate.
 
 **Готово для MTP:** совместимые веса, correctness и локально измеренный выигрыш.
-До этого сохраняется текстовый профиль без MTP; отсутствие sidecar не блокирует P0–P4/P6.
+До этого сохраняется текстовый профиль без MTP. Offline probe из MIMO-06 —
+инструмент сравнения, не завершение P5 и не serving-интеграция. DFlash требует
+собственного learned MASK, target features1/12/24/36/48, partial RoPE64, sinks
+и value scale0.612. Сначала проверить пакетное вычисление target относительно
+последовательного baseline; не объяснять любое расхождение только квантом draft.
+
+На локальном корпусе MIMO-06 без draft получено6,13 ток/с, лучший проверенный
+draft — MTP Q4 head0/cutoff0.7 —5,55 ток/с. Выигрыш не подтверждён; общий
+quality gate не пройден из-за расхождения batched target. Условия и все варианты:
+[сравнение MTP/DFlash](MIMO26_FLASH_SPECULATIVE_COMPARISON.md).
 
 ### P6. Установка, замеры и рекомендуемые настройки
 
@@ -372,7 +428,10 @@ P7 не входит в критерий готовности текущего �
 
 ## 5. Исходные настройки эксперимента
 
-Это предполагаемые параметры будущего backend; готового CLI MiMo пока нет.
+CLI MiMo уже существует: context512/batch8, F32 KV, FA on, greedy и GPU cache.
+Ниже сохранены исходные параметры экспериментов; context2K/4K ещё не принят.
+Bounded pipeline проверен, существенный compute overlap ещё предстоит получить.
+Текущие defaults и их проверки описаны в статусе и backend README.
 
 | Параметр | Начало / варианты |
 |---|---|
@@ -380,9 +439,9 @@ P7 не входит в критерий готовности текущего �
 | Context | 2048 baseline, 4096 рабочий кандидат, затем8192 |
 | KV / FA / CUDA Graphs | F32 / off / off для эталона; варианты включать после parity |
 | Sampler | temperature0 для correctness; затем1,0/top_p0,95 по GGUF |
-| GPU expert cache | 0 для sync baseline; cap8/12/16 ГиБ после memory audit |
+| GPU expert cache | 0 для reference;8/12 ГиБ и увеличенный cap с runtime clamp проверены в MIMO-04 |
 | RAM cache | Динамический cap после вычета ОС, других процессов и transient buffers |
-| Pipeline | reader1, chunk8 МиБ как старт; затем readers1/2 и chunks4/8/16 |
+| Pipeline | Default reader1/chunk8 по замерам MIMO-05; readers1/2 проверены, chunks4/16 пока только fixtures |
 | Prefix/session reuse | off для первого A/B |
 | Global memory target | До95% RAM/VRAM с дополнительным резервом на пики |
 
@@ -394,7 +453,8 @@ P7 не входит в критерий готовности текущего �
 
 ## 6. Карта файлов и порядок работ
 
-Ниже **предлагаемые**, ещё не созданные MiMo-specific файлы.
+Inspector, contract, CPU oracles, CUDA kernel/graph checks и их tests уже созданы.
+Engine уже создан; API/setup в таблице пока запланированы.
 
 | Область | Файлы |
 |---|---|
@@ -406,16 +466,18 @@ P7 не входит в критерий готовности текущего �
 | Отчёты | `docs/mimo-v2.6-flash/MIMO26_FLASH_INSPECTION.json`, validation/benchmark reports |
 
 Порядок: **P0 → P1 → P2/P3 → P4 → P6**. P2.1 можно делать в P0;
-P5 и P7 требуют отдельных артефактов. Ближайший результат — inspector,
-строгий contract и vocabulary-only/no-allocation oracles, затем CUDA fixtures.
+MIMO-06 добавляет отдельное сравнение пяти MTP/DFlash sidecars. Следующая задача —
+**MIMO-07: проверить batched target parity**, затем уменьшать D2D/fences и проверять
+H2D/compute overlap; отдельно P2 API. P7 требует modality companions.
 
 ## 7. Контроль завершения
 
-- [ ] Локальный файл принят строгим contract; dependency и patches закреплены.
-- [ ] GPU baseline совпадает с oracle, включая переходы SWA128.
+- [x] Локальный файл принят строгим contract; CPU dependency и отдельные CUDA/runtime patches закреплены.
+- [x] GPU baseline совпадает с native selected-copy reference, включая SWA128 (context512/greedy).
 - [ ] Tokenizer/template, reasoning, tools, оба HTTP API и веб-чат проверены.
-- [ ] Mixed-quants cache/pipeline корректны, память ограничена, эффект измерен.
+- [x] Mixed-quants cache/pipeline: bytes/logits parity, bounded memory, cancel/error/drain и прирост на повторном prompt проверены (context512).
+- [ ] Существенный compute overlap, длительный pressure stress и производительность на разных темах подтверждены.
 - [ ] Restore/shift/cancel/reload и заявленные контексты прошли проверку.
 - [ ] Есть отдельный профиль, замеры defaults и регрессии других моделей.
-- [ ] Дополнительно: MTP только после получения совместимых весов и P5.
+- [ ] Дополнительно: MTP/DFlash после quality parity, полезного speedup и serving lifecycle P5.
 - [ ] Дополнительно: мультимодальность только после P7.

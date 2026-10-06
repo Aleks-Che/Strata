@@ -13,6 +13,11 @@
 using json = nlohmann::ordered_json;
 using namespace hy3;
 using Floats = std::vector<float>;
+static bool test_arena=false;
+static void configure_test_cache(llama_model *model,size_t cap) {
+    strata_hy3_gpu_cache_allocator(test_arena);
+    hy3::configure_cache(model,cap);
+}
 static json stats() {
     const auto s = strata_hy3_sync_snapshot();
     return {{"source_bytes",s.source_bytes},{"h2d_bytes",s.h2d_bytes},{"ranges",s.ranges},
@@ -217,7 +222,7 @@ static void cache_checks(json & cases,const std::filesystem::path & directory) {
         strata_hy3_sync_release();strata_hy3_sync_mode(2);
         auto model=load(path,false,false,true);auto ctx=context(model.get(),2048,batch);
         const auto reference=run(ctx.get(),19,batch);
-        configure_cache(model.get(),64<<20);
+        configure_test_cache(model.get(),64<<20);
         Observer observer;strata_hy3_sync_observer(Observer::copy,&observer);
         strata_hy3_sync_reset();cases.push_back(compare(name+"/cold_exact",run(ctx.get(),19,batch),reference));
         auto cold=strata_hy3_sync_snapshot();
@@ -230,19 +235,19 @@ static void cache_checks(json & cases,const std::filesystem::path & directory) {
             {"cold_h2d_bytes",cold.h2d_bytes},{"warm_h2d_bytes",warm.h2d_bytes},{"warm_d2d_bytes",warm.d2d_bytes},
             {"cache_bytes",warm.cache_bytes},{"hits",warm.cache_hits}});
         // Same pointers after a new generation must never hit previous entries.
-        configure_cache(model.get(),64<<20);strata_hy3_sync_reset();
+        configure_test_cache(model.get(),64<<20);strata_hy3_sync_reset();
         cases.push_back(compare(name+"/new_generation_exact",run(ctx.get(),19,batch),reference));
         auto fresh=strata_hy3_sync_snapshot();
         cases.push_back({{"name",name+"/generation_invalidates"},{"pass",fresh.cache_generation!=warm.cache_generation &&
             fresh.cache_misses==cold.cache_misses && fresh.h2d_bytes==cold.h2d_bytes}});
-        configure_cache(model.get(),1<<20);strata_hy3_sync_reset();
+        configure_test_cache(model.get(),1<<20);strata_hy3_sync_reset();
         cases.push_back(compare(name+"/eviction_exact",run(ctx.get(),19,batch),reference));
         auto tiny=strata_hy3_sync_snapshot();
         cases.push_back({{"name",name+"/bounded_eviction"},{"pass",tiny.cache_evictions>0 && tiny.cache_reuses>0 &&
             tiny.cache_bytes<=1<<20},{"evictions",tiny.cache_evictions},{"reuses",tiny.cache_reuses}});
         strata_hy3_sync_observer(nullptr,nullptr);
         for(bool fill:{false,true}) {
-            configure_cache(model.get(),64<<20);strata_hy3_sync_reset();
+            configure_test_cache(model.get(),64<<20);strata_hy3_sync_reset();
             strata_hy3_test_limits limits;
             limits.fail_next_cache_allocation=!fill;limits.fail_next_cache_fill=fill;
             strata_hy3_test_set_limits(limits);
@@ -257,14 +262,14 @@ static void cache_checks(json & cases,const std::filesystem::path & directory) {
             cases.push_back(compare(name+(fill ? "/fill_recovery" : "/oom_recovery"),run(ctx.get(),19,batch),reference));
         }
         for(bool fail_read:{true,false}) {
-            configure_cache(model.get(),64<<20);InterruptedCopy test(fail_read);
+            configure_test_cache(model.get(),64<<20);InterruptedCopy test(fail_read);
             strata_hy3_sync_observer(InterruptedCopy::copy,&test);
             if(!fail_read) strata_hy3_sync_cancel(&test.cancel);
             bool refused=false;try {run(ctx.get(),19,batch);}catch(const std::runtime_error &) {refused=true;}
             test.restore();require(refused && test.uploaded>0,"cache partial failure not exercised");
             cases.push_back(compare(name+(fail_read ? "/read_recovery" : "/cancel_recovery"),run(ctx.get(),19,batch),reference));
         }
-        configure_cache(model.get(),64<<20);run(ctx.get(),19,batch);
+        configure_test_cache(model.get(),64<<20);run(ctx.get(),19,batch);
         for(bool ram:{true,false}) {
             strata_hy3_test_limits limits;
             if(ram) limits.ram_available=0;else limits.gpu_available=0;
@@ -287,7 +292,7 @@ static void pipeline_checks(json & cases,const std::filesystem::path & directory
         auto model=load(path,false,false,true);auto ctx=context(model.get(),2048,batch);
         const auto reference=run(ctx.get(),19,batch);
         auto configure=[&](size_t cap=64<<20,int trace=0) {
-            configure_cache(model.get(),cap);strata_hy3_pipeline_config(readers,4,trace,batch_copy);strata_hy3_sync_reset();
+            configure_test_cache(model.get(),cap);strata_hy3_pipeline_config(readers,4,trace,batch_copy);strata_hy3_sync_reset();
         };
         configure();Observer observer;strata_hy3_sync_observer(Observer::copy,&observer);
         cases.push_back(compare(name+"/cold_exact",run(ctx.get(),19,batch),reference));
@@ -331,7 +336,7 @@ static void pipeline_checks(json & cases,const std::filesystem::path & directory
         cases.push_back({{"name",name+"/real_readfile_error_drained"},{"pass",refused && !failed.pipeline_queued && !failed.pipeline_reader_owned}});
         cases.push_back(compare(name+"/reader_error_auto_recovery",run(ctx.get(),19,batch),reference));
         for(bool fill:{false,true}) {
-            configure_cache(model.get(),64<<20);strata_hy3_test_limits limits;
+            configure_test_cache(model.get(),64<<20);strata_hy3_test_limits limits;
             if(fill) limits.fail_next_cache_fill=true;else limits.fail_pipeline_submission_after=2;
             strata_hy3_test_set_limits(limits);strata_hy3_pipeline_config(readers,4,0,batch_copy);strata_hy3_sync_reset();
             refused=false;try {run(ctx.get(),19,batch);}catch(const std::runtime_error &) {refused=true;}
@@ -381,7 +386,7 @@ static void pipeline_checks(json & cases,const std::filesystem::path & directory
     strata_hy3_sync_mode(2);
     auto model=load((directory/"hy3-wide.gguf").string(),false,false,true);auto ctx=context(model.get(),2048,1);
     const auto reference=run(ctx.get(),3,1);
-    configure_cache(model.get(),1<<20);strata_hy3_pipeline_config(1,4,0,batch_copy);strata_hy3_sync_reset();
+    configure_test_cache(model.get(),1<<20);strata_hy3_pipeline_config(1,4,0,batch_copy);strata_hy3_sync_reset();
     Observer observer;strata_hy3_sync_observer(Observer::copy,&observer);
     cases.push_back(compare(batch_copy?"tensor_batch/wide_multichunk_exact":"pipeline/wide_multichunk_exact",run(ctx.get(),3,1),reference));
     strata_hy3_sync_release();
@@ -409,7 +414,7 @@ static void delivery_profile_checks(json & cases,const std::filesystem::path & d
     const auto reference=run(ctx.get(),19,17);
     for(bool batch:{false,true}) for(bool enabled:{false,true}) {
         const auto name=std::string("delivery_profile/batch=")+(batch?"1":"0")+"/enabled="+(enabled?"1":"0");
-        strata_hy3_delivery_profile(enabled);configure_cache(model.get(),1<<20);
+        strata_hy3_delivery_profile(enabled);configure_test_cache(model.get(),1<<20);
         strata_hy3_pipeline_config(2,4,0,batch);strata_hy3_sync_reset();
         cases.push_back(compare(name+"/exact",run(ctx.get(),19,17),reference));
         const auto s=strata_hy3_sync_snapshot();
@@ -436,7 +441,7 @@ static void host_cache_checks(json &cases,const std::filesystem::path &directory
         const auto reference=run(ctx.get(),19,batch);
         // No matrix fits in the tiny GPU cache; every selected copy exercises
         // the RAM tier while retaining the normal pipeline/scheduler path.
-        configure_cache(model.get(),1024);strata_hy3_ram_cache_config(64<<20,frequency);
+        configure_test_cache(model.get(),1024);strata_hy3_ram_cache_config(64<<20,frequency);
         strata_hy3_pipeline_config(readers,4,0,readers==2);
         strata_hy3_sync_reset();Observer observer;strata_hy3_sync_observer(Observer::copy,&observer);
         if(frequency) {
@@ -473,7 +478,7 @@ static void host_cache_checks(json &cases,const std::filesystem::path &directory
             warm.ram_cache_hit_bytes==warm.h2d_bytes && observer.bytes==warm.h2d_bytes && !warm.ram_cache_pending},
             {"verified_gpu_bytes",observer.bytes},{"ram_bytes",warm.ram_cache_bytes}});
         strata_hy3_sync_observer(nullptr,nullptr);
-        configure_cache(model.get(),1024);
+        configure_test_cache(model.get(),1024);
         cases.push_back({{"name",name+"/new_generation_clears_ram"},{"pass",!strata_hy3_sync_snapshot().ram_cache_bytes}});
         strata_hy3_sync_release();
     }
@@ -485,7 +490,7 @@ static void gpu_prefill_policy_checks(json &cases,const std::filesystem::path &d
         strata_hy3_sync_release();strata_hy3_sync_mode(2);
         auto model=load((directory/(mixed?"hy3-mixed.gguf":"hy3-f32.gguf")).string(),false,false,true);
         auto ctx=context(model.get(),2048,batch);const auto reference=run(ctx.get(),19,batch);
-        configure_cache(model.get(),64<<20);strata_hy3_gpu_cache_policy(false);
+        configure_test_cache(model.get(),64<<20);strata_hy3_gpu_cache_policy(false);
         if(ram)strata_hy3_ram_cache_config(8<<20);
         strata_hy3_pipeline_config(readers,4,0,readers==2);
         Observer observer;strata_hy3_sync_observer(Observer::copy,&observer);
@@ -516,7 +521,9 @@ int main(int argc,char ** argv) {
         const bool reference_only=argc==3 && std::string(argv[2])=="--reference-probe";
         const bool graph_history=argc==3 && std::string(argv[2])=="--history-graphs-probe";
         const bool history_only=graph_history || (argc==3 && std::string(argv[2])=="--history-probe");
-        require(argc==2 || reference_only || history_only,"usage: strata-hy3-runtime-check NEW_DIRECTORY [--reference-probe|--history-probe|--history-graphs-probe]");directory=argv[1];
+        test_arena=argc==3 && std::string(argv[2])=="--arena";
+        report["gpu_cache_allocator"]=test_arena?"arena":"individual";
+        require(argc==2 || reference_only || history_only || test_arena,"usage: strata-hy3-runtime-check NEW_DIRECTORY [--reference-probe|--history-probe|--history-graphs-probe|--arena]");directory=argv[1];
         require(!std::filesystem::exists(directory),"directory must be new");
         require(std::filesystem::create_directories(directory),"cannot create output directory");created=true;
         environment();

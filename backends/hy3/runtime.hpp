@@ -34,9 +34,9 @@ inline bool expert(const std::string & name) {
     const std::string suffix = "_exps.weight";
     return name.size() >= suffix.size() && name.compare(name.size()-suffix.size(), suffix.size(), suffix) == 0;
 }
-inline Model load(const std::string & path, bool resident = false, bool cpu_embedding = false, bool fixture = false, bool mtp = false) {
+inline Model load(const std::string & path, bool resident = false, bool cpu_embedding = false, bool fixture = false, bool mtp = false, bool stream_mtp = false) {
     const auto contract=inspect(path,fixture);
-    strata_hy3_memory_check(contract.fixed_bytes+(resident ? contract.routed_bytes : 0)+(mtp ? contract.mtp_bytes : 0));
+    strata_hy3_memory_check(contract.fixed_bytes+(resident ? contract.routed_bytes : 0)+(mtp ? contract.mtp_bytes-(stream_mtp ? contract.mtp_routed_bytes : 0) : 0));
     auto * gpu = ggml_backend_dev_by_name("CUDA0"), * cpu = ggml_backend_dev_by_name("CPU");
     require(gpu && cpu, "CUDA0 and CPU storage backends required");
     ggml_backend_dev_t devices[] = {gpu, nullptr};
@@ -46,7 +46,17 @@ inline Model load(const std::string & path, bool resident = false, bool cpu_embe
         {mtp_pattern.c_str(), ggml_backend_dev_buffer_type(gpu)},
         {"^blk\\.[0-9]+\\.ffn_(gate|up|down)_exps\\.weight$", ggml_backend_dev_buffer_type(cpu)},
         {nullptr, nullptr}};
-    if (resident) overrides[2] = {nullptr, nullptr};
+    // First matching override wins. Draft dense weights remain on GPU; only
+    // its routed matrices join the same host source and cache as the target.
+    if (stream_mtp) {
+        overrides[1]=overrides[2];
+        if(resident) {
+            static thread_local std::string draft_experts;
+            draft_experts=mtp_pattern+"ffn_(gate|up|down)_exps\\.weight$";
+            overrides[1]={draft_experts.c_str(),ggml_backend_dev_buffer_type(cpu)};
+        }
+        overrides[2]={nullptr,nullptr};
+    } else if (resident) overrides[2] = {nullptr, nullptr};
     auto mp = llama_model_default_params();
     mp.devices = devices; mp.tensor_buft_overrides = overrides; mp.n_gpu_layers = -1;
     mp.split_mode = LLAMA_SPLIT_MODE_NONE; mp.load_mtp = mtp; mp.use_extra_bufts = false;
@@ -62,7 +72,7 @@ inline Model load(const std::string & path, bool resident = false, bool cpu_embe
         if (expert(entry.first)) {
             ++expert_count;
             const bool draft=entry.first.rfind("blk."+std::to_string(contract.blocks-1)+".",0)==0;
-            require(host != (resident || draft), "wrong expert placement: " + entry.first);
+            require(host != (draft ? !stream_mtp : resident), "wrong expert placement: " + entry.first);
         } else if (!(cpu_embedding && entry.first == "token_embd.weight")) {
             require(!host, "non-routed weight remained on CPU: " + entry.first);
         }
@@ -97,7 +107,7 @@ inline Context context(llama_model * model, int size = 2048, int batch = 17, ggm
 inline void configure_cache(llama_model * model,size_t cap) {
     strata_hy3_cache_begin(cap);
     if(cap) for(const auto & entry:model->tensors_by_name)
-        if(expert(entry.first) && ggml_backend_buffer_is_host(entry.second->buffer)) strata_hy3_cache_register(entry.second);
+        if(expert(entry.first) && ggml_backend_buffer_is_host(entry.second->buffer)) strata_hy3_cache_register(entry.second,entry.first.rfind("blk."+std::to_string(model->hparams.n_layer())+".",0)==0);
 }
 inline void decode(llama_context * ctx, const std::vector<llama_token> & tokens,
                    size_t begin, int count, int position, bool all_logits = false) {

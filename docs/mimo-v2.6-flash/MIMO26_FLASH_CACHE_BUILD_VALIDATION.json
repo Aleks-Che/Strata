@@ -1,0 +1,109 @@
+{
+  "status": "pass",
+  "date": "2026-10-06",
+  "timezone": "Asia/Yekaterinburg",
+  "scope": "MIMO-04 synchronous bounded GPU cache; no async pipeline/API/MTP",
+  "base_commit": "819ad130f49d1e088e2fbc50e1e4f5c681e1e390",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.7",
+  "workspace_note": "Existing Hy3/Step work preserved. Common expert_file/device_memory/GLM host_pages reused without edits. No commits or archive/_deps changes.",
+  "source_sha256": {
+    "backends/mimo2/build_manifest.json.in": "8ad9f43358d32a23a9ba80ea97fcae8aae50217a861a03087d5013a3566ee7c2",
+    "backends/mimo2/check_allocation.cpp": "a853884b2eadf045f307b8c3ad68718598df9b420dfebd68bf69ec4b2e790dd7",
+    "backends/mimo2/check_cache.cpp": "1ede43abf82dc0d008dd8f9a203570f98f5ad1e8089457ad90a059ef6f5e4e82",
+    "backends/mimo2/check_graph.cpp": "d102205d6b789f18199826f8d312fb24774a5f7b60c983a8ce13b473079cf92d",
+    "backends/mimo2/check_kernels.cpp": "b3a20470dffb1b71774872cd47c15ad49caa45813a86d0a7694f92d292fff5cf",
+    "backends/mimo2/check_runtime.cpp": "e833640cbdb9733f91b3d39d282c619745192368f37e7bced29399ec3d178675",
+    "backends/mimo2/CMakeLists.txt": "77ba3cbb6603b5d44696ed8643e425a7f0c48458edb7b4469c34f41ce1b6ccf5",
+    "backends/mimo2/contract.hpp": "15793504eb66b8f03abb457e41e8fced433cfeaa15c2a5c5deebe194b59cf4d4",
+    "backends/mimo2/expert_cache.hpp": "38e110976250457c6177a42ca916c414b108e184cd21477e363fab906aa2075e",
+    "backends/mimo2/gpu_only_audit.inc": "3fd241ccd8384cee7f9e1dee9da43616d94117c5c9258691146bfe1e2b8f3476",
+    "backends/mimo2/loader_oracle.cpp": "05223756465f133993154fe1f4857afe7a5257528aac0013e653559141047ea8",
+    "backends/mimo2/main.cpp": "66a1b3a7c249695dcfbbf5aca46f71db46123486f0c4b5629e6a804a520bb93d",
+    "backends/mimo2/Mxfp4Precision.cmake": "c1bbfb81faf833f167cb20ad15254986aab5ac404682f5b096fb819f8b650439",
+    "backends/mimo2/RoutedStrides.cmake": "f120edc3ba654e031d7702955d5dcfb71cb24f48507b53f3de0f7908f04459f2",
+    "backends/mimo2/runtime.hpp": "f1d7fd5a0167794c699fd45e09634d5278dbb5cb9e2efa04ab6f7bfa3d9de04f",
+    "backends/mimo2/RuntimePatches.cmake": "dbd37540899ce08a7b06e027ba27af3c6c94a2fc720d4a5c42f870d3a3222668",
+    "backends/mimo2/StrictF32.cmake": "db6c2df2aeba110e5d12b18485d1f86e552732dd600914d6270276b0d5875b66",
+    "backends/mimo2/sync_runtime.h": "bff4a87f48eaa9a23450d349804f4374507be79a081f3cf05dd5d809ceae4395",
+    "backends/mimo2/sync_runtime.inc": "05dc08d7dfec5bf1c783aae2fd9374f3f470b42ac724132cf3fcd6dd518e1042",
+    "backends/mimo2/synthetic_mimo2.hpp": "2add3e43dc8dff03203d93f1ec961eb3e5c7b8aa8ca62f6dfa30d8e1f372a63f",
+    "backends/mimo2/template_oracle.cpp": "d6c81dd8daad02ab136cc3ce668dc5a7c037bb2d40d9cab1f12ec1a95f370751",
+    "backends/mimo2/tokenizer_oracle.cpp": "fb57b7886932096f6e56760d5a9d367996fa965905a43c1be98a007649a03e15",
+    "tools/check_mimo2_cuda.py": "1ffe95898cda83effaa90d3297a8615f77b4f178421632ce33243ce5d8e603aa",
+    "tools/check_mimo2_engine.py": "15beb7091fd901689db3e83d2cedc46eb0d7c9ba454987dda9da3854f016c2a3",
+    "tools/test_mimo2_engine.py": "a48b5fa9b39ef225fd146c33f74148540519c98f6d81e6c68876f270b96bfceb",
+    "backends/common/expert_file.hpp": "9bf0c0eb9b58019fa51aee28e24fa924703225d22ce26b8a8a9b8ec640b9092e",
+    "backends/common/device_memory.hpp": "76f22a1749957f2d82f3e5645aef10719d69bedc012054dcf27f85ae77687459",
+    "backends/glm5next/host_pages.hpp": "b16bddc7126afd9252c4da738bd903b73cd53fae1d36c9ffb0fa5cf60cf50944",
+    "backends/step35/tokenizer_protocol.hpp": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a"
+  },
+  "manifest": {
+    "scope": "MiMo oracles, synthetic CUDA fixtures and optional synchronous selected-expert engine",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "patches": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision,mimo-sync-selected-file-copy-gpu-audit-demand-mmap,mimo-bounded-matrix-cache",
+    "generated_mmf_sha256": "35ce8b9b5c7b6feb651167523d602ed0bad27dec70cb07a8437c67dbc7302975",
+    "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+    "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "runtime": true,
+    "runtime_generated_hashes": "strata-mimo2-backend.cpp:9e77d7f74dce7b09c391c8bd106d8eca28fe772422cba4e2ab085af3504b7f9e;strata-mimo2-loader.cpp:3e42489459ae39a3cc5807a8cc3593451ba06b595492b81dd8efae78bfc98493;strata-mimo2-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558"
+  },
+  "binary_sha256": {
+    "strata-mimo2-allocation-check.exe": "78d116ab235abe2691aff6bbf27d54d12f3b4897be5944b3f779be77c0062adc",
+    "strata-mimo2-cache-check.exe": "a4752fd436178fd6e2c81c63fc1d80d847fe8b0aaeed69aca675726741cd45aa",
+    "strata-mimo2-fixture-engine.exe": "b98b58828c63662c50fcf4cbed858c6105c6dbdd2b9eb1f7d1c049725217e31c",
+    "strata-mimo2-graph-check.exe": "8f33b917bc4aa816a92a60ad95e91d66a285438e9943782bfbc31e15abc735a7",
+    "strata-mimo2-kernels-check.exe": "97dbc11a50926efd89d0c14228c06cfee6a1fbc63a4ffb6855f686dbb51e97be",
+    "strata-mimo2-runtime-check.exe": "a9cc027e72b802e5ff2cf68e82a6fb5f6eaff2e8ed7b9b36e19bb5695c5cdbc7",
+    "strata-mimo2.exe": "f4ad4f202150d96074ffd87f05ba2b086828e00736ab4e0dab535d0ea3e25a88"
+  },
+  "build_commands": [
+    "cmd /c build-local/build-mimo2-checks.cmd",
+    "cmd /c build-local/build-mimo2-runtime.cmd"
+  ],
+  "build_exit_codes": [
+    0,
+    0
+  ],
+  "final_build_log": "build-local/mimo2-validation/cache-default14-build.log",
+  "native_checks": {
+    "runtime": 84,
+    "kernels": 96,
+    "graph": 132,
+    "cache_ownership": 17,
+    "cpu_oracle_ctest": 3
+  },
+  "python_checks": {
+    "command": "python -X utf8 -m unittest tools.test_mimo2_gguf tools.test_mimo2_tokenizer tools.test_mimo2_cuda tools.test_mimo2_engine tools.test_step35_tokenizer tools.test_glm5next_tokenizer tools.test_hy3_tokenizer",
+    "count": 40,
+    "exit_code": 0
+  },
+  "cpu_commands": [
+    {
+      "command": "ctest --test-dir build-local/mimo2-oracles --output-on-failure --no-tests=error",
+      "exit_code": 0
+    },
+    {
+      "command": "build-local/mimo2-cuda/bin/strata-mimo2-cache-check.exe",
+      "exit_code": 0
+    }
+  ],
+  "version_note": "Clean native/cache12 and cache14 repeats preceded the final default-only change12->14 GiB and a header comment change. Their explicit options equal tested settings; each report retains its actual binary hash. Final binary passed84 runtime cases, full corpus at14 GiB and an implicit-default fixture. Kernels/graph source and compute policy were unchanged.",
+  "reports": [
+    "MIMO26_FLASH_CACHE_RUNTIME_VALIDATION.json",
+    "MIMO26_FLASH_CACHE_MODEL_VALIDATION.json",
+    "MIMO26_FLASH_CACHE_DEFAULTS_VALIDATION.json",
+    "MIMO26_FLASH_CACHE_CUDA_REGRESSION.json",
+    "MIMO26_FLASH_CACHE_BENCHMARK.json",
+    "MIMO26_FLASH_CACHE_ALLOCATION_DIAGNOSTIC.json"
+  ]
+}

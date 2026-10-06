@@ -1,6 +1,8 @@
 #pragma once
 #include "runtime.hpp"
 #include "llama-ext.h"
+#include "llama-context.h"
+#include "shared_scratch.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -8,7 +10,7 @@
 #include <functional>
 
 namespace hy3 {
-// Native Hy3 NextN with resident block weights and separate full-attention KV.
+// Native Hy3 NextN with resident or streamed expert weights and separate full-attention KV.
 // Drafts are greedy; only the target sampler consumes/accepts emitted tokens.
 // Main embeddings/output have one model owner shared by both contexts.
 class Mtp {
@@ -16,6 +18,7 @@ class Mtp {
     llama_context * target;
     Context draft{nullptr,llama_free};
     int width,vocab,depth;
+    size_t shared_bytes=0;
     std::vector<float> pending;
     static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
     std::vector<float> features(llama_context * ctx,int count) {
@@ -57,14 +60,24 @@ public:
     struct Counters {uint64_t proposed=0,accepted=0,rounds=0,reject_first=0,reject_middle=0,accept_all=0;double draft_ms=0,verify_ms=0,repair_ms=0,prefill_ms=0;};
     Counters counters;
     struct Round {std::vector<llama_token> tokens;int next_position=0,accepted=0,proposed=0;bool cancelled=false;};
-    Mtp(llama_model * model,llama_context * ctx,int size,int batch,int count)
+    Mtp(llama_model * model,llama_context * ctx,int size,int batch,int count,bool share_scratch=false)
         :target(ctx),width(llama_model_n_embd_out(model)),vocab(llama_vocab_n_tokens(llama_model_get_vocab(model))),depth(count),pending(width,0) {
         require(count>=1 && count<=3 && batch>=count+1,"MTP requires depth 1..3 and batch >= depth+1");
         require(llama_model_n_layer_nextn(model)==1,"Hy3 MTP requires one native NextN block");
         draft=context(model,size,batch,GGML_TYPE_F32,nullptr,nullptr,true);
         llama_set_embeddings_nextn(target,true,false);
         llama_set_embeddings_nextn(draft.get(),true,false);
+        if(share_scratch) {
+            // Every decode synchronizes before another context runs. Copy all
+            // logits/hidden outputs to host before the shared buffer is reused.
+            target->sched_reserve();draft->sched_reserve();
+            shared_bytes=strata_hy3_sched_share_scratch(target->get_sched(),draft->get_sched());
+            require(shared_bytes>0,"MTP scratch sharing requires fresh compatible CUDA0 schedulers");
+        }
     }
+    size_t scratch_saved() const {return shared_bytes;}
+    bool scratch_shared() const {return shared_bytes && strata_hy3_sched_scratch_is_shared(target->get_sched(),draft->get_sched());}
+    llama_context * draft_context() const {return draft.get();}
     void set_depth(int n) {require(n>=1 && n<=3 && uint32_t(n+1)<=llama_n_batch(target),"invalid MTP depth");depth=n;}
     void reset() {clear(draft.get());std::fill(pending.begin(),pending.end(),0);counters={};}
     void prefill(const std::vector<llama_token> & ids,int offset,int count,int position) {

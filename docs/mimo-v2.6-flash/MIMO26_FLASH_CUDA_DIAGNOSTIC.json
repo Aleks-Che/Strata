@@ -1,0 +1,1210 @@
+{
+  "status": "resolved",
+  "scope": "Failure history and selected CUDA baseline policies",
+  "notes": [
+    "The first invocation was refused for lack of VRAM headroom under the 95% global ceiling; unrelated GPU workload remained untouched.",
+    "One invocation exited with Windows missing-DLL code 3221225781: CUDA 13 runtime DLLs are in bin/x64, not bin.",
+    "Unpatched kernels: 20/96 failures (14 F32 explicit TF32, 6 MXFP4 FP4-activation MMQ).",
+    "TF32 fix alone: 10/96 failures (4 padded routed gather stride, 6 MXFP4 MMQ).",
+    "F32/stride/MXFP4 fixes: 96/96 kernel tests passed, 129/132 graph tests passed.",
+    "Remaining mixed graph drift resolved by honoring f32 compute override in BF16 MMF and setting GGML_CUDA_CUBLAS_COMPUTE_TYPE=f32. Tolerances were not relaxed after the failing runs.",
+    "Final checks: 96/96 kernels and 132/132 graph cases pass. CUDA Graphs and graph reuse disabled; no full model inference."
+  ],
+  "attempts": [
+    {
+      "run": "kernels-unpatched",
+      "status": "error",
+      "exit_code": null,
+      "error": "Need 2 GiB available RAM and 1 GiB VRAM below the global ceiling",
+      "binary_sha256": "077ccbe8ed9330f4bfd329cab1399e43e1989bdff7f37317fee50daf52753e6c",
+      "manifest": {
+        "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+        "patches": "none",
+        "generated_mmf_sha256": "",
+        "generated_dispatch_sha256": "",
+        "compiler": "MSVC",
+        "compiler_version": "19.44.35222.0",
+        "generator": "Ninja",
+        "build_type": "Release",
+        "cuda": true,
+        "cuda_compiler_version": "13.0.48",
+        "cuda_architectures": "120",
+        "runtime": false
+      },
+      "environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0"
+      },
+      "case_count": 0,
+      "failed_cases": [],
+      "source_report_sha256": "babb23149b6c72379d6d2a5ede10949faddb188b1c377bb5eb0a02c4af28d38f"
+    },
+    {
+      "run": "kernels-unpatched-2",
+      "status": "error",
+      "exit_code": 3221225781,
+      "error": "[Errno 2] No such file or directory: 'C:\\\\work\\\\git\\\\my-repos\\\\Strata\\\\build-local\\\\mimo2-validation\\\\kernels-unpatched-2\\\\kernels-report.json'",
+      "binary_sha256": "3c931cdf2b09004b9ffe7149d859eac7200133ded111821b72252a420341382c",
+      "manifest": {
+        "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+        "patches": "none",
+        "generated_mmf_sha256": "",
+        "generated_dispatch_sha256": "",
+        "compiler": "MSVC",
+        "compiler_version": "19.44.35222.0",
+        "generator": "Ninja",
+        "build_type": "Release",
+        "cuda": true,
+        "cuda_compiler_version": "13.0.48",
+        "cuda_architectures": "120",
+        "runtime": false
+      },
+      "environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0"
+      },
+      "case_count": 0,
+      "failed_cases": [],
+      "source_report_sha256": "1193467a18d603b9d3a4e09857de6c18ce9dcd5265de759e9c9345eafbf6bf44"
+    },
+    {
+      "run": "kernels-unpatched-3",
+      "status": "fail",
+      "exit_code": 1,
+      "error": null,
+      "binary_sha256": "3c931cdf2b09004b9ffe7149d859eac7200133ded111821b72252a420341382c",
+      "manifest": {
+        "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+        "patches": "none",
+        "generated_mmf_sha256": "",
+        "generated_dispatch_sha256": "",
+        "compiler": "MSVC",
+        "compiler_version": "19.44.35222.0",
+        "generator": "Ninja",
+        "build_type": "Release",
+        "cuda": true,
+        "cuda_compiler_version": "13.0.48",
+        "cuda_architectures": "120",
+        "runtime": false
+      },
+      "environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0"
+      },
+      "case_count": 96,
+      "failed_cases": [
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 1,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.202213971795915e-07,
+            "max_abs": 0.0005058646202087402,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.65861458492345e-15,
+            "max_abs": 5.960464477539063e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.202354873586895e-07,
+            "max_abs": 0.0005058646202087402,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 1,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.202213971795915e-07,
+            "max_abs": 0.0005058646202087402,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.65861458492345e-15,
+            "max_abs": 5.960464477539063e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.202354873586895e-07,
+            "max_abs": 0.0005058646202087402,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 1,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.102010337058415e-07,
+            "max_abs": 0.00047194957733154297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.369437795371855e-15,
+            "max_abs": 5.960464477539063e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.101982313279893e-07,
+            "max_abs": 0.00047194957733154297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 1,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.102010337058415e-07,
+            "max_abs": 0.00047194957733154297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.369437795371855e-15,
+            "max_abs": 5.960464477539063e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.101982313279893e-07,
+            "max_abs": 0.00047194957733154297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "f32",
+          "tokens": 4,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.027463308541974e-07,
+            "max_abs": 0.0004012584686279297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.3778529629684926e-14,
+            "max_abs": 1.043081283569336e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.02757396404496e-07,
+            "max_abs": 0.0004011988639831543,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "f32",
+          "tokens": 4,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.027463308541974e-07,
+            "max_abs": 0.0004012584686279297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.252748879662217e-15,
+            "max_abs": 5.960464477539063e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.027579757324003e-07,
+            "max_abs": 0.0004012584686279297,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 4,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079267396828161e-07,
+            "max_abs": 0.0005502700805664062,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.674364515937897e-15,
+            "max_abs": 7.450580596923828e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079330518683748e-07,
+            "max_abs": 0.0005502700805664062,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 4,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079267396828161e-07,
+            "max_abs": 0.0005502700805664062,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.674364515937897e-15,
+            "max_abs": 7.450580596923828e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079330518683748e-07,
+            "max_abs": 0.0005502700805664062,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 4,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.10002687239477e-07,
+            "max_abs": 0.0005890727043151855,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.274222814447659e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.100002621619286e-07,
+            "max_abs": 0.0005890727043151855,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 4,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.10002687239477e-07,
+            "max_abs": 0.0005890727043151855,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.274222814447659e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.100002621619286e-07,
+            "max_abs": 0.0005890727043151855,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.076712848505072e-07,
+            "max_abs": 0.0005983114242553711,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.061657710867139e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.076710506704561e-07,
+            "max_abs": 0.0005983114242553711,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.076712848505072e-07,
+            "max_abs": 0.0005983114242553711,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.061657710867139e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.076710506704561e-07,
+            "max_abs": 0.0005983114242553711,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079677161270117e-07,
+            "max_abs": 0.0006974339485168457,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.068716677644057e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079663449339211e-07,
+            "max_abs": 0.0006973743438720703,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079677161270117e-07,
+            "max_abs": 0.0006974339485168457,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.068716677644057e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 5.079663449339211e-07,
+            "max_abs": 0.0006973743438720703,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010245321097576976,
+            "max_abs": 0.06938430236186832,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.2683847758944666e-05,
+            "max_abs": 0.002553105354309082,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010293349802171847,
+            "max_abs": 0.06980126351118088,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010245321097576976,
+            "max_abs": 0.06938430236186832,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.2683847758944666e-05,
+            "max_abs": 0.002553105354309082,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010293349802171847,
+            "max_abs": 0.06980126351118088,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.00959195831438907,
+            "max_abs": 0.08213569223880768,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.388844490011015e-05,
+            "max_abs": 0.003226637840270996,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009628361836366991,
+            "max_abs": 0.08087947964668274,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.00959195831438907,
+            "max_abs": 0.08213569223880768,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.388844490011015e-05,
+            "max_abs": 0.003226637840270996,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009628361836366991,
+            "max_abs": 0.08087947964668274,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009674816046436841,
+            "max_abs": 0.08351559937000275,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.3880368544832187e-05,
+            "max_abs": 0.003382757306098938,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009702356090819462,
+            "max_abs": 0.08260668814182281,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009674816046436841,
+            "max_abs": 0.08351559937000275,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.3880368544832187e-05,
+            "max_abs": 0.003382757306098938,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009702356090819462,
+            "max_abs": 0.08260668814182281,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        }
+      ],
+      "source_report_sha256": "591d5a2b479d6fb4a50aac4feaec5b58bcbbf8811d04ef467772c5d91c11fd94"
+    },
+    {
+      "run": "kernels-strict-only",
+      "status": "fail",
+      "exit_code": 1,
+      "error": null,
+      "binary_sha256": "f1b63cd6a5e43d250fa44b393e1f5f6dfbdb858980f5e7696f25da766c0a727b",
+      "manifest": {
+        "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+        "patches": "cuda-f32-mmf-respect-tf32-override",
+        "generated_mmf_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+        "generated_dispatch_sha256": "",
+        "compiler": "MSVC",
+        "compiler_version": "19.44.35222.0",
+        "generator": "Ninja",
+        "build_type": "Release",
+        "cuda": true,
+        "cuda_compiler_version": "13.0.48",
+        "cuda_architectures": "120",
+        "runtime": false
+      },
+      "environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0"
+      },
+      "case_count": 96,
+      "failed_cases": [
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 4,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": false,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 92126.57626952279,
+            "max_abs": 317.3391425535083,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 7.674364515937897e-15,
+            "max_abs": 7.450580596923828e-08,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 92126.57550849949,
+            "max_abs": 317.33914256095886,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 4,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": false,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 32091.69845412074,
+            "max_abs": 283.74159118533134,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.274222814447659e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 32091.698550937468,
+            "max_abs": 283.74159118533134,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "f32",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": false,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 120518.86236124235,
+            "max_abs": 317.5077624320984,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.061657710867139e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 120518.86242894294,
+            "max_abs": 317.5077624320984,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "f32",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": false,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 34643.21318405651,
+            "max_abs": 317.3394020795822,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 8.068716677644057e-15,
+            "max_abs": 1.1920928955078125e-07,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 34643.21327875548,
+            "max_abs": 317.3394020870328,
+            "nmse_limit": 1e-10,
+            "absolute_limit": 5e-05
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010245321097576976,
+            "max_abs": 0.06938430236186832,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.2683847758944666e-05,
+            "max_abs": 0.002553105354309082,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010293349802171847,
+            "max_abs": 0.06980126351118088,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010245321097576976,
+            "max_abs": 0.06938430236186832,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.2683847758944666e-05,
+            "max_abs": 0.002553105354309082,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.010293349802171847,
+            "max_abs": 0.06980126351118088,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.00959195831438907,
+            "max_abs": 0.08213569223880768,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.388844490011015e-05,
+            "max_abs": 0.003226637840270996,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009628361836366991,
+            "max_abs": 0.08087947964668274,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID broadcast",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.00959195831438907,
+            "max_abs": 0.08213569223880768,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.388844490011015e-05,
+            "max_abs": 0.003226637840270996,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009628361836366991,
+            "max_abs": 0.08087947964668274,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": false,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009674816046436841,
+            "max_abs": 0.08351559937000275,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.3880368544832187e-05,
+            "max_abs": 0.003382757306098938,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009702356090819462,
+            "max_abs": 0.08260668814182281,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        },
+        {
+          "kind": "MUL_MAT_ID per-route",
+          "type": "mxfp4",
+          "tokens": 17,
+          "padded": true,
+          "pass": false,
+          "inputs_unchanged": true,
+          "padded_vs_compact_exact": true,
+          "cuda_vs_scalar": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009674816046436841,
+            "max_abs": 0.08351559937000275,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cpu_vs_scalar": {
+            "pass": true,
+            "finite": true,
+            "nmse": 1.3880368544832187e-05,
+            "max_abs": 0.003382757306098938,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          },
+          "cuda_vs_cpu": {
+            "pass": false,
+            "finite": true,
+            "nmse": 0.009702356090819462,
+            "max_abs": 0.08260668814182281,
+            "nmse_limit": 0.0001,
+            "absolute_limit": 0.02
+          }
+        }
+      ],
+      "source_report_sha256": "ac51ecbc2a1ef653ed9dee51678848b9b61371cc85fbc42a34f6ca70ac1478e3"
+    },
+    {
+      "run": "graph-patched",
+      "status": "fail",
+      "exit_code": 1,
+      "error": null,
+      "binary_sha256": "ee2f450df6e86dd85e6be6a5f373693290f7ccc7e52179160cdb2187ffbf3bda",
+      "manifest": {
+        "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+        "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision",
+        "generated_mmf_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+        "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+        "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+        "compiler": "MSVC",
+        "compiler_version": "19.44.35222.0",
+        "generator": "Ninja",
+        "build_type": "Release",
+        "cuda": true,
+        "cuda_compiler_version": "13.0.48",
+        "cuda_architectures": "120",
+        "runtime": false
+      },
+      "environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0"
+      },
+      "case_count": 132,
+      "failed_cases": [
+        {
+          "name": "mixed/gpu_vs_dequantized_cpu_f32",
+          "pass": false,
+          "elements": 24576,
+          "finite": true,
+          "max_abs": 0.0024472326040267944,
+          "nmse": 9.026954922703756e-06,
+          "abs_limit": 0.002,
+          "nmse_limit": 1e-05,
+          "exact_required": false,
+          "bit_exact": false
+        },
+        {
+          "name": "mixed/serial_vs_prefill",
+          "pass": false,
+          "elements": 24576,
+          "finite": true,
+          "max_abs": 0.0023103952407836914,
+          "nmse": 9.634854102464416e-06,
+          "abs_limit": 0.002,
+          "nmse_limit": 1e-05,
+          "exact_required": false,
+          "bit_exact": false
+        },
+        {
+          "name": "mixed/FA_on_vs_off",
+          "pass": false,
+          "elements": 24576,
+          "finite": true,
+          "max_abs": 0.0020946264266967773,
+          "nmse": 7.07177475323752e-06,
+          "abs_limit": 0.001,
+          "nmse_limit": 1e-06,
+          "exact_required": false,
+          "bit_exact": false
+        }
+      ],
+      "source_report_sha256": "5a615b49543fac12d7c05a5e1add9543ad95e4154ef0b217a97ea48fd725b956"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
-// Included only by Hy3's private scheduler. Reuse Step's tested allocation,
-// frequency and budget controller without changing the Step implementation.
+// Included only by Hy3's private scheduler. Reuse Step's tested frequency and
+// budget controller; dense allocation callbacks are enabled only for Hy3.
 #include "../step35/expert_cache.hpp"
+#include "gpu_arena.hpp"
 #include <array>
 struct Hy3TensorIdentity {
     uint32_t id;
@@ -10,8 +11,11 @@ struct Hy3TensorIdentity {
     std::array<size_t,4> strides;
     std::shared_ptr<strata_expert_file::Source> file;
     uint64_t offset;
+    bool mtp;
 };
 static thread_local std::unique_ptr<step35::ExpertCache> hy3_cache;
+static thread_local std::shared_ptr<hy3::GpuArena> hy3_arena;
+static thread_local bool hy3_use_arena=false;
 static thread_local std::map<const void *,Hy3TensorIdentity> hy3_tensors;
 static thread_local uint64_t hy3_generation=0;
 static thread_local cudaStream_t hy3_cache_stream=nullptr;
@@ -23,6 +27,7 @@ static bool hy3_copy_uncached(ggml_backend_t,ggml_tensor *,const ggml_tensor *,s
 static bool hy3_pipeline_enabled();
 static bool hy3_pipeline_copy(ggml_backend_t,ggml_tensor *,const ggml_tensor *,size_t,size_t);
 static void hy3_account_pipeline();
+void strata_hy3_gpu_cache_allocator(bool arena) {hy3_use_arena=arena;}
 void strata_hy3_gpu_cache_policy(bool admit_prefill) {
     if(hy3_pipeline_enabled())throw std::runtime_error("configure Hy3 GPU cache policy before readers");
     hy3_admit_prefill=admit_prefill;
@@ -47,35 +52,44 @@ void strata_hy3_cache_begin(size_t cap) {
         hy3_cuda(cudaStreamSynchronize(hy3_cache_stream));
         hy3_cuda(cudaStreamDestroy(hy3_cache_stream));hy3_cache_stream=nullptr;
     }
-    hy3_cache.reset();hy3_tensors.clear();
+    hy3_cache.reset();hy3_arena.reset();hy3_tensors.clear();
     if(++hy3_generation==0) throw std::runtime_error("Hy3 cache generation overflow");
     if(!cap) return;
     if(hy3_sync_mode!=2) throw std::runtime_error("Hy3 cache requires pinned copy mode");
-    hy3_cache=std::make_unique<step35::ExpertCache>(cap,[] {
+    auto probe=[] {
         auto s=step35::memory_sample();
         s.gpu_free=std::min(s.gpu_free,hy3_test_limits.gpu_available);
         s.ram_free=std::min(s.ram_free,hy3_test_limits.ram_available);
         return s;
-    },[](void ** p,size_t n) {
+    };
+    if(hy3_use_arena)hy3_arena=std::make_shared<hy3::GpuArena>(cap,[probe] {
+        const auto s=probe();return hy3::GpuArena::Memory{s.gpu_free,s.gpu_total};
+    });
+    const auto arena=hy3_arena;
+    hy3_cache=std::make_unique<step35::ExpertCache>(cap,probe,[arena](void ** p,size_t n) {
         if(hy3_test_limits.fail_next_cache_allocation) {
             hy3_test_limits.fail_next_cache_allocation=false;return cudaErrorMemoryAllocation;
         }
-        return cudaMalloc(p,n);
+        return arena?arena->allocate(p,n):cudaMalloc(p,n);
+    },[arena](void *p) {
+        return arena?arena->release(p):cudaFree(p);
     });
     hy3_cache->set_reuse_allocations(true);
+    hy3_cache->set_match_size(bool(hy3_arena));
+    if(arena)hy3_cache->set_backing_bytes([arena]{return arena->snapshot().reserved;});
     hy3_cache->set_fast_scan(true);
     hy3_cache->set_profile(hy3_profile_delivery);
     hy3_cuda(cudaStreamCreateWithFlags(&hy3_cache_stream,cudaStreamNonBlocking));
     hy3_cache->refresh();
 }
-void strata_hy3_cache_register(const ggml_tensor * t) {
+void strata_hy3_cache_register(const ggml_tensor * t,bool mtp) {
     if(!hy3_cache || !t || !t->data || !t->buffer || !ggml_backend_buffer_is_host(t->buffer) ||
         !hy3_expert_weight(t) || !ggml_is_contiguous(t) || t->ne[3]!=1 || t->ne[2]<=0 || !t->nb[2])
         throw std::runtime_error("invalid Hy3 cache tensor registration");
     auto file=strata_expert_file::find(t->data,ggml_nbytes(t));
     if(!file) throw std::runtime_error("Hy3 cache tensor has no live source mapping");
     const auto offset=file->offset_of(t->data,ggml_nbytes(t));
-    Hy3TensorIdentity id{uint32_t(hy3_tensors.size()),t->name,t->type,{}, {},file,offset};
+    Hy3TensorIdentity id{uint32_t(hy3_tensors.size()),t->name,t->type,{}, {},file,offset,mtp};
     std::copy(t->ne,t->ne+4,id.shape.begin());std::copy(t->nb,t->nb+4,id.strides.begin());
     if(!hy3_tensors.emplace(t->data,std::move(id)).second)
         throw std::runtime_error("duplicate Hy3 cache tensor registration");

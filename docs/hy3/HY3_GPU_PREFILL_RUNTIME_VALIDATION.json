@@ -1,0 +1,5538 @@
+{
+  "status": "pass",
+  "kind": "runtime",
+  "scope": "synthetic correctness, no inference throughput",
+  "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+  "binary_sha256": "30e517c80165a37243481e97f229a7a2ba1202c2611940f3c0ebb88e9f309f11",
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:6431e1a2c3095f0f459b460f5384d2c7ae0c5bb068c0357f1423b5681f2b2ca4;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558;cache_runtime.inc:27c3e3138620a7428e0343c140497bf53b273a7b753d3b9373fa5ce155605ece;host_cache.hpp:6ec67b06077964ee38110ea5877acd415fe0480c225bd915620589dbba864b84;pipeline_runtime.inc:9b3d7cb85e6432a436d815904c0d5d59dd2f9680a329a89a3cff2174c527a28e;pipeline_sched.inc:3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d;expert_pipeline.hpp:86aeb48bde45051803e8bd228196c448cb71e9cdd9124bcaf9f0cab37d4bdae4;expert_slice.hpp:5f389e0ed854a6bf85481aec824a3fd19b9af88b6be7b452cc98b21696bd3595;gpu_trace.hpp:04e74fd7fb728cdac4f7dba88409027acd6a7348a88bf2954536d02162139196;expert_cache.hpp:9c9ee06b8797ec19bd414827664b94e0e2cf37ed89e11651caabd71e726d0e6c;vram_policy.hpp:0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e;expert_frequency.hpp:065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "manifest_sha256": "352ddb42dcff8d7a005084ea264f90e9c25ffe5a14d6512e9ff6a32d9c91968f",
+  "samples": [
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112758755328,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2658140160
+      },
+      "seconds": 0.046999999962281436,
+      "process_rss": 94375936,
+      "process_peak_wset": 94380032
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112419397632,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2658140160
+      },
+      "seconds": 0.5779999999795109,
+      "process_rss": 528605184,
+      "process_peak_wset": 528609280
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112256217088,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2658140160
+      },
+      "seconds": 1.077999999979511,
+      "process_rss": 537788416,
+      "process_peak_wset": 559308800
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112227229696,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 2658140160
+      },
+      "seconds": 1.6089999999967404,
+      "process_rss": 554913792,
+      "process_peak_wset": 559308800
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112134352896,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3228565504
+      },
+      "seconds": 2.1719999999622814,
+      "process_rss": 661143552,
+      "process_peak_wset": 661147648
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 111988498432,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3228565504
+      },
+      "seconds": 2.6719999999622814,
+      "process_rss": 813469696,
+      "process_peak_wset": 813473792
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112023670784,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3228565504
+      },
+      "seconds": 3.1869999999762513,
+      "process_rss": 774455296,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112046968832,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3228565504
+      },
+      "seconds": 3.702999999979511,
+      "process_rss": 793333760,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112226824192,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3314548736
+      },
+      "seconds": 4.264999999955762,
+      "process_rss": 47202304,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112229486592,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3314548736
+      },
+      "seconds": 4.764999999955762,
+      "process_rss": 47644672,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112247377920,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3314548736
+      },
+      "seconds": 5.280999999959022,
+      "process_rss": 37298176,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112252637184,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3314548736
+      },
+      "seconds": 5.796999999962281,
+      "process_rss": 38785024,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112244342784,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3227516928
+      },
+      "seconds": 6.3439999999827705,
+      "process_rss": 51081216,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112262901760,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3227516928
+      },
+      "seconds": 6.85899999999674,
+      "process_rss": 49045504,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112268021760,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3227516928
+      },
+      "seconds": 7.375,
+      "process_rss": 39251968,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112257654784,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3227516928
+      },
+      "seconds": 7.875,
+      "process_rss": 53096448,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112271663104,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3335520256
+      },
+      "seconds": 8.436999999976251,
+      "process_rss": 39776256,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112253865984,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3335520256
+      },
+      "seconds": 8.952999999979511,
+      "process_rss": 38768640,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112245022720,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3335520256
+      },
+      "seconds": 9.46899999998277,
+      "process_rss": 42131456,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112184877056,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3335520256
+      },
+      "seconds": 9.98399999999674,
+      "process_rss": 100012032,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112274341888,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3363831808
+      },
+      "seconds": 10.546999999962281,
+      "process_rss": 49516544,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112181501952,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3363831808
+      },
+      "seconds": 11.046999999962281,
+      "process_rss": 8564736,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112035119104,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3363831808
+      },
+      "seconds": 11.561999999976251,
+      "process_rss": 50257920,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112172105728,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3363831808
+      },
+      "seconds": 12.077999999979511,
+      "process_rss": 51613696,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112208723968,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3378511872
+      },
+      "seconds": 12.639999999955762,
+      "process_rss": 53051392,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112198885376,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3378511872
+      },
+      "seconds": 13.139999999955762,
+      "process_rss": 34029568,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112240779264,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3378511872
+      },
+      "seconds": 13.655999999959022,
+      "process_rss": 21405696,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112258076672,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3378511872
+      },
+      "seconds": 14.171999999962281,
+      "process_rss": 35139584,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112257024000,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3372220416
+      },
+      "seconds": 14.71899999998277,
+      "process_rss": 42557440,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112256241664,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3372220416
+      },
+      "seconds": 15.23399999999674,
+      "process_rss": 40562688,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112234332160,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3372220416
+      },
+      "seconds": 15.75,
+      "process_rss": 56082432,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112218349568,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3372220416
+      },
+      "seconds": 16.25,
+      "process_rss": 58998784,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112232681472,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3217031168
+      },
+      "seconds": 16.81199999997625,
+      "process_rss": 34463744,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112254251008,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3217031168
+      },
+      "seconds": 17.32799999997951,
+      "process_rss": 48832512,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112304304128,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3217031168
+      },
+      "seconds": 17.84399999998277,
+      "process_rss": 49217536,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 112081735680,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3217031168
+      },
+      "seconds": 18.34399999998277,
+      "process_rss": 49635328,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110566612992,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3392143360
+      },
+      "seconds": 18.92199999996228,
+      "process_rss": 57716736,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110275964928,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3392143360
+      },
+      "seconds": 19.43699999997625,
+      "process_rss": 60313600,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110394638336,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3392143360
+      },
+      "seconds": 19.95299999997951,
+      "process_rss": 38031360,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110391844864,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3392143360
+      },
+      "seconds": 20.46899999998277,
+      "process_rss": 39596032,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110403706880,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3275751424
+      },
+      "seconds": 21.014999999955762,
+      "process_rss": 35803136,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110384939008,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3275751424
+      },
+      "seconds": 21.530999999959022,
+      "process_rss": 48709632,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110465126400,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3275751424
+      },
+      "seconds": 22.04699999996228,
+      "process_rss": 36757504,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110462066688,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3275751424
+      },
+      "seconds": 22.56199999997625,
+      "process_rss": 30838784,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110477029376,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3285188608
+      },
+      "seconds": 23.125,
+      "process_rss": 37490688,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110441836544,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3285188608
+      },
+      "seconds": 23.639999999955762,
+      "process_rss": 38051840,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110437654528,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3285188608
+      },
+      "seconds": 24.155999999959022,
+      "process_rss": 48369664,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110428160000,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3285188608
+      },
+      "seconds": 24.655999999959022,
+      "process_rss": 48984064,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110417559552,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3486515200
+      },
+      "seconds": 25.23399999999674,
+      "process_rss": 49831936,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110411546624,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3486515200
+      },
+      "seconds": 25.75,
+      "process_rss": 37441536,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110417326080,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3486515200
+      },
+      "seconds": 26.25,
+      "process_rss": 38006784,
+      "process_peak_wset": 852275200
+    },
+    {
+      "ram_total": 134813700096,
+      "ram_available": 110467305472,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3486515200
+      },
+      "seconds": 26.764999999955762,
+      "process_rss": 27996160,
+      "process_peak_wset": 852275200
+    }
+  ],
+  "sampling_seconds": 0.5,
+  "gpu_sampling_seconds": 2,
+  "ceiling_fraction": 0.95,
+  "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+  "diagnostic_environment": {
+    "GGML_CUDA_DISABLE_GRAPHS": null,
+    "GGML_CUDA_PDL": null,
+    "LLAMA_GRAPH_REUSE_DISABLE": null,
+    "NVIDIA_TF32_OVERRIDE": "0"
+  },
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-cuda\\bin\\strata-hy3-runtime-check.exe",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-tests\\speed13-runtime\\fixture"
+  ],
+  "before": {
+    "ram_total": 134813700096,
+    "ram_available": 112827604992,
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 5090",
+      "driver": "581.80",
+      "total": 34190917632,
+      "used": 2658140160
+    }
+  },
+  "exit_code": 0,
+  "wall_seconds": 27.264999999955762,
+  "result": {
+    "status": "pass",
+    "scope": "synthetic resident/native-selected/pinned-file byte and logit parity",
+    "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "patch_set": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy",
+    "cuda_fusion": false,
+    "cases": [
+      {
+        "name": "f32/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 169880064,
+          "h2d_bytes": 169880064,
+          "ranges": 102,
+          "chunks": 102,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 9.335799999999995,
+          "h2d_ms": 7.9022000000000014
+        },
+        "verified_gpu_bytes": 169880064
+      },
+      {
+        "name": "f32/batch=4/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=4/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 84937728,
+          "h2d_bytes": 84937728,
+          "ranges": 45,
+          "chunks": 45,
+          "staging_bytes": 16777216,
+          "compute_calls": 13,
+          "gpu_nodes": 1027,
+          "expert_nodes": 39,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 4.625099999999999,
+          "h2d_ms": 3.6891000000000003
+        },
+        "verified_gpu_bytes": 84937728
+      },
+      {
+        "name": "f32/batch=17/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "f32/batch=17/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 63704064,
+          "h2d_bytes": 63704064,
+          "ranges": 36,
+          "chunks": 36,
+          "staging_bytes": 16777216,
+          "compute_calls": 10,
+          "gpu_nodes": 790,
+          "expert_nodes": 30,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 4.343400000000001,
+          "h2d_ms": 2.8770999999999995
+        },
+        "verified_gpu_bytes": 63704064
+      },
+      {
+        "name": "mixed/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 18369024,
+          "h2d_bytes": 18369024,
+          "ranges": 102,
+          "chunks": 102,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 0.7401000000000003,
+          "h2d_ms": 2.9233
+        },
+        "verified_gpu_bytes": 18369024
+      },
+      {
+        "name": "mixed/batch=4/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=4/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 9182208,
+          "h2d_bytes": 9182208,
+          "ranges": 45,
+          "chunks": 45,
+          "staging_bytes": 16777216,
+          "compute_calls": 13,
+          "gpu_nodes": 1027,
+          "expert_nodes": 39,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 0.3388999999999999,
+          "h2d_ms": 1.2159
+        },
+        "verified_gpu_bytes": 9182208
+      },
+      {
+        "name": "mixed/batch=17/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "mixed/batch=17/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 6887424,
+          "h2d_bytes": 6887424,
+          "ranges": 36,
+          "chunks": 36,
+          "staging_bytes": 16777216,
+          "compute_calls": 10,
+          "gpu_nodes": 790,
+          "expert_nodes": 30,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 0.2676,
+          "h2d_ms": 0.9844
+        },
+        "verified_gpu_bytes": 6887424
+      },
+      {
+        "name": "wide/batch=1/native_vs_resident",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "wide/batch=1/pinned_file_vs_native",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true,
+        "transport": {
+          "source_bytes": 1528834560,
+          "h2d_bytes": 1528834560,
+          "ranges": 102,
+          "chunks": 162,
+          "staging_bytes": 16777216,
+          "compute_calls": 27,
+          "gpu_nodes": 2133,
+          "expert_nodes": 81,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "source_ms": 178.1688000000001,
+          "h2d_ms": 36.215700000000005
+        },
+        "verified_gpu_bytes": 1528834560
+      },
+      {
+        "name": "cancel_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_cancel",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "reject_cpu_tensor_math_before_copy",
+        "pass": true
+      },
+      {
+        "name": "fixture_requires_explicit_flag",
+        "pass": true
+      },
+      {
+        "name": "reject_truncated_before_weight_allocation",
+        "pass": true
+      },
+      {
+        "name": "injected_pinned_oom_before_upload",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_pinned_oom",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "read_error_after_partial_upload",
+        "pass": true,
+        "completed_upload_bytes": 225792,
+        "seconds_until_failure": 0.0010162
+      },
+      {
+        "name": "recovery_after_partial_read_error",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cancel_after_partial_upload",
+        "pass": true,
+        "completed_upload_bytes": 225792,
+        "seconds_until_failure": 0.0008787
+      },
+      {
+        "name": "recovery_after_partial_cancel",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "simulated_ram_pressure_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_ram_pressure",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "simulated_vram_pressure_before_compute",
+        "pass": true
+      },
+      {
+        "name": "recovery_after_vram_pressure",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "reject_impossible_gpu_reserve_without_allocation",
+        "pass": true
+      },
+      {
+        "name": "unload_releases_registered_sources",
+        "pass": true
+      },
+      {
+        "name": "reload_after_failures",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/warm_all_hits_bytes",
+        "pass": true,
+        "cold_h2d_bytes": 7090176,
+        "warm_h2d_bytes": 0,
+        "warm_d2d_bytes": 170159616,
+        "cache_bytes": 8650752,
+        "hits": 648
+      },
+      {
+        "name": "cache/f32/batch=1/new_generation_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/generation_invalidates",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=1/eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/bounded_eviction",
+        "pass": true,
+        "evictions": 576,
+        "reuses": 415
+      },
+      {
+        "name": "cache/f32/batch=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/oom_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/incomplete_fill_invalidated",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=1/fill_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/read_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/ram_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=1/gpu_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=1/gpu_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/warm_all_hits_bytes",
+        "pass": true,
+        "cold_h2d_bytes": 7090176,
+        "warm_h2d_bytes": 0,
+        "warm_d2d_bytes": 63810048,
+        "cache_bytes": 8650752,
+        "hits": 243
+      },
+      {
+        "name": "cache/f32/batch=17/new_generation_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/generation_invalidates",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=17/eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/bounded_eviction",
+        "pass": true,
+        "evictions": 220,
+        "reuses": 161
+      },
+      {
+        "name": "cache/f32/batch=17/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/oom_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/incomplete_fill_invalidated",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=17/fill_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/read_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/ram_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=17/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/f32/batch=17/gpu_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/f32/batch=17/gpu_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/warm_all_hits_bytes",
+        "pass": true,
+        "cold_h2d_bytes": 777216,
+        "warm_h2d_bytes": 0,
+        "warm_d2d_bytes": 18648576,
+        "cache_bytes": 1769472,
+        "hits": 648
+      },
+      {
+        "name": "cache/mixed/batch=1/new_generation_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/generation_invalidates",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=1/eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/bounded_eviction",
+        "pass": true,
+        "evictions": 563,
+        "reuses": 563
+      },
+      {
+        "name": "cache/mixed/batch=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/oom_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/incomplete_fill_invalidated",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=1/fill_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/read_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/ram_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=1/gpu_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=1/gpu_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/warm_all_hits_bytes",
+        "pass": true,
+        "cold_h2d_bytes": 777216,
+        "warm_h2d_bytes": 0,
+        "warm_d2d_bytes": 6993408,
+        "cache_bytes": 1769472,
+        "hits": 243
+      },
+      {
+        "name": "cache/mixed/batch=17/new_generation_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/generation_invalidates",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=17/eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/bounded_eviction",
+        "pass": true,
+        "evictions": 215,
+        "reuses": 215
+      },
+      {
+        "name": "cache/mixed/batch=17/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/oom_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/incomplete_fill_invalidated",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=17/fill_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/read_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/ram_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=17/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "cache/mixed/batch=17/gpu_pressure_trim",
+        "pass": true
+      },
+      {
+        "name": "cache/mixed/batch=17/gpu_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 170159616,
+        "read_peak": 1
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0011436,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 170159616,
+        "read_peak": 2
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0011658,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=1/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 63810048,
+        "read_peak": 1
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0013374,
+        "unused_bytes": 787968
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 63810048,
+        "read_peak": 2
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0013428,
+        "unused_bytes": 787968
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/f32/batch=17/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 18648576,
+        "read_peak": 1
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0013012,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 18648576,
+        "read_peak": 2
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0010018,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=1/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 6993408,
+        "read_peak": 1
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0013549,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=1/trace_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 6993408,
+        "read_peak": 2
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0014737,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "pipeline/mixed/batch=17/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "pipeline/wide_multichunk_exact",
+        "pass": true,
+        "elements": 704,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 170159616,
+        "read_peak": 1
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 81,
+        "warm_fences": 81,
+        "matrices": 648,
+        "pending_fills_peak": 8
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0019976,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0013491
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0014505
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0014629
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0007484
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 170159616,
+        "read_peak": 2
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 81,
+        "warm_fences": 81,
+        "matrices": 648,
+        "pending_fills_peak": 8
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0018971,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0015194
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0016083
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0016345
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0006375
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=1/readers=2/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 63810048,
+        "read_peak": 1
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 30,
+        "warm_fences": 30,
+        "matrices": 243,
+        "pending_fills_peak": 9
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0022702,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0015092
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0013758
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0017672
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.000996
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 7090176,
+        "d2d_bytes": 63810048,
+        "read_peak": 2
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 30,
+        "warm_fences": 30,
+        "matrices": 243,
+        "pending_fills_peak": 9
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0027673,
+        "unused_bytes": 1050624
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0013255
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0012357
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0015322
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0010177
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/f32/batch=17/readers=2/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 18648576,
+        "read_peak": 1
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 81,
+        "warm_fences": 81,
+        "matrices": 648,
+        "pending_fills_peak": 8
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0015451,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.001124
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.001181
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0009981
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0007565
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 18648576,
+        "read_peak": 2
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 81,
+        "warm_fences": 81,
+        "matrices": 648,
+        "pending_fills_peak": 8
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0014146,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0010464
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0011027
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0008574
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0008431
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=1/readers=2/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 6993408,
+        "read_peak": 1
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 30,
+        "warm_fences": 30,
+        "matrices": 243,
+        "pending_fills_peak": 9
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0015542,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0012125
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0011827
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0011477
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0012377
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=1/trace_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/bounded_ring_bytes",
+        "pass": true,
+        "h2d_bytes": 777216,
+        "d2d_bytes": 6993408,
+        "read_peak": 2
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_no_reads",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/one_delivery_fence_per_tensor",
+        "pass": true,
+        "cold_fences": 30,
+        "warm_fences": 30,
+        "matrices": 243,
+        "pending_fills_peak": 9
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/pinned_eviction_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/eviction_bounded",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/partial_cancel_drained",
+        "pass": true,
+        "seconds": 0.0017088,
+        "unused_bytes": 76800
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/real_readfile_error_drained",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/reader_error_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/partial_submission_error",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/submission_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/incomplete_fill",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/fill_auto_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/ram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/ram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/vram_pressure",
+        "pass": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/vram_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cold_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0012263
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cold_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cold_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 2,
+        "seconds": 0.0012784
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/cold_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_queued_failure",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0012573
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_queued_failure_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_queued_cancel",
+        "pass": true,
+        "queued_matrices": 2,
+        "pending_fills_peak": 0,
+        "seconds": 0.0009924
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/warm_queued_cancel_recovery",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/mixed/batch=17/readers=2/allocation_oom_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "tensor_batch/wide_multichunk_exact",
+        "pass": true,
+        "elements": 704,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=0/exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=0/counters",
+        "pass": true,
+        "admit_ms": 0.0,
+        "allocate_ms": 0.0,
+        "victim_ms": 0.0
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=0/reset",
+        "pass": true
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=1/exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=1/counters",
+        "pass": true,
+        "admit_ms": 0.08110000000000016,
+        "allocate_ms": 0.03849999999999999,
+        "victim_ms": 0.01269999999999999
+      },
+      {
+        "name": "delivery_profile/batch=0/enabled=1/reset",
+        "pass": true
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=0/exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=0/counters",
+        "pass": true,
+        "admit_ms": 0.0,
+        "allocate_ms": 0.0,
+        "victim_ms": 0.0
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=0/reset",
+        "pass": true
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=1/exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=1/counters",
+        "pass": true,
+        "admit_ms": 0.1394000000000001,
+        "allocate_ms": 0.0639,
+        "victim_ms": 0.019999999999999997
+      },
+      {
+        "name": "delivery_profile/batch=1/enabled=1/reset",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=1/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/lru/f32/batch=17/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=1/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/lru/mixed/batch=17/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 170159616,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=1/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 63810048,
+        "ram_bytes": 7090176
+      },
+      {
+        "name": "ram/frequency/f32/batch=17/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 18648576,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=1/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=0/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=1/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/phase_error_drained",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/prefill_bypass",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/cold_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/fill_accounting",
+        "pass": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/promotion_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/warm_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/warm_without_file_io",
+        "pass": true,
+        "verified_gpu_bytes": 6993408,
+        "ram_bytes": 777216
+      },
+      {
+        "name": "ram/frequency/mixed/batch=17/readers=2/new_generation_clears_ram",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=1/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/f32/batch=17/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=1/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/file/mixed/batch=17/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=1/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/f32/batch=17/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=1/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=0/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=1/prefill_preserves_existing_hits",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/cold_prefill_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/prefill_without_admission",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/decode_admission_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/batched_decode_admitted",
+        "pass": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/prefill_hit_exact",
+        "pass": true,
+        "elements": 1728,
+        "max_abs": 0.0,
+        "bit_exact_required": true
+      },
+      {
+        "name": "gpu_decode_policy/ram/mixed/batch=17/readers=2/prefill_preserves_existing_hits",
+        "pass": true
+      }
+    ],
+    "cuda_graphs": false,
+    "case_count": 796
+  },
+  "result_sha256": "712f27de19074852a0b53b444432b42d7c850e38be17d293f32cdc9628e63135",
+  "engine_sha256": "7be63e00a3a553063fb8c4172f6dcb373ceff6daa7732dc4a21e8b7c85b26247",
+  "raw_report": "build-local\\hy3-tests\\speed13-runtime\\run-report.json",
+  "raw_sha256": "c94bb6db4b126ed3617a98f96095f5a6e2fe74bb191db7e498d52904cc8422f4"
+}

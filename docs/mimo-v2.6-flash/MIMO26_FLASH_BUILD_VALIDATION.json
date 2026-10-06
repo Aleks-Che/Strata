@@ -1,0 +1,109 @@
+{
+  "status": "pass",
+  "recorded_at": "2026-10-06T15:32:43.146577+05:00",
+  "scope": "MIMO-01 CPU admission; no inference, CUDA numerical tests or GPU allocations",
+  "initial_strata_revision": "1979cb6607c07faec22ab3c195c8c8e1e29d78f9",
+  "strata_revision_at_report": "819ad130f49d1e088e2fbc50e1e4f5c681e1e390",
+  "working_tree": "existing unrelated changes preserved; this report describes only listed MiMo files and tokenizer",
+  "build_manifest": {
+    "scope": "CPU vocabulary/template/registration oracles; no weight allocation or inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "patches": "none",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": false,
+    "runtime": false
+  },
+  "host": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+  "commands": [
+    "cmake --fresh -S backends/mimo2 -B build-local/mimo2-oracles -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTRATA_MIMO_ARCHIVE=C:/work/git/my-repos/Strata/build-local/llama-glm-86ebfef2.tar.gz",
+    "cmake --build build-local/mimo2-oracles --target strata-mimo2-tokenizer strata-mimo2-loader strata-mimo2-template -j 8",
+    "ctest --test-dir build-local/mimo2-oracles --output-on-failure --no-tests=error",
+    "python -X utf8 -m unittest tools.test_mimo2_gguf tools.test_mimo2_tokenizer tools.test_step35_tokenizer tools.test_glm5next_tokenizer tools.test_hy3_tokenizer"
+  ],
+  "command_exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "build_environment": "x64 vcvars64.bat, MSVC BuildTools 2022 and Windows SDK",
+  "initial_build_issue": "First configuration lacked SDK rc/mt in PATH; reconfigured with --fresh in the developer shell and built successfully.",
+  "python_tests": {
+    "status": "pass",
+    "tests_run": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "mimo_tests": 17,
+    "existing_tokenizer_regressions": 18,
+    "observed_unittest_duration_seconds": 0.045,
+    "negative_fixture_stderr": "Expected rejection messages for output=input, unsupported production geometry, truncated headers/ranges."
+  },
+  "ctest": {
+    "status": "pass",
+    "tests": 3,
+    "purpose": "oracle --version entry points; model/corpus validation is separate"
+  },
+  "source_sha256": {
+    "backends/mimo2/build_manifest.json.in": "4280e71a97ca12f10eff50484c2d78044020ac9c262c4c67b1e1fc72715f2cb2",
+    "backends/mimo2/CMakeLists.txt": "5b28ee368190419799b247d3b91a7cb17347c4e6b3f7fdfd7c3d961635309968",
+    "backends/mimo2/loader_oracle.cpp": "05223756465f133993154fe1f4857afe7a5257528aac0013e653559141047ea8",
+    "backends/mimo2/template_oracle.cpp": "ca7d35186d56a2b2b25264ee4d431fd4adc04f304c3919c779ea650f77417805",
+    "backends/mimo2/tokenizer_oracle.cpp": "fb57b7886932096f6e56760d5a9d367996fa965905a43c1be98a007649a03e15",
+    "tools/check_mimo2_oracles.py": "1a4eb9a280b57e8519fa47714577f19a0cddc020e4a07d5b2c54327ab8592644",
+    "tools/check_mimo2_reference.py": "76fcd9a4fac04ea9937418b475a92465d4d96d913f5e78dcf5c834119aa11b3a",
+    "tools/inspect_mimo2_gguf.py": "0b098a3b17beb5f67764079c1e705d8364c7e0a1d8de55af8bf41ba93559776f",
+    "tools/mimo2_loader_contract.py": "37157c2c01833a4c2dd5c3e4ed93978cea1764fa1ba2c15d62e45165723e73c1",
+    "tools/mimo2_template.py": "84ac3c5cbba6c6b38fd13662fb7e7a5ee1ce2ced5d69737e4143d8ef0533d421",
+    "tools/mimo2_tokenizer.py": "98e70eacf9d6751247aeab989175942f862018643f8ed823c992abad938c7261",
+    "tools/strata_tokenizer.py": "51aab22d47eb82d3096c765a48a869cffd81b5306fe96b4fd1ea1e34f4f8f0cf",
+    "tools/test_mimo2_gguf.py": "bae875280e9418ff555a7e13073098190076540cb2b7764e1f1df4f71c9a6052",
+    "tools/test_mimo2_tokenizer.py": "56b6628f906674e3882150a7ca875ed4261fedc5db446b25a9e6140a6ab0abbb"
+  },
+  "binary_sha256": {
+    "strata-mimo2-loader.exe": "f70e6f47fe0d5b72ddb400f743dcc4a14c0b8a32c93f35a077bb6324f582a8c4",
+    "strata-mimo2-template.exe": "01ee82a14c6267a1dc14ecdbc688244fe655f235e7bfad031217f44b07bf69c2",
+    "strata-mimo2-tokenizer.exe": "b1f9ec1b9307901e96a4608585ce9500fe44f5469b54e193b7191d2c36996f84"
+  },
+  "local_logs_sha256": {
+    "mimo2-build.log": "eeb0bc06327137eb63606abf6041800a39888db5d40460b74dbde3767a5373a6",
+    "mimo2-rebuild.log": "c45a3fea5ef512247cf8bdfa5cf6952b0cae5c3922d5bd59da4fb9ea64215082",
+    "LastTest.log": "2eeb741ee3996e9f3a8199cd64851bebfa54ac94158007645dcffe7fb40e0707"
+  },
+  "reports": {
+    "inspection": {
+      "file": "MIMO26_FLASH_INSPECTION.json",
+      "sha256": "e059bb7cffb672011aac94d258ade5036f1bf8e9f21f6a2160e515c055877cdd",
+      "status": "pass"
+    },
+    "loader": {
+      "file": "MIMO26_FLASH_LOADER_VALIDATION.json",
+      "sha256": "c05fed6967fab257021a7f3ae013e8172f67735f9be46eb948128984cf1890bc",
+      "status": "pass"
+    },
+    "tokenizer": {
+      "file": "MIMO26_FLASH_TOKENIZER_VALIDATION.json",
+      "sha256": "6be99ee693d8f9e56f81b85eac1663b2df0b82e582d2f13ffbef75c9ef66c723",
+      "status": "pass"
+    },
+    "template": {
+      "file": "MIMO26_FLASH_TEMPLATE_VALIDATION.json",
+      "sha256": "b5bab30a3ca2c96f417e22dd0a98a3e64ee06cd55da4cdd5bb00b79fae5acf2b",
+      "status": "pass"
+    },
+    "reference": {
+      "file": "MIMO26_FLASH_REFERENCE_VALIDATION.json",
+      "sha256": "f48323d040ddf484fd444c15f73bcec7c826e537118a71eb5412189e06ed49d6",
+      "status": "pass"
+    }
+  },
+  "inference_tested": false,
+  "tokens_per_second": null,
+  "peak_memory_measured": false
+}

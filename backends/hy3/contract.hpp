@@ -13,7 +13,7 @@
 #include <vector>
 namespace hy3 {
 inline void require(bool ok,const std::string & message) {if(!ok) throw std::runtime_error(message);}
-struct Contract {uint32_t blocks,width,vocab;uint64_t fixed_bytes=0,routed_bytes=0,mtp_bytes=0;};
+struct Contract {uint32_t blocks,width,vocab;uint64_t fixed_bytes=0,routed_bytes=0,mtp_bytes=0,mtp_routed_bytes=0;};
 inline Contract inspect(const std::string & path,bool fixture=false) {
     ggml_context * raw=nullptr;
     std::unique_ptr<gguf_context,decltype(&gguf_free)> file(gguf_init_from_file(path.c_str(),{true,&raw}),gguf_free);
@@ -109,7 +109,7 @@ inline Contract inspect(const std::string & path,bool fixture=false) {
         const uint64_t offset=gguf_get_tensor_offset(f,i),bytes=gguf_get_tensor_size(f,i);
         require(offset%alignment==0 && offset<=size-base && bytes<=size-base-offset && bytes==ggml_nbytes(t),"invalid tensor range: "+name);
         ranges.emplace_back(base+offset,base+offset+bytes);
-        if(exp.layer==int(blocks-1)) result.mtp_bytes+=bytes;
+        if(exp.layer==int(blocks-1)) {result.mtp_bytes+=bytes;if(exp.routed) result.mtp_routed_bytes+=bytes;}
         else if(exp.routed) result.routed_bytes+=bytes;
         else result.fixed_bytes+=bytes;
     }

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 using namespace hy3;
 using json=nlohmann::ordered_json;
 struct Output {std::vector<llama_token> ids;std::vector<float> logits;Mtp::Counters counts;bool cancelled=false;int first_accepted=-1;};
@@ -58,7 +59,11 @@ int main(int argc,char ** argv) {
     try {
         require(!directory.empty(),"fixture directory required");std::filesystem::create_directories(directory);
         environment();ggml_backend_load_all();strata_hy3_sync_mode(2);
+        strata_hy3_gpu_cache_allocator(true);
+        std::map<std::string,Output> resident_results;
         for(int variant=0;variant<3;++variant) {
+          for(int placement:{0,1,2}) {
+            const bool streamed=placement!=0,share_scratch=placement==2;
             const auto file=(directory/("mtp-"+std::to_string(variant)+".gguf")).string();
             write_synthetic_hy3(file,variant>0,variant==2);
             std::vector<llama_token> prompt(39);
@@ -66,9 +71,9 @@ int main(int argc,char ** argv) {
             // Reference actually omits the MTP weights and hidden extraction.
             auto off=load(file,false,false,true);
             auto off_ctx=context(off.get(),128,17);
-            auto model=load(file,false,false,true,true);
+            auto model=load(file,false,false,true,true,streamed);
             auto ctx=context(model.get(),128,17);
-            Mtp mtp(model.get(),ctx.get(),128,17,3);
+            Mtp mtp(model.get(),ctx.get(),128,17,3,share_scratch);
             auto * kv=dynamic_cast<llama_kv_cache *>(ctx->get_memory());
             require(kv && kv->get_layer_ids()==std::vector<uint32_t>{0,1},"main KV includes draft block");
             auto run=[&](bool original,int depth,int count,const std::vector<llama_token> & prefix,
@@ -76,7 +81,7 @@ int main(int argc,char ** argv) {
                 auto * target=original ? off_ctx.get() : ctx.get();
                 clear(target);mtp.reset();if(depth) mtp.set_depth(depth);
                 configure_cache(original ? off.get() : model.get(),8*1024*1024);
-                strata_hy3_pipeline_config(2,4,0,false);strata_hy3_sync_reset();
+                strata_hy3_pipeline_config(2,4,0,true);strata_hy3_sync_reset();
                 std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> sampler(
                     llama_sampler_chain_init(llama_sampler_chain_default_params()),llama_sampler_free);
                 llama_sampler_chain_add(sampler.get(),llama_sampler_init_penalties(64,32,penalties?1.1f:1,penalties?.1f:0,0));
@@ -109,8 +114,13 @@ int main(int argc,char ** argv) {
                     require(position<=128,"MTP wrote past context");
                 }
                 out.counts=mtp.counters;
+                require(!share_scratch || mtp.scratch_shared(),"shared scratch detached during MTP check");
                 auto stats=strata_hy3_sync_snapshot();
                 require(!stats.rejected_cpu_nodes && !stats.rejected_full_copies,"invalid compute/copy fallback");
+                if(depth && out.counts.rounds && !out.cancelled) {
+                    require((stats.mtp_cache_bytes>0)==streamed,"MTP cache placement was not exercised");
+                    require(stats.mtp_cache_bytes<=stats.cache_bytes,"invalid MTP cache accounting");
+                }
                 clear(target);mtp.reset();return out;
             };
             auto compare=[&](std::string name,const Output & got,const Output & ref) {
@@ -124,7 +134,16 @@ int main(int argc,char ** argv) {
                 // Same bounds as Hy3's existing serial-vs-batch graph oracle.
                 // Quantized batch dispatch can differ from single-token CUDA.
                 const double abs_limit=variant ? .03 : 5e-4, nmse_limit=variant ? 2e-3 : 1e-7;
-                report["checks"].push_back({{"variant",variant},{"name",name},{"ids_exact",same},
+                const auto key=std::to_string(variant)+":"+name;
+                if(!streamed) resident_results[key]=got;
+                else {
+                    const auto & resident=resident_results.at(key);
+                    require(got.ids==resident.ids && got.logits==resident.logits &&
+                        got.counts.proposed==resident.counts.proposed && got.counts.accepted==resident.counts.accepted &&
+                        got.counts.reject_first==resident.counts.reject_first && got.counts.reject_middle==resident.counts.reject_middle,
+                        "resident/streamed MTP mismatch: "+name);
+                }
+                report["checks"].push_back({{"variant",variant},{"mtp_experts",streamed ? "streamed" : "resident"},{"shared_scratch",share_scratch},{"scratch_saved_bytes",mtp.scratch_saved()},{"resident_exact",streamed},{"name",name},{"ids_exact",same},
                     {"tokens",got.ids},{"max_abs",max_abs},{"nmse",nmse},{"max_abs_limit",abs_limit},{"nmse_limit",nmse_limit},
                     {"proposed",got.counts.proposed},{"accepted",got.counts.accepted},
                     {"reject_first",got.counts.reject_first},{"reject_middle",got.counts.reject_middle},{"accept_all",got.counts.accept_all}});
@@ -182,6 +201,7 @@ int main(int argc,char ** argv) {
             compare("near limit target-only batch4 control",batched,near);
             compare("near context limit",run(false,3,16,prompt),near);
             strata_hy3_cache_begin(0);
+          }
         }
         strata_hy3_sync_release();llama_backend_free();report["status"]="pass";
     } catch(const std::exception & e) {report["error"]=e.what();strata_hy3_sync_release();llama_backend_free();}

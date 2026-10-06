@@ -77,6 +77,18 @@ GLM4_PATTERN = (
     r"|\s+"
 )
 
+# LLAMA_VOCAB_PRE_TYPE_QWEN2 in pinned 86ebfef2: single digits, but no
+# combining marks in the letter branch (unlike qwen35). MiMo uses this pre.
+QWEN2_PATTERN = (
+    r"(?:'[sS]|'[tT]|'[rR][eE]|'[vV][eE]|'[mM]|'[lL][lL]|'[dD])"
+    r"|[^\r\n\p{L}\p{N}]?\p{L}+"
+    r"|\p{N}"
+    r"| ?[^\s\p{L}\p{N}]+[\r\n]*"
+    r"|\s*[\r\n]+"
+    r"|\s+(?!\S)"
+    r"|\s+"
+)
+
 # Ordered splits, as in the pinned llama.cpp LLAMA_VOCAB_PRE_TYPE_JOYAI_LLM
 # and DEEPSEEK3_LLM / HUNYUAN_DENSE (Step uses deepseek-v3, Hy3 hunyuan-dense).
 # All share this sequence in revision 86ebfef2; none enables ignore_merges.
@@ -110,13 +122,13 @@ class Tokenizer:
             if parts[0] not in self.ids or parts[1] not in self.ids:
                 raise ValueError("merge %d names a token outside the vocabulary: %r" % (i, m))
             self.ranks[(parts[0], parts[1])] = i
-        if pre not in ("qwen35", "joyai-llm", "glm4", "deepseek-v3", "hunyuan-dense"):
+        if pre not in ("qwen35", "qwen2", "joyai-llm", "glm4", "deepseek-v3", "hunyuan-dense"):
             raise ValueError(f"unsupported pre-tokenizer: {pre}")
         # Match the pinned GLM candidate: a complete pre-tokenized vocabulary
         # piece wins even when greedy merges cannot reach it. Other profiles
         # retain their merge rules; this is not a longest-substring lookup.
         self.ignore_merges = pre == "glm4"
-        self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN35_PATTERN)
+        self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN2_PATTERN if pre == "qwen2" else QWEN35_PATTERN)
         self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre in ("joyai-llm", "deepseek-v3", "hunyuan-dense") else None
 
         # The literals matched directly instead of being run through BPE.  GGUF token types: 3 = CONTROL,

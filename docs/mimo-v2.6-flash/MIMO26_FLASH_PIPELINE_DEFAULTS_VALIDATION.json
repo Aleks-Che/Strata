@@ -1,0 +1,393 @@
+{
+  "status": "pass",
+  "binary_sha256": "5bdf258bc84928408b0aec10de8dbbaec14dbe30b080b32e6378ebed8df26f09",
+  "modes": [
+    {
+      "name": "default",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-fixture-engine.exe",
+        "--native",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\fixture\\mixed.gguf",
+        "--logits-file",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-defaults-fixture\\default\\logits.f32"
+      ],
+      "info": "INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0 expert_compute=gpu expert_storage=mmap expert_pipeline=1 expert_cache_mib=14336 expert_cache_requested_mib=14336 expert_cache_prefill=off expert_copy=mmap-pipeline expert_readers=1 expert_chunk_mib=8 expert_stage_mib=32 memory_target_percent=95 kv=f32 flash_attention=1 host_working_set_target_percent=94 tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645",
+      "result": {
+        "ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "requested": 8,
+        "tokens": [
+          19,
+          27,
+          19,
+          27,
+          19,
+          27,
+          44,
+          44
+        ],
+        "progress": [
+          8,
+          9
+        ],
+        "done": "DONE 8 9 90.207 32.6083 length 0 0 0"
+      },
+      "comparison": {
+        "pass_": true,
+        "finite": true,
+        "bit_exact": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 512
+      },
+      "status": "pass",
+      "requests": [
+        {
+          "prompt_tokens": 9,
+          "generated": 8,
+          "finish": "length",
+          "prefill_ms": 90.207,
+          "ttft_ms": 90.6848,
+          "generation_ms": 32.6083,
+          "request_ms": 122.8156,
+          "decode_steps": 7,
+          "decode_forward_ms": 31.8584,
+          "decode_tokens_per_second": 219.72227104939356,
+          "ranges": 54,
+          "chunks": 144,
+          "source_bytes": 4055040,
+          "h2d_bytes": 4055040,
+          "requested_bytes": 12165120,
+          "cache_hits": 288,
+          "cache_misses": 144,
+          "cache_hit_bytes": 8110080,
+          "cache_fill_bytes": 1351680,
+          "d2d_ms": 8.1002,
+          "cache_bytes": 100663296,
+          "cache_payload_bytes": 1351680,
+          "cache_limit": 15032385536,
+          "cache_evictions": 0,
+          "cache_allocations": 48,
+          "cache_reuses": 0,
+          "cache_bypasses": 0,
+          "cache_oom": 0,
+          "host_working_set_limit": 100694965936,
+          "pipeline_groups": 6,
+          "pipeline_chunks": 144,
+          "pipeline_device_bytes": 33554432,
+          "pipeline_unused_bytes": 0,
+          "pipeline_delivered_bytes": 4055040,
+          "pipeline_read_peak": 1,
+          "pipeline_reader_owned": 0,
+          "pipeline_queued": 0,
+          "pipeline_consumer_wait_us": 185,
+          "pipeline_slot_wait_us": 4503,
+          "pipeline_submit_us": 3068,
+          "pipeline_file_bytes": 0,
+          "pipeline_mmap_bytes": 4055040,
+          "pipeline_d2d_bytes": 4055040,
+          "prefill_h2d_bytes": 2703360,
+          "decode_h2d_bytes": 1351680,
+          "source_ms": 0.547,
+          "h2d_ms": 0.0,
+          "staging_bytes": 33554432,
+          "gpu_nodes": 882,
+          "expert_nodes": 54,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 29524336640,
+          "gpu_total": 34190917632,
+          "ram_free": 108178464768,
+          "ram_total": 134813700096
+        }
+      ],
+      "samples": [
+        {
+          "ram_total": 134813700096,
+          "ram_available": 108756357120,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 3308257280
+          },
+          "seconds": 0.0,
+          "process_rss": 101228544,
+          "process_peak_wset": 101232640,
+          "process_cpu_user_seconds": 0.015625,
+          "process_cpu_system_seconds": 0.0
+        }
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-fixture-engine.exe",
+        "--native",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\fixture\\mixed.gguf",
+        "--logits-file",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-defaults-fixture\\native\\logits.f32",
+        "--copy-mode",
+        "native"
+      ],
+      "info": "INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0 expert_compute=gpu expert_storage=mmap expert_pipeline=0 expert_cache_mib=0 expert_cache_requested_mib=0 expert_cache_prefill=off expert_copy=native-reference expert_readers=0 expert_chunk_mib=8 expert_stage_mib=0 memory_target_percent=95 kv=f32 flash_attention=1 host_working_set_target_percent=0 tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645",
+      "result": {
+        "ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "requested": 8,
+        "tokens": [
+          19,
+          27,
+          19,
+          27,
+          19,
+          27,
+          44,
+          44
+        ],
+        "progress": [
+          8,
+          9
+        ],
+        "done": "DONE 8 9 214.114 11.0899 length 0 0 0"
+      },
+      "comparison": {
+        "pass_": true,
+        "finite": true,
+        "bit_exact": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 512
+      },
+      "status": "pass",
+      "requests": [
+        {
+          "prompt_tokens": 9,
+          "generated": 8,
+          "finish": "length",
+          "prefill_ms": 214.1138,
+          "ttft_ms": 214.5137,
+          "generation_ms": 11.0899,
+          "request_ms": 225.204,
+          "decode_steps": 7,
+          "decode_forward_ms": 10.470699999999999,
+          "decode_tokens_per_second": 668.5321898249401,
+          "ranges": 54,
+          "chunks": 0,
+          "source_bytes": 0,
+          "h2d_bytes": 12165120,
+          "requested_bytes": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_hit_bytes": 0,
+          "cache_fill_bytes": 0,
+          "d2d_ms": 0.0,
+          "cache_bytes": 0,
+          "cache_payload_bytes": 0,
+          "cache_limit": 0,
+          "cache_evictions": 0,
+          "cache_allocations": 0,
+          "cache_reuses": 0,
+          "cache_bypasses": 0,
+          "cache_oom": 0,
+          "host_working_set_limit": 0,
+          "pipeline_groups": 0,
+          "pipeline_chunks": 0,
+          "pipeline_device_bytes": 0,
+          "pipeline_unused_bytes": 0,
+          "pipeline_delivered_bytes": 0,
+          "pipeline_read_peak": 0,
+          "pipeline_reader_owned": 0,
+          "pipeline_queued": 0,
+          "pipeline_consumer_wait_us": 0,
+          "pipeline_slot_wait_us": 0,
+          "pipeline_submit_us": 0,
+          "pipeline_file_bytes": 0,
+          "pipeline_mmap_bytes": 0,
+          "pipeline_d2d_bytes": 0,
+          "prefill_h2d_bytes": 2703360,
+          "decode_h2d_bytes": 9461760,
+          "source_ms": 0.0,
+          "h2d_ms": 0.0,
+          "staging_bytes": 0,
+          "gpu_nodes": 882,
+          "expert_nodes": 54,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 29651017728,
+          "gpu_total": 34190917632,
+          "ram_free": 108265250816,
+          "ram_total": 134813700096
+        }
+      ],
+      "samples": [
+        {
+          "ram_total": 134813700096,
+          "ram_available": 108685336576,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 3316645888
+          },
+          "seconds": 0.01600000000325963,
+          "process_rss": 152018944,
+          "process_peak_wset": 152023040,
+          "process_cpu_user_seconds": 0.015625,
+          "process_cpu_system_seconds": 0.046875
+        }
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "no-cache",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-fixture-engine.exe",
+        "--native",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\fixture\\mixed.gguf",
+        "--logits-file",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-defaults-fixture\\no-cache\\logits.f32",
+        "--expert-cache-mib",
+        "0"
+      ],
+      "info": "INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0 expert_compute=gpu expert_storage=mmap expert_pipeline=0 expert_cache_mib=0 expert_cache_requested_mib=0 expert_cache_prefill=off expert_copy=mmap-cache-sync expert_readers=0 expert_chunk_mib=8 expert_stage_mib=0 memory_target_percent=95 kv=f32 flash_attention=1 host_working_set_target_percent=94 tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645",
+      "result": {
+        "ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "requested": 8,
+        "tokens": [
+          19,
+          27,
+          19,
+          27,
+          19,
+          27,
+          44,
+          44
+        ],
+        "progress": [
+          8,
+          9
+        ],
+        "done": "DONE 8 9 87.1434 9.3385 length 0 0 0"
+      },
+      "comparison": {
+        "pass_": true,
+        "finite": true,
+        "bit_exact": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 512
+      },
+      "status": "pass",
+      "requests": [
+        {
+          "prompt_tokens": 9,
+          "generated": 8,
+          "finish": "length",
+          "prefill_ms": 87.1434,
+          "ttft_ms": 87.5589,
+          "generation_ms": 9.3385,
+          "request_ms": 96.4825,
+          "decode_steps": 7,
+          "decode_forward_ms": 8.7337,
+          "decode_tokens_per_second": 801.4930670849697,
+          "ranges": 54,
+          "chunks": 54,
+          "source_bytes": 0,
+          "h2d_bytes": 12165120,
+          "requested_bytes": 12165120,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_hit_bytes": 0,
+          "cache_fill_bytes": 0,
+          "d2d_ms": 0.0,
+          "cache_bytes": 0,
+          "cache_payload_bytes": 0,
+          "cache_limit": 0,
+          "cache_evictions": 0,
+          "cache_allocations": 0,
+          "cache_reuses": 0,
+          "cache_bypasses": 0,
+          "cache_oom": 0,
+          "host_working_set_limit": 100724207280,
+          "pipeline_groups": 0,
+          "pipeline_chunks": 0,
+          "pipeline_device_bytes": 0,
+          "pipeline_unused_bytes": 0,
+          "pipeline_delivered_bytes": 0,
+          "pipeline_read_peak": 0,
+          "pipeline_reader_owned": 0,
+          "pipeline_queued": 0,
+          "pipeline_consumer_wait_us": 0,
+          "pipeline_slot_wait_us": 0,
+          "pipeline_submit_us": 0,
+          "pipeline_file_bytes": 0,
+          "pipeline_mmap_bytes": 0,
+          "pipeline_d2d_bytes": 0,
+          "prefill_h2d_bytes": 2703360,
+          "decode_h2d_bytes": 9461760,
+          "source_ms": 0.0,
+          "h2d_ms": 2.2031999999999994,
+          "staging_bytes": 0,
+          "gpu_nodes": 882,
+          "expert_nodes": 54,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "gpu_free": 29651017728,
+          "gpu_total": 34190917632,
+          "ram_free": 108248563712,
+          "ram_total": 134813700096
+        }
+      ],
+      "samples": [
+        {
+          "ram_total": 134813700096,
+          "ram_available": 108733366272,
+          "gpu": {
+            "name": "NVIDIA GeForce RTX 5090",
+            "driver": "581.80",
+            "total": 34190917632,
+            "used": 3316645888
+          },
+          "seconds": 0.0,
+          "process_rss": 134717440,
+          "process_peak_wset": 134721536,
+          "process_cpu_user_seconds": 0.015625,
+          "process_cpu_system_seconds": 0.015625
+        }
+      ],
+      "exit_code": 0
+    }
+  ],
+  "reference": "build-local\\mimo2-validation\\cache-pipe-32\\native\\logits.f32",
+  "reference_sha256": "a485f61384636d684ed7c17e07e62ed7bc00a08f4d6f0856b8001e42929191bf"
+}

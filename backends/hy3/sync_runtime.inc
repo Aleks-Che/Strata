@@ -33,11 +33,18 @@ void strata_hy3_sync_reset() {
     hy3_account_pipeline();
     hy3_sync_stats={};hy3_sync_stats.staging_bytes=hy3_staging ? hy3_staging_limit : 0;
     if(hy3_cache) hy3_cache->reset_counters();
+    if(hy3_arena) hy3_arena->reset_counters();
     if(hy3_host_cache) hy3_host_cache->reset_counters();
 }
 strata_hy3_sync_stats strata_hy3_sync_snapshot() {
     hy3_account_pipeline();
     auto s=hy3_sync_stats;s.cache_generation=hy3_generation;
+    if(hy3_arena) {
+        const auto a=hy3_arena->snapshot();
+        s.cache_backing_bytes=a.reserved;s.cache_backing_slack_bytes=a.reserved-a.live;
+        s.cache_arena_blocks=a.blocks;s.cache_arena_allocations=a.allocations;s.cache_arena_frees=a.frees;
+        s.cache_arena_budget_rejects=a.budget_rejects;
+    }
     if(hy3_host_cache) {
         const auto c=hy3_host_cache->snapshot();
         s.ram_cache_bytes=c.bytes;s.ram_cache_budget=c.budget;s.ram_cache_entries=c.entries;
@@ -52,6 +59,8 @@ strata_hy3_sync_stats strata_hy3_sync_snapshot() {
     }
     if(hy3_cache) {
         const auto c=hy3_cache->counters();
+        for(const auto & entry:hy3_tensors) if(entry.second.mtp)
+            s.mtp_cache_bytes+=hy3_cache->tensor_bytes(hy3_generation,entry.second.id);
         s.cache_bytes=hy3_cache->resident_bytes();s.cache_budget=hy3_cache->budget();s.cache_entries=hy3_cache->size();
         s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;s.cache_oom=c.oom;
         s.cache_rejected=c.rejected;s.cache_reuses=c.reuses;
@@ -72,6 +81,14 @@ void strata_hy3_memory_check(size_t reserve) {
     static StrataGlobalMemory gpu;
     int device=-1;hy3_cuda(cudaGetDevice(&device));
     if(!gpu.sample(device,free,total)) throw std::runtime_error("Hy3 global VRAM query failed");
+    // A partly occupied slab cannot release physical pages one matrix at a
+    // time. At a synchronized decode boundary, pressure may require draining
+    // the whole optional cache so every slab returns to the driver.
+    const auto available_before=std::min(free,hy3_test_limits.gpu_available);
+    if(hy3_arena && hy3_cache && (available_before<total/20 || reserve>available_before-total/20)) {
+        hy3_cache->trim(0);hy3_cache->refresh();
+        if(!gpu.sample(device,free,total))throw std::runtime_error("Hy3 arena reclaim sample failed");
+    }
     if(!hy3_ram_budget) hy3_ram_budget=std::make_unique<strata_glm::HostWorkingSetBudget>();
     // Bound this process's mapped resident pages before the global 95% guard.
     // The extra 2% margin absorbs driver allocations and other-process changes.
@@ -96,6 +113,7 @@ void strata_hy3_sync_release() {
     hy3_ram_budget.reset();
     hy3_profile_delivery=false;
     hy3_prefill=false;hy3_admit_prefill=true;
+    hy3_use_arena=false;
     hy3_test_limits={};
 }
 static bool hy3_expert_weight(const ggml_tensor * t) {

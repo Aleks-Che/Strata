@@ -1,0 +1,68 @@
+{
+  "status": "pass",
+  "scope": "Exporter identity, checksum and selected arguments; not a running server or new full-model HTTP test.",
+  "profile": "build-local\\hy3-http-arena14\\hy3.json",
+  "profile_sha256": "b6376f9150f2b715001ac3f8cca4528723cb492affb9a84a6d4bf49bc19be809",
+  "engine_sha256": "19369d5809e594269c25932ccd5c3d6d099afe34de02cd3ef68819ea0e9878e8",
+  "config": {
+    "architecture": "hy_v3",
+    "model_name": "hy3",
+    "experimental": true,
+    "exe": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-gpu-arena\\strata-hy3.exe",
+    "cwd": "C:\\work\\git\\my-repos\\Strata",
+    "host": "127.0.0.1",
+    "gpu": 0,
+    "tokenizer": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-http-arena14\\tokenizer",
+    "lib_dirs": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin\\x64"
+    ],
+    "log": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-http-arena14\\engine.log",
+    "statistics_file": "C:\\work\\git\\my-repos\\Strata\\build-local\\hy3-http-arena14\\usage.sqlite",
+    "args": [
+      "--native",
+      "H:\\models\\hy3\\Hy3-Q3_K_M-mtp.gguf",
+      "--max-context",
+      "2048",
+      "--batch-size",
+      "17",
+      "--copy-mode",
+      "pinned",
+      "--kv",
+      "f32",
+      "--gpu-cache-policy",
+      "decode",
+      "--gpu-cache-allocator",
+      "arena",
+      "--expert-cache-mib",
+      "16384",
+      "--pipeline-readers",
+      "2",
+      "--pipeline-chunk-mib",
+      "4",
+      "--pipeline-batch",
+      "1",
+      "--ram-cache-policy",
+      "frequency",
+      "--ram-cache-mib",
+      "65536"
+    ],
+    "sampling": {
+      "temperature": 0
+    },
+    "reasoning_budget_tokens": 0,
+    "fit_max_tokens": true,
+    "backend_identity": {
+      "architecture": "hy_v3",
+      "engine": "hy3-native",
+      "protocol_version": 1,
+      "source_sha": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "patch_set": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy,hy3-gpu-arena"
+    },
+    "engine_sha256": "19369d5809e594269c25932ccd5c3d6d099afe34de02cd3ef68819ea0e9878e8",
+    "model_header_sha256": "f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9",
+    "validated_eog_ids": [
+      120025
+    ]
+  }
+}

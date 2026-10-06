@@ -294,7 +294,7 @@ depth3 was slower in the local sweep and changed greedy IDs on a short mixed
 synthetic fixture. It is not recommended as a production default. Batched
 quantized logits can also differ from serial logits with depth1; exact greedy
 agreement is a measured property of the tested corpus, not a universal promise.
-All MTP weights stay on CUDA0 (1.729 GiB on the reviewed model); the target
+By default all MTP weights stay on CUDA0 (1.729 GiB on the reviewed model); the target
 experts retain their bounded cache and async pipeline. One model owns the
 shared embedding/output weights. Main and draft contexts have separate F32 KV.
 The global 95% memory ceiling applies to both contexts and the expert cache.
@@ -308,7 +308,7 @@ Sessions and stochastic speculation are not enabled: temperature > 0 uses
 the existing target-only sampler, even when the model was loaded with MTP.
 Greedy repetition/frequency/presence penalties remain in the target sampler.
 
-INFO reports `mtp`, `spec` (depth) and `mtp_storage=resident`. Request metrics
+INFO reports `mtp`, `spec` (depth) and `mtp_storage=resident|streamed` (or `none`). Request metrics
 report effective `mtp_depth` (zero for the sampling fallback), proposed,
 accepted and delivered drafts, rounds, reject positions, and prefill/draft/
 verify/repair times. With MTP, `decode_steps` counts target verification batches;
@@ -321,6 +321,39 @@ cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-mtp-check
 python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind mtp --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/mtp-fixture-new
 python tools/check_hy3_mtp.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --depths 0 1 2 3 0 --output-dir build-local/hy3-tests/mtp-model-new
 ```
+
+`--mtp-experts resident|streamed` selects expert placement when MTP is enabled.
+The default remains `resident`. With `streamed`, the three routed tensors in
+block80 use the same native-file source, RAM cache, GPU frequency controller,
+arena and copy pipeline as main-model experts. There is no fixed draft quota:
+frequently reused matrices compete for the common cache. Dense MTP weights,
+shared model embeddings/output and the separate draft KV stay on GPU.
+`--mtp-experts streamed` requires `--mtp 1`, `2` or `3`; the profile exporter
+accepts the same option. Compute scratch is separate by default, so moving expert weights does not free
+their entire size as usable cache space. `--mtp-shared-scratch 1` additionally
+shares fresh CUDA compute storage between the two contexts; it requires streamed
+MTP experts. The exporter uses the boolean flag `--mtp-shared-scratch`.
+This ports DeepSeek's checked allocator ownership mechanism to Hy3's private
+dependency. Both contexts finish compute and copy outputs to host before switching.
+KV and model weights retain their existing ownership. Buffer growth safely
+separates the allocations again; `mtp_shared_scratch` reports whether sharing
+is still active. `mtp_scratch_saved_bytes` is the initial released allocation.
+When shared, `draft_gpu_compute_bytes` is zero to avoid counting the target's
+physical buffer twice. Neither option changes the resident/default profile.
+
+Request metrics include `mtp_experts`, `main_cache_bytes`, `mtp_cache_bytes`,
+`draft_gpu_context_bytes` and `draft_gpu_compute_bytes`. The two matrix gauges
+sum to `cache_bytes`; arena padding remains in `cache_backing_slack_bytes`.
+The synthetic MTP suite runs both placements and additionally requires exact
+logits, token IDs and draft acceptance between placements. The full-model
+sweep accepts `--mtp-experts resident streamed` for a same-build comparison.
+
+On the RTX5090/128GB Windows machine, HY3-15's five-pair English/code sweep
+(last two pairs after three training pairs) measured6.474 tok/s for resident
+MTP1 and5.854 for streamed MTP1 with shared scratch. Main cache grew from
+13.464 to14.675 GiB, but throughput decreased. Keep the resident speed profile;
+`build-local/hy3-http-streamed15/hy3.json` is an explicit experimental profile.
+See HY3-15 in the status for complete memory, correctness and workload limits.
 
 The synthetic checker exercises F32 and two quantized layouts, forced rejection
 at every draft position, acceptance, bonus/output limits, stop, cancellation,
@@ -426,6 +459,89 @@ python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --run
 comparisons). `--runtime-probe history-graphs` explicitly re-enables CUDA graphs
 in the test executable to reproduce the known failure; this option is absent
 from the production engine. The exact underlying cause remains open.
+
+## GPU cache admission during prefill
+
+`--gpu-cache-policy decode` keeps the GPU matrix cache trained on generation.
+Prompt processing still uses existing cache hits and delivers every miss, but
+does not admit new matrices or update frequency/recency. This avoids replacing
+useful decode weights with a broad, one-off prompt scan. `all` preserves the
+previous behavior and remains the engine default.
+
+The request driver marks prefill explicitly, after draining the current router
+plan. MTP verification batches belong to decode and continue to populate the
+cache. Both synchronous delivery and the per-matrix/tensor-batched pipelines
+honor the policy, with or without the managed RAM cache. The policy changes
+storage decisions only; expert selection and computation are unchanged.
+
+Request JSON includes `gpu_cache_policy`, `gpu_prefill_bypasses`,
+`prefill_gpu_fill_bytes` and `decode_gpu_fill_bytes`. In `decode` mode the
+prefill fill counter must remain zero. A new process starts with an empty GPU
+cache: this mode does not guarantee faster cold generation. Compare cold and
+warm requests separately, with `--profile-delivery` disabled for speed runs.
+
+The profile exporter accepts the same policy. GPU capacity is an upper bound,
+not a reservation: the existing global memory controller can reduce it, and
+the independent 95% RAM/VRAM guards remain active.
+
+## Dense GPU matrix storage
+
+`--gpu-cache-allocator arena` packs routed matrices into CUDA blocks of up to
+64 MiB, with separate slots for each 64-KiB-rounded matrix size. This avoids
+the driver allocation overhead of thousands of separate `cudaMalloc` calls.
+The matrix cache still holds the actual hot weights used for computation.
+There is no second GPU copy of the complete expert set. `individual` retains
+the previous allocation mode and is the engine default.
+
+When replacing a matrix, the arena mode first searches up to64 unpinned entries
+near the LRU tail for an equal-sized, no-hotter victim. This also permits reuse
+when a new block would exceed available VRAM. Existing pipeline pins protect
+pending hits; the normal delivery fence still completes before a slot is reused.
+An empty block returns to CUDA immediately. Partly occupied blocks can retain
+unused slots; under memory pressure a synchronized decode boundary may drain
+the optional cache to release whole blocks.
+
+The global guard counts physical allocation, including empty slots and block
+padding, and leaves 5% plus256 MiB before a new allocation. The requested cache
+cap limits live matrix bytes; it does not reserve that much VRAM at startup.
+Budget refresh recognizes unused slots as part of the cache's existing backing,
+so filling them does not require additional global free memory. Every new CUDA
+block still passes its own physical memory check.
+Step's default allocation and eviction policies are unchanged. DeepSeek's fixed
+cache uses a single allocation with similar same-size replacement; its dynamic
+mode still uses individual allocations.
+
+Request JSON distinguishes `cache_bytes` (live charged matrices),
+`cache_backing_bytes` (arena CUDA blocks), and `cache_backing_slack_bytes`
+(unused slots and padding). Backing counters are zero in individual mode,
+where this allocator cannot measure driver overhead. Arena allocation/free
+counts and `cache_arena_budget_rejects` report block activity. A budget rejection
+also increments the legacy `cache_oom` counter even when same-size reuse succeeds;
+it does not mean that the CUDA driver ran out of memory.
+
+`target_gpu_model_bytes`, `target_gpu_context_bytes`, and
+`target_gpu_compute_bytes` report backend buffer sizes, excluding arena blocks,
+the transport ring and driver/desktop allocations. If MTP is enabled, the model
+buffer includes loaded draft weights, but context/compute describe only the
+target context. These fields alone are not a complete MTP memory total.
+
+```powershell
+cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-arena-check -j 4
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind arena --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/arena-new
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --runtime-arena --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/arena-runtime-new
+```
+
+Measured local profiles from HY3-14 are `build-local/hy3-http-arena14/hy3.json`
+(MTP0) and `build-local/hy3-http-arena14-mtp1/hy3.json` (MTP1). Both point to
+the saved `hy3-gpu-arena` executable and use cap16384 MiB/decode, readers2,
+chunk4 MiB, tensor batching and RAM cap65536 MiB/frequency. On RTX5090/128 GiB
+RAM, the final repeated English/code MTP0/1/0 comparison gave5.869 versus
+6.424 useful decode tokens/s after three training pairs. Total pair time fell
+only2.0%; this is a short warm-corpus measurement, not a cold/long-context rate.
+The six-prompt arena corpus was checked with MTP0; current MTP1 validation covers
+English/code and lifecycle. See the [HY3-14 status](../../docs/hy3/HY3_IMPLEMENTATION_STATUS.md)
+for reports, limits and launch commands. These profiles do not start a server
+or replace the old ones automatically.
 
 ## Managed RAM cache
 

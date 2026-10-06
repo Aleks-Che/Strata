@@ -1,0 +1,2460 @@
+{
+  "status": "pass",
+  "primary": {
+    "status": "pass",
+    "kind": "runtime",
+    "scope": "synthetic correctness, no inference throughput",
+    "runner_command": [
+      "C:\\Users\\Aleks\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "C:\\work\\git\\my-repos\\Strata\\tools\\check_mimo2_cuda.py",
+      "--build",
+      "build-local/mimo2-cuda",
+      "--kind",
+      "runtime",
+      "--output-dir",
+      "build-local/mimo2-validation/pipeline-runtime-kv-init6",
+      "--cuda-bin",
+      "build-local/cuda-13.0/bin/x64"
+    ],
+    "binary": "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+    "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+    "manifest": {
+      "scope": "MiMo oracles, synthetic CUDA fixtures and optional synchronous selected-expert engine",
+      "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+      "patches": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision,mimo-sync-selected-file-copy-gpu-audit-demand-mmap,mimo-bounded-matrix-cache,mimo-route-prefetch-pipeline",
+      "generated_mmf_sha256": "35ce8b9b5c7b6feb651167523d602ed0bad27dec70cb07a8437c67dbc7302975",
+      "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+      "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+      "compiler": "MSVC",
+      "compiler_version": "19.44.35222.0",
+      "generator": "Ninja",
+      "build_type": "Release",
+      "cuda": true,
+      "cuda_compiler_version": "13.0.48",
+      "cuda_architectures": "120",
+      "runtime": true,
+      "runtime_generated_hashes": "strata-mimo2-backend.cpp:13cd2dd3a19045d25b7c0175e16f4f9251daa7a8b1a1bf127c0ecb0a97783ed2;strata-mimo2-loader.cpp:3e42489459ae39a3cc5807a8cc3593451ba06b595492b81dd8efae78bfc98493;strata-mimo2-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558"
+    },
+    "manifest_sha256": "4ac8d445ac15043152ac32218234d112c849e0f107c593fa79e6d23e1944a4f8",
+    "samples": [
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108961140736,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 3295674368
+        },
+        "seconds": 0.06299999996554106,
+        "process_rss": 153862144,
+        "process_peak_wset": 153866240
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108815810560,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 3294625792
+        },
+        "seconds": 0.625,
+        "process_rss": 189669376,
+        "process_peak_wset": 299819008
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108444909568,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4001366016
+        },
+        "seconds": 1.202999999979511,
+        "process_rss": 583737344,
+        "process_peak_wset": 585842688
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108457738240,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4070572032
+        },
+        "seconds": 1.7660000000032596,
+        "process_rss": 648704000,
+        "process_peak_wset": 659542016
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108529266688,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4141875200
+        },
+        "seconds": 2.327999999979511,
+        "process_rss": 640921600,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108610682880,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4158652416
+        },
+        "seconds": 2.875,
+        "process_rss": 119255040,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108655210496,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4253024256
+        },
+        "seconds": 3.452999999979511,
+        "process_rss": 121708544,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108638457856,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4135583744
+        },
+        "seconds": 4.0,
+        "process_rss": 172613632,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108618407936,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4158652416
+        },
+        "seconds": 4.562999999965541,
+        "process_rss": 122384384,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108670545920,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4253024256
+        },
+        "seconds": 5.125,
+        "process_rss": 121004032,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108628807680,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4152360960
+        },
+        "seconds": 5.671999999962281,
+        "process_rss": 171401216,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108678975488,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 3862953984
+        },
+        "seconds": 6.23499999998603,
+        "process_rss": 56287232,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108612792320,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 3862953984
+        },
+        "seconds": 6.780999999959022,
+        "process_rss": 133222400,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108610383872,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4091543552
+        },
+        "seconds": 7.3439999999827705,
+        "process_rss": 142307328,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108652023808,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4183818240
+        },
+        "seconds": 7.89100000000326,
+        "process_rss": 53751808,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108644646912,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4200595456
+        },
+        "seconds": 8.437999999965541,
+        "process_rss": 74129408,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108658262016,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4133486592
+        },
+        "seconds": 9.0,
+        "process_rss": 125497344,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108678721536,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4108320768
+        },
+        "seconds": 9.562999999965541,
+        "process_rss": 75870208,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108661956608,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 4158652416
+        },
+        "seconds": 10.125,
+        "process_rss": 123633664,
+        "process_peak_wset": 659787776
+      },
+      {
+        "ram_total": 134813700096,
+        "ram_available": 108851978240,
+        "gpu": {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver": "581.80",
+          "total": 34190917632,
+          "used": 3776970752
+        },
+        "seconds": 10.671999999962281,
+        "process_rss": 32960512,
+        "process_peak_wset": 659787776
+      }
+    ],
+    "sampling_seconds": 0.5,
+    "gpu_sampling_seconds": 0.5,
+    "ceiling_fraction": 0.95,
+    "peak_scope": "sampled system-wide usage includes other processes; not an allocation guarantee",
+    "diagnostic_environment": {
+      "GGML_CUDA_DISABLE_GRAPHS": "1",
+      "GGML_CUDA_PDL": null,
+      "LLAMA_GRAPH_REUSE_DISABLE": "1",
+      "NVIDIA_TF32_OVERRIDE": "0",
+      "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+    },
+    "command": [
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+      "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\fixture"
+    ],
+    "before": {
+      "ram_total": 134813700096,
+      "ram_available": 109109706752,
+      "gpu": {
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver": "581.80",
+        "total": 34190917632,
+        "used": 3295674368
+      }
+    },
+    "vram_admission_reserve_bytes": 1073741824,
+    "exit_code": 0,
+    "wall_seconds": 11.187999999965541,
+    "result": {
+      "status": "pass",
+      "scope": "synthetic native full/SWA GPU graph; no full-model inference",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patch_set": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision,mimo-sync-selected-file-copy-gpu-audit-demand-mmap,mimo-bounded-matrix-cache,mimo-route-prefetch-pipeline",
+      "passed": 212,
+      "case_count": 212,
+      "positions": 273,
+      "runs": [
+        {
+          "fixture": "f32",
+          "mode": 0,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 0,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "f32",
+          "mode": 1,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 440401920,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "f32",
+          "mode": 2,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 440401920,
+          "source_bytes": 440401920,
+          "staging_bytes": 16777216,
+          "byte_checked": 440401920,
+          "chunks": 210
+        },
+        {
+          "fixture": "f32",
+          "cache_cap": 8388608,
+          "cache_bytes": 8388608,
+          "cache_hits": 0,
+          "cache_evictions": 1676,
+          "cache_reuses": 1676,
+          "requested_bytes": 440401920,
+          "h2d_bytes": 440401920,
+          "cache_hit_bytes": 0,
+          "byte_checked": 440401920
+        },
+        {
+          "fixture": "f32",
+          "cache_cap": 268435456,
+          "cache_bytes": 100663296,
+          "cache_hits": 1632,
+          "cache_evictions": 0,
+          "cache_reuses": 0,
+          "requested_bytes": 440401920,
+          "h2d_bytes": 12582912,
+          "cache_hit_bytes": 427819008,
+          "byte_checked": 440401920
+        },
+        {
+          "fixture": "f32",
+          "cache_cap": 8388608,
+          "cache_bytes": 8388608,
+          "cache_hits": 0,
+          "cache_evictions": 1676,
+          "cache_reuses": 1676,
+          "requested_bytes": 440401920,
+          "h2d_bytes": 440401920,
+          "cache_hit_bytes": 0,
+          "byte_checked": 440401920
+        },
+        {
+          "fixture": "f32",
+          "cache_cap": 268435456,
+          "cache_bytes": 100663296,
+          "cache_hits": 1632,
+          "cache_evictions": 0,
+          "cache_reuses": 0,
+          "requested_bytes": 440401920,
+          "h2d_bytes": 12582912,
+          "cache_hit_bytes": 427819008,
+          "byte_checked": 440401920
+        },
+        {
+          "fixture": "mixed",
+          "mode": 0,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 0,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "mixed",
+          "mode": 1,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 47308800,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "mixed",
+          "mode": 2,
+          "gpu_nodes": 3430,
+          "expert_nodes": 210,
+          "h2d_bytes": 47308800,
+          "source_bytes": 47308800,
+          "staging_bytes": 16777216,
+          "byte_checked": 47308800,
+          "chunks": 210
+        },
+        {
+          "fixture": "mixed",
+          "cache_cap": 8388608,
+          "cache_bytes": 8388608,
+          "cache_hits": 0,
+          "cache_evictions": 1676,
+          "cache_reuses": 1676,
+          "requested_bytes": 47308800,
+          "h2d_bytes": 47308800,
+          "cache_hit_bytes": 0,
+          "byte_checked": 47308800
+        },
+        {
+          "fixture": "mixed",
+          "cache_cap": 268435456,
+          "cache_bytes": 100663296,
+          "cache_hits": 1632,
+          "cache_evictions": 0,
+          "cache_reuses": 0,
+          "requested_bytes": 47308800,
+          "h2d_bytes": 1351680,
+          "cache_hit_bytes": 45957120,
+          "byte_checked": 47308800
+        },
+        {
+          "fixture": "mixed",
+          "cache_cap": 8388608,
+          "cache_bytes": 8388608,
+          "cache_hits": 0,
+          "cache_evictions": 1676,
+          "cache_reuses": 1676,
+          "requested_bytes": 47308800,
+          "h2d_bytes": 47308800,
+          "cache_hit_bytes": 0,
+          "byte_checked": 47308800
+        },
+        {
+          "fixture": "mixed",
+          "cache_cap": 268435456,
+          "cache_bytes": 100663296,
+          "cache_hits": 1632,
+          "cache_evictions": 0,
+          "cache_reuses": 0,
+          "requested_bytes": 47308800,
+          "h2d_bytes": 1351680,
+          "cache_hit_bytes": 45957120,
+          "byte_checked": 47308800
+        }
+      ],
+      "results": [
+        {
+          "name": "exported_EOS_only_no_BOS_PAD_FIM_fallback_stops",
+          "pass": true
+        },
+        {
+          "name": "RAM_reservation_over_budget_rejected",
+          "pass": true
+        },
+        {
+          "name": "VRAM_reservation_over_budget_rejected",
+          "pass": true
+        },
+        {
+          "name": "f32/truncated_payload_rejected_before_load",
+          "pass": true
+        },
+        {
+          "name": "f32/fixture_not_production",
+          "pass": true
+        },
+        {
+          "name": "f32/gpu_audit/0",
+          "pass": true
+        },
+        {
+          "name": "f32/resident_vs_1",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/gpu_audit/1",
+          "pass": true
+        },
+        {
+          "name": "f32/resident_vs_2",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/native_vs_pinned",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/gpu_audit/2",
+          "pass": true
+        },
+        {
+          "name": "f32/bounded_pinned_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/cancel_during_copy",
+          "pass": true
+        },
+        {
+          "name": "f32/cancel_then_fresh",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/unload_reload",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_cache_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_cache_8/accounting",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_8/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_8/cancel",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_cache_8/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_cache_8/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_cache_256/accounting",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_256/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_256/cancel",
+          "pass": true
+        },
+        {
+          "name": "f32/file_cache_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_cache_256/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_cache_256/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_cache_8/accounting",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_8/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_8/cancel",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_cache_8/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_cache_8/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_cache_256/accounting",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_256/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_256/cancel",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_cache_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_cache_256/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_cache_256/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_pipe_1_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_1_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_1_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_1_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_pipe_1_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_1_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_1_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_1_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_pipe_2_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/file_pipe_2_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/file_pipe_2_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/file_pipe_2_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_1_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07661058753728867,
+          "expected_worst": 0.07661058753728867
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "f32/mmap_pipe_2_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08691247552633286,
+          "expected_worst": -0.08691247552633286
+        },
+        {
+          "name": "mixed/truncated_payload_rejected_before_load",
+          "pass": true
+        },
+        {
+          "name": "mixed/fixture_not_production",
+          "pass": true
+        },
+        {
+          "name": "mixed/gpu_audit/0",
+          "pass": true
+        },
+        {
+          "name": "mixed/resident_vs_1",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/gpu_audit/1",
+          "pass": true
+        },
+        {
+          "name": "mixed/resident_vs_2",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/native_vs_pinned",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/gpu_audit/2",
+          "pass": true
+        },
+        {
+          "name": "mixed/bounded_pinned_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/cancel_during_copy",
+          "pass": true
+        },
+        {
+          "name": "mixed/cancel_then_fresh",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/unload_reload",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_cache_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_cache_8/accounting",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_8/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_8/cancel",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_cache_8/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_cache_8/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_cache_256/accounting",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_256/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_256/cancel",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_cache_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_cache_256/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_cache_256/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_cache_8/accounting",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_8/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_8/cancel",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_cache_8/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_cache_8/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_cache_256/accounting",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_256/hits_or_eviction",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_256/cancel",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_cache_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_cache_256/prefill_no_admission_logits",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_cache_256/prefill_no_admission_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_pipe_1_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_1_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_1_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_1_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_pipe_1_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_1_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_1_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_1_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_pipe_2_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/file_pipe_2_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/file_pipe_2_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/file_pipe_2_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_1_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_8/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/logits",
+          "pass": true,
+          "elements": 17472,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 17472,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": 0.07685893774032593,
+          "expected_worst": 0.07685893774032593
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/bytes_budget_drain",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/hits_evictions",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/cancel_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/cancel_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/reader_error_drains",
+          "pass": true
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/reader_error_recovery",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "mixed/mmap_pipe_2_256/prefill_no_admission",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.08483801037073135,
+          "expected_worst": -0.08483801037073135
+        },
+        {
+          "name": "CPU_compute_rejected_before_execution",
+          "pass": true
+        }
+      ]
+    },
+    "result_sha256": "4b4a9f7c5eae2ac1fa24773f1290b331778f5a96981841b49941de55cbba118a"
+  },
+  "six_consecutive_runs": [
+    {
+      "name": "pipeline-runtime-kv-init1",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init1\\run-report.json",
+      "report_sha256": "7ab171a103231825eaefec9b31f6563db271f98a1e6135e7be737adc32ecec20",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init1\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    },
+    {
+      "name": "pipeline-runtime-kv-init2",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init2\\run-report.json",
+      "report_sha256": "48f3d2cdaaaf492cd49400834b78d3e42a2e0d4f761ff00d03107d6f5e1d0f30",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init2\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    },
+    {
+      "name": "pipeline-runtime-kv-init3",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init3\\run-report.json",
+      "report_sha256": "c077600268dc8073968b1eb0421ae65ddb1e6a8550cffeecd8224951b2cd2d61",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init3\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    },
+    {
+      "name": "pipeline-runtime-kv-init4",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init4\\run-report.json",
+      "report_sha256": "97ba88c55bb7178cf6a88e670ab03559a74246403d616c9dc3ad434a706a9c95",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init4\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    },
+    {
+      "name": "pipeline-runtime-kv-init5",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init5\\run-report.json",
+      "report_sha256": "d62e1e588a60a01dc9df90560b9280073a0cab17835d916cd76e4d01d74c9ad5",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init5\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    },
+    {
+      "name": "pipeline-runtime-kv-init6",
+      "local_report": "build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\run-report.json",
+      "report_sha256": "aa78ffdbb8e02860652f73e82ea9c4dd162dddff7a1c7d06f9500d46cd8c22a3",
+      "status": "pass",
+      "binary_sha256": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+      "passed": 212,
+      "case_count": 212,
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-cuda\\bin\\strata-mimo2-runtime-check.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\mimo2-validation\\pipeline-runtime-kv-init6\\fixture"
+      ],
+      "diagnostic_environment": {
+        "GGML_CUDA_DISABLE_GRAPHS": "1",
+        "GGML_CUDA_PDL": null,
+        "LLAMA_GRAPH_REUSE_DISABLE": "1",
+        "NVIDIA_TF32_OVERRIDE": "0",
+        "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32"
+      }
+    }
+  ],
+  "coverage": "F32/mixed, file/mmap,1/2 readers,4/16MiB chunks,8/256MiB caches,273 positions including SWA wrap; bytes/bit-exact logits, hits/evictions, plan pins, cancel/drain/recovery, worker submission error/recovery, prefill admission off. Six runs after explicit fresh-context KV clear."
+}

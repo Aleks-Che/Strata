@@ -1,0 +1,604 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "num_hidden_layers",
+      "source": 48,
+      "local": 48,
+      "pass": true
+    },
+    {
+      "name": "hidden_size",
+      "source": 4096,
+      "local": 4096,
+      "pass": true
+    },
+    {
+      "name": "intermediate_size",
+      "source": 16384,
+      "local": 16384,
+      "pass": true
+    },
+    {
+      "name": "moe_intermediate_size",
+      "source": 2048,
+      "local": 2048,
+      "pass": true
+    },
+    {
+      "name": "n_routed_experts",
+      "source": 256,
+      "local": 256,
+      "pass": true
+    },
+    {
+      "name": "num_experts_per_tok",
+      "source": 8,
+      "local": 8,
+      "pass": true
+    },
+    {
+      "name": "num_attention_heads",
+      "source": 64,
+      "local": 64,
+      "pass": true
+    },
+    {
+      "name": "head_dim",
+      "source": 192,
+      "local": 192,
+      "pass": true
+    },
+    {
+      "name": "v_head_dim",
+      "source": 128,
+      "local": 128,
+      "pass": true
+    },
+    {
+      "name": "sliding_window",
+      "source": 128,
+      "local": 128,
+      "pass": true
+    },
+    {
+      "name": "hybrid_layer_pattern",
+      "source": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "local": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "pass": true
+    },
+    {
+      "name": "rope_theta",
+      "source": 10000000.0,
+      "local": 10000000.0,
+      "pass": true
+    },
+    {
+      "name": "swa_rope_theta",
+      "source": 10000.0,
+      "local": 10000.0,
+      "pass": true
+    },
+    {
+      "name": "layernorm_epsilon",
+      "source": 1e-06,
+      "local": 9.999999974752427e-07,
+      "pass": true
+    },
+    {
+      "name": "attention_value_scale",
+      "source": 0.707,
+      "local": 0.7070000171661377,
+      "pass": true
+    },
+    {
+      "name": "max_position_embeddings",
+      "source": 1048576,
+      "local": 1048576,
+      "pass": true
+    },
+    {
+      "name": "n_group",
+      "source": 1,
+      "local": 1,
+      "pass": true
+    },
+    {
+      "name": "topk_group",
+      "source": 1,
+      "local": 1,
+      "pass": true
+    },
+    {
+      "name": "eos_token_id",
+      "source": 151645,
+      "local": 151645,
+      "pass": true
+    },
+    {
+      "name": "pad_token_id",
+      "source": 151643,
+      "local": 151643,
+      "pass": true
+    },
+    {
+      "name": "vocab_size",
+      "source": 152576,
+      "local": 152576,
+      "pass": true
+    },
+    {
+      "name": "rope_dimension",
+      "source": 64,
+      "local": 64,
+      "pass": true
+    },
+    {
+      "name": "layerwise_kv_heads",
+      "source": [
+        4,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4
+      ],
+      "local": [
+        4,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4,
+        8,
+        8,
+        8,
+        8,
+        8,
+        4
+      ],
+      "pass": true
+    },
+    {
+      "name": "swa_head_dim",
+      "source": 192,
+      "local": 192,
+      "pass": true
+    },
+    {
+      "name": "swa_v_head_dim",
+      "source": 128,
+      "local": 128,
+      "pass": true
+    },
+    {
+      "name": "swa_num_attention_heads",
+      "source": 64,
+      "local": 64,
+      "pass": true
+    },
+    {
+      "name": "contract/architectures",
+      "source": [
+        "MiMoV2ForCausalLM"
+      ],
+      "local": [
+        "MiMoV2ForCausalLM"
+      ],
+      "pass": true
+    },
+    {
+      "name": "contract/model_type",
+      "source": "mimo_v2",
+      "local": "mimo_v2",
+      "pass": true
+    },
+    {
+      "name": "contract/attention_projection_layout",
+      "source": "fused_qkv",
+      "local": "fused_qkv",
+      "pass": true
+    },
+    {
+      "name": "contract/attention_bias",
+      "source": false,
+      "local": false,
+      "pass": true
+    },
+    {
+      "name": "contract/add_full_attention_sink_bias",
+      "source": false,
+      "local": false,
+      "pass": true
+    },
+    {
+      "name": "contract/add_swa_attention_sink_bias",
+      "source": true,
+      "local": true,
+      "pass": true
+    },
+    {
+      "name": "contract/moe_layer_freq",
+      "source": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "local": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pass": true
+    },
+    {
+      "name": "contract/n_shared_experts",
+      "source": null,
+      "local": null,
+      "pass": true
+    },
+    {
+      "name": "contract/norm_topk_prob",
+      "source": true,
+      "local": true,
+      "pass": true
+    },
+    {
+      "name": "contract/scoring_func",
+      "source": "sigmoid",
+      "local": "sigmoid",
+      "pass": true
+    },
+    {
+      "name": "contract/topk_method",
+      "source": "noaux_tc",
+      "local": "noaux_tc",
+      "pass": true
+    },
+    {
+      "name": "contract/routed_scaling_factor",
+      "source": null,
+      "local": null,
+      "pass": true
+    },
+    {
+      "name": "contract/hidden_act",
+      "source": "silu",
+      "local": "silu",
+      "pass": true
+    },
+    {
+      "name": "contract/tie_word_embeddings",
+      "source": false,
+      "local": false,
+      "pass": true
+    },
+    {
+      "name": "contract/bos_token_id",
+      "source": null,
+      "local": null,
+      "pass": true
+    },
+    {
+      "name": "contract/dtype",
+      "source": "bfloat16",
+      "local": "bfloat16",
+      "pass": true
+    },
+    {
+      "name": "contract/moe_router_dtype",
+      "source": "bfloat16",
+      "local": "bfloat16",
+      "pass": true
+    },
+    {
+      "name": "contract/num_nextn_predict_layers",
+      "source": 3,
+      "local": 3,
+      "pass": true
+    },
+    {
+      "name": "source_quant_method",
+      "source": "fp8",
+      "local": "fp8",
+      "pass": true
+    },
+    {
+      "name": "source_expert_storage",
+      "source": "mxfp4",
+      "local": "mxfp4",
+      "pass": true
+    }
+  ],
+  "check_count": 46,
+  "mismatch_count": 0,
+  "scope": "source config and single loader file; no conversion execution, whole-tree equality or inference",
+  "gguf_header_sha256": "46e0ff64f95482e89997ba7e661d36a7061a7a5961e033fe5baa6b241e23269a",
+  "hashes": {
+    "config": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
+    "reference_loader": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "candidate_loader": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823"
+  },
+  "source_config_url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/resolve/3b38d063180c3e4aed9691fdc735f3d10b266ee4/config.json",
+  "reference_loader_url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/58367713a6935c0810103378144008df32e3d5db/src/models/mimo2.cpp",
+  "candidate_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "complete_dependency_equivalence_verified": false,
+  "expected_export_differences": {
+    "nextn_layers": {
+      "source": 3,
+      "gguf": 0
+    },
+    "vision_audio_companions": "excluded from GGUF",
+    "router_dtype": {
+      "source": "bfloat16",
+      "gguf": "F32"
+    },
+    "weights": "source FP8/MXFP4 description; GGUF types independently admitted as BF16/F32/Q2_K/Q3_K/MXFP4"
+  }
+}

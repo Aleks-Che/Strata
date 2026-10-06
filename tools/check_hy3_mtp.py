@@ -28,9 +28,12 @@ def main():
     parser.add_argument('--pipeline-chunk-mib', type=int, choices=(4,8,16), default=4)
     parser.add_argument('--pipeline-batch', type=int, choices=(0,1), nargs='+', default=[0])
     parser.add_argument('--gpu-cache-policy', choices=('all','decode'), nargs='+', default=['all'])
+    parser.add_argument('--gpu-cache-allocator', choices=('individual','arena'), nargs='+', default=['individual'])
     parser.add_argument('--prompts', choices=('ru','en','zh','code','numbers','long'), nargs='+', default=['en','code'])
-    parser.add_argument('--repeats', type=int, choices=(1,2,3), default=2)
+    parser.add_argument('--repeats', type=int, choices=range(1,7), default=2)
     parser.add_argument('--profile-delivery', action='store_true', help='diagnostic CPU timers; not an uninstrumented speed benchmark')
+    parser.add_argument('--mtp-shared-scratch', type=int, choices=(0,1), default=0, help='share compute scratch for streamed variants')
+    parser.add_argument('--mtp-experts', choices=('resident','streamed'), nargs='+', default=['resident'])
     parser.add_argument('--depths', type=int, nargs='+', choices=(0,1,2,3), default=[0,1,2,3,0])
     parser.add_argument('--variants', nargs='+', help='explicit GPU-cache-MiB:depth[:RAM-cache-MiB|auto[:frequency|lru]] order')
     parser.add_argument('--lifecycle', action='store_true', help='also compare sampling fallback and cancel during generation')
@@ -72,19 +75,20 @@ def main():
         engine_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(), reference_engine_sha256=ref['engine_sha256'],
         model=str(model), header_sha256=inventory['header_sha256'], context=2048, batch=17, kv='f32',
         variants=capacities_depths, lifecycle=args.lifecycle, pipeline_readers=args.pipeline_readers, pipeline_chunk_mib=args.pipeline_chunk_mib,
-        pipeline_batch=args.pipeline_batch, gpu_cache_policy=args.gpu_cache_policy, repeats=args.repeats,
+        pipeline_batch=args.pipeline_batch, gpu_cache_policy=args.gpu_cache_policy, gpu_cache_allocator=args.gpu_cache_allocator, repeats=args.repeats,
         profile_delivery=args.profile_delivery,
         copy_mode='pinned', temperature=0, predict=ref['predict'], prompts=prompts, runs=[])
     def save():
         (directory/'mtp-model-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+    resident_mtp={}
     off_logits={}
     off_sampled=None
     try:
-        variants=[(cap,readers,batch,depth,ram,policy,gpu_policy) for cap,depth,ram,policy in capacities_depths for readers in args.pipeline_readers for batch in args.pipeline_batch for gpu_policy in args.gpu_cache_policy]
-        for index, (capacity,readers,batch_copy,depth,ram,policy,gpu_policy) in enumerate(variants):
+        variants=[(cap,readers,batch,depth,ram,policy,gpu_policy,allocator,placement) for cap,depth,ram,policy in capacities_depths for readers in args.pipeline_readers for batch in args.pipeline_batch for gpu_policy in args.gpu_cache_policy for allocator in args.gpu_cache_allocator for placement in (args.mtp_experts if depth else ['resident'])]
+        for index, (capacity,readers,batch_copy,depth,ram,policy,gpu_policy,allocator,placement) in enumerate(variants):
             work = directory/f'{index:02d}-cache-{capacity}-readers-{readers}-batch-{batch_copy}-mtp-{depth}'
             work.mkdir()
-            row = dict(mtp_depth=depth, cache_mib=capacity, ram_cache_mib=ram, ram_cache_policy=policy, gpu_cache_policy=gpu_policy, pipeline_readers=readers, pipeline_batch=batch_copy, requests=[])
+            row = dict(mtp_experts=placement if depth else "none", mtp_depth=depth, cache_mib=capacity, ram_cache_mib=ram, ram_cache_policy=policy, gpu_cache_policy=gpu_policy, gpu_cache_allocator=allocator, pipeline_readers=readers, pipeline_batch=batch_copy, requests=[])
             report['runs'].append(row)
             engine, monitor = None, Monitor()
             try:
@@ -95,6 +99,9 @@ def main():
                     extra_args=['--expert-cache-mib',str(capacity),'--pipeline-readers',str(readers),
                                 '--pipeline-chunk-mib',str(args.pipeline_chunk_mib),'--pipeline-batch',str(batch_copy),'--mtp',str(depth)]+
                                (['--gpu-cache-policy',gpu_policy] if gpu_policy!='all' else [])+
+                               (['--mtp-shared-scratch','1'] if placement=='streamed' and args.mtp_shared_scratch else [])+
+                               (['--mtp-experts',placement] if placement!='resident' else [])+
+                               (['--gpu-cache-allocator',allocator] if allocator!='individual' else [])+
                                (['--ram-cache-mib',ram,'--ram-cache-policy',policy] if ram!='0' else [])+
                                (['--profile-delivery','1'] if args.profile_delivery else []))
                 row.update(ready_seconds=time.perf_counter()-start,info=engine.info)
@@ -119,6 +126,12 @@ def main():
                             result['logits_comparison']={'max_abs':float(np.max(np.abs(delta))),
                                 'nmse':float(np.sum(delta*delta)/max(np.sum(base.astype(np.float64)**2),1e-30)),
                                 'bit_exact':raw==base.tobytes(),'finite':bool(np.isfinite(values).all())}
+                        placement_key=(depth,prompt['name'],repeat)
+                        if depth and placement=='resident':
+                            resident_mtp[placement_key]=(result['logits_sha256'],result['metrics']['mtp']['proposed'],result['metrics']['mtp']['accepted'])
+                        if placement=='streamed' and placement_key in resident_mtp:
+                            result['resident_mtp_exact']=(result['logits_sha256'],result['metrics']['mtp']['proposed'],result['metrics']['mtp']['accepted'])==resident_mtp[placement_key]
+                            if not result['resident_mtp_exact']: raise ValueError('Streamed MTP differs from resident MTP')
                         row['requests'].append(result)
                         save()
                         if not result['ids_exact'] or (not depth and not result['exact_reference']):
@@ -127,6 +140,13 @@ def main():
                         m=result['metrics']
                         if gpu_policy=='decode':
                             assert m['gpu_cache_policy']=='decode' and not m['prefill_gpu_fill_bytes']
+                        if placement=='streamed':
+                            if args.mtp_shared_scratch: assert m['mtp_shared_scratch'] and m['mtp_scratch_saved_bytes']>0 and m['draft_gpu_compute_bytes']==0
+                            assert m['mtp_experts']=='streamed' and m['mtp_cache_bytes']>0
+                            assert m['main_cache_bytes']+m['mtp_cache_bytes']==m['cache_bytes']
+                        if allocator=='arena':
+                            assert m['gpu_cache_allocator']=='arena'
+                            assert m['cache_backing_bytes']-m['cache_backing_slack_bytes']==m['cache_bytes']
                         assert m['source_bytes']==m['h2d_bytes'] and m['cache_bytes']<=m['cache_budget']<=capacity*2**20
                         assert not m['rejected_cpu_nodes'] and not m['rejected_full_copies']
                         if ram!='0':

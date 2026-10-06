@@ -1,0 +1,107 @@
+{
+  "status": "pass",
+  "recorded_at": "2026-10-06T15:55:29.106552+05:00",
+  "stage": "MIMO-02 / P0.4-P0.5",
+  "strata_revision": "819ad130f49d1e088e2fbc50e1e4f5c681e1e390",
+  "working_tree": "MiMo implementation plus existing unrelated work; no commit created",
+  "build_manifest": {
+    "scope": "Vocabulary/template/registration oracles and optional synthetic CUDA fixtures; no full model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "patches": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision",
+    "generated_mmf_sha256": "35ce8b9b5c7b6feb651167523d602ed0bad27dec70cb07a8437c67dbc7302975",
+    "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+    "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "runtime": false
+  },
+  "source_sha256": {
+    "backends/mimo2/build_manifest.json.in": "d6c5f44adf05524efd58cf98577b7f78aab9bd440e727f84dd1a683834e37b1c",
+    "backends/mimo2/check_graph.cpp": "d102205d6b789f18199826f8d312fb24774a5f7b60c983a8ce13b473079cf92d",
+    "backends/mimo2/check_kernels.cpp": "b3a20470dffb1b71774872cd47c15ad49caa45813a86d0a7694f92d292fff5cf",
+    "backends/mimo2/CMakeLists.txt": "b06cb634293d445aa417029bf08242e16027651c175b040c90ceab138adcf7c8",
+    "backends/mimo2/loader_oracle.cpp": "05223756465f133993154fe1f4857afe7a5257528aac0013e653559141047ea8",
+    "backends/mimo2/Mxfp4Precision.cmake": "c1bbfb81faf833f167cb20ad15254986aab5ac404682f5b096fb819f8b650439",
+    "backends/mimo2/RoutedStrides.cmake": "f120edc3ba654e031d7702955d5dcfb71cb24f48507b53f3de0f7908f04459f2",
+    "backends/mimo2/StrictF32.cmake": "db6c2df2aeba110e5d12b18485d1f86e552732dd600914d6270276b0d5875b66",
+    "backends/mimo2/synthetic_mimo2.hpp": "2add3e43dc8dff03203d93f1ec961eb3e5c7b8aa8ca62f6dfa30d8e1f372a63f",
+    "backends/mimo2/template_oracle.cpp": "d6c81dd8daad02ab136cc3ce668dc5a7c037bb2d40d9cab1f12ec1a95f370751",
+    "backends/mimo2/tokenizer_oracle.cpp": "fb57b7886932096f6e56760d5a9d367996fa965905a43c1be98a007649a03e15",
+    "tools/check_mimo2_cuda.py": "30d6d69d0b5f4d355b6ceb25086ab32dcb607237a0e1818de871afc333abd14c",
+    "tools/test_mimo2_cuda.py": "91154adcd907054d789bce41bd96b83d6460fdb554328bcabcd63d446f7c9e3d"
+  },
+  "build_commands": [
+    "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul",
+    "set PATH=C:\\work\\git\\my-repos\\Strata\\build-local\\cuda-13.0\\bin;%PATH%",
+    "cmake -S backends/mimo2 -B build-local/mimo2-cuda -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_COMPILER=C:/work/git/my-repos/Strata/build-local/cuda-13.0/bin/nvcc.exe -DCMAKE_CUDA_ARCHITECTURES=120 -DSTRATA_MIMO_ARCHIVE=C:/work/git/my-repos/Strata/build-local/llama-glm-86ebfef2.tar.gz -DSTRATA_MIMO_CUDA=ON -DSTRATA_MIMO_STRICT_F32=ON -DSTRATA_MIMO_ROUTED_STRIDES=ON -DSTRATA_MIMO_MXFP4_PRECISE=ON",
+    "cmake --build build-local/mimo2-cuda --target strata-mimo2-kernels-check strata-mimo2-graph-check -j 8"
+  ],
+  "build_exit_code": 0,
+  "cpu_regression": {
+    "status": "pass",
+    "build_exit_code": 0,
+    "ctest_passed": 3,
+    "ctest_log_sha256": "1a85b4291e0d282177c8f364d35cd08112ed0f2482fa74916f457b6937cd881d"
+  },
+  "python_tests": {
+    "command": "python -X utf8 -m unittest tools.test_mimo2_gguf tools.test_mimo2_tokenizer tools.test_mimo2_cuda tools.test_step35_tokenizer tools.test_glm5next_tokenizer tools.test_hy3_tokenizer",
+    "exit_code": 0,
+    "tests": 37,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "observed_seconds": 0.07
+  },
+  "reports": {
+    "kernels": {
+      "file": "MIMO26_FLASH_CUDA_KERNELS_VALIDATION.json",
+      "sha256": "5921437a719152628e1f743b98969175139718bdf635bdbbf0ef2f7d4fdc076c"
+    },
+    "graph": {
+      "file": "MIMO26_FLASH_CUDA_GRAPH_VALIDATION.json",
+      "sha256": "32e87a1924eae03b75d1f11f3afc961a9daf0a085af4142a5d8b3445bd4dd5d3"
+    },
+    "diagnostic": {
+      "file": "MIMO26_FLASH_CUDA_DIAGNOSTIC.json",
+      "sha256": "ab301015e4503a6245f5adc210810f9088abced98ed6c6cc54e379b644db64c9"
+    }
+  },
+  "memory": {
+    "kernels": {
+      "global_gpu_peak_sampled_bytes": 15465447424,
+      "global_ram_available_min_bytes": 96491511808,
+      "process_peak_working_set_sampled_bytes": 638820352,
+      "wall_seconds": 4.907000000006519,
+      "scope": "Synthetic test duration only; sampled global memory includes unrelated concurrent work, not MiMo model usage."
+    },
+    "graph": {
+      "global_gpu_peak_sampled_bytes": 3667918848,
+      "global_ram_available_min_bytes": 111046610944,
+      "process_peak_working_set_sampled_bytes": 703787008,
+      "wall_seconds": 5.046999999962281,
+      "scope": "Synthetic test duration only; sampled global memory includes unrelated concurrent work, not MiMo model usage."
+    }
+  },
+  "full_gguf_loaded": false,
+  "inference_tokens_per_second": null,
+  "runtime_implemented": false,
+  "limitations": [
+    "Synthetic 3-block native MiMo graph; full 48-block GGUF baseline remains P1.",
+    "16 experts in graph; 256 experts in matrix/router tests; K192/V128, heads64, KV4/8 and SWA128 match the model.",
+    "Native checkpoint restore is tolerance-checked, not bit-exact after cache compaction. Tail rollback was bit-exact in both fixtures.",
+    "CUDA Graphs, graph reuse, pressure recovery and serving sessions remain unvalidated.",
+    "Performance of strict precision policies and full-model mixed-quant quality are not measured."
+  ],
+  "native_output_protection": {
+    "status": "pass",
+    "exit_code": 1,
+    "check": "Existing graph work directory rejected without overwriting its saved report."
+  }
+}

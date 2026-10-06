@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-06",
+  "platform": "Windows WDDM / RTX5090",
+  "allocation_probe": [
+    {
+      "request_per_allocation": 2752512,
+      "count": 128,
+      "requested": 352321536,
+      "global_delta": 536870912
+    },
+    {
+      "request_per_allocation": 3604480,
+      "count": 128,
+      "requested": 461373440,
+      "global_delta": 536870912
+    },
+    {
+      "request_per_allocation": 4456448,
+      "count": 128,
+      "requested": 570425344,
+      "global_delta": 788463616
+    },
+    {
+      "request_per_allocation": 4194304,
+      "count": 128,
+      "requested": 536870912,
+      "global_delta": 536870912
+    },
+    {
+      "request_per_allocation": 6291456,
+      "count": 128,
+      "requested": 805306368,
+      "global_delta": 814153728
+    },
+    {
+      "request_per_allocation": 67108864,
+      "count": 8,
+      "requested": 536870912,
+      "global_delta": 536870912
+    }
+  ],
+  "allocation_conclusion": "Explicit2 MiB rounded cudaMalloc accounting plus live NVML clamp; payload and charged allocations are separate. Probe global deltas include other processes.",
+  "ram_pressure_failure": {
+    "status": "error",
+    "error": "ERR invalid request or MiMo execution failed; see stderr.log",
+    "local_report": "build-local\\mimo2-validation\\cache-12-final-corpus\\engine-report.json",
+    "report_sha256": "0c693e955a4784fda86933ba33f20195cc2c4a4dbe08fc9aa8d0a49a66364165",
+    "completed_cases": 6,
+    "diagnostic_lines": [
+      "STRATA_MIMO_ERROR token outside vocabulary",
+      "STRATA_MIMO_ERROR MiMo decode failed: -3"
+    ],
+    "explanation": "All six corpus outputs completed, then95% RAM guard rejected a lifecycle request before compute as clean mmap pages accumulated."
+  },
+  "repair": "Apply hard maximum working set to this process only, targeting94% global RAM after other processes. Retain95% global guard and restore prior process limits on release. File reader keeps bounded16 MiB staging. Keep3 GiB cold GPU workspace reserve until a full configured batch succeeds.",
+  "repaired_validation": [
+    "MIMO26_FLASH_CACHE_MODEL_VALIDATION.json",
+    "MIMO26_FLASH_CACHE_RUNTIME_VALIDATION.json"
+  ]
+}

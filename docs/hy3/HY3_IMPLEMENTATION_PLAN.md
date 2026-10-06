@@ -90,6 +90,39 @@ hit/file/fill/eviction counters и динамический бюджет под9
 HY3-12 реализует frequency RAM admission и защиту от prefill scan.
 GPU prefill admission перенесён в HY3-13; существующая VRAM policy не меняется.
 
+Обновление HY3-13, 2026-10-06: добавлен `--gpu-cache-policy decode`.
+Prefill использует уже закэшированные матрицы, но не заполняет GPU-кэш и не
+меняет частоту/порядок вытеснения. Driver явно переключает фазу после drain;
+пакетная MTP verification остаётся decode. Прежний режим `all` сохранён по
+умолчанию. Проверены RAM on/off, sync/readers1/2, F32/mixed и batch1/17:
+796 runtime cases, 29 cache cases, 59 MTP checks и 50 Python tests прошли.
+Полные измерения policy/capacity/tensor batching, выбранный отдельный профиль
+и границы проверки приведены в [статусе](HY3_IMPLEMENTATION_STATUS.md).
+
+Обновление HY3-14, 2026-10-06: реализовано плотное размещение GPU-матриц
+в блоках до64 МиБ. Диагностика показала3,734 ГиБ отдельных CUDA allocations
+для2,461 ГиБ матриц против2,461 ГиБ одним блоком. Добавлены same-size
+replacement, учёт backing/slack и проверка бюджета перед каждым новым блоком.
+18 arena,29 cache, по796 runtime cases в двух режимах,59 MTP fixtures,
+51 Python tests и full6-prompt corpus/lifecycle прошли. В повторном сравнении
+без MTP: около15,2 ГиБ полезных матриц вместо10,3 и5,755 против4,388 ток/с
+на последних2 en/code парах после3 прогревочных. Отдельный profile arena14
+сохранён; старые profiles не менялись. Дополнительный MTP0/1/0 дал5,869→6,424
+ток/с (+9,5% decode) и−2,0% полного времени короткой пары; IDs/lifecycle PASS.
+MTP1 сохраняет13,461 ГиБ hot matrices и имеет отдельный profile arena14-mtp1.
+Результаты и границы проверки — в записи HY3-14 статуса.
+
+Обновление HY3-15, 2026-10-06: routed MTP tensors подключены к общему
+VRAM/RAM-кэшу и pipeline через `--mtp-experts streamed`. Добавлен общий
+compute buffer main/draft по механизму локального DeepSeek
+(`--mtp-shared-scratch 1`). 177 MTP fixtures,796 runtime cases,
+allocator lifetime/growth,32 Python,4×22 pipe и full en/code/lifecycle PASS.
+Main-кэш вырос13,464→14,675 ГиБ, однако streamed+shared дал5,854 против6,474
+ток/с resident; быстрый resident профиль сохранён. Реализация готова как
+опция, принятие её как ускорения — **не выполнено**. Следующая проверка:
+разделить main verify на delivery wait и CUDA compute с одинаковым маршрутом.
+Метрики, команды и ограничения — в записи HY3-15 статуса.
+
 ## 1. Проверенные исходные данные
 
 ### 1.1. Файл, основная модель и MTP
@@ -384,12 +417,13 @@ CPU-expert режим, если понадобится, оценивать по�
 - **P3.3:** включить batching выбранных ranges, allocation reuse и prefill
   admission по отдельности. Сверять точные GPU bytes и logits с P1 при mixed
   quants, boundary offsets, смене экспертов, отмене и выгрузке.
-  **Частично HY3-06/08:** allocation reuse и opt-in tensor batching реализованы.
-  Batching прошёл exact full-model checks; его speed effect невелик и пока
-  не меняет default. Отдельная prefill admission policy ещё не реализована.
+  **HY3-06/08/13:** allocation reuse, tensor batching и отдельная GPU prefill
+  admission policy реализованы. HY3-13 повторно сравнил batching после RAM
+  frequency cache: выбранный отдельный speed profile использует batch1/decode.
+  Engine defaults сохранены; измерения и ограничения — в статусе.
   HY3-09 добавил opt-in read/admission/allocator/wait profiling и отключил
-  CUDA graphs из-за intermittent fixture mismatch. Policy сравнивать
-  с этим контролем, при выключенных profiler и tensor batching.
+  CUDA graphs из-за intermittent fixture mismatch. Новые режимы сравнивать
+  с этим контролем при выключенном profiler и одинаковом tensor batching.
 - **P3.4:** раздельное размещение RAM/VRAM и адаптивный горячий набор;
   бюджет учитывать вместе с non-routed, KV, scratch, staging, MTP и внешними
   процессами. Cache cap уменьшается при давлении, отменяет admission и даёт
@@ -513,8 +547,8 @@ prefill/decode для MTP. Проверки: exact bytes/logits, смена на
 и сравнение off/frequency/LRU на полном GGUF. HY3-12 прошёл652 runtime checks
 и24 генерации полного GGUF; на третьей en/code паре frequency3,461 против
 pooled off2,854 ток/с, с медленными первыми двумя проходами. Расширенный corpus
-и реальные pressure/residency/SSD измерения остаются. GPU prefill admission остаётся
-следующей отдельной оптимизацией по read/admission profiling HY3-09.
+и реальные pressure/residency/SSD измерения остаются. GPU prefill admission
+реализован и измерен в HY3-13; HY3-14 меняет размещение матриц внутри VRAM.
 Внутренняя причина CUDA graphs остаётся открытой;
 подробнее в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 

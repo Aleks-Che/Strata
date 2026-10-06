@@ -1,0 +1,55 @@
+{
+  "status": "target_batch_parity_failure_reproduced",
+  "scope": "Greedy target numerical diagnostic; no claim that either text is semantically worse",
+  "oracle_cases": [
+    {
+      "name": "ru-oracle-d1",
+      "draft_loaded": false,
+      "target_feature_extraction": false,
+      "first_id_mismatch_zero_based": 17,
+      "reference_id": 129258,
+      "batched_id": 38379,
+      "baseline_top1_margin": 0.0689697265625,
+      "row_max_abs_delta": 0.3382081985473633,
+      "prefill_logits_bit_exact": true,
+      "first_reject_cycle_zero_based": 8,
+      "all_earlier_proposals_accepted": true,
+      "same_history_logits": {
+        "pass_": false,
+        "finite": true,
+        "bit_exact": false,
+        "max_abs": 1.0365371704101562,
+        "nmse": 0.0013192860085258682,
+        "elements": 2746368
+      }
+    },
+    {
+      "name": "ru-oracle-d7",
+      "draft_loaded": false,
+      "target_feature_extraction": false,
+      "first_id_mismatch_zero_based": 17,
+      "reference_id": 129258,
+      "batched_id": 38379,
+      "baseline_top1_margin": 0.0689697265625,
+      "row_max_abs_delta": 0.5226349830627441,
+      "prefill_logits_bit_exact": true,
+      "first_reject_cycle_zero_based": 2,
+      "all_earlier_proposals_accepted": true,
+      "same_history_logits": {
+        "pass_": false,
+        "finite": true,
+        "bit_exact": false,
+        "max_abs": 1.4443645477294922,
+        "nmse": 0.00101184288786618,
+        "elements": 2746368
+      }
+    }
+  ],
+  "conclusion": "Difference exists before first rollback without draft weights or hidden-feature hooks. Exact kernel/attention origin still unlocalized.",
+  "memory_guard_case": {
+    "path": "build-local\\mimo2-validation\\spec-corpus-dflash-shared-q8\\spec-report.json",
+    "error": "RuntimeError('95% global RAM/VRAM ceiling reached; only this check may be stopped')",
+    "peak_vram_fraction": 0.9638114515288129,
+    "fix": "Warm all-output target batch8 and draft before enabling cache. Failed run excluded from throughput. Normal no-draft control does not retain this unused verification pool."
+  }
+}

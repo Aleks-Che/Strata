@@ -14,7 +14,11 @@ struct strata_hy3_sync_stats {
     uint64_t ram_cache_evictions, ram_cache_rejected, ram_cache_oom, ram_cache_allocations, ram_cache_reuses;
     uint64_t ram_cache_prefill_bypasses, ram_cache_frequency_bypasses, ram_cache_victim_candidates, ram_cache_history_entries;
     uint64_t ram_cache_reused_payload_bytes;
+    uint64_t mtp_cache_bytes;
     uint64_t cache_generation, cache_bytes, cache_budget, cache_entries;
+    uint64_t cache_backing_bytes, cache_backing_slack_bytes, cache_arena_blocks;
+    uint64_t cache_arena_allocations, cache_arena_frees;
+    uint64_t cache_arena_budget_rejects;
     uint64_t cache_hits, cache_misses, cache_evictions, cache_oom, cache_rejected, cache_reuses;
     uint64_t cache_fill_bytes, d2d_bytes;
     uint64_t cache_prefill_bypasses;
@@ -42,8 +46,10 @@ void strata_hy3_memory_check(size_t gpu_reserve=0);
 void strata_hy3_sync_release();
 // One live immutable model per owner thread. begin invalidates every prior key.
 void strata_hy3_cache_begin(size_t cap);
-void strata_hy3_cache_register(const ggml_tensor * tensor);
+void strata_hy3_cache_register(const ggml_tensor * tensor, bool mtp=false);
 void strata_hy3_gpu_cache_policy(bool admit_prefill);
+// Applies at the next cache_begin; existing cache ownership is unchanged.
+void strata_hy3_gpu_cache_allocator(bool arena);
 // 0 disables, SIZE_MAX selects the dynamic host budget. Configure before readers.
 void strata_hy3_ram_cache_config(size_t cap, bool frequency=true);
 // Explicit request phase, including batched MTP verification as decode.

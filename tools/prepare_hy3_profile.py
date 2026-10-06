@@ -15,7 +15,7 @@ from tools.hy3_loader_contract import LOADER_SHA
 from serve.server import configured_template
 
 HEADER_SHA = 'f3307357f0b6ab163f188f7d19ba57d2960ca70a7491b511b23b2745a9500ca9'
-PATCH_SET = 'hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy'
+PATCH_SET = 'hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy,hy3-gpu-arena,hy3-streamed-mtp,hy3-shared-scratch'
 
 
 def load_tokenizer(path):
@@ -32,7 +32,7 @@ def load_tokenizer(path):
         pre=config['pre'], special_ids=config['special_ids'])
 
 
-def prepare(model, engine, directory, cuda_dir=None, cache_mib=0, pipeline_readers=0, pipeline_chunk_mib=4, pipeline_batch=False, mtp=0, ram_cache_mib=0, ram_cache_policy='frequency', gpu_cache_policy='all'):
+def prepare(model, engine, directory, cuda_dir=None, cache_mib=0, pipeline_readers=0, pipeline_chunk_mib=4, pipeline_batch=False, mtp=0, ram_cache_mib=0, ram_cache_policy='frequency', gpu_cache_policy='all', gpu_cache_allocator='individual', mtp_experts='resident', mtp_shared_scratch=False):
     model, engine, directory = Path(model).resolve(), Path(engine).resolve(), Path(directory).resolve()
     if type(cache_mib) is not int or not 0 <= cache_mib <= 16384:
         raise ValueError('Hy3 expert cache must be 0..16384 MiB')
@@ -50,6 +50,12 @@ def prepare(model, engine, directory, cuda_dir=None, cache_mib=0, pipeline_reade
         raise ValueError('Hy3 RAM cache policy must be frequency or lru')
     if gpu_cache_policy not in ('all','decode'):
         raise ValueError('Hy3 GPU cache policy must be all or decode')
+    if type(mtp_shared_scratch) is not bool or (mtp_shared_scratch and (not mtp or mtp_experts!='streamed')):
+        raise ValueError('Hy3 shared scratch requires streamed MTP experts')
+    if mtp_experts not in ('resident','streamed') or (mtp_experts=='streamed' and not mtp):
+        raise ValueError('Hy3 MTP experts must be resident or streamed; streamed requires MTP')
+    if gpu_cache_allocator not in ('individual','arena'):
+        raise ValueError('Hy3 GPU cache allocator must be individual or arena')
     if directory.exists():
         raise ValueError('Destination exists; choose a new directory for the Hy3 profile')
     report = inspect_model(model)
@@ -82,12 +88,18 @@ def prepare(model, engine, directory, cuda_dir=None, cache_mib=0, pipeline_reade
         'validated_eog_ids': sorted(template.resolve_stop_ids(tokenizer))}
     if gpu_cache_policy!='all':
         cfg['args'] += ['--gpu-cache-policy',gpu_cache_policy]
+    if gpu_cache_allocator!='individual':
+        cfg['args'] += ['--gpu-cache-allocator',gpu_cache_allocator]
     if cache_mib:
         cfg['args'] += ['--expert-cache-mib', str(cache_mib)]
     if pipeline_readers:
         cfg['args'] += ['--pipeline-readers', str(pipeline_readers), '--pipeline-chunk-mib', str(pipeline_chunk_mib)]
     if pipeline_batch:
         cfg['args'] += ['--pipeline-batch', '1']
+    if mtp_shared_scratch:
+        cfg['args'] += ['--mtp-shared-scratch','1']
+    if mtp_experts!='resident':
+        cfg['args'] += ['--mtp-experts',mtp_experts]
     if mtp:
         cfg['args'] += ['--mtp', str(mtp)]
     if ram_cache_mib:
@@ -108,15 +120,18 @@ def main():
     parser.add_argument('--pipeline-readers', type=int, default=0, help='opt-in readers (1 or 2); requires nonzero expert cache')
     parser.add_argument('--pipeline-chunk-mib', type=int, default=4, choices=(4,8,16))
     parser.add_argument('--pipeline-batch', action='store_true', help='opt-in one delivery fence per expert tensor')
-    parser.add_argument('--mtp', type=int, choices=(0,1,2,3), default=0, help='native resident MTP depth; active for greedy requests only')
+    parser.add_argument('--mtp-shared-scratch', action='store_true')
+    parser.add_argument('--mtp-experts', choices=('resident','streamed'), default='resident')
+    parser.add_argument('--mtp', type=int, choices=(0,1,2,3), default=0, help='native MTP depth; active for greedy requests only')
     parser.add_argument('--ram-cache-mib', default='0', help='managed RAM matrix-chunk cache: auto or 0..1048576 MiB; dynamic 93% RAM target')
     parser.add_argument('--ram-cache-policy', choices=('frequency','lru'), default='frequency')
     parser.add_argument('--gpu-cache-policy', choices=('all','decode'), default='all')
+    parser.add_argument('--gpu-cache-allocator', choices=('individual','arena'), default='individual')
     args = parser.parse_args()
     try:
         profile = prepare(args.model, args.engine, args.output_dir, args.cuda_dir, args.expert_cache_mib,
                           args.pipeline_readers, args.pipeline_chunk_mib, args.pipeline_batch, args.mtp,
-                          'auto' if args.ram_cache_mib=='auto' else int(args.ram_cache_mib),args.ram_cache_policy,args.gpu_cache_policy)
+                          'auto' if args.ram_cache_mib=='auto' else int(args.ram_cache_mib),args.ram_cache_policy,args.gpu_cache_policy,args.gpu_cache_allocator,args.mtp_experts,args.mtp_shared_scratch)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         parser.exit(1, f'Hy3 profile preparation failed: {error}\n')
     print(profile)

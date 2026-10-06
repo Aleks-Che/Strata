@@ -22,9 +22,12 @@ struct Options {
     std::string model, logits_file, trace_file;
     std::string ram_cache_policy="frequency";
     std::string gpu_cache_policy="all";
+    std::string gpu_cache_allocator="individual";
+    std::string mtp_experts="resident";
     int context=2048, batch=17, copy_mode=2, cache_mib=0;
     int pipeline_readers=0, pipeline_chunk=4, trace_graphs=0;
     int pipeline_batch=0;
+    int mtp_shared_scratch=0;
     int profile_delivery=0, mtp=0, ram_cache_mib=0;
     ggml_type kv=GGML_TYPE_F32;
     bool fixture=false, inspect_only=false;
@@ -44,6 +47,7 @@ static Options options(int argc,char ** argv) {
         else if(key=="--expert-cache-mib") out.cache_mib=integer(value);
         else if(key=="--ram-cache-policy") out.ram_cache_policy=value;
         else if(key=="--gpu-cache-policy") out.gpu_cache_policy=value;
+        else if(key=="--gpu-cache-allocator") out.gpu_cache_allocator=value;
         else if(key=="--ram-cache-mib") {
             require(value=="auto" || (!value.empty() && value[0]!='-'),"RAM cache must be auto or 0..1048576 MiB");
             out.ram_cache_mib=value=="auto"?-1:integer(value);
@@ -51,6 +55,8 @@ static Options options(int argc,char ** argv) {
         else if(key=="--pipeline-readers") out.pipeline_readers=integer(value);
         else if(key=="--pipeline-chunk-mib") out.pipeline_chunk=integer(value);
         else if(key=="--pipeline-batch") out.pipeline_batch=integer(value);
+        else if(key=="--mtp-shared-scratch") out.mtp_shared_scratch=integer(value);
+        else if(key=="--mtp-experts") out.mtp_experts=value;
         else if(key=="--mtp") out.mtp=integer(value);
         else if(key=="--profile-delivery") out.profile_delivery=integer(value);
         else if(key=="--trace-graphs") out.trace_graphs=integer(value);
@@ -65,10 +71,13 @@ static Options options(int argc,char ** argv) {
     }
     require(!out.model.empty() && out.context>=32 && out.context<=2048 && out.batch>=1 && out.batch<=32 && out.batch<=out.context,"invalid model/context/batch");
     require(out.mtp>=0 && out.mtp<=3 && (!out.mtp || out.batch>=out.mtp+1),"MTP requires depth 0..3 and batch >= depth+1");
+    require(out.mtp_experts=="resident" || (out.mtp_experts=="streamed" && out.mtp>0),"MTP experts must be resident or streamed; streamed requires MTP depth > 0");
+    require((out.mtp_shared_scratch==0 || out.mtp_shared_scratch==1) && (!out.mtp_shared_scratch || (out.mtp>0 && out.mtp_experts=="streamed")),"MTP shared scratch must be 0/1 and requires streamed MTP experts");
     require(out.cache_mib>=0 && out.cache_mib<=16384 && (!out.cache_mib || out.copy_mode==2),"cache must be 0..16384 MiB and requires pinned copy mode");
     require(out.ram_cache_mib>=-1 && out.ram_cache_mib<=1048576 && (!out.ram_cache_mib || out.copy_mode==2),"RAM cache requires auto or 0..1048576 MiB and pinned copy mode");
     require(out.ram_cache_policy=="frequency" || out.ram_cache_policy=="lru","RAM cache policy must be frequency or lru");
     require(out.gpu_cache_policy=="all" || out.gpu_cache_policy=="decode","GPU cache policy must be all or decode");
+    require(out.gpu_cache_allocator=="individual" || out.gpu_cache_allocator=="arena","GPU cache allocator must be individual or arena");
     require(out.pipeline_readers>=0 && out.pipeline_readers<=2 &&
         (out.pipeline_chunk==4 || out.pipeline_chunk==8 || out.pipeline_chunk==16) &&
         (!out.pipeline_readers || (out.cache_mib && out.copy_mode==2)),"pipeline requires readers0..2, chunk4/8/16 MiB and pinned cache");
@@ -123,6 +132,16 @@ static json delivery_metrics(const strata_hy3_sync_stats & s,const strata_hy3_sy
         {"cache_victim_candidates",s.cache_victim_candidates-before.cache_victim_candidates},
         {"cache_reuses",s.cache_reuses-before.cache_reuses},
         {"cache_fill_bytes",s.cache_fill_bytes-before.cache_fill_bytes}};
+}
+static llama_memory_breakdown_data gpu_memory_breakdown(llama_context *ctx) {
+    llama_memory_breakdown_data out;
+    for(const auto &[buft,data]:llama_get_memory_breakdown(ctx)) {
+        auto *device=ggml_backend_buft_get_device(buft);
+        if(device && !ggml_backend_buft_is_host(buft) && ggml_backend_dev_type(device)==GGML_BACKEND_DEVICE_TYPE_GPU) {
+            out.model+=data.model;out.context+=data.context;out.compute+=data.compute;
+        }
+    }
+    return out;
 }
 static void execute(llama_context * ctx, const llama_vocab * vocab, const Options & options, Command & command, Mtp * mtp) {
     struct CancelScope {
@@ -212,8 +231,13 @@ static void execute(llama_context * ctx, const llama_vocab * vocab, const Option
         if (command.cancel.load()) finish = "cancel";
         const auto s = strata_hy3_sync_snapshot();
         const auto mt=mtp ? mtp->counters : Mtp::Counters{};
+        const auto target_memory=gpu_memory_breakdown(ctx);
+        auto draft_memory=mtp ? gpu_memory_breakdown(mtp->draft_context()) : llama_memory_breakdown_data{};
+        if(mtp && mtp->scratch_shared()) draft_memory.compute=0; // counted by target
         clear(ctx); if(mtp) mtp->reset();
         std::cerr << "STRATA_HY3_REQUEST " << json({{"prompt_tokens",prompt},{"generated",generated},
+            {"mtp_shared_scratch",mtp && mtp->scratch_shared()},{"mtp_scratch_saved_bytes",mtp ? mtp->scratch_saved() : 0},
+            {"mtp_experts",options.mtp>0 ? options.mtp_experts : "none"},
             {"mtp_depth",active_mtp ? options.mtp : 0},
             {"mtp",{{"proposed",mt.proposed},{"accepted",mt.accepted},{"delivered",delivered_drafts},{"rounds",mt.rounds},
                 {"reject_first",mt.reject_first},{"reject_middle",mt.reject_middle},{"accept_all",mt.accept_all},
@@ -224,6 +248,15 @@ static void execute(llama_context * ctx, const llama_vocab * vocab, const Option
             {"staging_bytes",s.staging_bytes},{"ranges",s.ranges},{"chunks",s.chunks},
             {"cache_bytes",s.cache_bytes},{"cache_budget",s.cache_budget},{"cache_entries",s.cache_entries},
             {"gpu_cache_policy",options.gpu_cache_policy},{"gpu_prefill_bypasses",s.cache_prefill_bypasses},
+            {"gpu_cache_allocator",options.gpu_cache_allocator},
+            {"target_gpu_model_bytes",target_memory.model},{"target_gpu_context_bytes",target_memory.context},
+            {"target_gpu_compute_bytes",target_memory.compute},
+            {"draft_gpu_context_bytes",draft_memory.context},{"draft_gpu_compute_bytes",draft_memory.compute},
+            {"mtp_cache_bytes",s.mtp_cache_bytes},{"main_cache_bytes",s.cache_bytes-s.mtp_cache_bytes},
+            {"cache_backing_bytes",s.cache_backing_bytes},{"cache_backing_slack_bytes",s.cache_backing_slack_bytes},
+            {"cache_arena_blocks",s.cache_arena_blocks},{"cache_arena_allocations",s.cache_arena_allocations},
+            {"cache_arena_frees",s.cache_arena_frees},
+            {"cache_arena_budget_rejects",s.cache_arena_budget_rejects},
             {"prefill_gpu_fill_bytes",prefill_counters.cache_fill_bytes},
             {"decode_gpu_fill_bytes",s.cache_fill_bytes-prefill_counters.cache_fill_bytes},
             {"ram_cache",{{"bytes",s.ram_cache_bytes},{"budget",s.ram_cache_budget},{"entries",s.ram_cache_entries},
@@ -324,14 +357,15 @@ int main(int argc,char ** argv) {
         if(config.inspect_only) {
             std::cout<<json({{"status","pass"},{"blocks",admitted.blocks},{"vocab",admitted.vocab},
                 {"main_fixed_bytes",admitted.fixed_bytes},{"main_routed_bytes",admitted.routed_bytes},
-                {"mtp_bytes",admitted.mtp_bytes},{"weight_allocations",false}}).dump()<<'\n';return 0;
+                {"mtp_routed_bytes",admitted.mtp_routed_bytes},{"mtp_bytes",admitted.mtp_bytes},{"weight_allocations",false}}).dump()<<'\n';return 0;
         }
         environment();ggml_backend_load_all();strata_hy3_sync_mode(config.copy_mode);
         {
-            auto model=load(config.model,false,false,config.fixture,config.mtp>0);
+            auto model=load(config.model,false,false,config.fixture,config.mtp>0,config.mtp_experts=="streamed");
             auto ctx=context(model.get(),config.context,config.batch,config.kv);
             std::unique_ptr<Mtp> mtp;
-            if(config.mtp) mtp=std::make_unique<Mtp>(model.get(),ctx.get(),config.context,config.batch,config.mtp);
+            if(config.mtp) mtp=std::make_unique<Mtp>(model.get(),ctx.get(),config.context,config.batch,config.mtp,config.mtp_shared_scratch!=0);
+            strata_hy3_gpu_cache_allocator(config.gpu_cache_allocator=="arena");
             configure_cache(model.get(),size_t(config.cache_mib)<<20);
             strata_hy3_gpu_cache_policy(config.gpu_cache_policy=="all");
             strata_hy3_ram_cache_config(config.ram_cache_mib<0?SIZE_MAX:size_t(config.ram_cache_mib)<<20,config.ram_cache_policy=="frequency");
@@ -340,10 +374,11 @@ int main(int argc,char ** argv) {
             strata_hy3_memory_check();
             std::cout<<"INFO engine=hy3-native architecture=hy_v3 backend=llama.cpp gpu_only=1"
                 <<" mtp="<<(config.mtp>0)<<" spec="<<config.mtp<<" speculative="<<(config.mtp ? "mtp" : "none")
-                <<" mtp_storage="<<(config.mtp ? "resident" : "none")<<" expert_storage=mmap expert_compute=gpu expert_pipeline="<<(config.pipeline_readers>0)
+                <<" mtp_storage="<<(config.mtp ? config.mtp_experts : "none")<<" expert_storage=mmap expert_compute=gpu expert_pipeline="<<(config.pipeline_readers>0)
                 <<" expert_cache_mib="<<config.cache_mib<<" ram_cache_mib="<<(config.ram_cache_mib<0?"auto":std::to_string(config.ram_cache_mib))
                 <<" ram_cache_policy="<<config.ram_cache_policy
                 <<" gpu_cache_policy="<<config.gpu_cache_policy
+                <<" gpu_cache_allocator="<<config.gpu_cache_allocator
                 <<" memory_target_percent=95 ram_target_percent=93 expert_readers="<<config.pipeline_readers
                 <<" expert_stage_mib="<<(config.pipeline_readers ? 4*config.pipeline_chunk : config.copy_mode==2 ? 16 : 0)
                 <<" expert_batch_copy="<<config.pipeline_batch

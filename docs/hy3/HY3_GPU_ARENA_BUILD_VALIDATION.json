@@ -1,0 +1,80 @@
+{
+  "status": "pass",
+  "head": "819ad130f49d1e088e2fbc50e1e4f5c681e1e390",
+  "dirty": true,
+  "engine": "build-local/hy3-gpu-arena/strata-hy3.exe",
+  "engine_sha256": "19369d5809e594269c25932ccd5c3d6d099afe34de02cd3ef68819ea0e9878e8",
+  "commands": [
+    "cmd /c build-local\\build-hy3-cache.bat",
+    "cmd /c build-local\\build-hy3-arena-checks.bat"
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "logs": [
+    {
+      "path": "build-local\\hy3-arena-packed-build.log",
+      "sha256": "81ff0ab3d97ce39a124f44d8856ab5296036a24e67e8bad69f94c045034b3364"
+    },
+    {
+      "path": "build-local\\hy3-arena-packed-checks-build.log",
+      "sha256": "7d619f35262e98862c09f4b29d6594b9eefa1c20076893ab662edaaf7f7f2167"
+    }
+  ],
+  "manifest": {
+    "scope": "isolated Hy3 admission and synthetic checks; not full-model inference",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "224921b8ce6f9be02dc1252ef6847a93f81386021b24d7d08eb25444e787d62e",
+    "patches": "hy3-mtp-load-flags,cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy,hy3-gpu-arena",
+    "compiled_loader_sha256": "0a40aca60138dde0f30ffc0eae0f8fbcacabebc2d7803afaadf69b580870d60d",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "runtime": "ON",
+    "runtime_generated_hashes": "strata-hy3-backend.cpp:6431e1a2c3095f0f459b460f5384d2c7ae0c5bb068c0357f1423b5681f2b2ca4;strata-hy3-loader.cpp:8733b8f68644aee10c8b3b3005a21c8c006fd82554e59e0391592307e8bea0f4;strata-hy3-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558;cache_runtime.inc:c09473e699d526424a1e3a02ba483bb164d0b32001aab2162493dd199d0e95f5;gpu_arena.hpp:be2c5226c5ad139f4a2a24ae0b3f4aa66a8636c4a7f71814e1c305ec2318ffd5;host_cache.hpp:6ec67b06077964ee38110ea5877acd415fe0480c225bd915620589dbba864b84;pipeline_runtime.inc:9b3d7cb85e6432a436d815904c0d5d59dd2f9680a329a89a3cff2174c527a28e;pipeline_sched.inc:3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d;expert_pipeline.hpp:86aeb48bde45051803e8bd228196c448cb71e9cdd9124bcaf9f0cab37d4bdae4;expert_slice.hpp:5f389e0ed854a6bf85481aec824a3fd19b9af88b6be7b452cc98b21696bd3595;gpu_trace.hpp:04e74fd7fb728cdac4f7dba88409027acd6a7348a88bf2954536d02162139196;expert_cache.hpp:10e1201cebdeeb385d104ac43f5fe6d840637d77329e621a31de0b31352748ff;vram_policy.hpp:0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e;expert_frequency.hpp:065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "cuda_mmf_generated_sha256": "c682020a9df0b9b49d4600a308fc84a0b592e81575ee788cc6fa78de9d723f68",
+    "cuda_dispatch_generated_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f"
+  },
+  "source_sha256": {
+    "backends\\hy3\\contract.hpp": "43c335e668dc74f7636d3ca1e72c7f0ef8f922a76a81dffd8e391a243343f3e1",
+    "backends\\hy3\\gpu_arena.hpp": "be2c5226c5ad139f4a2a24ae0b3f4aa66a8636c4a7f71814e1c305ec2318ffd5",
+    "backends\\hy3\\host_cache.hpp": "6ec67b06077964ee38110ea5877acd415fe0480c225bd915620589dbba864b84",
+    "backends\\hy3\\mtp.hpp": "b17710d5e74dcbdd71d7e2f7011e6a332ea544153bafaa260642bde018a4326f",
+    "backends\\hy3\\protocol.hpp": "6af16cfea798b707503613ea1291e731c41309fc5557a38cb1b7e890ef5fb2c4",
+    "backends\\hy3\\runtime.hpp": "16e14d81776b5717d575424cbbe13a8481fd4354f5e777059d2e3846efbe5156",
+    "backends\\hy3\\synthetic_hy3.hpp": "d6102e1393ea215bf3b5053bf39ae70cc88f4804b257ae86433d607c185a4dd2",
+    "backends\\hy3\\tokenizer_protocol.hpp": "8b9e8503a8feaa39159b7099b70042d1be0f3ba0a6efaf51f6c811bcb1290d7e",
+    "backends\\hy3\\cache_runtime.inc": "c09473e699d526424a1e3a02ba483bb164d0b32001aab2162493dd199d0e95f5",
+    "backends\\hy3\\gpu_only_audit.inc": "75158501d85720fac40c230dc182415dbc442baf021da62d108ad916e9efdf4c",
+    "backends\\hy3\\pipeline_runtime.inc": "9b3d7cb85e6432a436d815904c0d5d59dd2f9680a329a89a3cff2174c527a28e",
+    "backends\\hy3\\pipeline_sched.inc": "3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d",
+    "backends\\hy3\\sync_runtime.inc": "7224d1e06c06f358c8399c2f538dde393b07a6457f11e67860133a28f82221fb",
+    "backends\\hy3\\sync_runtime.h": "1af8cdd737f9984b6e8bca9e483e9723919aa9655bfc4fc46ca62e74283ef650",
+    "backends\\hy3\\sync_test.h": "dde655dac4639864002830b9a3601345a0d071bc445172bd384cb1d1b80a5914",
+    "backends\\hy3\\check_gpu_arena.cpp": "0258e52ee097a25e703c590b60e822400dbad3920dcdf64aa6cfc228635cc608",
+    "backends\\hy3\\check_graph.cpp": "d31cdf7083ebc0e683ab97e8e5126b570f5fd1c47eb7b8b747bb86077a86316a",
+    "backends\\hy3\\check_host_cache.cpp": "1f172c833799f5ba68f0d42d3ab0abf97f1c020bf4d6b2cba0840d7fd682e126",
+    "backends\\hy3\\check_kernels.cpp": "4b5f9cd6e3a0ea6d2dd1d8412b6f21013dc2de44b403ce1e146d5b361e55b1e9",
+    "backends\\hy3\\check_mtp.cpp": "edbed2238569c065272b241a445849569350bed61636c7ba5e8092e6546cd79e",
+    "backends\\hy3\\check_runtime.cpp": "dec94d0308ccad2ee0f9d655291a4e679bf4ff77b99a1711b3056d200f6b70eb",
+    "backends\\hy3\\check_vram_alloc.cpp": "bf61117f9220b4bb4add01ec5f1ddf53cb10f8cd523c7ac73c1950c63acbe31e",
+    "backends\\hy3\\loader_oracle.cpp": "e5733c0b6bad7dc01d8c01a9d91a2cbd99c4139ba28ea3899b8dd9c63c9fcef4",
+    "backends\\hy3\\main.cpp": "a5838413ce4cf72b54e330d8dfaf1d294b2cc942a88619a131c4933d63040e16",
+    "backends\\hy3\\template_oracle.cpp": "628e3790ef3649bd62a90d278928a9cc628fc9b35e0f81d8164e57296b1a9284",
+    "backends\\hy3\\tokenizer_oracle.cpp": "de3424c19a3d9dc9cdefa21e876639112d05e144bb652fdacb018b9c32e57009",
+    "backends\\hy3\\CMakeLists.txt": "762f2bec2e59cf8a6bb4e88a6ddadc3b90ef25b4643ef7c4734a20a0aca1dc00",
+    "backends\\hy3\\RuntimePatches.cmake": "f5b007282495527659350efe8fcc0a9e5d5c04a1dca712b01ae2123fcbe7c674",
+    "backends\\step35\\expert_cache.hpp": "10e1201cebdeeb385d104ac43f5fe6d840637d77329e621a31de0b31352748ff",
+    "tools\\check_hy3_cuda.py": "f42a7c5e405ef2c8ebf44e54ab944d55e39c284fcaa88ddfc39def6e470157ff",
+    "tools\\check_hy3_mtp.py": "dcf80f10dd366574a3c46ef35da90a1d39501df49436bfc570f9ca9bc56a3a4e",
+    "tools\\prepare_hy3_profile.py": "01ce908a92c859cd5dbff22be04cbeab97adec0e209b97926c7f18db285a0ddc",
+    "tools\\test_hy3_profile.py": "a84b82fc3cb337c13ffb54e15edebb7ff7eb4ee432ba752e69e2313c67ca90a1"
+  },
+  "note": "Other MiMo work is present in the shared checkout and is outside this HY3 change."
+}

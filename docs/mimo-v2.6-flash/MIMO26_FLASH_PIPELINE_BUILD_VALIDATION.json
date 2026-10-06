@@ -1,0 +1,114 @@
+{
+  "status": "pass",
+  "date": "2026-10-06",
+  "timezone": "Asia/Yekaterinburg",
+  "stage": "MIMO-05",
+  "base_commit": "819ad130f49d1e088e2fbc50e1e4f5c681e1e390",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.7",
+  "workspace_note": "Existing Hy3/Step work preserved. Common transport/slice/file/device-memory and GLM host-pages helpers reused without edits. No commits or archive/_deps edits.",
+  "source_sha256": {
+    "backends/mimo2/build_manifest.json.in": "8ad9f43358d32a23a9ba80ea97fcae8aae50217a861a03087d5013a3566ee7c2",
+    "backends/mimo2/check_allocation.cpp": "a853884b2eadf045f307b8c3ad68718598df9b420dfebd68bf69ec4b2e790dd7",
+    "backends/mimo2/check_cache.cpp": "40f0522e88ca20d3128edc60419d1fed2f39dd389cf860da484883de4c952f38",
+    "backends/mimo2/check_graph.cpp": "d102205d6b789f18199826f8d312fb24774a5f7b60c983a8ce13b473079cf92d",
+    "backends/mimo2/check_kernels.cpp": "b3a20470dffb1b71774872cd47c15ad49caa45813a86d0a7694f92d292fff5cf",
+    "backends/mimo2/check_runtime.cpp": "7bc2ebab4a000ead47fc8b0fca1cc5e932265007767176945818a4f242bc3184",
+    "backends/mimo2/CMakeLists.txt": "77ba3cbb6603b5d44696ed8643e425a7f0c48458edb7b4469c34f41ce1b6ccf5",
+    "backends/mimo2/contract.hpp": "15793504eb66b8f03abb457e41e8fced433cfeaa15c2a5c5deebe194b59cf4d4",
+    "backends/mimo2/expert_cache.hpp": "5ddc81df10b512343f734e1e2b56104edfd80839a305648cd1bd73c91a049c56",
+    "backends/mimo2/gpu_only_audit.inc": "3fd241ccd8384cee7f9e1dee9da43616d94117c5c9258691146bfe1e2b8f3476",
+    "backends/mimo2/gpu_trace.hpp": "68602c5b89a4b293232ea24702a453013ba44ee6fc10f001d54d3a8c52bba5af",
+    "backends/mimo2/loader_oracle.cpp": "05223756465f133993154fe1f4857afe7a5257528aac0013e653559141047ea8",
+    "backends/mimo2/main.cpp": "16ec4dc5437b9a442de5969614c63f6a0d6394ebfb7b94225853245d73c64b58",
+    "backends/mimo2/Mxfp4Precision.cmake": "c1bbfb81faf833f167cb20ad15254986aab5ac404682f5b096fb819f8b650439",
+    "backends/mimo2/pipeline_runtime.inc": "9f38f661c1138515fecf998709685b92b16df75a104b7a5fde8902d15de7e21d",
+    "backends/mimo2/pipeline_sched.inc": "74d24628de6e67707c7fa5d2d81ea7e3b200eee731d2d56afb3b3cc0e51020ac",
+    "backends/mimo2/RoutedStrides.cmake": "f120edc3ba654e031d7702955d5dcfb71cb24f48507b53f3de0f7908f04459f2",
+    "backends/mimo2/runtime.hpp": "ea9bcb701215f106ec964b841fe74d255fd3647a05152d6384e87563fc11539b",
+    "backends/mimo2/RuntimePatches.cmake": "b53c186af98e462443060a8abc0f923a1e930536871d091d2ee36cdc3b6d4af7",
+    "backends/mimo2/StrictF32.cmake": "db6c2df2aeba110e5d12b18485d1f86e552732dd600914d6270276b0d5875b66",
+    "backends/mimo2/sync_runtime.h": "945e092bf9b15463aac931bc1c5392bcbffc25a17205a73d3b3becca93c54720",
+    "backends/mimo2/sync_runtime.inc": "cb153be46a9ca6da9daab1c73b250f00e2506d19796dce455ee8c24bed60e73f",
+    "backends/mimo2/synthetic_mimo2.hpp": "2add3e43dc8dff03203d93f1ec961eb3e5c7b8aa8ca62f6dfa30d8e1f372a63f",
+    "backends/mimo2/template_oracle.cpp": "d6c81dd8daad02ab136cc3ce668dc5a7c037bb2d40d9cab1f12ec1a95f370751",
+    "backends/mimo2/tokenizer_oracle.cpp": "fb57b7886932096f6e56760d5a9d367996fa965905a43c1be98a007649a03e15",
+    "tools/check_mimo2_cuda.py": "2f25a670c58ff7f10c06f756d7f0c13a056ce7ea79639c1ad21a9d2b99009c84",
+    "tools/check_mimo2_engine.py": "65ae1efae096bb45d0cb23eddbb273e12110815002d92828f9dcf8a6d8936a3b",
+    "tools/test_mimo2_engine.py": "dc93b89162dcc8976961e03d1cd8c0b3889b6ccbaa104e9361d730391413cdfb",
+    "backends/common/expert_pipeline.hpp": "86aeb48bde45051803e8bd228196c448cb71e9cdd9124bcaf9f0cab37d4bdae4",
+    "backends/common/expert_slice.hpp": "5f389e0ed854a6bf85481aec824a3fd19b9af88b6be7b452cc98b21696bd3595",
+    "backends/common/expert_file.hpp": "9bf0c0eb9b58019fa51aee28e24fa924703225d22ce26b8a8a9b8ec640b9092e",
+    "backends/common/device_memory.hpp": "76f22a1749957f2d82f3e5645aef10719d69bedc012054dcf27f85ae77687459",
+    "backends/glm5next/host_pages.hpp": "b16bddc7126afd9252c4da738bd903b73cd53fae1d36c9ffb0fa5cf60cf50944",
+    "backends/step35/tokenizer_protocol.hpp": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a"
+  },
+  "manifest": {
+    "scope": "MiMo oracles, synthetic CUDA fixtures and optional synchronous selected-expert engine",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+    "loader_sha256": "2ec5caa11fb9ab7604b798a17cd80244427596581c06cdb033762b6d56f50823",
+    "patches": "cuda-mmf-respect-f32-overrides,cuda-routed-input-strides,cuda-mxfp4-blackwell-precision,mimo-sync-selected-file-copy-gpu-audit-demand-mmap,mimo-bounded-matrix-cache,mimo-route-prefetch-pipeline",
+    "generated_mmf_sha256": "35ce8b9b5c7b6feb651167523d602ed0bad27dec70cb07a8437c67dbc7302975",
+    "generated_dispatch_sha256": "cb0e9a240c217318cbaf164a36c5e129a9250b223359be96fb3daec9e3df883f",
+    "generated_mmq_sha256": "99c4d81d7e0b68498f7310c05ff94b141ebe9724e1fd3d8864adee4390a19302",
+    "compiler": "MSVC",
+    "compiler_version": "19.44.35222.0",
+    "generator": "Ninja",
+    "build_type": "Release",
+    "cuda": true,
+    "cuda_compiler_version": "13.0.48",
+    "cuda_architectures": "120",
+    "runtime": true,
+    "runtime_generated_hashes": "strata-mimo2-backend.cpp:13cd2dd3a19045d25b7c0175e16f4f9251daa7a8b1a1bf127c0ecb0a97783ed2;strata-mimo2-loader.cpp:3e42489459ae39a3cc5807a8cc3593451ba06b595492b81dd8efae78bfc98493;strata-mimo2-mmap.cpp:23211fb7306ea79eff82237f68d2303d34f49785f7e6bd765bc964ed61c2a558"
+  },
+  "binary_sha256": {
+    "strata-mimo2-allocation-check.exe": "78d116ab235abe2691aff6bbf27d54d12f3b4897be5944b3f779be77c0062adc",
+    "strata-mimo2-cache-check.exe": "7f37cb2f59f5d17976cb667773d969e2334750e6398a6fc38740f5e94cf5c186",
+    "strata-mimo2-fixture-engine.exe": "5bdf258bc84928408b0aec10de8dbbaec14dbe30b080b32e6378ebed8df26f09",
+    "strata-mimo2-graph-check.exe": "4d0c95488b047b8e09c8e4398432930f7f7fee03fac35194b28b5fd5ee6cb68b",
+    "strata-mimo2-kernels-check.exe": "5bd48061c94675010c261796288c108385cf5af028ebd48aa9b16407f2b09312",
+    "strata-mimo2-runtime-check.exe": "73e8bc6c7ae456468b349f809825ad5f9b132f4601c04811a25afa654540aa23",
+    "strata-mimo2.exe": "f189be32e3f25a71f6cdf775ffe1197614b688014e78d8b498ff3c80bc3d2621"
+  },
+  "build_commands": [
+    "cmd /c build-local/build-mimo2-checks.cmd",
+    "cmd /c build-local/build-mimo2-cache-checks.cmd",
+    "cmd /c build-local/build-mimo2-runtime.cmd"
+  ],
+  "final_build_exit_code": 0,
+  "final_build_log": "build-local/mimo2-validation/pipeline-final-build.log",
+  "final_build_log_sha256": "2178488e3e3341c46858d92f88b0844505bb35552cc46d29b792c3665b7948af",
+  "native_checks": {
+    "runtime": 212,
+    "consecutive_runtime_runs": 6,
+    "kernels": 96,
+    "graph": 132,
+    "cache_ownership": 23,
+    "cpu_oracle_ctest": 3
+  },
+  "python_checks": {
+    "command": "python -X utf8 -m unittest tools.test_mimo2_gguf tools.test_mimo2_tokenizer tools.test_mimo2_cuda tools.test_mimo2_engine tools.test_step35_tokenizer tools.test_glm5next_tokenizer tools.test_hy3_tokenizer",
+    "count": 40,
+    "exit_code": 0
+  },
+  "cpu_checks": [
+    {
+      "command": "ctest --test-dir build-local/mimo2-oracles --output-on-failure --no-tests=error",
+      "exit_code": 0
+    },
+    {
+      "command": "build-local/mimo2-cuda/bin/strata-mimo2-cache-check.exe",
+      "exit_code": 0
+    }
+  ],
+  "version_note": "Measured series used explicit options and the final runtime/KV initialization. A later main.cpp-only change selects reader1 by default and disables it implicitly for native/cache0. Final binary passed full corpus and implicit-default/native/cache0 fixtures. Runtime-check binary is identical to the six consecutive passing runs.",
+  "reports": [
+    "MIMO26_FLASH_PIPELINE_BENCHMARK.json",
+    "MIMO26_FLASH_PIPELINE_MODEL_VALIDATION.json",
+    "MIMO26_FLASH_PIPELINE_RUNTIME_VALIDATION.json",
+    "MIMO26_FLASH_PIPELINE_DEFAULTS_VALIDATION.json",
+    "MIMO26_FLASH_PIPELINE_CUDA_REGRESSION.json",
+    "MIMO26_FLASH_PIPELINE_DIAGNOSTIC.json"
+  ]
+}

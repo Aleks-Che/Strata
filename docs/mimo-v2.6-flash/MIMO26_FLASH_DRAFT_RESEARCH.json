@@ -1,0 +1,155 @@
+{
+  "scope": "Read-only provenance inspection; no remote code execution",
+  "source_urls": [
+    "https://huggingface.co/api/models/XiaomiMiMo/MiMo-V2.6-Flash-RL/tree/main/dflash?recursive=true",
+    "https://huggingface.co/api/models/XiaomiMiMo/MiMo-V2.6-Flash-MOPD/tree/main/dflash?recursive=true"
+  ],
+  "official_dflash_trees_equal": true,
+  "tree": [
+    {
+      "type": "file",
+      "oid": "9d25559ad598fe16076bec44f755f6bec688bbd2",
+      "size": 1242,
+      "path": "dflash/config.json"
+    },
+    {
+      "type": "file",
+      "oid": "0aea03fe130ec6070d8d94f8d11c37ee9885782f",
+      "size": 14255,
+      "path": "dflash/dflash.py"
+    },
+    {
+      "type": "file",
+      "oid": "06591100b3e0e791b59638ae2a6e9b4d4771bd8a",
+      "size": 2936121080,
+      "lfs": {
+        "oid": "94d9c02c17e0b469f88699e98424825ebe13a17f07eb3b86727b5e0c8143d287",
+        "size": 2936121080,
+        "pointerSize": 135
+      },
+      "xetHash": "ec1141361ca77f9b369bea2aeb0d9b11e318ffa964a39b139372bec0146f51bc",
+      "path": "dflash/dflash_draft_model.safetensors"
+    },
+    {
+      "type": "file",
+      "oid": "6ebcfd4abd4d19a215375c7b19684794b1b0fa3c",
+      "size": 9882,
+      "lfs": {
+        "oid": "b35b379fe0497ffdc0d6407f502622237d9346e0d03f457ec574be60f6c2cee0",
+        "size": 9882,
+        "pointerSize": 129
+      },
+      "xetHash": "22412f101f1a4511fd8e63186de4f5d6885aba20a4770c9767b471c13c2a84be",
+      "path": "dflash/mask_embedding.pt"
+    },
+    {
+      "type": "file",
+      "oid": "aae806350583fa144d148ddc48dd583aa7d1e621",
+      "size": 4689,
+      "path": "dflash/model.safetensors.index.json"
+    }
+  ],
+  "config": {
+    "architectures": [
+      "DFlashDraftModel"
+    ],
+    "model_type": "qwen3",
+    "auto_map": {
+      "AutoModel": "dflash.DFlashDraftModel"
+    },
+    "hidden_size": 4096,
+    "intermediate_size": 16384,
+    "num_hidden_layers": 5,
+    "num_attention_heads": 64,
+    "num_key_value_heads": 8,
+    "head_dim": 128,
+    "v_head_dim": 128,
+    "partial_rotary_factor": 0.5,
+    "block_size": 8,
+    "dflash_config": {
+      "target_layer_ids": [
+        0,
+        11,
+        23,
+        35,
+        47
+      ],
+      "mask_token_id": 151675,
+      "num_anchors": 4096,
+      "block_size": 8,
+      "loss_decay_gamma": 7.0,
+      "attention_value_scale": 0.612,
+      "attention_sink_bias": true
+    },
+    "layer_types": [
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention",
+      "sliding_attention"
+    ],
+    "sliding_window": 1024,
+    "use_sliding_window": true,
+    "is_causal": false,
+    "num_target_layers": 48,
+    "target_hidden_size": 4096,
+    "vocab_size": 152576,
+    "max_position_embeddings": 1048576,
+    "rope_theta": 10000.0,
+    "rms_norm_eps": 1e-06,
+    "torch_dtype": "bfloat16",
+    "hidden_act": "silu",
+    "attention_bias": false,
+    "attention_dropout": 0.0,
+    "add_swa_attention_sink_bias": true,
+    "tie_word_embeddings": false,
+    "use_cache": true
+  },
+  "shared_tensor_sha256": [
+    {
+      "path": "H:\\models\\mimo-v2.6-flash\\MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf",
+      "hashes": {
+        "output.weight": "d74a930467736a47b5e798145b6c28ce16dc6ec868691da80fdea0288e09e8e3",
+        "token_embd.weight": "c0696f9a652163a5f2c0599afdf48e35641211982fad66ca0c4287b20d91a754",
+        "output_norm.weight": "77df61346dac887cd2cffd5d39bbb22a7ec3bc007ea98a244ff368344ad36903"
+      }
+    },
+    {
+      "path": "H:\\models\\mimo-v2.6-flash\\dflash-MiMo-V2.6-Flash-MOPD-BF16.gguf",
+      "hashes": {
+        "output.weight": "305fb1025f0883bfdfb901969fa56dd9fb58d7c68305b40bebb192f330a2fd75",
+        "token_embd.weight": "ac48ebb065bbbcd2e524f1b0fdaa332460596ad41067cfa41e9af204fb31237f",
+        "output_norm.weight": "316fb5df13baa3df890536d1d454f1ea1fbba7b4501beb3b2aae37d93b793f09"
+      }
+    },
+    {
+      "path": "H:\\models\\mimo-v2.6-flash\\mtp-MiMo-V2.6-Flash-MOPD-BF16.gguf",
+      "hashes": {
+        "output.weight": "305fb1025f0883bfdfb901969fa56dd9fb58d7c68305b40bebb192f330a2fd75",
+        "token_embd.weight": "ac48ebb065bbbcd2e524f1b0fdaa332460596ad41067cfa41e9af204fb31237f",
+        "output_norm.weight": "2baf06942553d9e08d7095c06f29f7933874adb860af6cb799db5983a547981d"
+      }
+    }
+  ],
+  "embedding_hash_scope": "BF16 embedding payload excluding MASK row151675; output/output_norm whole tensors",
+  "conclusion": "DFlash backbone provenance matches RL and MOPD, but local MOPD embedding/head differ from target RL; no byte-equivalent alias claim.",
+  "implementation_references": [
+    {
+      "url": "https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/models/mimo_v2.py",
+      "finding": "set_dflash_layers_to_capture maps after-layer IDs to +1; final layer capture is explicitly pre-norm."
+    },
+    {
+      "url": "https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/speculative/dflash_utils.py",
+      "finding": "MiMo attention_sink_bias and attention_value_scale metadata are handled explicitly."
+    },
+    {
+      "url": "https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/models/mimo_v2_nextn.py",
+      "finding": "NextN combines normalized token embedding and target hidden state; own final-layer norm is retained."
+    },
+    {
+      "path": "build-local/mimo2-cuda/_deps/mimo2_candidate-src/common/speculative.cpp",
+      "revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "finding": "First-head prefill pairs h[p-1] with x[p], carries the last target hidden row across batches, and initializes pending hidden to zero. MiMo-specific deeper independent offset heads not implemented by this probe."
+    }
+  ]
+}

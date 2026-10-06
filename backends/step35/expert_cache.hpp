@@ -71,6 +71,8 @@ class ExpertCache {
 public:
     using Probe=std::function<MemorySample()>;
     using Allocate=std::function<cudaError_t(void **,size_t)>;
+    using Release=std::function<cudaError_t(void *)>;
+    using Backing=std::function<size_t()>;
     struct Counters {
         uint64_t hits=0,misses=0,evictions=0,bypasses=0,oom=0,rejected=0,samples=0;
         uint64_t allocations=0,reuses=0;
@@ -89,10 +91,13 @@ private:
     StrataExpertFrequencyHistory<MatrixKey,MatrixHash> history{65536};
     size_t cap=0,limit=0,resident=0,growth=0;
     bool reuse_allocations=false;
+    bool match_size=false;
     bool profile=false;
     bool fast_scan=false;
     Probe probe;
     Allocate allocate;
+    Release release;
+    Backing backing;
     MemorySample sample{};
     Counters counts{};
     int device=-1;
@@ -101,9 +106,26 @@ private:
         if (current!=device) throw std::runtime_error("Step cache device changed");
     }
     void erase(std::map<MatrixKey,Entry>::iterator it) {
-        { CpuTimer timer(profile?&counts.free_ms:nullptr); cuda_check(cudaFree(it->second.data)); }
+        { CpuTimer timer(profile?&counts.free_ms:nullptr); cuda_check(release(it->second.data)); }
         resident-=it->second.allocated;
         order.erase(it->second.order); entries.erase(it); ++counts.evictions;
+    }
+    void *matching_reuse(const MatrixKey &key,size_t charged) {
+        auto victim=entries.end();unsigned score=0;size_t scanned=0;
+        for(const auto &item:order) {
+            if(item.entry->pins)continue;
+            ++scanned;
+            if(item.entry->allocated==charged) {
+                const auto value=history.score(item.key);
+                if(victim==entries.end() || value<score) {victim=entries.find(item.key);score=value;}
+            }
+            if(scanned==64)break;
+        }
+        if(profile)counts.victim_candidates+=scanned;
+        if(victim==entries.end() || history.score(key)<score)return nullptr;
+        void *data=victim->second.data;
+        resident-=charged;order.erase(victim->second.order);entries.erase(victim);
+        ++counts.evictions;++counts.reuses;return data;
     }
 public:
     // Protect future hits while an ordered pipeline plan admits other misses.
@@ -132,13 +154,14 @@ public:
         return std::unique_ptr<PlanPins>(new PlanPins(this,std::move(hits)));
     }
     explicit ExpertCache(size_t bytes, Probe reader=memory_sample,
-        Allocate allocator=[](void ** p,size_t n){return cudaMalloc(p,n);})
-        :cap(bytes),probe(std::move(reader)),allocate(std::move(allocator)) { cuda_check(cudaGetDevice(&device)); }
+        Allocate allocator=[](void ** p,size_t n){return cudaMalloc(p,n);},
+        Release releaser=[](void *p){return cudaFree(p);})
+        :cap(bytes),probe(std::move(reader)),allocate(std::move(allocator)),release(std::move(releaser)) { cuda_check(cudaGetDevice(&device)); }
     ExpertCache(const ExpertCache &)=delete;
     ExpertCache &operator=(const ExpertCache &)=delete;
     ~ExpertCache() {
         int previous=device; cudaGetDevice(&previous); cudaSetDevice(device);
-        for (auto & pair:entries) cudaFree(pair.second.data);
+        for (auto & pair:entries) release(pair.second.data);
         cudaSetDevice(previous);
     }
     void refresh() {
@@ -149,14 +172,18 @@ public:
         { CpuTimer probe_timer(profile?&counts.probe_ms:nullptr); sample=probe(); }
         if (!sample.gpu_total || sample.gpu_free>sample.gpu_total || !sample.ram_total || sample.ram_free>sample.ram_total)
             throw std::runtime_error("invalid Step memory sample");
-        if (resident>sample.gpu_total-sample.gpu_free) {
+        const size_t allocated=backing?backing():resident;
+        if (allocated<resident || allocated>sample.gpu_total-sample.gpu_free) {
             trim(0);
             throw std::runtime_error("Step global VRAM sample cannot account for resident cache");
         }
         StrataVramPolicy policy;
         // Leave 5% plus 256 MiB for sampling lag/driver allocation overhead.
         policy.reserve_mib=(sample.gpu_total/20 + (1<<20)-1)/(1<<20)+256;
-        const size_t cached_before=resident;
+        // Arena holes are already allocated to this cache and can hold future
+        // matrices without consuming new physical VRAM. Do not classify them
+        // as external memory and repeatedly shrink useful residency.
+        const size_t cached_before=allocated;
         limit=size_t(std::min<uint64_t>(cap,policy.byte_limit(sample.gpu_free,sample.gpu_total,cached_before)));
         trim(limit); growth=0;
         if (sample.ram_free < sample.ram_total/20 + (64<<20)) {
@@ -194,7 +221,11 @@ public:
         const size_t charged=(bytes+65535)/65536*65536;
         if (!bytes || charged<bytes || charged>limit) {++counts.bypasses;return nullptr;}
         void * data=nullptr;
-        while (resident>limit-charged) {
+        // Packed arenas can have free bytes in another size class. Prefer a
+        // same-size, unpinned, no-hotter victim near the LRU tail (opt-in).
+        if(match_size && reuse_allocations && resident>limit-charged && resident<=limit)
+            data=matching_reuse(key,charged);
+        while (!data && resident>limit-charged) {
             auto victim=entries.end();
             // Bounded scan of the oldest entries; shared decaying frequency
             // history avoids admitting every one-off prefill matrix.
@@ -242,8 +273,13 @@ public:
             ++counts.allocations;
             CpuTimer allocation_timer(profile?&counts.allocate_ms:nullptr);
             const auto error=allocate(&data,charged);
-            if (error==cudaErrorMemoryAllocation) {cudaGetLastError();++counts.oom;++counts.bypasses;return nullptr;}
-            cuda_check(error);
+            if (error==cudaErrorMemoryAllocation) {
+                cudaGetLastError();++counts.oom;
+                // A new slab may not fit although the logical byte cap has
+                // room. Reuse a compatible victim instead of freezing admission.
+                if(match_size && reuse_allocations && resident<=limit)data=matching_reuse(key,charged);
+                if(!data) {++counts.bypasses;return nullptr;}
+            } else cuda_check(error);
         }
         try {
             order.push_back({key,nullptr});
@@ -253,16 +289,25 @@ public:
                     throw std::runtime_error("duplicate Step cache admission");
                 order.back().entry=&inserted.first->second;
             } catch (...) {order.pop_back();throw;}
-        } catch (...) {cudaFree(data);throw;}
+        } catch (...) {release(data);throw;}
         resident+=charged; growth+=charged; return data;
     }
     size_t resident_bytes() const {return resident;}
+    // Read-only accounting; does not change frequency, recency or pins.
+    size_t tensor_bytes(uint64_t generation,uint32_t tensor) const {
+        size_t bytes=0;
+        for(auto it=entries.lower_bound({generation,tensor,0});it!=entries.end() &&
+            it->first.generation==generation && it->first.tensor==tensor;++it) bytes+=it->second.allocated;
+        return bytes;
+    }
     size_t budget() const {return limit;}
     size_t size() const {return entries.size();}
     MemorySample memory() const {return sample;}
     Counters counters() const {return counts;}
     void reset_counters() {counts={};}
     void set_reuse_allocations(bool enabled) {check_device();reuse_allocations=enabled;}
+    void set_match_size(bool enabled) {check_device();match_size=enabled;}
+    void set_backing_bytes(Backing reader) {check_device();backing=std::move(reader);}
     void set_profile(bool enabled) {check_device();profile=enabled;}
     void set_fast_scan(bool enabled) {check_device();fast_scan=enabled;}
 };

@@ -99,19 +99,29 @@ if(STRATA_HY3_CUDA)
   add_executable(strata-hy3-graph-check check_graph.cpp)
   set(hy3_cuda_targets strata-hy3-kernels-check strata-hy3-graph-check)
   if(STRATA_HY3_RUNTIME)
+    # Windows allocation diagnostic; no model/dependency code is linked.
+    add_executable(strata-hy3-vram-alloc-check check_vram_alloc.cpp)
+    target_compile_features(strata-hy3-vram-alloc-check PRIVATE cxx_std_17)
+    target_link_libraries(strata-hy3-vram-alloc-check PRIVATE CUDA::cudart_static)
+    set_target_properties(strata-hy3-vram-alloc-check PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     add_executable(strata-hy3 main.cpp)
     add_executable(strata-hy3-runtime-check check_runtime.cpp)
     add_executable(strata-hy3-mtp-check check_mtp.cpp)
+    add_executable(strata-hy3-scratch-check check_scratch.cpp)
     add_executable(strata-hy3-host-cache-check check_host_cache.cpp)
     set_property(SOURCE check_host_cache.cpp APPEND PROPERTY OBJECT_DEPENDS
       "${CMAKE_CURRENT_SOURCE_DIR}/host_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
-    # The allocation/budget controller is reused unchanged from Step.
+    # Step keeps its default allocation policy; Hy3 opts into arena callbacks.
     add_executable(strata-hy3-cache-check ../step35/check_cache.cpp)
+    add_executable(strata-hy3-arena-check check_gpu_arena.cpp)
+    set_property(SOURCE check_gpu_arena.cpp APPEND PROPERTY OBJECT_DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/gpu_arena.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../step35/expert_cache.hpp")
+    target_link_libraries(strata-hy3-arena-check PRIVATE CUDA::cudart_static)
     target_link_libraries(strata-hy3-cache-check PRIVATE CUDA::cudart_static)
     # Explicit header dependencies also cover localized MSVC /showIncludes output.
     set_property(SOURCE main.cpp check_runtime.cpp check_mtp.cpp APPEND PROPERTY OBJECT_DEPENDS
-      "${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mtp.hpp;${CMAKE_CURRENT_SOURCE_DIR}/contract.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_test.h;${CMAKE_CURRENT_SOURCE_DIR}/protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/tokenizer_protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/synthetic_hy3.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
-    list(APPEND hy3_cuda_targets strata-hy3 strata-hy3-runtime-check strata-hy3-cache-check strata-hy3-mtp-check strata-hy3-host-cache-check)
+      "${CMAKE_CURRENT_SOURCE_DIR}/runtime.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mtp.hpp;${CMAKE_CURRENT_SOURCE_DIR}/shared_scratch.h;${CMAKE_CURRENT_SOURCE_DIR}/contract.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_test.h;${CMAKE_CURRENT_SOURCE_DIR}/protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/tokenizer_protocol.hpp;${CMAKE_CURRENT_SOURCE_DIR}/synthetic_hy3.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp")
+    list(APPEND hy3_cuda_targets strata-hy3 strata-hy3-runtime-check strata-hy3-cache-check strata-hy3-arena-check strata-hy3-mtp-check strata-hy3-scratch-check strata-hy3-host-cache-check)
   endif()
   foreach(target ${hy3_cuda_targets})
     target_compile_features(${target} PRIVATE cxx_std_17)
