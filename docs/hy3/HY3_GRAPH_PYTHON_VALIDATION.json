@@ -1,0 +1,93 @@
+{
+  "status": "pass",
+  "tests_run": 46,
+  "failures": 0,
+  "errors": 0,
+  "elapsed_seconds": 12.081,
+  "cli_cases": [
+    {
+      "args": [
+        "--profile-delivery",
+        "1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: profile-delivery must be 0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--profile-delivery",
+        "-1"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: profile-delivery must be 0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--profile-delivery",
+        "2"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: profile-delivery must be 0/1 and requires pipeline readers\n"
+    },
+    {
+      "args": [
+        "--profile-delivery",
+        "bad"
+      ],
+      "exit_code": 1,
+      "passed": true,
+      "stderr": "strata-hy3: invalid stoi argument\n"
+    },
+    {
+      "args": [
+        "--profile-delivery",
+        "0"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--expert-cache-mib",
+        "8",
+        "--pipeline-readers",
+        "2",
+        "--profile-delivery",
+        "1"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    }
+  ],
+  "engine_sha256": "b5fcc067554cd4d8acbe8318a468eea96cb1fa9a141107980996071579117365",
+  "source_sha256": {
+    "backends/hy3/runtime.hpp": "89923e198a23db695d2a4c10d3b9feb14036ed16ad0bcbb53b3460454c89a034",
+    "backends/hy3/main.cpp": "751ae0155914a77ef6202e0813f57de123d29b1dbb26046156fd70b6910cb09a",
+    "backends/hy3/check_runtime.cpp": "12eefa02ec2609ad4b13d9169a7962d2d6c65d30ed98feb4ad01e6a1a7aa0454",
+    "backends/hy3/sync_runtime.h": "39283f45fff52380481f3fb925f2ba260b556ac5f268f7ba6cc731599cdf7fc0",
+    "backends/hy3/sync_runtime.inc": "470d8dffb6535bb71d442320e2c18d92282d30c8c6336af61143170c2819cae5",
+    "backends/hy3/cache_runtime.inc": "2484d133500303f123ad84014915285205482fdb1c18134b62294f51d5192a9b",
+    "backends/hy3/pipeline_runtime.inc": "b78694eef84ac79c9c600255a8d14529d17161e0781bd0890b374a2652eed7a5",
+    "backends/hy3/RuntimePatches.cmake": "7d76a301da987d2c7b6943cfb86a81d8196cc7e5a987e86b115d380559c35046",
+    "tools/check_hy3_cuda.py": "7943a260651838ed9ada00508d7a368c9d283152561969c3862655f55fe1e0d8",
+    "tools/check_hy3_cache_model.py": "3e50e3f91de6f859cb40f94ba08043e57e31f47698b6a26cbdb54747678ddd28",
+    "tools/prepare_hy3_profile.py": "66e3c42609ec9cb4708edbcf7bc1006930ad74af619d99beb1cf102061855238",
+    "backends/common/expert_pipeline.hpp": "20ea8dcf7308d433e1791afa5dbcc8d5612423f3805c6d7324289a2a4d456fe2",
+    "backends/step35/expert_cache.hpp": "36928d887ad6899f18a07aad7fb6f44a7bb767e123c5f25c53ae69f1e7daffa9"
+  },
+  "scope": "46 CPU unittest checks and 6 CLI admission checks without model allocation",
+  "modules": [
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "log": "build-local/hy3-graphsafe-python.log",
+  "log_sha256": "bdcbfb1312cc908c66ab36447c7c29f7712f54ac9064f16b64c0aec3d83fe32e"
+}

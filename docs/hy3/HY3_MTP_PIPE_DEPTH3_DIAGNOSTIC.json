@@ -1,0 +1,285 @@
+{
+  "status": "fail",
+  "engine_sha256": "95ef9057aa1907961fb6f088f03cb8cd412fc4d64226fac31b616789baaaa536",
+  "runs": [
+    {
+      "depth": 0,
+      "result": {
+        "status": "pass",
+        "scope": "synthetic pipe lifecycle, sampling, isolation and cancellation",
+        "cases": [
+          {
+            "name": "greedy_16",
+            "pass": true
+          },
+          {
+            "name": "A_B_A_greedy",
+            "pass": true
+          },
+          {
+            "name": "seeded_sampling_repeat",
+            "pass": true
+          },
+          {
+            "name": "reject/",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 0 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 2048 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 64",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 -1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 1,",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 1,,2",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 temperature=nan 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 seed=4294967296 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 top_p=0 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 unknown=1 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 session=bad 1",
+            "pass": true
+          },
+          {
+            "name": "reject/ENC 2 00",
+            "pass": true
+          },
+          {
+            "name": "reject/ENC 1 gg",
+            "pass": true
+          },
+          {
+            "name": "stop_during_prefill",
+            "pass": true
+          },
+          {
+            "name": "fresh_state_after_cancel_and_errors",
+            "pass": true
+          },
+          {
+            "name": "session_key_isolation",
+            "pass": true
+          },
+          {
+            "name": "quit_during_request",
+            "pass": true
+          }
+        ],
+        "info": [
+          "INFO engine=hy3-native architecture=hy_v3 backend=llama.cpp gpu_only=1 mtp=0 spec=0 speculative=none mtp_storage=none expert_storage=mmap expert_compute=gpu expert_pipeline=1 expert_cache_mib=8 memory_target_percent=95 ram_target_percent=93 expert_readers=2 expert_stage_mib=16 expert_batch_copy=0 profile_delivery=0 expert_copy=pinned-pipeline-file kv=f32 flash_attention=0 tf32=0 cuda_fusion=0 cuda_graphs=0 conversation_cache=0",
+          "READY 2048 stop session-id"
+        ],
+        "exit_code": 0,
+        "greedy_ids": [
+          39,
+          19,
+          49,
+          17,
+          49,
+          19,
+          32,
+          49,
+          39,
+          37,
+          49,
+          49,
+          49,
+          49,
+          49,
+          49
+        ],
+        "sampled_ids": [
+          43,
+          6,
+          5,
+          60,
+          31,
+          14,
+          16,
+          13,
+          2,
+          29,
+          48,
+          17,
+          50,
+          49,
+          28,
+          37
+        ],
+        "case_count": 22
+      }
+    },
+    {
+      "depth": 3,
+      "result": {
+        "status": "pass",
+        "scope": "synthetic pipe lifecycle, sampling, isolation and cancellation",
+        "cases": [
+          {
+            "name": "greedy_16",
+            "pass": true
+          },
+          {
+            "name": "A_B_A_greedy",
+            "pass": true
+          },
+          {
+            "name": "seeded_sampling_repeat",
+            "pass": true
+          },
+          {
+            "name": "reject/",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 0 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 2048 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 64",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 -1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 1,",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 1,,2",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 temperature=nan 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 seed=4294967296 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 top_p=0 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 unknown=1 1",
+            "pass": true
+          },
+          {
+            "name": "reject/GEN 1 session=bad 1",
+            "pass": true
+          },
+          {
+            "name": "reject/ENC 2 00",
+            "pass": true
+          },
+          {
+            "name": "reject/ENC 1 gg",
+            "pass": true
+          },
+          {
+            "name": "stop_during_prefill",
+            "pass": true
+          },
+          {
+            "name": "fresh_state_after_cancel_and_errors",
+            "pass": true
+          },
+          {
+            "name": "session_key_isolation",
+            "pass": true
+          },
+          {
+            "name": "quit_during_request",
+            "pass": true
+          }
+        ],
+        "info": [
+          "INFO engine=hy3-native architecture=hy_v3 backend=llama.cpp gpu_only=1 mtp=1 spec=3 speculative=mtp mtp_storage=resident expert_storage=mmap expert_compute=gpu expert_pipeline=1 expert_cache_mib=8 memory_target_percent=95 ram_target_percent=93 expert_readers=2 expert_stage_mib=16 expert_batch_copy=0 profile_delivery=0 expert_copy=pinned-pipeline-file kv=f32 flash_attention=0 tf32=0 cuda_fusion=0 cuda_graphs=0 conversation_cache=0",
+          "READY 2048 stop session-id"
+        ],
+        "exit_code": 0,
+        "greedy_ids": [
+          39,
+          19,
+          49,
+          17,
+          49,
+          19,
+          32,
+          32,
+          49,
+          19,
+          32,
+          49,
+          19,
+          32,
+          49,
+          19
+        ],
+        "sampled_ids": [
+          43,
+          6,
+          5,
+          60,
+          31,
+          14,
+          16,
+          13,
+          2,
+          29,
+          48,
+          17,
+          50,
+          49,
+          28,
+          37
+        ],
+        "case_count": 22
+      }
+    }
+  ],
+  "same_greedy_and_sampling": false
+}

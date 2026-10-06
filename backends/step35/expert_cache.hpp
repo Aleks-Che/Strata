@@ -176,13 +176,15 @@ public:
             if (!it->second.pins) erase(it);
         }
     }
-    void * get(const MatrixKey & key,size_t bytes) {
+    // Prefill can serve existing weights without teaching a decode-only cache
+    // that a one-off prompt scan is popular. Default preserves other backends.
+    void * get(const MatrixKey & key,size_t bytes,bool train=true) {
         CpuTimer timer(profile?&counts.get_ms:nullptr);
-        check_device(); history.record(key);
+        check_device(); if(train)history.record(key);
         const auto it=entries.find(key);
         if (it==entries.end()) {++counts.misses;return nullptr;}
         if (it->second.bytes!=bytes) throw std::runtime_error("Step cache key size changed");
-        ++counts.hits; order.splice(order.end(),order,it->second.order); return it->second.data;
+        ++counts.hits; if(train)order.splice(order.end(),order,it->second.order); return it->second.data;
     }
     void * admit(const MatrixKey & key,size_t bytes) {
         CpuTimer timer(profile?&counts.admit_ms:nullptr);

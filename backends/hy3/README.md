@@ -3,7 +3,7 @@
 This directory builds CPU vocabulary/template/registration oracles and CUDA
 numerical checks for GGUF `hy_v3`. The CUDA checks execute small synthetic main
 and MTP graphs. The opt-in Windows pipe engine executes the full checkpoint
-without MTP. Selected expert transfers support a synchronous reference and
+with optional native MTP. Selected expert transfers support a synchronous reference and
 an optional bounded GPU matrix cache and file/H2D pipeline. An isolated profile
 serves both HTTP APIs and the web app below.
 
@@ -96,8 +96,8 @@ because these paths quantize activations differently. This is bounded numerical
 agreement, not exact quantized parity. Restore/replay and MTP-off/on comparisons
 require exact bytes even with mixed weights. These synthetic checks do not
 cover full-model inference; the Windows baseline below adds that comparison.
-Flash Attention, F16 KV and speculative accept/reject integration remain
-for later phases.
+Flash Attention and F16 KV remain for later phases. The separate MTP driver
+and its acceptance/rollback checks are described below.
 
 Both CUDA patches default ON in a fresh CUDA configuration, and are scoped to
 generated sources under this build directory with original-source hash guards:
@@ -145,7 +145,7 @@ build-local/hy3-cuda/bin/strata-hy3.exe --native H:/models/hy3/Hy3-Q3_K_M-mtp.gg
 KV and sampler state. Session keys are accepted for isolation, not persistence.
 Greedy and seeded temperature/top-k/top-p/min-p/repetition sampling use native
 samplers. The capability line reports the requested expert-cache cap and
-pipeline readers; MTP and conversation persistence remain disabled.
+pipeline readers; conversation persistence remains disabled. MTP is opt-in below.
 Context is limited to 2048, batch to 32 and KV to F32 for this baseline.
 
 The native header check validates the local 80+1 shape, all 1298 tensors, allowed
@@ -212,6 +212,15 @@ count), `pipeline_batch_ms` (inclusive CPU wall time), and prefill/decode delive
 fence counts. The fence counter excludes preceding scratch and graph-end fences;
 it does not count implicit CUDA allocator synchronization.
 
+`--profile-delivery 1` enables diagnostic CPU wall timers (requires pipeline
+readers). Request metrics contain separate `prefill_delivery` and
+`decode_delivery` objects: cache lookup, admission, victim selection,
+allocation/free, refresh/probe, pin protection, and scratch/delivery waits.
+Cache scopes are inclusive: admission contains victim selection and allocation,
+refresh contains the memory probe. Do not add nested timers. Source-read time
+is the sum across concurrent readers, not elapsed time or physical SSD time.
+Profiling is off by default; instrumented runs are not speed benchmarks.
+
 For a separate diagnostic run, `--trace-graphs 4 --trace-file NEW_FILE.json`
 records CUDA event intervals on the actual H2D and compute streams. The file
 is written at clean engine shutdown. Timing runs must leave tracing disabled.
@@ -224,7 +233,7 @@ the full tokenizer/template contract and records header hashes. Neither hashes
 nor header admission verify all weight payload bytes.
 
 All non-routed main weights stay on GPU. Routed weights have demand mappings;
-MTP tensors are skipped. The unchanged scheduler's `--copy-mode native` is the
+MTP tensors are skipped unless `--mtp` is nonzero. The unchanged scheduler's `--copy-mode native` is the
 reference. `pinned` reads only its selected expert ranges through the shared
 `backends/common/expert_file.hpp`, stages at most 16 MiB and fences each H2D
 before reusing staging. Without pipeline readers, one native read is in flight.
@@ -248,6 +257,15 @@ yet; re-enabling it requires separate numerical admission. The earlier P0
 graph checker uses evaluation callbacks and is not a substitute for this
 uncaptured scheduler test.
 
+HY3-09 additionally sets `GGML_CUDA_DISABLE_GRAPHS=1` for the isolated Hy3
+runtime. Repeated original-history checks reproduced resident/native differences
+with identical weights, including with fusion disabled. Disabling PDL or
+forcing graph property comparisons did not remove them. CUDA graphs disabled
+passed the recorded history tests. This is a mitigation: the exact failing
+kernel or capture/replay operation remains unresolved. Expert reader threads,
+H2D streams and the bounded pipeline remain enabled independently. No other
+backend's graph policy changes. INFO reports `cuda_graphs=0`.
+
 The runtime suite checks exact copied GPU bytes and logits for F32/mixed,
 batch1/4/17, a transfer exceeding 16 MiB, cancellation/recovery, CPU rejection
 and malformed input. HY3-04 extends it to 32 cases: injected pinned allocation
@@ -265,7 +283,54 @@ refusal and recovers. Real driver OOM/device-loss recovery and external memory
 pressure are not established by these synthetic failures.
 
 Full-model speed tuning, long context, Flash Attention,
-F16 KV, MTP and session persistence remain separate stages.
+F16 KV and session persistence remain separate stages.
+
+## Native MTP
+
+`--mtp 1`, `--mtp 2` or `--mtp 3` enables the GGUF's embedded NextN block.
+The default remains `--mtp 0`. The batch must hold at least depth+1 tokens.
+Depth1 is the selected profile candidate. Depth2/3 remain experimental;
+depth3 was slower in the local sweep and changed greedy IDs on a short mixed
+synthetic fixture. It is not recommended as a production default. Batched
+quantized logits can also differ from serial logits with depth1; exact greedy
+agreement is a measured property of the tested corpus, not a universal promise.
+All MTP weights stay on CUDA0 (1.729 GiB on the reviewed model); the target
+experts retain their bounded cache and async pipeline. One model owns the
+shared embedding/output weights. Main and draft contexts have separate F32 KV.
+The global 95% memory ceiling applies to both contexts and the expert cache.
+
+The driver pairs token x[p] with the target's post-final-norm h[p-1], including
+across prefill chunks. It chains draft hidden states, verifies depth+1 tokens
+in one target batch, removes rejected KV suffixes, and catches the draft up
+with accepted target features. Accepted drafts and the target correction/bonus
+are emitted in order. Each request and cancellation clears both KV contexts.
+Sessions and stochastic speculation are not enabled: temperature > 0 uses
+the existing target-only sampler, even when the model was loaded with MTP.
+Greedy repetition/frequency/presence penalties remain in the target sampler.
+
+INFO reports `mtp`, `spec` (depth) and `mtp_storage=resident`. Request metrics
+report effective `mtp_depth` (zero for the sampling fallback), proposed,
+accepted and delivered drafts, rounds, reject positions, and prefill/draft/
+verify/repair times. With MTP, `decode_steps` counts target verification batches;
+do not divide that count by forward time to claim output speed. Use emitted
+tokens after the first prefill sample divided by `generation_wall_ms`, which
+includes draft, verification, repair, sampling and pipe output.
+
+```powershell
+cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-mtp-check
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind mtp --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/mtp-fixture-new
+python tools/check_hy3_mtp.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --depths 0 1 2 3 0 --output-dir build-local/hy3-tests/mtp-model-new
+```
+
+The synthetic checker exercises F32 and two quantized layouts, forced rejection
+at every draft position, acceptance, bonus/output limits, stop, cancellation,
+greedy penalties and the context boundary. Greedy IDs must match. Numerical
+limits reuse the graph oracle's serial/batched CUDA limits; loading MTP without
+using it is checked separately. The full-model checker requires historical
+bit-exact logits with MTP off and exact greedy IDs with MTP on, and records
+numerical logit differences. Batched quantized verification is not advertised
+as bit-exact serial inference. See the measured results and limits in the
+[implementation status](../../docs/hy3/HY3_IMPLEMENTATION_STATUS.md).
 
 Hy3's separate template/parser module lives in `serve/hy3.py`. Its reviewed
 fixture and CPU tests are described in `serve/fixtures/README.md`. A full-model
@@ -296,6 +361,8 @@ to the new profile. Existing profiles are not overwritten.
 configuration when a nonzero cache cap is supplied.
 The exporter flag `--pipeline-batch` adds native `--pipeline-batch 1` to a new
 profile; it requires nonzero readers and does not alter existing profiles.
+The exporter also accepts `--mtp 1` (or2/3) for an explicit native MTP profile;
+its default remains zero. Use the same tokenizer/template and temperature0.
 `fit_max_tokens` reduces the requested output cap to the available context space;
 it never truncates the prompt. This profile is for validation, not a speed default.
 
@@ -340,13 +407,87 @@ must equal the recorded native baseline. Each nonzero capacity also checks
 STOP and a following request. See the status for measured results and limits.
 `--prompts long --repeats 1` selects the recorded 362-token prompt for a separate
 prefill comparison. Reference hashes and stop/recovery checks still apply.
+Add `--profile-delivery` for a separate diagnostic run with inclusive CPU timers.
 
 The first HY3-08 runtime run had one intermittent resident/native mismatch at
-mixed batch 4, with the pipeline disabled. Subsequent full runs and 32 focused
-resident/native comparisons passed. The cause remains unresolved; the original
-failure is retained in the status, and batching remains an explicit experiment.
+mixed batch 4, with the pipeline disabled. HY3-09 reproduced it by preserving
+the original F32/mixed/wide and batch1/4/17 history. On a history-probe failure,
+the checker records weights, uncaptured repeats and fresh-context intermediate
+tensor captures. Callbacks change graph splitting; they are diagnostic evidence,
+not a replacement for the failing uncaptured comparison.
 `strata-hy3-runtime-check NEW_DIRECTORY --reference-probe` runs the focused
 32 comparisons plus 28 native repeat checks; failed comparisons save logits.
+
+```powershell
+python tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --runtime-probe history --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/history-new
+```
+
+`--runtime-probe history` replays the original sequence 32 times (448 exact
+comparisons). `--runtime-probe history-graphs` explicitly re-enables CUDA graphs
+in the test executable to reproduce the known failure; this option is absent
+from the production engine. The exact underlying cause remains open.
+
+## Managed RAM cache
+
+`--ram-cache-mib auto` retains immutable routed matrix chunks in a separate
+pageable RAM cache. A numeric MiB cap or `0` (default, disabled) is also accepted.
+Both synchronous selected-copy and pipeline readers use it. GPU cache hits
+remain the first tier; RAM hits copy directly into the existing pinned ring.
+Only requested chunks are admitted, including the exact MMQ padding bytes.
+There is no whole-file preload and no large pinned host allocation.
+
+The key contains the live file-source identity, 64-bit offset and length.
+Entries survive requests, but model/cache reconfiguration drains readers and
+clears them. Cancelled/failed reads never publish a partial entry. Concurrent
+readers protect live copies against eviction. Eviction reuses an unreferenced
+buffer of the same size; pressure trimming releases memory without keeping a
+spare pool. Allocation failure bypasses admission and retains ordinary delivery.
+
+With RAM caching enabled, `--ram-cache-policy frequency` is the default policy.
+A chunk becomes eligible on its second decode access through this tier. Prefill
+can use existing entries but does not fill the cache or update popularity. The
+request driver marks the phase explicitly, so MTP verification batches still
+train the decode cache. VRAM hits do not train this tier: it learns demand for
+data missing from VRAM. Routing and the model's expert selection are unchanged.
+
+When full, the cache samples up to64 entries from the LRU tail and replaces
+colder, unreferenced entries only if the incoming chunk is more frequent. Equal
+scores keep current residents. The complete victim set must fit before eviction.
+Counts halve every131072 decode source accesses; bounded history survives payload
+eviction and counter resets. This lets changing workloads replace previously hot
+data. First-use and rejected chunks still go through the small pinned staging
+ring, without a private RAM copy. `--ram-cache-policy lru` retains the original
+admit-every-read policy for comparisons.
+
+The dynamic budget leaves 7% of physical RAM plus512 MiB available and reserves
+512 MiB of commit headroom. Startup headroom sets a fixed upper cap, so paging
+out older entries cannot justify growing the cache. The budget shrinks on
+pressure before the independent95% guard. Cached payload bytes are allocations,
+not a guarantee of residency:
+Windows may page ordinary memory. Standby file-cache pages count as available;
+low process RAM usage alone does not imply an uncached model.
+
+Request JSON includes `ram_cache`: payload/budget/entries/pending, hits/misses,
+hit/file/fill bytes, evictions, allocations/reuses and OOM. `file_bytes` counts native source reads,
+which may themselves hit Windows cache; it is not physical SSD traffic.
+Prefill/decode byte counters are reported separately. No source telemetry
+is collected by this tier when it is disabled.
+Frequency policy also reports prefill/frequency bypasses, victim candidates and
+history size. `prefill_ram_fill_bytes` must be zero for this policy; decode fills
+are reported separately. RAM caching remains opt-in: useful occupancy and fewer
+ReadFile calls alone do not establish a throughput improvement.
+`ram_reused_payload_bytes` measures retained chunks that have actually served
+at least one cache read since admission; `ram_unreused_payload_bytes` measures
+retained chunks still waiting for their first cache hit. These gauges survive
+request counter resets and decrease on eviction. They measure reuse, not OS
+page residency or physical disk traffic.
+
+```powershell
+cmake --build build-local/hy3-cuda --target strata-hy3 strata-hy3-runtime-check strata-hy3-host-cache-check -j 4
+build-local/hy3-cuda/bin/strata-hy3-host-cache-check.exe build-local/hy3-tests/ram-unit-new/host-cache-report.json
+python tools/check_hy3_mtp.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --pipeline-readers 2 --variants 8192:0 8192:0:auto 8192:0:auto 8192:0 --output-dir build-local/hy3-tests/ram-abba-new
+python tools/prepare_hy3_profile.py --model H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --engine build-local/hy3-cuda/bin/strata-hy3.exe --output-dir build-local/hy3-http-ram-new --cuda-dir build-local/cuda-13.0 --expert-cache-mib 8192 --pipeline-readers 2 --ram-cache-mib auto --mtp 1
+```
 
 [Plan](../../docs/hy3/HY3_IMPLEMENTATION_PLAN.md) and
 [status with measured validation](../../docs/hy3/HY3_IMPLEMENTATION_STATUS.md).

@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "concurrent_reads": 1200,
+  "checks": 36,
+  "source_report": "build-local\\hy3-tests\\ram-cache-cpu-accepted\\host-cache-report.json",
+  "engine_sha256": "9422341b55e21665522c6e4c5a149eee894e95d64a13f840ec8877f715255b30",
+  "binary_sha256": "6f14e4740f8d75ef52c0e367548bc4c681cb607788572c9582b19f9ee756c867",
+  "host_cache_sha256": "e6de7d49eabdc7cf7c7efedae2e2e49d0fe578c0f5855ce06a4c32e1db9b1d68"
+}

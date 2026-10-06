@@ -16,18 +16,27 @@ GPU matrix cache с exact logits/IDs и сокращением H2D. HY3-07 по�
 bounded pipeline с реальными router IDs, native file readers и CUDA events.
 HY3-08 добавил opt-in tensor batching с удержанием cache entries до завершения
 копий. Его небольшой speed effect требует расширенных замеров; default остаётся off.
-Отдельная prefill policy и MTP-ускорение пока не реализованы.
+HY3-09 воспроизвёл intermittent resident/native mismatch, добавил диагностику
+и раздельные таймеры доставки. CUDA graphs отключены в Hy3 как обход;
+внутренняя причина сбоя ещё не исправлена. Асинхронный pipeline сохранён.
+HY3-10 добавил native MTP: resident блок80, отдельный draft KV, пакетную
+проверку черновиков и откат. Depth1 прошёл полный6-prompt corpus и HTTP;
+depth2/3 оставлены для экспериментов. HY3-11 добавил управляемый RAM-кэш:
+correctness полного GGUF и HTTP прошла, LRU замедлил короткий benchmark.
+HY3-12 добавил frequency admission RAM и защиту от prefill scan;
+на третьей повторной en/code паре получил3,461 ток/с против2,854 pooled off.
+Это эффект прогретого короткого corpus; GPU prefill policy ещё не реализована.
 
 ## Текущее состояние
 
 | Область | Статус |
 |---|---|
 | Подготовка PREP-01 | DONE: исследование, план и этот статус |
-| Репозиторий HY3-08 | `4336d41a7b25b21db80ea5bfa7d9e0d799d0bd14`; изменения HY3-06/07/08 без commit |
+| Репозиторий HY3-12 | `4336d41a7b25b21db80ea5bfa7d9e0d799d0bd14`; существующие изменения HY3-09 сохранены, HY3-10/HY3-11/HY3-12 без commit |
 | Модель | `H:\models\hy3\Hy3-Q3_K_M-mtp.gguf`, один файл, 127,083 ГиБ |
 | Формат | `hy_v3`, GGUF v3, 1298 тензоров, 43 metadata records |
 | Состав | 80 основных блоков, 1 MTP; dense0, MoE1..79, MoE80+NextN |
-| MTP | Полный GGUF: no_alloc off=0/on=20; синтетический граф, hidden, KV rollback/restore — PASS |
+| MTP | HY3-10: native driver depth1/2/3, resident блок80; отдельный KV, verify/rollback/catch-up; depth1 прошёл corpus, lifecycle и HTTP |
 | Candidate dependency | Unsloth `86ebfef2`; CPU и CUDA13.0/sm_120, 3 correctness patches + изолированный runtime patch |
 | Inspector/loader contract | DONE: все1298 тензоров, JSON и отрицательные CPU fixtures |
 | Tokenizer / template | 2194 / 144 проверки, 0 расхождений с native oracles |
@@ -43,12 +52,16 @@ HY3-08 добавил opt-in tensor batching с удержанием cache entri
 | HY3-06 cache sweep, прогретые en+code | cache8 **1,821**; cache-off **1,360/1,377** до/после,37 decode-шагов на пару; около+33% в этом коротком прогоне |
 | HY3-07 pipeline sweep, прогретые en+code | readers2 **3,100**, readers1 **2,523**, sync **1,869/1,842**; cache8 во всех вариантах; около+67% в этом коротком прогоне |
 | HY3-08 tensor batch, короткий ABBA | off **2,804**, on **2,930** в среднем; около+4,5%, но большой разброс между процессами; default off |
+| HY3-09 CUDA graphs off, короткий ABBA | graphs on **3,000**, off **2,905** ток/с; −3,2% decode, +1,6% времени пары; обход correctness-сбоя |
 | Настройки baseline | Context2048/batch17/F32 KV, pinned16 МиБ; MTP/cache/pipeline/TF32/fusion off |
-| Текущий профиль pipeline | `build-local/hy3-http-batch0/hy3.json`, cache8192 МиБ, readers2, ring4×4 МиБ; batching/MTP off |
-| Экспериментальный tensor batch | `build-local/hy3-http-batch1/hy3.json`, те же settings, `--pipeline-batch 1` |
+| Сохранённые профили HY3-11 | `build-local/hy3-http-ram-mtp0/hy3.json` и `hy3-http-ram-mtp1/hy3.json`: GPU cache8192 МиБ, readers2, RAM auto; указывают на сохранённый LRU engine9422341b в `build-local/hy3-ram-lru` |
+| Tensor batch | Доступен через `--pipeline-batch 1`; старый профиль HY3-08 требует его старый checksummed exe |
+| Сохранённый HY3-08 для сравнения | `build-local/hy3-baseline-batch0/hy3.json`; CUDA graphs on, известное intermittent ограничение |
 | Сохранённый HY3-07 rollback | `build-local/hy3-baseline-pipeline2/hy3.json` и точный старый exe |
 | Сохранённый synchronous rollback | `build-local/hy3-baseline-cache8/hy3.json` и неизменённый exe HY3-06 |
-| Следующая задача | **HY3-09: изоляция intermittent resident/native mismatch и профилирование read/admission перед prefill policy** |
+| Профили HY3-12 | `build-local/hy3-http-frequency-mtp0/hy3.json` и `hy3-http-frequency-mtp1/hy3.json`: RAM cap64 ГиБ/frequency, GPU cache8 ГиБ/readers2; отдельный checksummed exe a1117b6d |
+| HY3-12, третья en/code пара | RAM off2,766/2,948, frequency3,461, frequency+MTP1 3,698 ток/с; первые2 прохода с заполнением медленнее |
+| Следующая задача | **Расширить frequency corpus со сменой темы/вытеснением; HY3-13 GPU prefill admission отдельно. Причина CUDA graphs остаётся открытой** |
 
 Созданы изолированный `backends/hy3`, tools/tests и отчёты. В общем Python
 tokenizer добавлен `hunyuan-dense`; действующие профили и модель не изменялись.
@@ -87,10 +100,11 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 
 ## Не проверено
 
-- HY3-08: причина одного intermittent `mixed/batch=4/native_vs_resident`
-  расхождения при выключенном pipeline. Native/pinned совпали; повторные
-  полные runtime runs и32 focused resident/native comparisons прошли.
-  Исходный FAIL сохранён, проблема не считается исправленной.
+- HY3-09: внутренняя причина intermittent resident/native расхождения.
+  Воспроизведено на mixed batch4/17 и F32 batch17; веса/native-pinned совпали.
+  CUDA graphs отключены как обход, history fixtures прошли. Graph-enabled
+  контроль итоговой сборки также прошёл: воспроизводимость непостоянна.
+  Все FAIL сохранены; проблема не считается исправленной внутри dependency.
 - Полный checksum весов и соответствие опубликованному AngelSlim файлу.
 - Независимый полноразмерный CPU/F32 oracle: full-model parity проверен между
   двумя путями доставки одного native GPU graph; GPU-resident oracle — на fixtures.
@@ -100,8 +114,10 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 - Kernel-level GPU timeline, физический SSD traffic, длительные рандомизированные A/B, настоящий
   driver OOM/device-loss recovery и внешнее давление памяти. Pinned OOM и
   RAM/VRAM availability injection проверены; Source-read bytes не равны SSD traffic.
-- MTP acceptance/скорость, speculative accept/reject driver, stochastic sampling
-  и production sessions. Синтетические main/MTP KV rollback/restore проверены.
+- MTP: расширенный/randomized corpus, stochastic speculation и production
+  sessions. Native driver реализован в HY3-10; depth3 имеет сохранённое
+  greedy расхождение на коротком mixed fixture, в рабочий профиль не выбран.
+  При temperature>0 используется проверяемый target-only fallback.
 - Установка через общий setup, финальные быстрые defaults и full-model регрессии
   других моделей; отдельный Hy3-профиль, HTTP/web chat и CPU-регрессии уже проверены.
 
@@ -113,15 +129,38 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 | P0 — contract/dependency/oracles | DONE HY3-01/HY3-02 | Header/contract/oracles, CUDA kernels, synthetic main/MTP graph и KV |
 | P1 — sync GPU baseline | P1.1–P1.3 DONE; P1.4 controlled failures PASS | Полный GGUF/parity/метрики готовы; настоящий driver OOM и внешний pressure не проверены |
 | P2 — tokenizer/template/API | DONE HY3-04/HY3-05 в проверенном объёме | Native parity, request adapters, оба API, tools, cancel/recovery, профиль и web smoke |
-| P3 — cache/pipeline | Cache HY3-06, bounded pipeline HY3-07 и opt-in tensor batching HY3-08 готовы в проверенном объёме | Prefill policy, host-tier/SSD counters, расширенные A/B и диагностика intermittent fixture mismatch остаются |
+| P3 — cache/pipeline | Cache HY3-06, bounded pipeline HY3-07 и opt-in tensor batching HY3-08 готовы в проверенном объёме | Prefill policy, физические SSD counters, расширенные A/B и диагностика intermittent fixture mismatch остаются |
 | P4 — sessions/context | TODO | Fresh vs restored/shifted parity и bounded memory |
-| P5 — native MTP | TODO | Correctness, rollback и выигрыш относительно оптимизированного off |
+| P5 — native MTP | HY3-10 частично: depth1, corpus, lifecycle и HTTP PASS | Сессии, stochastic speculation, отдельный streaming budget и расширенное A/B остаются |
 | P6 — profile/release checks | Частично: experimental profile/CPU regressions HY3-05 | Остались финальные замеры/defaults и release checks |
 
 `DONE` относится только к указанному объёму. `IN PROGRESS` не означает,
 что модель уже может генерировать. Не закрывать P0 по факту успешного чтения header.
 
-## Точка продолжения: HY3-09
+## Точка продолжения: HY3-12 — частотный RAM-кэш
+
+MTP depth1 завершён в объёме greedy, fresh requests, cancel/recovery и HTTP.
+LRU runtime HY3-11 прошёл correctness; HY3-12 добавил frequency admission. Профили HY3-10 с тем же
+checksum перенаправлены на сохранённый `build-local/hy3-mtp-accepted/strata-hy3.exe`.
+Сравнения RAM выполнены отдельными сборками, старые результаты сохранены.
+
+### Следующий эксперимент HY3-13 — GPU prefill policy
+
+1. Сохранить HY3-09 cache8/readers2/chunk4/batch0, CUDA graphs off как контроль.
+   Использовать отдельный диагностический `--profile-delivery` для выбора
+   следующей оптимизации; performance A/B проводить с выключенными таймерами.
+2. Проверить отдельную GPU prefill admission policy: ограничить заполнение кэша
+   одноразовыми prefill matrices, сохранить существующие hits и корректную
+   доставку всех misses. Не смешивать policy с tensor batching или MTP.
+   HY3-09 измерил45,813 с cache admission из116,449 с длинного prefill,
+   включая14,162 с allocation и25,016 с free; это основной кандидат.
+   Проверить cold/warm/eviction, длинный prefill, точные logits/IDs и STOP/recovery.
+3. CUDA graphs не включать по одному успешному повтору. Для дальнейшей
+   диагностики есть `--runtime-probe history-graphs`, веса и intermediate
+   captures. Причину нужно подтвердить на исходном uncaptured graph;
+   callbacks меняют разбиение. Не ослаблять exact comparisons.
+
+### Архивная точка перед HY3-09
 
 1. Изолировать исходный mixed batch4 resident/native FAIL HY3-08. Воспроизводить
    исходную последовательность F32→mixed и смену batch/contexts; при расхождении
@@ -1225,6 +1264,551 @@ directories. Сборка, финальные runtime/model/HTTP проверк�
 read/admission/allocator costs перед отдельной prefill admission policy.
 MTP, production sessions, длинный контекст и длительный рандомизированный
 speed benchmark остаются открыты. Tensor batching пока экспериментальный.
+
+### HY3-09 / P3.3 — 2026-10-06 — Диагностика CUDA graphs и времени доставки
+
+**Основание:** HEAD `4336d41a7b25b21db80ea5bfa7d9e0d799d0bd14`, изменения
+HY3-06/07/08 уже находились в index в начале этапа; HY3-09 добавлен без commit.
+Engine SHA-256:
+`b5fcc067554cd4d8acbe8318a468eea96cb1fa9a141107980996071579117365`.
+Новые markers: `hy3-delivery-profile`, `hy3-disable-cuda-graphs`.
+Dependency, GGUF, tokenizer/template, математические kernels и общие
+Step cache/pipeline headers не изменены. Исходный HY3-08 exe с SHA `e24dc96a…`
+и checksummed профиль сохранены в `build-local/hy3-baseline-batch0`.
+
+**Расхождение воспроизведено, точная причина не исправлена.**
+[HY3_GRAPH_INVESTIGATION.json](HY3_GRAPH_INVESTIGATION.json) хранит результаты
+всех вариантов; полный FAIL с logits и промежуточными сравнениями —
+[HY3_GRAPH_FAILURE_DIAGNOSTIC.json](HY3_GRAPH_FAILURE_DIAGNOSTIC.json).
+
+- Шестой запуск неизменённого полного набора HY3-08 воспроизвёл
+  `mixed/batch=4/native_vs_resident`: max abs **0,0163430721**, с первого токена.
+  Первые5 запусков прошли472/472. Native/pinned снова совпали побитово.
+- Новый `--history-probe` повторяет исходные F32→mixed→wide и batch1/4/17
+  в одном процессе, сохраняя смену моделей/contexts и порядок копий.
+  На пятом цикле два запуска воспроизвели mixed/batch17, max abs **0,0183075666**.
+- После сбоя все загруженные resident/mapped веса совпали по GPU bytes.
+  Повтор в тех же contexts точно сохранил обе разные последовательности logits.
+  Fresh contexts с callback после каждой F32-операции дали одинаковые78
+  промежуточных тензоров; captured resident совпал с прежним resident, captured
+  native изменился. Callback меняет разбиение графа, поэтому сам по себе
+  не локализует неисправную операцию и не заменяет исходное сравнение.
+- `GGML_CUDA_PDL=0` не устранил ошибку: F32/batch17 на14-м цикле,
+  max abs **0,0010767281**. Принудительная перепроверка свойств CUDA graph
+  вместо UID fast path тоже дала F32/batch17 FAIL. Этот экспериментальный
+  переключатель удалён из исходников; его binary сохранён локально в
+  `build-local/hy3-history-diagnostic`.
+- Восемь полных запусков с `GGML_CUDA_DISABLE_GRAPHS=1` прошли472/472;
+  отдельные32 history cycles —448/448. На итоговой сборке с отключёнными graphs
+  также **448/448 PASS**:
+  [HY3_GRAPH_HISTORY_VALIDATION.json](HY3_GRAPH_HISTORY_VALIDATION.json).
+- Повторное включение graphs в итоговом checker тоже прошло448/448:
+  [HY3_GRAPH_ENABLED_RECHECK.json](HY3_GRAPH_ENABLED_RECHECK.json).
+  Сбой зависит от истории и не воспроизводится каждый раз; этот PASS
+  **не отменяет прежние FAIL и не доказывает исправление**.
+
+**Изменено:** isolated Hy3 runtime задаёт `GGML_CUDA_DISABLE_GRAPHS=1` до
+инициализации backend, INFO показывает `cuda_graphs=0`. Это консервативный
+обход наблюдаемого сбоя. Native file readers, H2D stream/ring, GPU cache и
+tensor batching работают независимо от capture/replay и сохранены.
+В production engine нет переключателя для возврата непроверенного режима.
+Только тестовый `--runtime-probe history-graphs` включает graphs для диагностики.
+Другие backends не менялись. Внутренняя причина в CUDA graph path ещё открыта.
+
+Добавлен opt-in `--profile-delivery 1`, требующий pipeline readers.
+JSON request metrics содержит `prefill_delivery`/`decode_delivery`: cache
+get/admit, victim scan, CUDA allocate/free, refresh/probe, PlanPins/trim,
+ожидание scratch и delivery fences. Default off не читает часы этих scopes.
+Включение таймеров не меняет cache policy. Times — inclusive CPU wall;
+admit включает victim/allocate, refresh включает probe. Их нельзя складывать.
+Source-read CPU time суммируется по двум readers; это не elapsed или SSD time.
+Диагностические времена не смешиваются со speed benchmark.
+
+**Проверки:**
+
+- [HY3_GRAPH_RUNTIME_VALIDATION.json](HY3_GRAPH_RUNTIME_VALIDATION.json):
+  **484/484 PASS**, прежние472 и12 новых для profiler off/on, tensor batch0/1,
+  точных logits, eviction counters и сброса таймеров без потери cache residency.
+- [HY3_GRAPH_PYTHON_VALIDATION.json](HY3_GRAPH_PYTHON_VALIDATION.json):
+  **46 CPU tests +6 CLI checks PASS**, engine/source hashes.
+- [HY3_GRAPH_MODEL_VALIDATION.json](HY3_GRAPH_MODEL_VALIDATION.json):
+  старый/new/new/старый exe, graphs1/0/0/1; **16 English/code генераций,
+  4 отмены и4 восстановления**, все full IDs/logit hashes совпали с HY3-03.
+  Каждый процесс exit0, memory guards без ошибок.
+- [HY3_DELIVERY_PROFILE_VALIDATION.json](HY3_DELIVERY_PROFILE_VALIDATION.json):
+  полный GGUF,362 prompt tokens, profiler on, обычный запрос, STOP и recovery.
+  Полные IDs/logit hashes совпали с HY3-03. Engine exit0, guard без ошибок,
+  peak RAM **40,185 ГиБ**, VRAM **28 862 МиБ**.
+- [HY3_GRAPH_HTTP_VALIDATION.json](HY3_GRAPH_HTTP_VALIDATION.json):
+  **7 запросов и1 disconnect/recovery PASS**, OpenAI/Anthropic JSON/SSE.
+  Math IDs совпали между API и после отмены; tool call/result IDs точно
+  совпали с сохранённым native reference. Отмена prefill завершилась через
+  **2,390 с** после disconnect. Engine exit0, memory guard без ошибок;
+  sampled global peak RAM **40,240 ГиБ**, VRAM **30 212 МиБ**, ниже95%.
+  Tool call prompt211/output19: prefill55,284 с, generation7,202 с;
+  tool result prompt253/output3: prefill64,457 с, generation1,002 с.
+  Это correctness-прогон, не дополнительное A/B измерение скорости.
+
+**Цена обхода:** [HY3_GRAPH_BENCHMARK.json](HY3_GRAPH_BENCHMARK.json).
+RTX5090/driver581.80, Windows,128GB RAM, cache8/readers2/chunk4/tensor batch0,
+context2048/prompt batch17/F32 KV, temperature0/no_think, MTP/TF32/fusion off.
+Delivery profiler и CUDA trace выключены. Второй English/code проход:
+prompt25/28, output15/24 с EOS,37 decode forwards без первых prefill tokens.
+Fresh KV, cache сохраняется, OS file cache не сбрасывался.
+
+| CUDA graphs | Decode, ток/с | Prefill пары, с | Полное время пары, с | Peak VRAM, МиБ | Peak RAM, ГиБ |
+|---|---:|---:|---:|---:|---:|
+| on, HY3-08 до | 2,993 | 9,586 | 21,977 | 26 264 | 37,250 |
+| off, HY3-09 первый | 2,892 | 9,418 | 22,240 | 26 138 | 37,343 |
+| off, HY3-09 второй | 2,917 | 9,572 | 22,282 | 26 203 | 37,353 |
+| on, HY3-08 после | 3,008 | 9,498 | 21,824 | 26 266 | 37,184 |
+
+По объединённым decode durations **3,000 → 2,905 ток/с (−3,19%)**;
+среднее время пары **21,900 → 22,261 с (+1,65%)**. H2D одинаков во всех
+вариантах —3,080 ГиБ/decode forward. Сравниваются два exe: новая сборка
+отключает graphs и содержит неактивные diagnostic timers; это сравнение
+рабочих сборок, не доказательство нулевого overhead дополнительных веток.
+Короткий стабильный ABBA не заменяет длинный corpus. Выбран graphs off
+из-за наблюдавшегося correctness-сбоя, а не ради ускорения.
+
+**Профиль длинного prefill:** тот же cache8/readers2/chunk4/tensor batch0,
+CUDA graphs off. Первый prefill **116,449 с**, повтор после STOP **109,058 с**.
+Это отдельный instrumented correctness-прогон, не сравнение скорости.
+
+| Измеренный scope первого prefill | CPU wall, с | Интерпретация |
+|---|---:|---|
+| Cache admission | **45,813** | Inclusive: включает выбор жертвы и allocation/free |
+| CUDA allocation | 14,162 | Внутри admission;96 777 новых allocation calls |
+| CUDA free | 25,016 | Включает возможные ожидания GPU/driver внутри API |
+| Victim scan | 5,772 | Внутри admission;10 150 944 просмотренных кандидата |
+| Cache lookup | 2,760 | Поиск и обновление частот |
+| Memory probe | 0,174 | Внутри refresh0,177 с; не основной источник затрат |
+| Delivery fences | 49,078 | CPU ожидание окончания копий, не чистое время GPU DMA |
+| Producer wait | 7,045 | Ожидание готовности очередного payload |
+| Source read sum | 146,012 | Сумма двух одновременно работающих readers, не elapsed/SSD time |
+
+Prefill выполнил94 711 allocation reuses и526 903 599 616 байт cache fills.
+Несмотря на reuse, cache admission занял около39% prefill wall time;
+allocator/free scopes вложены и отдельно к нему не прибавляются. Потоки
+чтения могут работать одновременно с этими scopes. Следующий эксперимент —
+ограничить admission во время prefill, сохранив hits и доставку всех misses.
+Изменять95%-guard ради скорости эти результаты не обосновывают.
+
+**Воспроизведение:**
+
+```powershell
+cmd /c build-local\build-hy3-cache.bat
+python -X utf8 tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --runtime-probe history --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/history-new
+python -X utf8 tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind runtime --runtime-probe history-graphs --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/history-graphs-new
+python -X utf8 tools/check_hy3_cache_model.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --cache-mib 8192 --pipeline-readers 2 --pipeline-batch 0 --prompts long --repeats 1 --profile-delivery --output-dir build-local/hy3-tests/delivery-profile-new
+python -X utf8 tools/check_hy3_http.py --profile build-local/hy3-http-graphsafe/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/graphsafe-http-new --allow-engine-change
+python -m serve.server --engine strata --config build-local/hy3-http-graphsafe/hy3.json --port 8094
+```
+
+Второй probe намеренно включает проблемный режим только в checker; возможен
+FAIL с сохранённой диагностикой. Не ослаблять bit-exact admission и не удалять
+неудачные отчёты. Новый профиль: `build-local/hy3-http-graphsafe/hy3.json`,
+cache8192 МиБ/readers2/chunk4/batch0, F32 KV/context2048/batch17, MTP off.
+
+Не запускать server и GPU checkers одновременно. Raw directories:
+`graphsafe-runtime-01`, `graphsafe-history-01`, `graphsafe-reproduce-01`,
+`graph-model-01`, `delivery-profile-01`, `graphsafe-http-01` внутри
+`build-local/hy3-tests`. Локальный ABBA helper
+`build-local/check-hy3-graph-abba.py` сохраняет точный порядок старый/new/new/старый;
+для повтора выбрать новый output directory в helper. Старый engine находится
+в `build-local/hy3-baseline-batch0`; его нельзя заменить новой сборкой при A/B.
+Все финальные проверки завершились с exit0. Source/profile hashes сверены
+с протестированным exe, локальные ссылки и `git diff --check` проверены.
+HTTP test listener и его engine завершены; фоновый server не оставлен.
+
+
+### HY3-10 / P5 — 2026-10-06 — Native MTP с resident draft-блоком
+
+**Основание:** HEAD `4336d41a7b25b21db80ea5bfa7d9e0d799d0bd14`,
+незакоммиченные изменения HY3-09 сохранены. Пользователь явно перенёс
+приоритет с prefill policy на MTP. Контрольный HY3-09 exe/profile сохранён
+в `build-local/hy3-baseline-graphsafe` (SHA `b5fcc067…`).
+Итоговый engine SHA-256:
+`c87706ae8c83640ff08f3a21fe5cce8eaa2aaf751f0f7b90f1d56ac528108e89`.
+Первый depth sweep использовал SHA `4bb1fc0f…`, сохранённый в
+`build-local/hy3-mtp-initial`. Затем из проверок finite убраны временные
+строки на каждый logit, добавлены bounds draft batch и счётчики в cancelled
+DONE. Удалено вычисление лишнего токена после предложенного EOS: EOS проверяется
+logits предыдущего токена. Есть отдельный rejected-draft-EOS fixture. Промежуточный
+exe `95ef9057…` и его полный6-prompt corpus сохранены в
+`build-local/hy3-mtp-before-eog` и
+[HY3_MTP_CORPUS_BEFORE_EOG.json](HY3_MTP_CORPUS_BEFORE_EOG.json). Математика, веса, dependency и общие CUDA kernels не менялись.
+
+**Реализация:** `--mtp 0..3`, default0. Один model owner загружает блок80
+целиком в VRAM (1,729 ГиБ), общий embedding/output не дублируется. Main/draft
+contexts имеют отдельный F32 KV. Target experts используют прежний cache
+и async pipeline; resident draft experts не включаются в mapped registry.
+Global95% guard учитывает оба контекста, resident MTP и cache.
+
+Driver в `backends/hy3/mtp.hpp` связывает x[p] с post-final-norm h[p−1],
+переносит hidden через границы prefill chunks, предлагает1..3 черновика,
+проверяет их вместе с carry token, откатывает rejected KV suffix и обновляет
+draft history по подтверждённым target features. Target sampler вызывается
+один раз на выдаваемый токен. Он учитывает greedy penalties; draft greedy
+может иметь другую историю penalties, что влияет на acceptance, не на verify.
+Fresh request, STOP и ошибка очищают оба KV. Temperature>0 использует прежний
+target-only sampling, а не непроверенный stochastic speculative algorithm.
+
+INFO показывает `mtp`, `spec`, `mtp_storage=resident`; request JSON — фактический
+`mtp_depth`, proposed/accepted/delivered, rounds, rejection counts и времена
+prefill/draft/verify/repair. DONE передаёт delivered drafts и offered drafts.
+С MTP `decode_steps` означает verify batches; скорость ниже считается по
+подтверждённым выходным токенам после первого prefill sample, делённым на
+полное `generation_wall_ms`, включая draft/verify/repair/sampling/output.
+
+**Проверки итоговой сборки:**
+
+- [HY3_MTP_RUNTIME_VALIDATION.json](HY3_MTP_RUNTIME_VALIDATION.json):
+  **59 synthetic comparisons PASS**, F32 и два mixed layouts, depth1/2/3,
+  forced reject0/1/2, accept-all, bonus/output limits, stop, cancel/recovery,
+  greedy penalties и край context128. MTP-loaded target-only совпал побитово.
+- [HY3_MTP_OFF_REGRESSION.json](HY3_MTP_OFF_REGRESSION.json):
+  **484 runtime checks PASS** для существующего cache/pipeline, profiler,
+  отказов и bit-exact selected-copy. CUDA graphs остаются off.
+- [HY3_MTP_PYTHON_VALIDATION.json](HY3_MTP_PYTHON_VALIDATION.json):
+  **47 CPU tests +9 CLI checks PASS**, проверены profile identity/depth bounds.
+- [HY3_MTP_PIPE_VALIDATION.json](HY3_MTP_PIPE_VALIDATION.json):
+  **22 checks PASS** при depth1; greedy и seeded sampling IDs совпали с
+  тем же pipe fixture при MTP-off. Включены A/B/A isolation, invalid requests,
+  STOP, recovery, session key isolation и QUIT во время prefill.
+
+**Полный GGUF и HTTP:**
+[HY3_MTP_MODEL_VALIDATION.json](HY3_MTP_MODEL_VALIDATION.json) —
+12 генераций,6 prompts (en/ru/zh/code/numbers/long) × off/depth1, exact greedy IDs;
+off logits также совпали с историческим hash. Каждый режим прошёл STOP
+в prefill и decode с последующим восстановлением. Seeded temperature0,7
+fallback дал одинаковые IDs и hash logits в обоих режимах. Guards без ошибок,
+exit0. Long prompt362: prefill93,806 с off и152,425 с on; это одиночный
+correctness-прогон, выигрыша long prefill он не показывает. Global peak RAM
+40,372/48,741 ГиБ, VRAM27 007/30 250 МиБ.
+[HY3_MTP_HTTP_VALIDATION.json](HY3_MTP_HTTP_VALIDATION.json) —
+7 ответов и disconnect/recovery PASS: OpenAI/Anthropic JSON/SSE, точные
+math/tool/result IDs. Listener и engine завершены после проверки.
+
+**Численная проверка:** MTP-off на полном GGUF сохраняет исторические
+bit-exact logits. При батче target verification logits отличаются от serial
+(в первом corpus max abs до2,240, NMSE до0,01011), поэтому битовое совпадение
+с serial MTP-on не объявляется. Независимый
+[HY3_MTP_LOGITS_VALIDATION.json](HY3_MTP_LOGITS_VALIDATION.json) загрузил
+**только target, без MTP weights/hidden/KV rollback**, и выполнил тот же English
+continuation батчами1/2/3/4. Все четыре массива logits побитово совпали с
+соответствующими depth0/1/2/3 из sweep. Это отделяет эффект размера батча
+от ошибок драйвера для этого запроса, но не доказывает universal greedy parity.
+
+В synthetic checker используются существующие Hy3 graph limits:
+F32 abs≤5e−4/NMSE≤1e−7, mixed abs≤0,03/NMSE≤2e−3, и точные greedy IDs.
+Near-limit mixed fixture дал max abs0,016832/NMSE4,49e−5; независимый
+**target-only batch4** дал ровно то же расхождение. Начальные FAIL harness
+сохранены в `mtp-fixture-01/02`: первый ошибочно ограничивал forced accept3
+оставшимися двумя draft slots; второй использовал чужой NMSE limit до
+проверки по Hy3 batch oracle. Итоговые проверки не меняют существующие
+bit-exact cache/transport требования.
+
+**Ограничение depth3:**
+[HY3_MTP_PIPE_DEPTH3_DIAGNOSTIC.json](HY3_MTP_PIPE_DEPTH3_DIAGNOSTIC.json)
+сохраняет FAIL cross-mode greedy comparison. Оба режима прошли по22 pipe
+checks, seeded sampling совпал, но на prompt IDs `[11,18,25,32]` mixed fixture
+serial/depth3 разошлись на восьмом выходном токене. Depth1 на том же fixture
+совпал полностью. Поэтому depth3 не выбран рабочим профилем, P5.4 для всех
+глубин не считается завершённым. Depth2/3 доступны для диагностики.
+
+**Первый sweep:**
+[HY3_MTP_DEPTH_SWEEP.json](HY3_MTP_DEPTH_SWEEP.json) и
+[HY3_MTP_BENCHMARK.json](HY3_MTP_BENCHMARK.json). RTX5090/581.80, Windows,
+128GB RAM, cache8192 МиБ/readers2/chunk4/batch-copy0, context2048/batch17,
+F32 KV, temperature0/no_think, CUDA graphs/TF32/fusion/profiler off.
+Logits записываются во всех вариантах, OS file cache не сбрасывался.
+Свежий процесс для каждого depth; два en/code прохода, затем STOP/recovery.
+Все20 генераций и5 восстановлений совпали по IDs с HY3-03; off logits — exact.
+Таблица использует второй проход: prompt25/28, output15/24 с EOS,
+37 полезных токенов после первых prefill samples.
+
+| MTP depth | Decode, ток/с | Prefill пары, с | Время пары, с | Accepted/offered | Peak VRAM, МиБ | Peak RAM, ГиБ |
+|---|---:|---:|---:|---:|---:|---:|
+| 0, до | 2,868 | 9,595 | 22,501 | 0/0 | 26 346 | 36,591 |
+| 1 | 3,185 | 9,743 | 21,366 | 17/19 | 28 100 | 38,434 |
+| 2 | 3,223 | 10,027 | 21,512 | 24/27 | 28 125 | 38,988 |
+| 3 | 2,297 | 12,201 | 28,312 | 25/35 | 30 233 | 42,877 |
+| 0, после | 2,755 | 10,473 | 23,910 | 0/0 | 30 249 | 42,341 |
+
+Объединённый off —2,810 ток/с; depth1 +13,3%, depth2 +14,7% в этом коротком
+sweep. Depth1 имеет меньшее полное время пары; разница depth1/2 мала относительно
+разброса. Global peaks включают другие процессы; поздний off отличается
+по памяти и времени. Это не randomized benchmark и не гарантия ускорения
+на других prompts. Сравнивался одинаковый target cache cap, **не одинаковая
+полная память**. Последующий
+[HY3_MTP_BUDGET_VALIDATION.json](HY3_MTP_BUDGET_VALIDATION.json) сравнил
+cache10/MTP0 и cache8/MTP1: все16 генераций и4 восстановления exact IDs.
+Во время третьего процесса выполнялась CPU-сборка RAM-кэша, поэтому этот
+прогон оставлен как capacity/correctness evidence, не как чистый speed benchmark.
+
+**Профили:** новый off — `build-local/hy3-http-mtp0/hy3.json`;
+проверенный MTP1 — `build-local/hy3-http-mtp1/hy3.json`.
+Оба cache8/readers2/chunk4/batch-copy0, temperature0, context2048/F32 KV;
+MTP1 добавляет resident draft. Старые profiles с checksum прежнего exe
+не переписывались; rollback использует сохранённый executable.
+
+**Воспроизведение (по одному GPU-процессу):**
+
+```powershell
+cmd /c build-local\build-hy3-cache.bat
+python -X utf8 tools/check_hy3_cuda.py --build build-local/hy3-cuda --kind mtp --cuda-bin build-local/cuda-13.0/bin/x64 --output-dir build-local/hy3-tests/mtp-check-new
+python -X utf8 tools/check_hy3_mtp.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --depths 0 1 --prompts en ru zh code numbers long --repeats 1 --lifecycle --output-dir build-local/hy3-tests/mtp-corpus-new
+python -X utf8 tools/prepare_hy3_profile.py --model H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --engine build-local/hy3-cuda/bin/strata-hy3.exe --output-dir build-local/hy3-http-mtp-new --cuda-dir build-local/cuda-13.0 --expert-cache-mib 8192 --pipeline-readers 2 --mtp 1
+python -X utf8 tools/check_hy3_http.py --profile build-local/hy3-http-mtp1/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/mtp-http-new --allow-engine-change
+python -m serve.server --engine strata --config build-local/hy3-http-mtp1/hy3.json --port 8094
+```
+
+`--variants 10240:0 8192:1 8192:1 10240:0` в MTP checker задаёт явный
+порядок cache/depth для сравнения с возвратом памяти draft в target cache.
+Первый вариант должен быть off. Raw logs находятся в `build-local/hy3-tests`;
+для повторов выбирать новые output directories. Проверка независимых logits:
+`tools/check_hy3_mtp_logits.py --help` — нужен исходный sweep с сохранёнными
+`logits.f32` после English recovery, не только скопированный JSON.
+
+**Не закрыто:** streamed MTP и отдельный draft cache budget; сессии;
+stochastic speculation; depth3 synthetic greedy mismatch; чистый повтор
+при возврате draft memory в target cache и длинный randomized speed corpus. GPU prefill policy HY3-13
+и внутренняя причина CUDA graphs остаются отдельными задачами.
+
+### HY3-11 / P3 — 2026-10-06 — Управляемый RAM-кэш матриц
+
+**Основание:** тот же HEAD `4336d41a…`, без commit; изменения HY3-09/10 сохранены.
+Пользователь явно запросил RAM-кэш после наблюдения низкой занятой RAM.
+Перед изменением Windows counters показали81,305 ГиБ standby-cache и
+81,312 ГиБ available; почти вся «доступная» RAM уже содержала файловый кэш.
+Это замер всей системы, не доказательство принадлежности всех страниц Hy3.
+
+**Реализация:** `backends/hy3/host_cache.hpp`, `--ram-cache-mib auto|N`;
+0 по умолчанию сохраняет прежний путь, новые профили включают auto.
+Cache хранит неизменяемые chunks выбранных expert matrices с точным MMQ
+padding. Key: live Source identity,64-bit offset,размер. Один Source handle
+удерживается до удаления entries; новый model/cache generation очищает RAM.
+LRU вытесняет старые записи, копируемая reader-потоком запись защищена.
+Отменённое или неудачное чтение не публикует частичный payload.
+Вытесненный буфер того же размера переиспользуется; при pressure trim
+память освобождается без резервного пула. Allocation/metadata OOM пропускает
+admission, сохраняя доставку уже прочитанного блока.
+
+Это pageable RAM-копии, не CUDA pinned100GB и не предварительная загрузка
+всего GGUF. Наполнение происходит по запросам router; GPU cache hits обходят
+RAM tier. Один и два async readers, synchronous pinned путь и tensor batching
+используют одинаковый кэш. Общий pipeline получил необязательный SourceRead
+callback; другие backends его не передают и сохраняют прежнюю ветку.
+
+Budget рассчитывается из физической available RAM и commit headroom:
+оставляет7% total+512 МиБ физической памяти и512 МиБ commit; давление памяти
+уменьшает cache до независимого95% global guard.
+Максимальный cap фиксируется по headroom при создании; paging старых
+страниц не даёт разрешения раздувать private allocations дальше. Размер payload не является
+измерением residency: Windows вправе вытеснять pageable pages. `ram_cache`
+в request JSON показывает bytes/budget/entries/pending, hits/misses,
+hit/file/fill bytes, evictions/rejected/OOM. Отдельные prefill/decode bytes.
+File bytes — объём native reads, включая возможные hits файлового кэша ОС;
+физический SSD traffic этим счётчиком не измеряется.
+
+Engine SHA-256:
+`9422341b55e21665522c6e4c5a149eee894e95d64a13f840ec8877f715255b30`.
+Новый patch marker `hy3-managed-ram-cache`; source hashes сохранены в
+[HY3_RAM_PYTHON_VALIDATION.json](HY3_RAM_PYTHON_VALIDATION.json).
+
+**Проверки:**
+
+- [HY3_RAM_CPU_VALIDATION.json](HY3_RAM_CPU_VALIDATION.json):36 checks,
+  включая1 200 concurrent native reads, exact bytes, LRU, file identity,
+  давление RAM/commit, partial cancel, I/O error, fallback и reset.
+- [HY3_RAM_RUNTIME_VALIDATION.json](HY3_RAM_RUNTIME_VALIDATION.json):
+  **544 checks PASS**, из них60 новых RAM-проверок: F32/mixed,batch1/17,
+  readers0/1/2, tensor batching, холодные/прогретые logits и каждый GPU-copy
+  побитово. Прогретый cache при tiny VRAM-cache обслужил все source bytes
+  без native file reads; новая generation освободила entries.
+- [HY3_RAM_MTP_VALIDATION.json](HY3_RAM_MTP_VALIDATION.json):59 MTP fixtures PASS.
+- [HY3_RAM_PIPE_VALIDATION.json](HY3_RAM_PIPE_VALIDATION.json):5×22 checks PASS,
+  RAM off/sync/readers1/readers2/MTP1, exact greedy и seeded sampling IDs,
+  отмена, восстановление, invalid requests, изоляция и QUIT.
+- [HY3_RAM_PYTHON_VALIDATION.json](HY3_RAM_PYTHON_VALIDATION.json):48 CPU tests
+  и9 native CLI checks PASS; export auto/cap и отказ неверных параметров.
+
+**Полный GGUF:**
+[HY3_RAM_MODEL_VALIDATION.json](HY3_RAM_MODEL_VALIDATION.json) —12 генераций:
+en/ru/zh/code/numbers/long при RAM auto и MTP0/1. Все greedy IDs совпали с
+историческим эталоном, off logits также побитово. Каждый режим прошёл
+prefill/decode STOP с восстановлением и seeded sampling fallback; guards без
+ошибок, оба exit0. Decode cancel settle1,25/2,26 мс после STOP send.
+Long prompt362: prefill98,047/97,759 с, cache payload74,668/72,259 ГиБ;
+global peak RAM110,709/109,118 ГиБ, VRAM27 178/28 589 МиБ. Эти одиночные
+наблюдения не доказывают эффект MTP или RAM-кэша на prefill throughput.
+В long request RAM обслужила741,3/742,3 ГиБ повторных чтений, native reads —
+50,3/54,1 ГиБ; физический SSD traffic не измерен.
+
+[HY3_RAM_HTTP_VALIDATION.json](HY3_RAM_HTTP_VALIDATION.json):7 ответов и
+1 disconnect/recovery PASS при RAM auto + MTP1. Проверены OpenAI/Anthropic
+JSON/SSE, точные math/tool-call/tool-result IDs, отмена prefill и следующий
+запрос. Disconnect settle2,769 с; exit0, memory guard без ошибок. Listener закрыт.
+Финальное сравнение LRU RAM off/auto/auto/off завершено:
+[HY3_RAM_LRU_BENCHMARK.json](HY3_RAM_LRU_BENCHMARK.json), все16 генераций
+и4 восстановления exact. Прогретая en/code пара: off2,873/2,719,
+auto2,123/2,384 ток/с. Улучшение против Windows file cache не получено.
+Профили `build-local/hy3-http-ram-mtp0/hy3.json` и
+`build-local/hy3-http-ram-mtp1/hy3.json`: target cache8 ГиБ/readers2/chunk4,
+RAM auto, context2048/batch17/F32 KV; graphs/TF32/fusion/batch-copy off.
+Первое заполнение имеет стоимость allocation+copy; скорость не объявляется
+лучше файлового кэша Windows до завершения сравнения.
+
+Первый вариант без allocation reuse сохранён в
+[HY3_RAM_INITIAL_BENCHMARK.json](HY3_RAM_INITIAL_BENCHMARK.json), engine
+`9a586165…` в `build-local/hy3-ram-initial`. Все16 коротких генераций и4
+восстановления exact logits/IDs. Вторые en/code проходы:
+
+| RAM cache | Decode, ток/с | Prefill пары, с | Полное время пары, с | Global peak RAM, ГиБ |
+|---|---:|---:|---:|---:|
+| off до | 2,081 | 14,031 | 31,812 | 47,054 |
+| auto первый | 2,031 | 13,799 | 32,018 | 116,405 |
+| auto второй | 2,254 | 11,780 | 28,197 | 116,095 |
+| off после | 2,770 | 10,227 | 23,586 | 41,691 |
+
+Pooled off2,376 против auto2,136 ток/с: около−10,1%, с большим разбросом
+во времени. Кэш удерживал около75 ГиБ payload, система использовала до92,71%
+RAM; все memory guards прошли. Повторные allocations при eviction — гипотеза
+части накладных расходов, не отдельный измеренный causal contribution.
+В итоговой сборке добавлены reuse counters и сохранение буфера того же размера;
+этот первоначальный результат не выдаётся за результат новой сборки.
+
+**Не закрыто на HY3-11:** предварительный прогрев и frequency/admission policy RAM,
+ограничение admission GPU во время prefill (перенесено в HY3-13), physical SSD counters,
+длинный randomized corpus и реальное внешнее давление памяти. RAM-cache
+не закрепляет страницы ОС и не гарантирует заполнение до95% на коротком запросе.
+
+### HY3-12 — 2026-10-06, Asia/Yekaterinburg — Частотный RAM-кэш
+
+Основание: тот же commit4336d41a и сохранённые dirty changes HY3-09/10/11.
+Пользователь попросил оставлять востребованных экспертов в RAM, редких —
+в файле, и проверить пользу занятой памяти. В HY3-11 RAM hit bytes были
+ненулевыми и составляли около88% source bytes в одном прогретом проходе,
+но LRU проиграл Windows file cache по throughput. Allocation payload не
+выдаётся за физическую residency, native reads — за физический SSD traffic.
+
+Изменено: `host_cache.hpp` получил frequency admission и decay. На первом
+обращении chunk проходит только через pinned staging, на повторном decode
+становится кандидатом в RAM. При нехватке места сравнивается частота с64
+кандидатами из LRU tail; равная частота сохраняет resident entry. Весь набор
+victims выбирается до eviction; блок того же размера переиспользуется.
+История ограничена131072 keys, счётчики делятся на2 каждые131072 decode
+source accesses. История переживает eviction/reset counters, но weak file
+identity исключает наследование статистики новым Source по прежнему адресу.
+VRAM hits не обучают RAM tier: учитывается спрос на данные, которых нет в VRAM.
+
+Prefill читает уже сохранённые chunks, но не заполняет RAM-кэш и не обновляет
+частоту/recency. Фаза задаётся main явно после drain: MTP verify batch остаётся
+decode независимо от числа токенов. Добавлены counters prefill/frequency bypass,
+history size, victim candidates и отдельные prefill/decode fill bytes.
+`--ram-cache-policy frequency|lru` экспортируется в отдельные профили.
+При включённом RAM tier выбран frequency; сам RAM tier по умолчанию выключен.
+Роутинг модели, число экспертов и вычисления не менялись.
+
+Первичный двухпроходный benchmark сохранён в
+[HY3_FREQUENCY_INITIAL_BENCHMARK.json](HY3_FREQUENCY_INITIAL_BENCHMARK.json),
+engine `e47e5a97…` в `build-local/hy3-frequency-initial`. Вторые en/code пары:
+RAM off2,810/2,885; frequency auto2,342/2,384; LRU auto2,424 ток/с.
+Frequency продолжал прогрев: во второй паре добавил21,946 ГиБ, к её концу
+удерживал51,479 ГиБ. Ускорение не получено; третий повтор выделен отдельно.
+Auto budgets различались со стартовым headroom, поэтому финальный опыт
+использует числовой RAM cap64 ГиБ и3 повтора, GPU cache8 ГиБ/readers2/chunk4.
+
+Финальная сборка
+`a1117b6d714699ed5e57a25724fa36f4e9618d92edc6ccecf75611314ee2f861`
+сохранена в `build-local/hy3-frequency/strata-hy3.exe`.
+Добавлено восстановление latched reader error до смены фазы следующего запроса.
+`ram_reused_payload_bytes` показывает сохранённые chunks, из которых уже было
+хотя бы одно чтение после admission; `ram_unreused_payload_bytes` — сохранённые
+chunks без такого чтения. Gauges переживают reset counters и уменьшаются при
+вытеснении; это диагностика повторного использования, не OS residency.
+
+Проверки финальной сборки, все PASS/exit0:
+
+- [CPU](HY3_FREQUENCY_CPU_VALIDATION.json):193 checks,1200 concurrent reads,
+  cold-scan resistance, promotion, decay при смене нагрузки, multi-victim admission,
+  bounded history, exact bytes, reuse gauges, RAM/commit pressure, cancel/error.
+- [Runtime](HY3_FREQUENCY_RUNTIME_VALIDATION.json):652 checks; LRU/frequency,
+  F32/mixed, batch1/17, readers0/1/2; exact logits и GPU-copy bytes. В12 сочетаниях
+  read error перед новой фазой восстановлен, prefill не публикует RAM entries.
+- [MTP](HY3_FREQUENCY_MTP_VALIDATION.json):59 fixtures.
+- [Pipe](HY3_FREQUENCY_PIPE_VALIDATION.json):6×22 checks, RAM off/sync/readers1/2,
+  MTP1 и LRU; greedy/seeded IDs, STOP/recovery, errors/session isolation/QUIT.
+- [Python/CLI](HY3_FREQUENCY_PYTHON_VALIDATION.json):49 tests и13 native CLI checks.
+  Сохранены команды, source hashes, exe/manifest SHA и raw logs.
+
+Команды: `cmd /c build-local\build-hy3-cache.bat` (log
+`build-local/hy3-frequency-build-final.log`),
+`python -X utf8 build-local/check-hy3-frequency-final.py` — последовательные
+CPU/runtime/MTP/pipe/CLI проверки и export. Профили
+`build-local/hy3-http-frequency-mtp0/hy3.json` и
+`build-local/hy3-http-frequency-mtp1/hy3.json` указывают на сохранённый exe:
+RAM cap65536 МиБ/frequency, GPU cache8192 МиБ/readers2/chunk4, context2048,
+batch17/F32 KV, temperature0; graphs/TF32/fusion/batch-copy off.
+Это экспериментальные профили, глобальный RAM-cache default остаётся0.
+Полный GGUF: [HY3_FREQUENCY_MODEL_VALIDATION.json](HY3_FREQUENCY_MODEL_VALIDATION.json)
+и компактный [HY3_FREQUENCY_BENCHMARK.json](HY3_FREQUENCY_BENCHMARK.json).
+**24 генерации PASS**: en/code×3 повтора×4 режима; все IDs exact,
+MTP-off logits побитово равны историческому oracle. В каждом процессе прошли
+prefill/decode STOP с восстановлением и seeded sampling fallback; все exit0,
+monitor_error=null. Повтор HTTP с новой policy отдельно не проводился
+(API code не изменялся, pipe/export проверены).
+
+Команда полного опыта:
+
+```powershell
+python -X utf8 tools/check_hy3_mtp.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --reference docs/hy3/HY3_MODEL_VALIDATION.json --cuda-bin build-local/cuda-13.0/bin/x64 --pipeline-readers 2 --variants 8192:0 8192:0:65536:frequency 8192:1:65536:frequency 8192:0 --repeats 3 --lifecycle --output-dir build-local/hy3-tests/frequency-benchmark-final
+```
+
+RTX5090,125,555 ГиБ RAM, один процесс за раз; GPU cache8 ГиБ,
+readers2/chunk4, context2048/batch17/F32 KV, temperature0, profiler off.
+Третья en/code пара в каждом процессе,37 useful decode tokens:
+
+| Режим | Decode, ток/с | Prefill пары, с | Полное время пары, с | RAM payload в конце, ГиБ |
+|---|---:|---:|---:|---:|
+| RAM off до | 2,766 | 9,589 | 22,965 | 0 |
+| Frequency, MTP0 | 3,461 | 10,186 | 20,876 | 51,809 |
+| Frequency, MTP1 | 3,698 | 11,265 | 21,269 | 52,947 |
+| RAM off после | 2,948 | 9,666 | 22,214 | 0 |
+
+Pooled off2,854 ток/с → frequency **+21,26% decode** в этом коротком
+прогретом опыте. Полное время пары без MTP сократилось примерно на7,6%.
+MTP1 добавил6,85% decode, но полное время пары оказалось немного больше:
+prefill11,265 против10,186 с. Это не основание объявлять MTP глобально быстрее.
+Поэтому оба профиля сохранены отдельно, глобальные defaults не переключены.
+
+**Цена прогрева:** первые две пары frequency MTP0 дали2,101/2,383 ток/с
+и добавили29,534/21,946 ГиБ в RAM. После второй пары из51,479 ГиБ payload
+только33,611 ГиБ уже обслужили хотя бы одно чтение после admission.
+После третьей пары из51,809 ГиБ уже использованы51,268 ГиБ, осталось0,541 ГиБ
+без cache hit. Добавлено только0,330 ГиБ/132 allocations; decode получил
+113,068 ГиБ из RAM и0,356 ГиБ через ReadFile — около99,69% decode source bytes
+из managed cache. H2D113,424 ГиБ такой же, как у RAM off: этот tier сокращает
+native source reads, но не объём передачи на GPU. В модели этого короткого
+corpus RAM eviction не потребовался; замену горячих/холодных entries проверили
+на CPU fixtures. Пользу при новой теме или тесном RAM cap ещё нужно измерить.
+
+Sampled global peaks: MTP0 **86,462 ГиБ RAM /26 768 МиБ VRAM**, MTP1
+**89,935 ГиБ /28 801 МиБ**. Для MTP1 фактический budget был ограничен
+headroom ниже64 ГиБ (62,793 ГиБ на третьей паре). Все95% guards прошли;
+RAM≈0,5с/GPU≈2с sampling не исключает короткие пики. Decode STOP settle
+1,25/2,25 мс. RAM read/fill counters и retained payload не являются
+измерением физического SSD traffic или гарантированной OS residency.
+
+Ограничение замера: последовательный короткий повторяющийся corpus, OS cache
+не очищался; по одному процессу на frequency/MTP и два off-контроля, без
+confidence interval. Ускорение после прогрева нельзя переносить на первый
+запрос, перезапуск модели, другую тему или длинный diverse corpus.
+
+Не закрыто: physical SSD/residency telemetry, длительный разнообразный corpus,
+реальное внешнее давление RAM и GPU prefill admission. Частотный RAM-кэш
+не обещает выигрыш по скорости или заполнение памяти до95%.
 
 ## Правила обновления
 

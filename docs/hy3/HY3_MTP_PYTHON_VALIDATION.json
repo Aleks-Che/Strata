@@ -1,0 +1,117 @@
+{
+  "status": "pass",
+  "tests_run": 47,
+  "failures": 0,
+  "errors": 0,
+  "elapsed_seconds": 13.011,
+  "modules": [
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "engine_sha256": "c87706ae8c83640ff08f3a21fe5cce8eaa2aaf751f0f7b90f1d56ac528108e89",
+  "log": "build-local/hy3-mtp-accepted-python.log",
+  "log_sha256": "63fe4d32fefcb5482a7bc8811a5ae9f50c8a920c5b8f65a3cc7eaf5cae59db3b",
+  "source_sha256": {
+    "backends/hy3/mtp.hpp": "b17710d5e74dcbdd71d7e2f7011e6a332ea544153bafaa260642bde018a4326f",
+    "backends/hy3/check_mtp.cpp": "edbed2238569c065272b241a445849569350bed61636c7ba5e8092e6546cd79e",
+    "backends/hy3/runtime.hpp": "16e14d81776b5717d575424cbbe13a8481fd4354f5e777059d2e3846efbe5156",
+    "backends/hy3/main.cpp": "b29e4a694073c721d304643d788bae0a46aeac9faabc595cbd4aee210efff6b9",
+    "backends/hy3/CMakeLists.txt": "1ec7d66d15477d1e02972c15e0b1a6619ca3e9a47851c2cc0fe75e90c5a31157",
+    "backends/hy3/RuntimePatches.cmake": "3d987c21b18ca9fd6e3c7e1b55079dca38f2fd6707a989430862a976298deab9",
+    "tools/check_hy3_mtp.py": "32958b5cfdda8653b796bbaf879d9347089d732815393d149f2dac6c481df9ae",
+    "tools/prepare_hy3_profile.py": "e34847320bf5a79c23ff6832fb7ff8cb6c757e72afbc29355d1cedd460fa1589",
+    "tools/test_hy3_profile.py": "7868e73014337ca84547fa7602e4645b7f430d86f9beaff3cd692d82f98a8f28",
+    "tools/check_hy3_cuda.py": "e36adb1705929895097563a3aa9bbac0bcc41a8f8f38293525d992c9a71b7567",
+    "tools/check_hy3_mtp_logits.py": "c767594a1c6ab7d0c9d8de5fd52bee3f93e43dc5cefe748b245a5c926986acb5"
+  },
+  "cli_cases": [
+    {
+      "args": [
+        "--mtp",
+        "0"
+      ],
+      "accepted": true,
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "1"
+      ],
+      "accepted": true,
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "2"
+      ],
+      "accepted": true,
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "3"
+      ],
+      "accepted": true,
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "-1"
+      ],
+      "accepted": false,
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "4"
+      ],
+      "accepted": false,
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "bad"
+      ],
+      "accepted": false,
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "1",
+        "--batch-size",
+        "1"
+      ],
+      "accepted": false,
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--mtp",
+        "3",
+        "--batch-size",
+        "3"
+      ],
+      "accepted": false,
+      "exit_code": 1,
+      "pass_check": true
+    }
+  ]
+}

@@ -20,6 +20,20 @@ static thread_local int hy3_pipeline_readers=0,hy3_pipeline_chunk=4;
 static thread_local bool hy3_pipeline_recreate=false;
 static thread_local bool hy3_pipeline_batch=false;
 static bool hy3_pipeline_enabled() {return bool(hy3_pipeline);}
+void strata_hy3_ram_cache_config(size_t cap,bool frequency) {
+    if(hy3_pipeline)throw std::runtime_error("configure Hy3 RAM cache before pipeline readers");
+    if(cap && hy3_sync_mode!=2)throw std::runtime_error("Hy3 RAM cache requires pinned copy mode");
+    hy3_host_cache=cap?std::make_shared<hy3::HostCache>(cap,hy3::HostCache::memory,
+        frequency?hy3::HostCache::Policy::Frequency:hy3::HostCache::Policy::Lru):nullptr;
+}
+static void hy3_pipeline_scratch_fence(ggml_backend_t backend) {
+    step35::CpuTimer timer(hy3_profile_delivery?&hy3_sync_stats.pipeline_scratch_wait_ms:nullptr);
+    ggml_backend_synchronize(backend);
+}
+static void hy3_pipeline_delivery_fence() {
+    step35::CpuTimer timer(hy3_profile_delivery?&hy3_sync_stats.pipeline_delivery_wait_ms:nullptr);
+    hy3_cuda(cudaStreamSynchronize(hy3_cache_stream));
+}
 static void hy3_account_pipeline() {
     if(!hy3_pipeline) return;
     const auto c=hy3_pipeline->counters();auto & a=hy3_pipeline_accounted;auto & s=hy3_sync_stats;
@@ -47,6 +61,14 @@ static void hy3_end_plan(bool cancelled) {
     hy3_account_pipeline();
     if(failure) std::rethrow_exception(failure);
     if(incomplete) throw std::runtime_error("incomplete Hy3 router plan");
+}
+void strata_hy3_cache_prefill(bool enabled) {
+    // A prior request may have left a latched reader error. Recreate before
+    // changing phase, just as begin_plan does before the next route.
+    if(hy3_pipeline_recreate)strata_hy3_pipeline_config(hy3_pipeline_readers,hy3_pipeline_chunk,0,hy3_pipeline_batch);
+    hy3_end_plan(false);
+    hy3_prefill=enabled;
+    if(hy3_host_cache)hy3_host_cache->set_prefill(enabled);
 }
 void strata_hy3_pipeline_config(int readers,int chunk_mib,int trace_graphs,bool batch_copy) {
     if(readers<0 || readers>2 || (chunk_mib!=4 && chunk_mib!=8 && chunk_mib!=16) ||
@@ -80,7 +102,13 @@ void strata_hy3_pipeline_config(int readers,int chunk_mib,int trace_graphs,bool 
     };
     int gpu=-1;hy3_cuda(cudaGetDevice(&gpu));
     // Explicit native-file mode matches the synchronous baseline's source path.
-    hy3_pipeline=std::make_unique<StrataExpertPipeline>(gpu,bytes,false,readers,1,observer,readers);
+    StrataExpertPipeline::SourceRead source_read;
+    if(auto cache=hy3_host_cache) source_read=[cache](const auto &file,const void *src,void *dst,size_t n,
+                                                    const std::atomic<bool> &cancel,strata_expert_file::Request &request) {
+        return cache->read(file,file->offset_of(src,n),dst,n,cancel,request);
+    };
+    hy3_pipeline=std::make_unique<StrataExpertPipeline>(gpu,bytes,false,readers,1,observer,readers,false,
+        StrataExpertPipeline::HostCopy{},source_read);
     if(hy3_staging) {hy3_cuda(cudaFreeHost(hy3_staging));hy3_staging=nullptr;}
     hy3_cache->refresh();hy3_account_pipeline();
 }
@@ -133,7 +161,7 @@ static bool hy3_pipeline_copy(ggml_backend_t backend,ggml_tensor * dst,const ggm
         const size_t count=bytes/src->nb[2],tail=bytes%src->nb[2];
         if(!count || (tail && tail!=std::min<size_t>(512,src->nb[2]))) throw std::runtime_error("invalid Hy3 pipeline padding");
         // Scratch can alias preceding activations. Ring prefetch never writes it.
-        ggml_backend_synchronize(backend);
+        hy3_pipeline_scratch_fence(backend);
         for(size_t i=0;i<count;++i) {
             if(hy3_cancelled()) {hy3_end_plan(true);return false;}
             if(hy3_plan_next>=hy3_plan.size()) throw std::runtime_error("Hy3 pipeline has no next matrix");
@@ -141,20 +169,20 @@ static bool hy3_pipeline_copy(ggml_backend_t backend,ggml_tensor * dst,const ggm
             if(p.tensor!=src || p.offset!=offset+i*src->nb[2] || p.bytes>ggml_nbytes(dst)-p.offset)
                 throw std::runtime_error("Hy3 copy differs from router plan");
             auto * dest=static_cast<uint8_t *>(dst->data)+p.offset;
-            auto * cached=hy3_cache->get(p.key,p.bytes);
+            auto * cached=hy3_cache_get(p.key,p.bytes);
             if(bool(cached)!=p.hit) throw std::runtime_error("Hy3 planned cache residency changed");
             if(cached) {
                 hy3_cuda(cudaMemcpyAsync(dest,cached,p.bytes,cudaMemcpyDeviceToDevice,hy3_cache_stream));
                 hy3_sync_stats.d2d_bytes+=p.bytes;
             } else if(!hy3_pipeline->transfer(dest,static_cast<const uint8_t *>(src->data)+p.offset,p.bytes,hy3_cache_stream))
                 throw std::runtime_error("Hy3 pipeline source differs from plan");
-            hy3_cuda(cudaStreamSynchronize(hy3_cache_stream));++hy3_sync_stats.pipeline_copy_fences;
-            if(!cached) if(auto * slot=hy3_cache->admit(p.key,p.bytes)) {
+            hy3_pipeline_delivery_fence();++hy3_sync_stats.pipeline_copy_fences;
+            if(!cached) if(auto * slot=hy3_cache_admit(p.key,p.bytes)) {
                 if(hy3_test_limits.fail_next_cache_fill) {
                     hy3_test_limits.fail_next_cache_fill=false;throw std::runtime_error("injected Hy3 cache fill failure");
                 }
                 hy3_cuda(cudaMemcpyAsync(slot,dest,p.bytes,cudaMemcpyDeviceToDevice,hy3_cache_stream));
-                hy3_cuda(cudaStreamSynchronize(hy3_cache_stream));++hy3_sync_stats.pipeline_copy_fences;
+                hy3_pipeline_delivery_fence();++hy3_sync_stats.pipeline_copy_fences;
                 hy3_sync_stats.cache_fill_bytes+=p.bytes;
             }
             ++hy3_sync_stats.ranges;++hy3_plan_next;
@@ -185,7 +213,7 @@ static bool hy3_pipeline_copy_tensor(ggml_backend_t backend,ggml_tensor * dst,co
             !ggml_is_contiguous(dst) || ggml_backend_buffer_is_host(dst->buffer) || !src->nb[2] ||
             hy3_plan_next>=hy3_plan.size() || hy3_plan[hy3_plan_next].tensor!=src)
             throw std::runtime_error("invalid Hy3 batched tensor/plan");
-        ggml_backend_synchronize(backend); // Scratch may alias preceding activations.
+        hy3_pipeline_scratch_fence(backend); // Scratch may alias preceding activations.
         Pending pending;
         const size_t begin=hy3_plan_next;
         const auto start=std::chrono::steady_clock::now();
@@ -195,7 +223,7 @@ static bool hy3_pipeline_copy_tensor(ggml_backend_t backend,ggml_tensor * dst,co
             if(p.offset>ggml_nbytes(dst) || p.bytes>ggml_nbytes(dst)-p.offset)
                 throw std::runtime_error("Hy3 batched destination outside tensor");
             auto * dest=static_cast<uint8_t *>(dst->data)+p.offset;
-            auto * cached=hy3_cache->get(p.key,p.bytes);
+            auto * cached=hy3_cache_get(p.key,p.bytes);
             if(bool(cached)!=p.hit) throw std::runtime_error("Hy3 batched cache residency changed");
             if(cached) {
                 hy3_cuda(cudaMemcpyAsync(dest,cached,p.bytes,cudaMemcpyDeviceToDevice,hy3_cache_stream));
@@ -203,7 +231,7 @@ static bool hy3_pipeline_copy_tensor(ggml_backend_t backend,ggml_tensor * dst,co
             } else {
                 if(!hy3_pipeline->transfer(dest,static_cast<const uint8_t *>(src->data)+p.offset,p.bytes,hy3_cache_stream))
                     throw std::runtime_error("Hy3 batched source differs from plan");
-                if(auto * slot=hy3_cache->admit(p.key,p.bytes)) {
+                if(auto * slot=hy3_cache_admit(p.key,p.bytes)) {
                     pending.fills.push_back(hy3_cache->protect({p.key}));
                     hy3_sync_stats.pipeline_pending_fills_peak=std::max<uint64_t>(
                         hy3_sync_stats.pipeline_pending_fills_peak,pending.fills.size());
@@ -227,7 +255,7 @@ static bool hy3_pipeline_copy_tensor(ggml_backend_t backend,ggml_tensor * dst,co
             }
         }
         if(hy3_cancelled()) throw Cancelled{};
-        hy3_cuda(cudaStreamSynchronize(hy3_cache_stream));pending.complete=true;
+        hy3_pipeline_delivery_fence();pending.complete=true;
         ++hy3_sync_stats.pipeline_copy_batches;++hy3_sync_stats.pipeline_copy_fences;
         hy3_sync_stats.pipeline_batch_ms+=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
         if(hy3_observer) for(size_t i=begin;i<hy3_plan_next;++i) {

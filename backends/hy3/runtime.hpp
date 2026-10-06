@@ -21,29 +21,35 @@ inline void environment() {
 #ifdef _WIN32
     _putenv_s("NVIDIA_TF32_OVERRIDE", "0"); _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH", "1");
     _putenv_s("GGML_CUDA_DISABLE_FUSION", "1");
+    // HY3-09: graph-enabled history replays can diverge despite identical
+    // weights. Disable capture/replay until its exact failure is isolated.
+    _putenv_s("GGML_CUDA_DISABLE_GRAPHS", "1");
 #else
     setenv("NVIDIA_TF32_OVERRIDE", "0", 1); setenv("GGML_OP_OFFLOAD_MIN_BATCH", "1", 1);
     setenv("GGML_CUDA_DISABLE_FUSION", "1", 1);
+    setenv("GGML_CUDA_DISABLE_GRAPHS", "1", 1);
 #endif
 }
 inline bool expert(const std::string & name) {
     const std::string suffix = "_exps.weight";
     return name.size() >= suffix.size() && name.compare(name.size()-suffix.size(), suffix.size(), suffix) == 0;
 }
-inline Model load(const std::string & path, bool resident = false, bool cpu_embedding = false, bool fixture = false) {
+inline Model load(const std::string & path, bool resident = false, bool cpu_embedding = false, bool fixture = false, bool mtp = false) {
     const auto contract=inspect(path,fixture);
-    strata_hy3_memory_check(contract.fixed_bytes+(resident ? contract.routed_bytes : 0));
+    strata_hy3_memory_check(contract.fixed_bytes+(resident ? contract.routed_bytes : 0)+(mtp ? contract.mtp_bytes : 0));
     auto * gpu = ggml_backend_dev_by_name("CUDA0"), * cpu = ggml_backend_dev_by_name("CPU");
     require(gpu && cpu, "CUDA0 and CPU storage backends required");
     ggml_backend_dev_t devices[] = {gpu, nullptr};
+    const std::string mtp_pattern="^blk\\."+std::to_string(contract.blocks-1)+"\\.";
     llama_model_tensor_buft_override overrides[] = {
         {"^token_embd\\.weight$", ggml_backend_dev_buffer_type(cpu_embedding ? cpu : gpu)},
+        {mtp_pattern.c_str(), ggml_backend_dev_buffer_type(gpu)},
         {"^blk\\.[0-9]+\\.ffn_(gate|up|down)_exps\\.weight$", ggml_backend_dev_buffer_type(cpu)},
         {nullptr, nullptr}};
-    if (resident) overrides[1] = {nullptr, nullptr};
+    if (resident) overrides[2] = {nullptr, nullptr};
     auto mp = llama_model_default_params();
     mp.devices = devices; mp.tensor_buft_overrides = overrides; mp.n_gpu_layers = -1;
-    mp.split_mode = LLAMA_SPLIT_MODE_NONE; mp.load_mtp = false; mp.use_extra_bufts = false;
+    mp.split_mode = LLAMA_SPLIT_MODE_NONE; mp.load_mtp = mtp; mp.use_extra_bufts = false;
     mp.no_host = true; mp.load_mode = LLAMA_LOAD_MODE_MMAP;
     Model model(llama_model_load_from_file(path.c_str(), mp), llama_model_free);
     require(bool(model), "Hy3 model load failed");
@@ -55,7 +61,8 @@ inline Model load(const std::string & path, bool resident = false, bool cpu_embe
         const bool host = ggml_backend_buffer_is_host(tensor->buffer);
         if (expert(entry.first)) {
             ++expert_count;
-            require(host != resident, "wrong expert placement: " + entry.first);
+            const bool draft=entry.first.rfind("blk."+std::to_string(contract.blocks-1)+".",0)==0;
+            require(host != (resident || draft), "wrong expert placement: " + entry.first);
         } else if (!(cpu_embedding && entry.first == "token_embd.weight")) {
             require(!host, "non-routed weight remained on CPU: " + entry.first);
         }
@@ -69,17 +76,20 @@ inline Model load(const std::string & path, bool resident = false, bool cpu_embe
             ++routed_layers;
         } else require(layer.ffn_gate && layer.ffn_up && layer.ffn_down, "incomplete Hy3 dense layer");
     }
-    require(routed_layers && expert_count == 3*routed_layers, "unexpected Hy3 expert tensors");
+    require(routed_layers && expert_count == 3*(routed_layers+(mtp ? 1 : 0)), "unexpected Hy3 expert tensors");
     require(routed_layers == contract.blocks-2, "unexpected Hy3 main/MTP boundary");
     return model;
 }
-inline Context context(llama_model * model, int size = 2048, int batch = 17, ggml_type kv = GGML_TYPE_F32) {
+inline Context context(llama_model * model, int size = 2048, int batch = 17, ggml_type kv = GGML_TYPE_F32,
+                       ggml_backend_sched_eval_callback callback=nullptr, void * callback_data=nullptr, bool draft=false) {
     require(size >= 32 && size <= 2048 && batch >= 1 && batch <= 32 && batch <= size, "invalid Hy3 context or batch");
     auto cp = llama_context_default_params();
     cp.n_ctx = size; cp.n_batch = cp.n_ubatch = batch; cp.n_seq_max = 1;
     cp.n_threads = cp.n_threads_batch = 4; cp.type_k = cp.type_v = kv;
     cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_DISABLED; cp.offload_kqv = cp.op_offload = true;
     cp.swa_full = false;
+    cp.ctx_type=draft ? LLAMA_CONTEXT_TYPE_MTP : LLAMA_CONTEXT_TYPE_DEFAULT;
+    cp.cb_eval=callback;cp.cb_eval_user_data=callback_data;
     Context ctx(llama_init_from_model(model, cp), llama_free);
     require(bool(ctx), "Hy3 context creation failed");
     return ctx;
@@ -87,7 +97,7 @@ inline Context context(llama_model * model, int size = 2048, int batch = 17, ggm
 inline void configure_cache(llama_model * model,size_t cap) {
     strata_hy3_cache_begin(cap);
     if(cap) for(const auto & entry:model->tensors_by_name)
-        if(expert(entry.first)) strata_hy3_cache_register(entry.second);
+        if(expert(entry.first) && ggml_backend_buffer_is_host(entry.second->buffer)) strata_hy3_cache_register(entry.second);
 }
 inline void decode(llama_context * ctx, const std::vector<llama_token> & tokens,
                    size_t begin, int count, int position, bool all_logits = false) {

@@ -1,0 +1,66 @@
+{
+  "status": "pass",
+  "scope": "Old/new/new/old; second en/code pass, 37 decode forwards per pair, cache8/readers2/batch0; no profiling; old and new executables differ in graph policy plus inactive diagnostic support; short corpus, OS file cache not purged",
+  "rows": [
+    {
+      "cuda_graphs": true,
+      "engine_sha256": "e24dc96ac7edfb308d0574b07a2e0f29d80f202387ef7dfc640ff105b0c0078a",
+      "decode_steps": 37,
+      "decode_seconds": 12.364195199999997,
+      "prefill_seconds": 9.5864226,
+      "pair_seconds": 21.976846000005025,
+      "peak_ram_gib": 37.250205993652344,
+      "peak_vram_mib": 26264.0,
+      "h2d_gib_per_decode": 3.0799659909428776,
+      "decode_tokens_per_second": 2.9925117972902924
+    },
+    {
+      "cuda_graphs": false,
+      "engine_sha256": "b5fcc067554cd4d8acbe8318a468eea96cb1fa9a141107980996071579117365",
+      "decode_steps": 37,
+      "decode_seconds": 12.794606499999999,
+      "prefill_seconds": 9.4183782,
+      "pair_seconds": 22.240397699933965,
+      "peak_ram_gib": 37.343040466308594,
+      "peak_vram_mib": 26138.0,
+      "h2d_gib_per_decode": 3.0799659909428776,
+      "decode_tokens_per_second": 2.8918435279740726
+    },
+    {
+      "cuda_graphs": false,
+      "engine_sha256": "b5fcc067554cd4d8acbe8318a468eea96cb1fa9a141107980996071579117365",
+      "decode_steps": 37,
+      "decode_seconds": 12.6825215,
+      "prefill_seconds": 9.57236,
+      "pair_seconds": 22.281526400067378,
+      "peak_ram_gib": 37.353458404541016,
+      "peak_vram_mib": 26203.0,
+      "h2d_gib_per_decode": 3.0799659909428776,
+      "decode_tokens_per_second": 2.917400928514097
+    },
+    {
+      "cuda_graphs": true,
+      "engine_sha256": "e24dc96ac7edfb308d0574b07a2e0f29d80f202387ef7dfc640ff105b0c0078a",
+      "decode_steps": 37,
+      "decode_seconds": 12.299839599999999,
+      "prefill_seconds": 9.4976716,
+      "pair_seconds": 21.823565800033975,
+      "peak_ram_gib": 37.18374252319336,
+      "peak_vram_mib": 26266.0,
+      "h2d_gib_per_decode": 3.0799659909428776,
+      "decode_tokens_per_second": 3.0081693097851456
+    }
+  ],
+  "groups": {
+    "true": {
+      "decode_tokens_per_second": 3.0003201260484764,
+      "mean_pair_seconds": 21.9002059000195
+    },
+    "false": {
+      "decode_tokens_per_second": 2.9045660091671244,
+      "mean_pair_seconds": 22.26096205000067
+    }
+  },
+  "decode_change_percent": -3.1914633391958547,
+  "pair_change_percent": 1.6472728687032534
+}

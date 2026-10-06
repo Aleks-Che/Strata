@@ -37,6 +37,10 @@ public:
     // Optional backend-specific host copy. Must finish all writes before return;
     // the slot's existing ready/used ownership rules still apply. Default: memcpy.
     using HostCopy=std::function<void(void *,const void *,size_t)>;
+    // Optional managed source cache. Called only for native-file jobs, on a
+    // producer thread, with its own Request and the pipeline cancellation flag.
+    using SourceRead=std::function<bool(const std::shared_ptr<strata_expert_file::Source> &,
+        const void *,void *,size_t,const std::atomic<bool> &,strata_expert_file::Request &)>;
     struct Counters {
         uint64_t groups=0,chunks=0,unused=0,h2d_bytes=0,d2d_bytes=0;
         uint64_t read_us=0,wait_us=0,submit_us=0;
@@ -69,6 +73,7 @@ private:
     std::vector<std::thread> producers;
     CopyObserver copy_observer;
     HostCopy host_copy;
+    SourceRead source_read;
 
     static void check(cudaError_t status) {
         if(status!=cudaSuccess)throw std::runtime_error(std::string("expert pipeline: ")+cudaGetErrorString(status));
@@ -105,7 +110,8 @@ private:
                 bool file_read=job.file && (read_mode==1 || !strata_expert_file::resident(job.source,job.bytes));
                 bool read_ok=!cancel_reads.load();
                 if(read_ok) {
-                    if(file_read)read_ok=request.read(*job.file,job.source,slot.host,job.bytes,cancel_reads);
+                    if(file_read)read_ok=source_read?source_read(job.file,job.source,slot.host,job.bytes,cancel_reads,request):
+                        request.read(*job.file,job.source,slot.host,job.bytes,cancel_reads);
                     else if(host_copy)host_copy(slot.host,job.source,job.bytes);
                     else std::memcpy(slot.host,job.source,job.bytes);
                 }
@@ -156,8 +162,8 @@ private:
         if(copy)cudaStreamDestroy(copy);
     }
 public:
-    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1,bool refill_early=false,HostCopy host_copy_fn={})
-        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),early_host_refill(refill_early),copy_observer(std::move(observer)),host_copy(std::move(host_copy_fn)) {
+    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1,bool refill_early=false,HostCopy host_copy_fn={},SourceRead source_read_fn={})
+        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),early_host_refill(refill_early),copy_observer(std::move(observer)),host_copy(std::move(host_copy_fn)),source_read(std::move(source_read_fn)) {
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
         if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
         if(readers<1 || readers>int(slots) || decode_readers<1 || decode_readers>readers || mode<0 || mode>2)

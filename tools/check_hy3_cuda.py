@@ -40,10 +40,13 @@ def check_ceiling(sample):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', type=Path, required=True)
-    parser.add_argument('--kind', choices=['kernels', 'graph', 'runtime', 'cache'], required=True)
+    parser.add_argument('--kind', choices=['kernels', 'graph', 'runtime', 'cache', 'mtp'], required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--cuda-bin', type=Path, help='CUDA DLL directory to prepend to child PATH')
+    parser.add_argument('--runtime-probe', choices=('reference','history','history-graphs'), help='bounded runtime diagnostic; history-graphs explicitly re-enables the quarantined CUDA graph mode')
     args = parser.parse_args()
+    if args.runtime_probe and args.kind!='runtime':
+        parser.error('--runtime-probe requires --kind runtime')
     build = args.build.resolve()
     binary = build/'bin'/('strata-hy3-'+args.kind+'-check'+('.exe' if os.name == 'nt' else ''))
     manifest = build/'hy3-build-manifest.json'
@@ -61,10 +64,15 @@ def main():
     env['NVIDIA_TF32_OVERRIDE'] = '0'
     if args.cuda_bin:
         env['PATH'] = str(args.cuda_bin.resolve())+os.pathsep+env.get('PATH', '')
+    report['diagnostic_environment']={key:env.get(key) for key in
+        ('GGML_CUDA_DISABLE_GRAPHS','GGML_CUDA_PDL','LLAMA_GRAPH_REUSE_DISABLE','NVIDIA_TF32_OVERRIDE')}
     result_path = directory/f'{args.kind}-report.json' if args.kind in ('kernels', 'cache') else directory/'fixture'/f'{args.kind}-report.json'
     command = ([str(binary), '--output', str(result_path)] if args.kind == 'kernels' else
                [str(binary), str(result_path)] if args.kind == 'cache' else [str(binary), str(directory/'fixture')])
     report['command'] = command
+    if args.runtime_probe:
+        command.append('--'+args.runtime_probe+'-probe')
+        report['runtime_probe']=args.runtime_probe
     child = None
     try:
         gpu = gpu_memory()

@@ -89,6 +89,7 @@ hy3_runtime_source(llama src/llama-mmap.cpp
   3ca6869dfccbdbbafad0802e1a3d7db52174347d36174a982c1a662d7034b9c6 strata-hy3-mmap.cpp)
 get_property(hy3_runtime_hashes GLOBAL PROPERTY HY3_RUNTIME_HASHES)
 set(cache_dependencies "${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/host_cache.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc"
   "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc"
   "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp"
@@ -105,7 +106,7 @@ foreach(dependency IN LISTS cache_dependencies)
   get_filename_component(dependency_name "${dependency}" NAME)
   list(APPEND hy3_runtime_hashes "${dependency_name}:${dependency_hash}")
 endforeach()
-string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy")
+string(APPEND hy3_patch_set ",hy3-sync-selected-file-copy-gpu-audit-demand-mmap,hy3-bounded-matrix-cache,hy3-bounded-pipeline,hy3-tensor-batch-copy,hy3-delivery-profile,hy3-disable-cuda-graphs,hy3-native-mtp,hy3-managed-ram-cache,hy3-frequency-ram-cache,hy3-gpu-prefill-policy")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
 target_include_directories(ggml-base PRIVATE "${hy3_source}/vendor")
 target_compile_features(ggml-base PRIVATE cxx_std_17)

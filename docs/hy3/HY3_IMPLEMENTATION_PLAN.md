@@ -61,6 +61,35 @@ hits/fills до единственного delivery fence. Итоговые472 r
 первый prefill121,454→105,085 с — одно последовательное наблюдение на вариант.
 HTTP JSON/SSE, tools и disconnect/recovery с batching также прошли.
 
+Обновление HY3-09, 2026-10-06: исходная история тестов воспроизвела
+resident/native mismatch при одинаковых весах. CUDA graphs отключены только
+в Hy3 как обход; внутренняя причина ещё не установлена. Итоговые484 runtime
+checks и448 history comparisons прошли. Graph-enabled recheck тоже прошёл448:
+воспроизводимость непостоянна, исходные FAIL сохранены. Добавлены раздельные
+opt-in CPU timers доставки. Короткий full-model ABBA дал3,000→2,905 ток/с
+при graphs off (−3,2%); exact logits/IDs сохранены. Подробности в статусе.
+Длинный instrumented prefill116,449 с потратил45,813 с на cache admission,
+включая14,162 с CUDA allocation и25,016 с free. Prefill policy — следующий
+отдельный эксперимент;96 777 новых allocation calls указывают на большой
+объём перестроения кэша, несмотря на уже включённый allocation reuse.
+
+Обновление HY3-10, 2026-10-06: по запросу пользователя приоритет перенесён
+на P5. Реализованы resident блок80 из того же GGUF, отдельный draft KV,
+выравнивание hidden/token positions, batched verification, reject rollback,
+catch-up и bonus token. 59 synthetic checks и независимый full-model
+teacher-forced контроль прошли. Depth1 прошёл6-prompt corpus, lifecycle и HTTP;
+depth3 не выбран из-за скорости и отдельного synthetic greedy mismatch.
+Измерения и ограничения описаны в статусе. Sessions и stochastic
+speculation не включены; ненулевая температура использует target-only путь.
+
+Обновление HY3-11, 2026-10-06: пользователь запросил управляемый RAM-кэш.
+Добавлен pageable cache матричных chunks перед pinned ring: LRU, live source
+identity/offset/length, отмена без публикации частичных записей, отдельные
+hit/file/fill/eviction counters и динамический бюджет под95% global guard.
+Сначала CPU/selected-copy проверки, затем полный GGUF с RAM off/auto и MTP.
+HY3-12 реализует frequency RAM admission и защиту от prefill scan.
+GPU prefill admission перенесён в HY3-13; существующая VRAM policy не меняется.
+
 ## 1. Проверенные исходные данные
 
 ### 1.1. Файл, основная модель и MTP
@@ -358,6 +387,9 @@ CPU-expert режим, если понадобится, оценивать по�
   **Частично HY3-06/08:** allocation reuse и opt-in tensor batching реализованы.
   Batching прошёл exact full-model checks; его speed effect невелик и пока
   не меняет default. Отдельная prefill admission policy ещё не реализована.
+  HY3-09 добавил opt-in read/admission/allocator/wait profiling и отключил
+  CUDA graphs из-за intermittent fixture mismatch. Policy сравнивать
+  с этим контролем, при выключенных profiler и tensor batching.
 - **P3.4:** раздельное размещение RAM/VRAM и адаптивный горячий набор;
   бюджет учитывать вместе с non-routed, KV, scratch, staging, MTP и внешними
   процессами. Cache cap уменьшается при давлении, отменяет admission и даёт
@@ -460,7 +492,8 @@ file read; MTP/cache/pipeline/fusion выключены. Остальной пе
 
 Inspector, contract, CPU oracles и проверки tokenizer/template созданы в HY3-01;
 CUDA fixtures — HY3-02; pipe engine, runtime/model checks — HY3-03.
-HTTP checker и profile созданы в HY3-05; MTP checker остаётся будущей работой.
+HTTP checker и profile созданы в HY3-05; MTP driver/checkers — HY3-10;
+managed host cache и его CPU/GPU проверки — HY3-11.
 
 | Область | Планируемые файлы |
 |---|---|
@@ -474,8 +507,15 @@ HTTP checker и profile созданы в HY3-05; MTP checker остаётся �
 Порядок: **P0 → P1 → P2/P3 → P4 → P5 → P6**. Tokenizer P2.1 можно
 делать во время P0. MTP-probe после P1/P3 допустим до полной готовности P4,
 но не должен объявлять поддержку MTP sessions до проверки rollback/restore.
-Следующий результат — HY3-09: изоляция intermittent fixture mismatch,
-профилирование чтения/admission и отдельное измерение prefill policy;
+HY3-12 добавляет frequency admission RAM и защиту от prefill scan: повторный
+decode-доступ, bounded history с decay, замена более холодных blocks, явная фаза
+prefill/decode для MTP. Проверки: exact bytes/logits, смена нагрузки, cancel/pressure
+и сравнение off/frequency/LRU на полном GGUF. HY3-12 прошёл652 runtime checks
+и24 генерации полного GGUF; на третьей en/code паре frequency3,461 против
+pooled off2,854 ток/с, с медленными первыми двумя проходами. Расширенный corpus
+и реальные pressure/residency/SSD измерения остаются. GPU prefill admission остаётся
+следующей отдельной оптимизацией по read/admission profiling HY3-09.
+Внутренняя причина CUDA graphs остаётся открытой;
 подробнее в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 
 ## 7. Контроль завершения

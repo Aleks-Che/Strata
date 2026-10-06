@@ -4,6 +4,7 @@
 #include "../common/expert_file.hpp"
 #include "../common/device_memory.hpp"
 #include "../glm5next/host_pages.hpp"
+#include "host_cache.hpp"
 #include <cuda_runtime_api.h>
 #include <chrono>
 #include <cstring>
@@ -16,6 +17,7 @@ static thread_local strata_hy3_copy_observer hy3_observer=nullptr;
 static thread_local void * hy3_owner=nullptr;
 static thread_local const std::atomic<bool> * hy3_cancel=nullptr;
 static thread_local std::unique_ptr<strata_glm::HostWorkingSetBudget> hy3_ram_budget;
+static thread_local std::shared_ptr<hy3::HostCache> hy3_host_cache;
 static thread_local strata_hy3_test_limits hy3_test_limits;
 extern "C" void strata_hy3_test_set_limits(strata_hy3_test_limits limits) {hy3_test_limits=limits;}
 static const std::atomic<bool> hy3_never_cancel{false};
@@ -31,20 +33,39 @@ void strata_hy3_sync_reset() {
     hy3_account_pipeline();
     hy3_sync_stats={};hy3_sync_stats.staging_bytes=hy3_staging ? hy3_staging_limit : 0;
     if(hy3_cache) hy3_cache->reset_counters();
+    if(hy3_host_cache) hy3_host_cache->reset_counters();
 }
 strata_hy3_sync_stats strata_hy3_sync_snapshot() {
     hy3_account_pipeline();
     auto s=hy3_sync_stats;s.cache_generation=hy3_generation;
+    if(hy3_host_cache) {
+        const auto c=hy3_host_cache->snapshot();
+        s.ram_cache_bytes=c.bytes;s.ram_cache_budget=c.budget;s.ram_cache_entries=c.entries;
+        s.ram_cache_peak_bytes=c.peak_bytes;s.ram_cache_pending=c.pending;
+        s.ram_cache_hits=c.hits;s.ram_cache_misses=c.misses;s.ram_cache_hit_bytes=c.hit_bytes;
+        s.ram_cache_file_bytes=c.file_bytes;s.ram_cache_fill_bytes=c.fill_bytes;
+        s.ram_cache_evictions=c.evictions;s.ram_cache_rejected=c.rejected;s.ram_cache_oom=c.oom;
+        s.ram_cache_allocations=c.allocations;s.ram_cache_reuses=c.reuses;
+        s.ram_cache_prefill_bypasses=c.prefill_bypasses;s.ram_cache_frequency_bypasses=c.frequency_bypasses;
+        s.ram_cache_victim_candidates=c.victim_candidates;s.ram_cache_history_entries=c.history_entries;
+        s.ram_cache_reused_payload_bytes=c.reused_payload_bytes;
+    }
     if(hy3_cache) {
         const auto c=hy3_cache->counters();
         s.cache_bytes=hy3_cache->resident_bytes();s.cache_budget=hy3_cache->budget();s.cache_entries=hy3_cache->size();
         s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;s.cache_oom=c.oom;
         s.cache_rejected=c.rejected;s.cache_reuses=c.reuses;
+        s.cache_allocations=c.allocations;s.cache_victim_candidates=c.victim_candidates;
+        s.cache_get_ms=c.get_ms;s.cache_admit_ms=c.admit_ms;s.cache_victim_ms=c.victim_ms;
+        s.cache_allocate_ms=c.allocate_ms;s.cache_free_ms=c.free_ms;
+        s.cache_refresh_ms=c.refresh_ms;s.cache_probe_ms=c.probe_ms;
+        s.cache_protect_ms=c.protect_ms;s.cache_trim_ms=c.trim_ms;
     }
     return s;
 }
 void strata_hy3_memory_check(size_t reserve) {
     // Decode boundaries are synchronized: reclaim cache before the global guard.
+    if(hy3_host_cache) hy3_host_cache->refresh();
     if(hy3_cache) hy3_cache->refresh();
     size_t free=0,total=0;
 #ifdef _WIN32
@@ -73,6 +94,8 @@ void strata_hy3_sync_release() {
     if(hy3_staging) cudaFreeHost(hy3_staging);
     hy3_staging=nullptr;hy3_observer=nullptr;hy3_owner=nullptr;hy3_cancel=nullptr;hy3_sync_mode=0;
     hy3_ram_budget.reset();
+    hy3_profile_delivery=false;
+    hy3_prefill=false;hy3_admit_prefill=true;
     hy3_test_limits={};
 }
 static bool hy3_expert_weight(const ggml_tensor * t) {
@@ -112,7 +135,10 @@ static bool hy3_copy_uncached(ggml_backend_t backend,ggml_tensor * dst,const ggm
         for(size_t done=0;done<bytes;) {
             const size_t count=std::min(bytes-done,hy3_staging_limit);
             auto start=clock::now();
-            if(!read.read_at(*file,file_offset+done,hy3_staging,count,hy3_cancel ? *hy3_cancel : hy3_never_cancel)) return false;
+            const auto &cancel=hy3_cancel ? *hy3_cancel : hy3_never_cancel;
+            const bool ok=hy3_host_cache?hy3_host_cache->read(file,file_offset+done,hy3_staging,count,cancel,read):
+                read.read_at(*file,file_offset+done,hy3_staging,count,cancel);
+            if(!ok) return false;
             hy3_sync_stats.source_ms+=elapsed(start);
             start=clock::now();
             ggml_backend_tensor_set_async(backend,dst,hy3_staging,offset+done,count);

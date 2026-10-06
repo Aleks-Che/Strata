@@ -1,0 +1,140 @@
+{
+  "status": "pass",
+  "command": [
+    "C:\\Users\\Aleks\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-X",
+    "utf8",
+    "-m",
+    "unittest",
+    "tools.test_hy3_profile",
+    "tools.test_hy3_engine",
+    "tools.test_hy3_gguf",
+    "serve.test_hy3",
+    "serve.test_hy3_http"
+  ],
+  "exit_code": 0,
+  "seconds": 12.136390100000426,
+  "log": "build-local\\hy3-frequency-python-final.log",
+  "engine_sha256": "a1117b6d714699ed5e57a25724fa36f4e9618d92edc6ccecf75611314ee2f861",
+  "native_cli": [
+    {
+      "args": [
+        "--ram-cache-policy",
+        "frequency"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-policy",
+        "lru"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-policy",
+        "lfu"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-policy",
+        ""
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "auto"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "0"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "65536"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1048576"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "-1"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1048577"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "bad"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1.5"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "auto",
+        "--copy-mode",
+        "native"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    }
+  ],
+  "source_hashes": {
+    "backends/hy3/host_cache.hpp": "6ec67b06077964ee38110ea5877acd415fe0480c225bd915620589dbba864b84",
+    "backends/hy3/check_host_cache.cpp": "1f172c833799f5ba68f0d42d3ab0abf97f1c020bf4d6b2cba0840d7fd682e126",
+    "backends/hy3/pipeline_runtime.inc": "337ed1e65fc532fc86ebc36a6fe5c68ebee192f952dcdb1e362340575f232a5b",
+    "backends/hy3/sync_runtime.h": "a86305df19c28c6e3e331a482ddfaabb952ebe7c790c70488b3e3ec05e87d7b9",
+    "backends/hy3/sync_runtime.inc": "c157659b5d51d95d5b0799a4366e78a35d80f4c7f00fb22c880ed46d36ed85c4",
+    "backends/hy3/main.cpp": "8eeb49e1316d2ca21b8529dd60cef4ace8ff83528405d00a70bb034607efb582",
+    "backends/hy3/check_runtime.cpp": "850133a8455330499048932b45075cd6d29b34b37a0c5cb4d0fa31d723475064",
+    "tools/check_hy3_mtp.py": "6f8f79f33809375b22b121d64d1a46a24c8ecf1e4e80b01853715e650b931b30",
+    "tools/prepare_hy3_profile.py": "a433fceae64df34950cbe6a172c5c5603cd10d915e38ebc1c5ccf2f6ef7ee354",
+    "tools/test_hy3_profile.py": "e0c68b8a725f775f5835a69bcbaba50fe743e0a3710156a5999e2dcc239eb1d3"
+  },
+  "count": 49
+}

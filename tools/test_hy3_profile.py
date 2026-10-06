@@ -12,6 +12,30 @@ from serve.test_hy3_http import Tokenizer
 
 
 class ProfileTests(unittest.TestCase):
+    def test_invalid_gpu_policy_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value in ('', 'prefill', 1, None):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',gpu_cache_policy=value)
+            inspect.assert_not_called()
+    def test_invalid_ram_policy_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value in ('', 'lfu', 1, None):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',ram_cache_policy=value)
+            inspect.assert_not_called()
+    def test_invalid_ram_cache_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value in (-1,1048577,True,1.5,'1','bad',None):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',ram_cache_mib=value)
+            inspect.assert_not_called()
+    def test_invalid_mtp_refused_before_inspection(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
+            for value in (-1,4,True,1.5,'1',None):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    setup.prepare('model','engine',Path(directory)/'new',mtp=value)
+            inspect.assert_not_called()
     def test_invalid_batch_refused_before_inspection(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(setup, 'inspect_model') as inspect:
             for value,readers in ((True,0),(1,2),('1',2),(None,2)):
@@ -81,7 +105,21 @@ class ProfileTests(unittest.TestCase):
                         fourth=setup.prepare('model',exe,base/'batch',cache_mib=8192,pipeline_readers=2,pipeline_batch=True)
                         batched=json.loads(fourth.read_text(encoding='utf8'))
                         self.assertEqual(batched['args'][-2:],['--pipeline-batch','1'])
+                        for depth in (1,2,3):
+                            mtp_profile=setup.prepare('model',exe,base/f'mtp{depth}',cache_mib=8192,pipeline_readers=2,mtp=depth)
+                            mtp_cfg=json.loads(mtp_profile.read_text(encoding='utf8'))
+                            self.assertEqual(mtp_cfg['args'][-2:],['--mtp',str(depth)])
+                            self.assertEqual(mtp_cfg['sampling']['temperature'],0)
                         self.assertEqual(json.loads(profile.read_text(encoding='utf8')), cfg)
+                        for cap in ('auto',8192):
+                            ram=setup.prepare('model',exe,base/f'ram{cap}',cache_mib=8192,pipeline_readers=2,mtp=1,ram_cache_mib=cap)
+                            self.assertEqual(json.loads(ram.read_text(encoding='utf8'))['args'][-2:],['--ram-cache-mib',str(cap)])
+                            self.assertEqual(json.loads(ram.read_text(encoding='utf8'))['args'][-4:-2],['--ram-cache-policy','frequency'])
+                        lru=setup.prepare('model',exe,base/'ram-lru',ram_cache_mib=8192,ram_cache_policy='lru')
+                        self.assertEqual(json.loads(lru.read_text(encoding='utf8'))['args'][-4:],['--ram-cache-policy','lru','--ram-cache-mib','8192'])
+                        gpu=setup.prepare('model',exe,base/'gpu-decode',cache_mib=11264,ram_cache_mib=65536,gpu_cache_policy='decode')
+                        args=json.loads(gpu.read_text(encoding='utf8'))['args']
+                        self.assertEqual(args[args.index('--gpu-cache-policy')+1],'decode')
 
 
 if __name__ == '__main__':

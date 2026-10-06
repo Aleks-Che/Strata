@@ -1,0 +1,98 @@
+{
+  "status": "pass",
+  "count": 48,
+  "seconds": 12.213,
+  "log": "build-local/hy3-ram-python.log",
+  "command": "python -X utf8 -m unittest tools.test_hy3_profile tools.test_hy3_engine tools.test_hy3_gguf serve.test_hy3 serve.test_hy3_http",
+  "engine_sha256": "9422341b55e21665522c6e4c5a149eee894e95d64a13f840ec8877f715255b30",
+  "native_cli": [
+    {
+      "args": [
+        "--ram-cache-mib",
+        "auto"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "0"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "8192"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1048576"
+      ],
+      "exit_code": 0,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "-1"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1048577"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "bad"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "1.5"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    },
+    {
+      "args": [
+        "--ram-cache-mib",
+        "auto",
+        "--copy-mode",
+        "native"
+      ],
+      "exit_code": 1,
+      "pass_check": true
+    }
+  ],
+  "source_hashes": {
+    "backends/common/expert_pipeline.hpp": "86aeb48bde45051803e8bd228196c448cb71e9cdd9124bcaf9f0cab37d4bdae4",
+    "backends/hy3/host_cache.hpp": "e6de7d49eabdc7cf7c7efedae2e2e49d0fe578c0f5855ce06a4c32e1db9b1d68",
+    "backends/hy3/sync_runtime.inc": "cefa18440cde1154a0d0eab49e607c7a692e0a05ef822a5db41fa59131184fcd",
+    "backends/hy3/sync_runtime.h": "9ab1e4754ef2901e13b4f2cbe4ee0fd76bc132b14c596ab098ae7d061a0a9ba6",
+    "backends/hy3/cache_runtime.inc": "4c9d95d631b9bf85e0b53ab27a2faa9beb70fb0d51f991ec5d74b8974ef3d886",
+    "backends/hy3/pipeline_runtime.inc": "30df46fa8e51cc6b9cf9643e19f2134757ed61f8de0e4106fb04a753477bdf2b",
+    "backends/hy3/main.cpp": "c6166fc733668a2ab56686aefc0ea40f8eed3548cd481903051a4db100be7943",
+    "backends/hy3/check_host_cache.cpp": "3ee049254a666265b5cc3e62b65dfceb256954e1486ac21128e25b7ba8753724",
+    "backends/hy3/check_runtime.cpp": "d977c5a0f12bed17f84f11717c78b65bf4c83cc745ee60462369476d5d02cf96",
+    "tools/prepare_hy3_profile.py": "11dcab8f6151d15516ce421b7b46d183d8444f8ef0cd02315e6f958c8900c52e",
+    "tools/test_hy3_profile.py": "31228f1e935475866bb9a426e9fd5e9e2024d8440f177a761222fe1856314c91",
+    "tools/check_hy3_mtp.py": "2e7de2e8f45096911477df9a3d9797d9626f88429200ad0383f4888d204f2c66"
+  }
+}

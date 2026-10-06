@@ -38,6 +38,16 @@ int main(int argc,char ** argv) {
         refused=false;try{cache.refresh();}catch(const std::runtime_error &){refused=true;}
         test("unaccounted_residency_refused",refused && cache.resident_bytes()==0 && cache.budget()==0);
         sample.gpu_free=16*GiB;
+        for(bool train:{false,true}) {
+            ExpertCache policy(2*65536,[&]{return sample;});policy.refresh();
+            MatrixKey c{1,0,2};
+            policy.get(a,1024);policy.admit(a,1024);policy.get(b,1024);policy.admit(b,1024);
+            for(int i=0;i<100;++i)policy.get(a,1024,train);
+            policy.get(c,1024);policy.admit(c,1024);
+            test(train?"trained_hits_protect_hot_entry":"untrained_hits_preserve_frequency_and_lru",
+                policy.contains(a,1024)==train && policy.contains(b,1024)!=train && policy.contains(c,1024));
+            test("untrained_lookup_still_counts_delivery_hits",policy.counters().hits==100);
+        }
         ExpertCache oom(65536,[&]{return sample;},[](void **,size_t){return cudaErrorMemoryAllocation;});oom.refresh();
         test("allocation_oom_bypass",!oom.admit(a,1024) && oom.resident_bytes()==0 && oom.counters().oom==1);
         test("generation_identity",!(a==MatrixKey{2,0,0}) && MatrixHash{}(a)!=MatrixHash{}(MatrixKey{2,0,0}));

@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--pipeline-batch', type=int, choices=(0,1), nargs='+', default=[0])
     parser.add_argument('--prompts', choices=('en','code','long'), nargs='+', default=['en','code'])
     parser.add_argument('--repeats', type=int, choices=(1,2,3), default=2)
+    parser.add_argument('--profile-delivery', action='store_true', help='diagnostic CPU timers; not an uninstrumented speed benchmark')
     args = parser.parse_args()
     if any(not 0 <= cap <= 16384 for cap in args.cache_mib):
         parser.error('cache capacities must be 0..16384 MiB')
@@ -34,6 +35,8 @@ def main():
         parser.error('pipeline readers must be 0..2 with nonzero cache cap')
     if any(args.pipeline_batch) and 0 in args.pipeline_readers:
         parser.error('tensor batching requires pipeline readers')
+    if args.profile_delivery and 0 in args.pipeline_readers:
+        parser.error('delivery profiling requires pipeline readers')
     model, binary, directory = args.gguf.resolve(), args.engine.resolve(), args.output_dir.resolve()
     ref = json.loads(args.reference.read_text(encoding='utf8'))
     inventory = inspect_model(model)
@@ -48,6 +51,7 @@ def main():
         model=str(model), header_sha256=inventory['header_sha256'], context=2048, batch=17, kv='f32',
         mtp=False, pipeline_readers=args.pipeline_readers, pipeline_chunk_mib=args.pipeline_chunk_mib,
         pipeline_batch=args.pipeline_batch, repeats=args.repeats,
+        profile_delivery=args.profile_delivery,
         copy_mode='pinned', temperature=0, predict=ref['predict'], prompts=prompts, runs=[])
     def save():
         (directory/'cache-model-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
@@ -65,7 +69,8 @@ def main():
                 start=time.perf_counter()
                 engine=Engine(binary,model,work,mode='pinned',logits=True,on_start=monitor.start,
                     extra_args=['--expert-cache-mib',str(capacity),'--pipeline-readers',str(readers),
-                                '--pipeline-chunk-mib',str(args.pipeline_chunk_mib),'--pipeline-batch',str(batch_copy)])
+                                '--pipeline-chunk-mib',str(args.pipeline_chunk_mib),'--pipeline-batch',str(batch_copy)]+
+                               (['--profile-delivery','1'] if args.profile_delivery else []))
                 row.update(ready_seconds=time.perf_counter()-start,info=engine.info)
                 for repeat in range(args.repeats):
                     for prompt in prompts:
