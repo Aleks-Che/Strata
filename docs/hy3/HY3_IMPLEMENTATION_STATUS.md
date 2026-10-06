@@ -8,16 +8,18 @@
 изолированные CPU oracles, проверку tokenizer/template и исправление MTP load flags.
 HY3-02 закрыл P0 числовыми CUDA fixtures и проверками main/MTP graph/state.
 HY3-03 добавил синхронный selected-copy runtime, подтвердил точное совпадение
-token IDs/logits и измерил baseline на полном GGUF. HTTP/UI, кэш, конвейер
-и MTP-ускорение пока не реализованы. HY3-04 проверил восстановление после
-управляемых отказов и добавил отдельный template/reasoning/tool parser.
+token IDs/logits и измерил baseline на полном GGUF. HY3-04 проверил восстановление после
+управляемых отказов и добавил отдельный template/reasoning/tool parser. HY3-05
+подключил отдельный профиль к Service, обоим HTTP API и веб-чату; полный GGUF
+прошёл tool/result continuation и disconnect/recovery. Кэш, конвейер
+и MTP-ускорение пока не реализованы.
 
 ## Текущее состояние
 
 | Область | Статус |
 |---|---|
 | Подготовка PREP-01 | DONE: исследование, план и этот статус |
-| Репозиторий HY3-03/HY3-04 | `51125bdbc03f700608584d650e94666bec18c16b`; изменения обеих итераций без commit |
+| Репозиторий HY3-05 | `9995b3fd3395cd839869a23a72ccc12ff56a544f`; изменения HY3-05 без commit |
 | Модель | `H:\models\hy3\Hy3-Q3_K_M-mtp.gguf`, один файл, 127,083 ГиБ |
 | Формат | `hy_v3`, GGUF v3, 1298 тензоров, 43 metadata records |
 | Состав | 80 основных блоков, 1 MTP; dense0, MoE1..79, MoE80+NextN |
@@ -29,13 +31,13 @@ token IDs/logits и измерил baseline на полном GGUF. HTTP/UI, к�
 | Native engine | DONE HY3-03: Windows pipe, GPU-only, sync selected-copy, MTP-off |
 | Восстановление после отказов | HY3-04: pinned OOM, partial ReadFile/cancel, simulated RAM/VRAM, unload/reload; 32/32 checks |
 | Reasoning/tool parser | HY3-04: 17 tests /7327 fragmentation sequences, adapter144/144 native comparisons |
-| HTTP / UI | TODO |
+| HTTP / UI | HY3-05 PASS: OpenAI/Anthropic JSON/SSE, tools, cancellation, отдельный профиль и реальный browser chat |
 | Кэш / pipeline / sessions | TODO |
 | Полный GGUF | 6 prompts + 2 повтора в каждом режиме; точные logits/IDs, STOP/recovery PASS |
-| Tool/result/answer на полном GGUF | HY3-04 PASS: `get_temperature({"city":"Paris"})` → локальный результат17 → `17 C`; без HTTP |
+| Tool/result/answer на полном GGUF | HY3-04 direct pipe; HY3-05 HTTP PASS: `get_temperature({"city":"Paris"})` → локальный результат17 → `17 C`; точные IDs |
 | Локальная скорость, токенов/с | pinned **1,219**, native **2,086** на 37 decode-шагов en+code; последовательные наблюдения, не A/B |
 | Настройки baseline | Context2048/batch17/F32 KV, pinned16 МиБ; MTP/cache/pipeline/TF32/fusion off |
-| Следующая задача | **HY3-05: P2.4/P2.5 — request adapters, Service/HTTP и отдельный профиль** |
+| Следующая задача | **HY3-06: P3.1 — ограниченный GPU-кэш экспертов, parity и счётчики попаданий/H2D** |
 
 Созданы изолированный `backends/hy3`, tools/tests и отчёты. В общем Python
 tokenizer добавлен `hunyuan-dense`; действующие профили и модель не изменялись.
@@ -78,13 +80,15 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 - Независимый полноразмерный CPU/F32 oracle: full-model parity проверен между
   двумя путями доставки одного native GPU graph; GPU-resident oracle — на fixtures.
 - Flash Attention, F16 KV, production контекст длиннее проверенных 362 prompt tokens.
-- Подключение parser к Service/HTTP и toolcall round-trip через оба API.
+- Полноразмерная generation-проверка low/high и stochastic sampling через HTTP;
+  эти effort modes проверены template fixtures и scripted HTTP, реальный corpus — no_think.
 - GPU timeline, физический SSD traffic, controlled performance A/B, настоящий
   driver OOM/device-loss recovery и внешнее давление памяти. Pinned OOM и
   RAM/VRAM availability injection проверены; Source-read bytes не равны SSD traffic.
 - MTP acceptance/скорость, speculative accept/reject driver, stochastic sampling
   и production sessions. Синтетические main/MTP KV rollback/restore проверены.
-- Рабочий профиль, HTTP/web chat, установка и регрессии других моделей.
+- Установка через общий setup, финальные быстрые defaults и full-model регрессии
+  других моделей; отдельный Hy3-профиль, HTTP/web chat и CPU-регрессии уже проверены.
 
 ## Таблица этапов
 
@@ -93,16 +97,31 @@ tokenizer добавлен `hunyuan-dense`; действующие профил�
 | PREP-01 | DONE | Проверены заголовок/исходники; создана документация |
 | P0 — contract/dependency/oracles | DONE HY3-01/HY3-02 | Header/contract/oracles, CUDA kernels, synthetic main/MTP graph и KV |
 | P1 — sync GPU baseline | P1.1–P1.3 DONE; P1.4 controlled failures PASS | Полный GGUF/parity/метрики готовы; настоящий driver OOM и внешний pressure не проверены |
-| P2 — tokenizer/template/API | P2.1–P2.3 готовы в проверенном объёме; API TODO | Request adapters, Service/profile, JSON/SSE, cancel/recovery |
+| P2 — tokenizer/template/API | DONE HY3-04/HY3-05 в проверенном объёме | Native parity, request adapters, оба API, tools, cancel/recovery, профиль и web smoke |
 | P3 — cache/pipeline | TODO | Bytes/logits parity, overlap, pressure checks и A/B |
 | P4 — sessions/context | TODO | Fresh vs restored/shifted parity и bounded memory |
 | P5 — native MTP | TODO | Correctness, rollback и выигрыш относительно оптимизированного off |
-| P6 — profile/release checks | TODO | Воспроизводимые замеры, defaults и регрессии |
+| P6 — profile/release checks | Частично: experimental profile/CPU regressions HY3-05 | Остались финальные замеры/defaults и release checks |
 
 `DONE` относится только к указанному объёму. `IN PROGRESS` не означает,
 что модель уже может генерировать. Не закрывать P0 по факту успешного чтения header.
 
-## Точка продолжения: HY3-05
+## Точка продолжения: HY3-06
+
+1. Добавить bounded GPU matrix cache в selected-copy путь, по образцу Step,
+   с ключом model generation/layer/tensor/expert/type и явным ограничением VRAM.
+   Начать с MTP-off, synchronous transport и нулевого кэша как контрольного варианта.
+2. Проверить точные bytes/logits/greedy IDs на F32 и mixed fixtures, batch1/17,
+   hit/miss/eviction, cancel/recovery и unload/reload. Старые ссылки кэша
+   не должны переживать смену model generation.
+3. Считать GPU hit/miss, bytes from file/RAM и реальные H2D bytes отдельно;
+   подтвердить сокращение H2D при повторе одинакового corpus полного GGUF.
+   Не выдавать уменьшение source-read bytes за физический SSD traffic.
+4. Перебрать cap8/12/16 ГиБ только после runtime clamp с учётом global95%,
+   non-routed8,604 ГиБ, KV/graph/scratch и внешней нагрузки. Сначала parity,
+   затем повторные A/B скорости; после этого — P3.2 async pipeline.
+
+### Архивная точка перед HY3-05
 
 1. Добавить OpenAI/Anthropic request adapters в `serve/hy3.py`: call/result IDs,
    text blocks, `no_think/low/high`, `preserved_thinking`, точные ошибки на
@@ -642,6 +661,110 @@ python tools/check_hy3_dialogue.py --engine build-local/hy3-cuda/bin/strata-hy3.
 **Следующий шаг:** HY3-05 — P2.4/P2.5, request adapters и отдельный профиль,
 подключение к Service/HTTP, JSON/SSE/tool round-trip/cancellation. Parser импортируется
 отдельно и пока не включён в сервер. UI, sessions, cache/pipeline и MTP остаются TODO.
+
+### HY3-05 / P2.4–P2.5 — 2026-10-06 — Service, HTTP и веб-чат
+
+**Основание:** HEAD `9995b3fd3395cd839869a23a72ccc12ff56a544f`, изменения
+этого этапа без commit. C++ engine не менялся, SHA-256
+`f5cf4dd25611a9173e3cb5d2b4828204babbb959b71f73b99fbb46edb02180c7`.
+Header/template/dependency — те же, что в HY3-04. Текущие Python/JS hashes,
+список regression modules и результаты сохранены в
+[HY3_HTTP_VALIDATION.json](HY3_HTTP_VALIDATION.json). Старые HY3-04 parser
+и model reports сохранены как исторические результаты прежнего Python-кода.
+
+**Изменено:** OpenAI/Anthropic request adapters в `serve/hy3.py`, регистрация
+архитектуры в Service, определение начального reasoning по реальному prefix,
+проверка special token spellings/types/metadata до engine startup. На этом
+tokenizer только EOS120025 завершает генерацию; PAD/placeholder не обрывают ответ.
+Tools сохраняют call/result IDs и порядок history; строковые OpenAI arguments
+разбираются в конечный JSON object до Jinja. Media, hard reasoning budgets,
+чужие template options и некорректные arguments получают HTTP400 до engine.
+
+Режим по умолчанию — `no_think`, доступны `low/high` и `preserved_thinking`.
+В Anthropic disabled означает no_think, enabled/adaptive — high;
+`output_config.effort` уточняет effort, затем применяются явные template kwargs.
+Противоречивые thinking/effort отвергаются. Общие настройки не перезаписывают
+явный Anthropic thinking. Другие модели сохраняют прежние ветви нормализации.
+В веб-настройках Hy3 показывает Off/Low/High и скрывает Medium/Max.
+
+`tools/prepare_hy3_profile.py` создаёт tokenizer и `hy3.json` только в новом
+каталоге, проверяет header и identity сборки. Рабочий локальный профиль:
+`build-local/hy3-http-p2/hy3.json`. Настройки: host127.0.0.1, context2048,
+batch17, F32 KV, synchronous pinned16 МиБ, temperature0, MTP/cache/pipeline off.
+`fit_max_tokens=true` уменьшает только лимит ответа, не обрезает prompt.
+Это experimental baseline; ускоренные defaults ещё не подбирались.
+
+**CPU и регрессии — PASS:**
+
+- **276 unittest tests**, 0 failures/errors/skips: Hy3 parser/adapters/profile,
+  loopback JSON/SSE и регрессии Step, GLM, DeepSeek, общего Service, lifecycle,
+  structured output, detokenizer и tokenizer. Точный список22 modules — в отчёте.
+- В Hy3 loopback проверены оба API × JSON/SSE × три effort режима; Unicode,
+  usage/EOG, tools/result/answer, stop/length, HTTP400 и следующий запрос,
+  disconnect в очереди/prefill/reasoning/partial tool и восстановление.
+  Эти сочетания используют scripted engine, а не полный GGUF.
+- **144/144** native template/token-ID comparisons для текущего adapter:
+  [HY3_HTTP_TEMPLATE_VALIDATION.json](HY3_HTTP_TEMPLATE_VALIDATION.json).
+- Два Node checks веб-настроек: Hy3/GLM/Step/Qwen и существующий GLM/Qwen.
+  В исходном расширенном прогоне обнаружены два устаревших ожидания в
+  `serve/test_glm5next_profile.py`: не учтены существующие pipeline/MTP args
+  и ошибочно предполагалось, что memory flags стоят последними. Исправлены
+  только тесты; повтор всех276 прошёл. GLM exporter/defaults не менялись.
+
+**Полный GGUF, production Service/StrataEngine, loopback HTTP — PASS:**
+[HY3_HTTP_MODEL_VALIDATION.json](HY3_HTTP_MODEL_VALIDATION.json).
+
+1. Вопрос `Сколько будет 2 + 2? Ответь одной цифрой.` прошёл через обе API
+   формы и оба transport режима:34 prompt tokens,2 output tokens с EOS,
+   ответ4. Все четыре prompts/outputs совпали по IDs.
+2. OpenAI JSON вернул один `get_temperature({"city":"Paris"})`,211 prompt /
+   19 output tokens с EOS. Его ID и локальный результат17 переданы через
+   Anthropic SSE;253 prompt /3 output tokens с EOS, ответ **`17 C`**.
+   Оба фактических prompts и полные output IDs точно совпали с HY3-04
+   direct-dialogue reference на том же бинарном файле. Внешних tools не было.
+3. Клиент отключён во время prefill778-token запроса после первого PP17;
+   runtime вернул `cancel`, очередь освободилась через **3,753с** после
+   закрытия сокета. Следующий34-token запрос воспроизвёл те же IDs/ответ4.
+   Итого7 успешных генераций и1 отмена; engine exit0.
+4. /health, /v1/models, /settings и HTML веб-чата отдали HTTP200 и Hy3 capabilities.
+
+На RTX5090, Windows/driver581.80,128GB установленной RAM, указанном GGUF и
+greedy no_think: tool call prefill **76,178с**, generation **15,396с**;
+continuation prefill **94,639с**, generation **1,604с**. Это correctness-прогон
+без performance A/B. Sampled global peak RAM **35,403 ГиБ**, VRAM **14 360 МиБ**,
+ошибок95% monitor нет. Интервалы RAM≈0,5с/GPU≈2с не исключают короткие пики.
+Сохранён прежний P1 baseline; ускорение этим этапом не заявляется.
+
+**Реальный веб-чат — PASS:** server.main с этим CLI-профилем, browser UI,
+temperature0/max_tokens32; вопрос выше дал видимый ответ4 и состояние Idle.
+Reasoning не попал в обычный текст. В интерфейсе Off выбран по умолчанию,
+Low/High доступны. Запрос/ответ, память и exit codes:
+[HY3_HTTP_UI_VALIDATION.json](HY3_HTTP_UI_VALIDATION.json);
+[снимок](HY3_HTTP_UI_SMOKE.png). Browser tab и тестовые server/engine закрыты,
+оба exit0. UI-скорость на двух output tokens не используется как benchmark.
+
+**Воспроизведение:** команды экспорта, запуска, HTTP и CPU checks находятся в
+[backend README](../../backends/hy3/README.md#experimental-http-profile).
+Локальный уже созданный профиль запускается так:
+
+```powershell
+python -m serve.server --engine strata --config build-local/hy3-http-p2/hy3.json --port 8094
+python tools/check_hy3_http.py --profile build-local/hy3-http-p2/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/http-new
+python -m unittest serve.test_hy3 serve.test_hy3_http tools.test_hy3_profile
+node serve/test_hy3_settings_ui.cjs
+python tools/check_hy3_template.py --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --runtime-adapter --output docs/hy3/HY3_HTTP_TEMPLATE_VALIDATION.json
+```
+
+Server и checker запускать по очереди: checker сам создаёт engine и временный
+loopback listener. Raw logs: `build-local/hy3-tests/http-01`, UI-runner/report:
+`build-local/hy3-tests/ui-01` и `ui-smoke-runner.py` рядом. Для повтора выбирать
+новый output directory. Все перечисленные финальные команды завершились с exit0.
+
+**Не закрыто:** full-model low/high/stochastic corpus, production sessions,
+F16 KV/Flash Attention, длинный контекст, driver OOM/external pressure,
+общий installer и speed defaults. Следующий шаг **HY3-06 / P3.1** — bounded
+GPU expert cache: exact logits/IDs, hit/miss/eviction и снижение H2D;
+затем P3.2 async pipeline и контролируемые A/B.
 
 ## Правила обновления
 

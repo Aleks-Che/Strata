@@ -30,6 +30,13 @@ P1.4 остаётся частично открытым для настояще�
 Ниже размеры весов рассчитаны по tensor directory; бюджеты и настройки —
 исходные варианты экспериментов, а не готовый быстрый профиль.
 
+Обновление HY3-05, 2026-10-06: P2.4/P2.5 выполнены в проверенном объёме.
+Отдельный профиль подключает Hy3 к Service, OpenAI/Anthropic JSON/SSE и веб-чату.
+Полный GGUF прошёл HTTP tool/result continuation с точными native IDs,
+отмену по disconnect и следующий запрос. 276 CPU tests и144 native template
+comparisons прошли. Кэш и асинхронный конвейер P3 остаются следующим этапом;
+скоростные defaults не выбраны.
+
 ## 1. Проверенные исходные данные
 
 ### 1.1. Файл, основная модель и MTP
@@ -291,8 +298,15 @@ CPU-expert режим, если понадобится, оценивать по�
   reasoning, JSON/SSE, usage/finish_reason, tools, отмена и следующий запрос.
   Преобразовать строковые OpenAI arguments в mapping до Jinja `.items()`;
   сохранять call IDs и порядок results. Ошибочные arguments не исполнять.
+  **DONE HY3-05:** JSON/SSE обоих API, request validation, реальные token-ID
+  comparisons, локальный tool/result round-trip, disconnect и следующий запрос.
+  Effort low/high проверен на scripted HTTP и template fixtures; full-model
+  HTTP corpus использует no_think. Подробности и границы — в статусе.
 - **P2.5:** отдельный профиль, список моделей, настройки UI и smoke API/web chat;
   initial bind `127.0.0.1`. Capability флаги включать после соответствующих тестов.
+  **DONE HY3-05:** exporter в новый каталог, строгая проверка tokenizer/template,
+  /health, /v1/models, /settings, переключатели Off/Low/High; реальный browser
+  chat через CLI-профиль ответил4. Это экспериментальный synchronous профиль.
 
 **Готово:** fixtures совпадают с шаблоном/oracle, полный цикл toolcall→result→answer
 проходит через оба API, потоковый и обычный ответы согласованы.
@@ -410,7 +424,7 @@ file read; MTP/cache/pipeline/fusion выключены. Остальной пе
 
 Inspector, contract, CPU oracles и проверки tokenizer/template созданы в HY3-01;
 CUDA fixtures — HY3-02; pipe engine, runtime/model checks — HY3-03.
-HTTP, profile и MTP checker в таблице ниже пока задают дальнейшие работы.
+HTTP checker и profile созданы в HY3-05; MTP checker остаётся будущей работой.
 
 | Область | Планируемые файлы |
 |---|---|
@@ -424,16 +438,16 @@ HTTP, profile и MTP checker в таблице ниже пока задают д
 Порядок: **P0 → P1 → P2/P3 → P4 → P5 → P6**. Tokenizer P2.1 можно
 делать во время P0. MTP-probe после P1/P3 допустим до полной готовности P4,
 но не должен объявлять поддержку MTP sessions до проверки rollback/restore.
-Следующий результат — P2.4/P2.5: подключение adapter к Service, оба HTTP API и профиль;
+Следующий результат — P3.1: bounded GPU matrix cache с точной parity и метриками;
 подробнее в [статусе](HY3_IMPLEMENTATION_STATUS.md).
 
 ## 7. Контроль завершения
 
 - [x] Строгий contract принят для локального GGUF, dependency закреплена (HY3-01).
 - [x] Full-model inference и logits/token parity подтверждены на GPU (HY3-03, MTP-off).
-- [ ] Реализованы tokenizer/template, reasoning, tools и API.
+- [x] Реализованы tokenizer/template, reasoning, tools и API (HY3-04/HY3-05, границы в статусе).
 - [ ] Кэш и асинхронный pipeline корректны и дают измеренный эффект.
 - [ ] Глобальные бюджеты RAM/VRAM и pressure/cancel/unload проверены.
 - [ ] Сессии и заявленные контексты работают после restore/shift.
 - [ ] MTP проверен на корректность и скорость; default обоснован A/B.
-- [ ] Есть отдельный профиль, замеры и регрессии существующих моделей.
+- [ ] Финальный быстрый профиль и замеры P6; экспериментальный профиль и CPU-регрессии готовы в HY3-05.

@@ -196,7 +196,7 @@ refusal and recovers. Real driver OOM/device-loss recovery and external memory
 pressure are not established by these synthetic failures.
 
 Full-model speed tuning, long context, Flash Attention,
-F16 KV, MTP, HTTP and session persistence remain separate stages.
+F16 KV, MTP and session persistence remain separate stages.
 
 Hy3's separate template/parser module lives in `serve/hy3.py`. Its reviewed
 fixture and CPU tests are described in `serve/fixtures/README.md`. A full-model
@@ -204,6 +204,44 @@ tool/result check uses a fixed local stub, with no external tool execution:
 
 ```powershell
 python tools/check_hy3_dialogue.py --engine build-local/hy3-cuda/bin/strata-hy3.exe --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --cuda-bin build-local/cuda-13.0/bin/x64 --template-oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --output-dir build-local/hy3-tests/dialogue-new
+```
+
+## Experimental HTTP profile
+
+Export the reviewed tokenizer/template and an explicit profile into a **new**
+directory. This leaves the existing profiles unchanged. The exporter checks the
+model header, engine source/patch identity, template and special token IDs.
+
+```powershell
+python tools/prepare_hy3_profile.py --model H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --engine build-local/hy3-cuda/bin/strata-hy3.exe --output-dir build-local/hy3-http-new --cuda-dir build-local/cuda-13.0
+python -m serve.server --engine strata --config build-local/hy3-http-new/hy3.json --port 8094
+```
+
+The server binds to `127.0.0.1`. It serves the web app, `/v1/models`, OpenAI
+`/v1/chat/completions` and Anthropic `/v1/messages`, including JSON and SSE.
+The profile uses the synchronous pinned baseline, context2048, batch17, F32 KV
+and temperature0; MTP, expert cache, pipeline and persistent sessions remain off.
+`fit_max_tokens` reduces the requested output cap to the available context space;
+it never truncates the prompt. This profile is for validation, not a speed default.
+
+Hy3 defaults to `no_think`. OpenAI accepts `reasoning_effort` (or
+`reasoning.effort`); Anthropic accepts `output_config.effort`, or
+`thinking.type=disabled/enabled/adaptive` (no_think/high/high). Explicit
+`chat_template_kwargs.reasoning_effort` takes priority; contradictory Anthropic
+thinking controls are rejected. Both APIs accept `preserved_thinking` directly
+or in `chat_template_kwargs`. Efforts are exactly `no_think`, `low`, `high`.
+Hard token reasoning budgets, `enable_thinking`, `clear_thinking` and media
+blocks are unsupported. EOS is resolved and checked from the exported tokenizer;
+only120025 ends generation for this model, not PAD or placeholder120026.
+
+The real HTTP checker requires the same binary as the passing direct-dialogue
+reference. It compares prompts/output IDs, runs a local tool/result round-trip,
+checks prefill disconnect/recovery, and samples global RAM/VRAM under a95% guard:
+
+```powershell
+python tools/check_hy3_http.py --profile build-local/hy3-http-new/hy3.json --reference docs/hy3/HY3_TOOL_DIALOGUE_VALIDATION.json --output-dir build-local/hy3-tests/http-new
+python -m unittest serve.test_hy3 serve.test_hy3_http tools.test_hy3_profile
+node serve/test_hy3_settings_ui.cjs
 ```
 
 [Plan](../../docs/hy3/HY3_IMPLEMENTATION_PLAN.md) and

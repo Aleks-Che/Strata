@@ -278,5 +278,16 @@ Checks: `python -m unittest serve.test_hy3` and native rendering/token-ID parity
 python tools/check_hy3_template.py --gguf H:/models/hy3/Hy3-Q3_K_M-mtp.gguf --oracle build-local/hy3-oracles/bin/strata-hy3-template.exe --tokenizer-oracle build-local/hy3-oracles/bin/strata-hy3-tokenizer.exe --runtime-adapter --output docs/hy3/HY3_ADAPTER_TEMPLATE_VALIDATION.json
 ```
 
-HTTP request adapters, Service/profile registration and both API round-trips
-remain separate P2.4/P2.5 work. Importing this module changes no existing model.
+An explicit `architecture: hy_v3` profile selects this adapter in Service.
+OpenAI and Anthropic request adapters preserve tool IDs/result order and map
+reasoning controls to `no_think/low/high`. The actual rendered prefix determines
+whether output starts inside reasoning. Strict tokenizer admission checks
+control spellings/types and metadata before the engine starts. Only the verified
+EOS ends generation; PAD and the placeholder do not.
+
+`python -m unittest serve.test_hy3_http tools.test_hy3_profile` checks admission,
+both APIs over loopback JSON/SSE, typed tools/results, stops, length, usage,
+disconnects and recovery using a scripted engine. The web settings check is
+`node serve/test_hy3_settings_ui.cjs`. Full-model HTTP validation and profile
+commands are in [the backend README](../../backends/hy3/README.md#experimental-http-profile).
+Importing this module changes no existing model.

@@ -739,6 +739,13 @@ def configured_template(cfg: dict, tok, tokenizer_path: Path):
     """Validate an architecture's tokenizer/template before starting its engine."""
     tpl = tokenizer_path / "chat_template.jinja"
     architecture = cfg.get("architecture")
+    if architecture == "hy_v3":
+        from serve.hy3 import Hy3Template
+        try:
+            Hy3Template.resolve_stop_ids(tok)
+            return Hy3Template(tpl)
+        except (ValueError, OSError, AttributeError) as exc:
+            raise SystemExit(f"Invalid Hy3 tokenizer/template: {exc}") from exc
     if architecture == "step35":
         from serve.step35 import StepTemplate
         try:
@@ -1160,7 +1167,8 @@ class Service:
                         req["reasoning_effort"] = effort
                 elif api == "anthropic":
                     config = req.get("output_config") or {}
-                    if isinstance(config, dict) and "effort" not in config:
+                    if isinstance(config, dict) and "effort" not in config and not (
+                            getattr(self.template, "explicit_thinking_controls_effort", False) and "thinking" in req):
                         req["output_config"] = {**config, "effort": effort}
         elif effort:
             if api == "openai":
@@ -1457,7 +1465,9 @@ class Service:
                 raise ValueError(f"prompt ({len(ids)} tokens) + max tokens ({max_new}) exceeds the context "
                                  f"({self.engine.max_context}); requests are never truncated")
             max_new = max(1, room)          # --fit-max-tokens: a shorter completion beats a 400
-        return ids, kwargs.get("enable_thinking", True) is not False, max_new
+        starts_in_reasoning = getattr(self.template, "starts_in_reasoning", None)
+        thinking = starts_in_reasoning(prompt) if starts_in_reasoning else kwargs.get("enable_thinking", True) is not False
+        return ids, thinking, max_new
 
     def _note(self, n, evs):
         with self.status_lock:

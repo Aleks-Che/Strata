@@ -1,6 +1,6 @@
 """Reviewed Hy3 template and incremental reasoning/tool output parser.
 
-No server/profile registration yet. Tools become actionable only after the
+Selected only by an explicit hy_v3 profile. Tools become actionable only after the
 whole tool_calls group is complete and valid. Invalid groups stay literal text.
 """
 from __future__ import annotations
@@ -90,11 +90,195 @@ def _arguments(value):
         raise TemplateRequestError('Hy3 arguments must be an unambiguous finite JSON object') from error
 
 
+def _objects(value, field):
+    if value is None:
+        return []
+    if not isinstance(value, list) or any(not isinstance(x, dict) for x in value):
+        raise TemplateRequestError('Hy3 '+field+' must be a list of objects')
+    return value
+
+
+def _identifier(value):
+    if not isinstance(value, str) or not value:
+        raise TemplateRequestError('Hy3 tool call/result IDs must be nonempty strings')
+    return value
+
+
+def _content(value):
+    if value is None or isinstance(value, str):
+        return value or ''
+    parts = _objects(value, 'content')
+    if any(p.get('type') not in ('text', 'input_text') or not isinstance(p.get('text'), str) for p in parts):
+        raise TemplateRequestError('Hy3 supports text content only')
+    return ''.join(p['text'] for p in parts)
+
+
+def _options(req, api):
+    if not isinstance(req, dict):
+        raise TemplateRequestError('Hy3 request must be an object')
+    stop_sequences(req)
+    if 'enable_thinking' in req or 'clear_thinking' in req:
+        raise TemplateRequestError('Hy3 uses reasoning_effort and preserved_thinking')
+    if req.get('reasoning_budget_tokens') not in (None, 0):
+        raise TemplateRequestError('Hy3 hard reasoning budgets are not supported')
+    result = {}
+    thinking = None
+    if api == 'openai':
+        reasoning = req.get('reasoning', {})
+        if not isinstance(reasoning, dict):
+            raise TemplateRequestError('reasoning must be an object')
+        if 'effort' in reasoning:
+            result['reasoning_effort'] = reasoning['effort']
+        if 'reasoning_effort' in req:
+            result['reasoning_effort'] = req['reasoning_effort']
+    else:
+        thinking = req.get('thinking')
+        if thinking is not None:
+            if not isinstance(thinking, dict) or thinking.get('type') not in ('disabled', 'enabled', 'adaptive'):
+                raise TemplateRequestError('Hy3 thinking.type must be disabled, enabled or adaptive')
+            if 'budget_tokens' in thinking:
+                raise TemplateRequestError('Hy3 does not convert budget_tokens to effort')
+            result['reasoning_effort'] = 'no_think' if thinking['type'] == 'disabled' else 'high'
+        config = req.get('output_config', {})
+        if not isinstance(config, dict):
+            raise TemplateRequestError('output_config must be an object')
+        if 'effort' in config:
+            result['reasoning_effort'] = config['effort']
+    if 'preserved_thinking' in req:
+        result['preserved_thinking'] = req['preserved_thinking']
+    overrides = req.get('chat_template_kwargs', {})
+    if not isinstance(overrides, dict) or set(overrides)-{'reasoning_effort', 'preserved_thinking'}:
+        raise TemplateRequestError('Hy3 chat_template_kwargs accepts only reasoning_effort and preserved_thinking')
+    result.update(overrides)
+    effort = result.get('reasoning_effort', 'no_think')
+    if effort not in EFFORTS:
+        raise TemplateRequestError('Hy3 reasoning_effort must be no_think, low or high')
+    if thinking and (thinking['type'] == 'disabled') != (effort == 'no_think'):
+        raise TemplateRequestError('Hy3 thinking.type conflicts with reasoning_effort')
+    if 'preserved_thinking' in result and type(result['preserved_thinking']) is not bool:
+        raise TemplateRequestError('Hy3 preserved_thinking must be boolean')
+    return result
+
+
+def openai_to_hy3_messages(req):
+    options = _options(req, 'openai')
+    messages = deepcopy(_objects(req.get('messages'), 'messages'))
+    if not messages:
+        raise TemplateRequestError('Hy3 requires at least one message')
+    for message in messages:
+        if message.get('role') == 'developer':
+            message['role'] = 'system'
+        if message.get('role') not in ('system', 'user', 'assistant', 'tool'):
+            raise TemplateRequestError('unsupported Hy3 message role')
+        message['content'] = _content(message.get('content'))
+        if message['role'] == 'tool':
+            _identifier(message.get('tool_call_id'))
+        for call in _objects(message.get('tool_calls'), 'tool_calls'):
+            if message['role'] != 'assistant' or call.get('type', 'function') != 'function':
+                raise TemplateRequestError('Hy3 function calls belong to assistant messages')
+            _identifier(call.get('id'))
+            function = call.get('function')
+            if not isinstance(function, dict):
+                raise TemplateRequestError('Hy3 tool call requires a function')
+            _name(function.get('name'))
+            function['arguments'] = _arguments(function.get('arguments', {}))
+    return messages, _tools(req.get('tools')), options
+
+
+def anthropic_to_hy3_messages(req, think_unasked=True):
+    # The model's no_think default is explicit, independent of Qwen's opt-in policy.
+    options = _options(req, 'anthropic')
+    messages = []
+    if req.get('system'):
+        messages.append({'role': 'system', 'content': _content(req['system'])})
+    incoming = _objects(req.get('messages'), 'messages')
+    if not incoming:
+        raise TemplateRequestError('Hy3 requires at least one message')
+    for message in incoming:
+        role, content = message.get('role'), message.get('content')
+        if role not in ('user', 'assistant'):
+            raise TemplateRequestError('Anthropic Hy3 messages require user or assistant role')
+        if content is None or isinstance(content, str):
+            messages.append({'role': role, 'content': _content(content)})
+            continue
+        out = {'role': role, 'content': ''}
+
+        def flush():
+            nonlocal out
+            if out['content'] or 'reasoning_content' in out or out.get('tool_calls'):
+                messages.append(out)
+            out = {'role': role, 'content': ''}
+
+        for block in _objects(content, 'content'):
+            kind = block.get('type')
+            if kind == 'text':
+                if out.get('tool_calls'):
+                    flush()
+                out['content'] += _content([block])
+            elif kind == 'thinking' and role == 'assistant':
+                if not isinstance(block.get('thinking'), str):
+                    raise TemplateRequestError('Hy3 thinking content must be text')
+                if out['content'] or out.get('tool_calls'):
+                    flush()
+                out['reasoning_content'] = out.get('reasoning_content', '')+block['thinking']
+            elif kind == 'tool_use' and role == 'assistant':
+                out.setdefault('tool_calls', []).append({'id': _identifier(block.get('id')), 'type': 'function',
+                    'function': {'name': _name(block.get('name')), 'arguments': _arguments(block.get('input', {}))}})
+            elif kind == 'tool_result' and role == 'user':
+                flush()
+                text = _content(block.get('content'))
+                if block.get('is_error'):
+                    text = 'Error: '+text
+                messages.append({'role': 'tool', 'tool_call_id': _identifier(block.get('tool_use_id')), 'content': text})
+            else:
+                raise TemplateRequestError('unsupported Anthropic Hy3 content block: '+str(kind))
+        flush()
+    tools = [{'type': 'function', 'function': {'name': _name(t.get('name')), 'description': t.get('description', ''),
+              'parameters': deepcopy(t.get('input_schema', {}))}} for t in _objects(req.get('tools'), 'tools')]
+    return messages, _tools(tools), options
+
+
 class Hy3Template(ChatTemplate):
     architecture = 'hy_v3'
     reasoning_capabilities = {'efforts': list(EFFORTS), 'default': 'no_think',
                               'replay_reasoning': True, 'clear_thinking': False}
     supports_reasoning_budget = False
+    explicit_thinking_controls_effort = True
+    normalize_openai = staticmethod(openai_to_hy3_messages)
+    normalize_anthropic = staticmethod(anthropic_to_hy3_messages)
+
+    @staticmethod
+    def starts_in_reasoning(prompt):
+        return prompt.endswith(THINK_START)
+
+    @staticmethod
+    def resolve_stop_ids(tokenizer):
+        if tokenizer.pre != 'hunyuan-dense':
+            raise ValueError('Hy3 requires hunyuan-dense tokenizer')
+        controls = {'bos': '<｜hy_begin_of_sentence:opensource｜>', 'eos': '<｜hy_eos:opensource｜>',
+                    'padding': '<｜hy_pad:opensource｜>', 'seperator': '<｜hy_Assistant:opensource｜>'}
+        required = {**{v: 3 for v in controls.values()}, '<｜hy_User:opensource｜>': 3,
+                    '<｜reasoning_mode:opensource｜>': 3,
+                    **{v: 4 for v in (THINK_START, THINK_END, GROUP_START, GROUP_END, CALL_START, CALL_END,
+                       SEPARATOR, KEY_START, KEY_END, VALUE_START, VALUE_END,
+                       '<tool_responses:opensource>', '</tool_responses:opensource>',
+                       '<tool_response:opensource>', '</tool_response:opensource>')}}
+        for spelling, kind in required.items():
+            token_id = tokenizer.ids.get(spelling)
+            if (type(token_id) is not int or not 0 <= token_id < len(tokenizer.tokens)
+                    or tokenizer.tokens[token_id] != spelling or tokenizer.token_types is None
+                    or len(tokenizer.token_types) != len(tokenizer.tokens) or tokenizer.token_types[token_id] != kind):
+                raise ValueError('Hy3 tokenizer missing or altered special token: '+spelling)
+        for key, spelling in controls.items():
+            value = tokenizer.special_ids.get('tokenizer.ggml.'+key+'_token_id')
+            if type(value) is not int or value != tokenizer.ids[spelling]:
+                raise ValueError('Hy3 metadata disagrees with '+key)
+        eos = tokenizer.ids[controls['eos']]
+        for key in ('eot', 'eom', 'eod'):
+            value = tokenizer.special_ids.get('tokenizer.ggml.'+key+'_token_id')
+            if value is not None and (type(value) is not int or value != eos):
+                raise ValueError('unreviewed Hy3 '+key+' stop')
+        return {eos}
 
     def __init__(self, path):
         if hashlib.sha256(Path(path).read_bytes()).hexdigest() != TEMPLATE_SHA256:

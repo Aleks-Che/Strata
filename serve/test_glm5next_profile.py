@@ -52,7 +52,8 @@ class ProfileTests(unittest.TestCase):
                 cfg=prepare_profile(report,exe,profile)
                 self.assertEqual(cfg['host'],'127.0.0.1')
                 self.assertEqual(cfg['architecture'],'glm5next')
-                self.assertEqual(cfg['args'],['--native',report['first_shard'],'--max-context','2048','--batch-size','16','--threads','4'])
+                self.assertEqual(cfg['args'],['--native',report['first_shard'],'--max-context','2048','--batch-size','16','--threads','4',
+                    '--expert-pipeline','0','--expert-chunk-mib','4','--mtp','0','--mtp-cache-mib','512'])
                 self.assertEqual(json.loads(profile.read_text()),cfg)
                 extract.assert_called_once()
                 with self.assertRaises(ValueError): prepare_profile(report,exe,profile)
@@ -75,7 +76,8 @@ class ProfileTests(unittest.TestCase):
                  patch('tools.strata_tokenizer.extract'):
                 cfg=prepare_profile({'first_shard':'model.gguf'},exe,root/'profile.json',
                                     ram_target_percent=90,vram_target_percent=95)
-            self.assertEqual(cfg['args'][-4:],['--ram-target-percent','90','--vram-target-percent','95'])
+            for flag, value in (('--ram-target-percent', '90'), ('--vram-target-percent', '95')):
+                self.assertEqual(cfg['args'][cfg['args'].index(flag)+1], value)
 
 
 if __name__=='__main__': unittest.main()

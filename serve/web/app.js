@@ -1399,7 +1399,9 @@ function outputs() {
   $("o-topk").textContent = $("s-topk").value;
   const sel = [...$("s-thinking").children].find((b) => b.getAttribute("aria-checked") === "true");
   const caps = reasoningCapabilities();
-  $("o-thinking").textContent = sel ? (caps.efforts.includes("none") ?
+  $("o-thinking").textContent = sel ? (caps.efforts.includes("no_think") ?
+    ({no_think: "answers right away", low: "short", high: "thorough"}[sel.dataset.v] +
+      (sel.dataset.v === caps.default ? " · default" : "")) : caps.efforts.includes("none") ?
     {none: "answers right away", low: "short", medium: "medium", high: "thorough (default)"}[sel.dataset.v] :
     `reasoning always on${sel.dataset.v === caps.default ? " · default" : ""}`) : "";
   for (const id of ["s-topp", "s-topk"]) $(id).disabled = t === 0;

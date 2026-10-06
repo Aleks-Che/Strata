@@ -1,0 +1,75 @@
+{
+  "status": "pass",
+  "scope": "CPU adapters/parser, scripted loopback HTTP, profile admission; shared server and other-model regressions; no GPU",
+  "python": "3.12.7",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "modules": [
+    "serve.test_hy3",
+    "serve.test_hy3_http",
+    "tools.test_hy3_profile",
+    "serve.test_step35",
+    "serve.test_step35_http",
+    "tools.test_step35_profile",
+    "serve.test_glm5next",
+    "serve.test_glm5next_requests",
+    "serve.test_glm5next_service",
+    "serve.test_glm5next_handlers",
+    "serve.test_glm5next_http",
+    "serve.test_glm5next_settings",
+    "serve.test_glm5next_profile",
+    "tools.test_glm5next_profile",
+    "serve.test_deepseek",
+    "serve.test_server",
+    "serve.test_lifecycle",
+    "serve.test_detok",
+    "serve.test_structured",
+    "tools.test_hy3_tokenizer",
+    "tools.test_step35_tokenizer",
+    "tools.test_glm5next_tokenizer"
+  ],
+  "tests_run": 276,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "failure_details": [],
+  "elapsed_seconds": 109.88411380001344,
+  "source_sha256": {
+    "serve/hy3.py": "0bb6ac1472bbc5e29e0754836682a0a963bd22d480198ee80cded4e7a371d255",
+    "serve/server.py": "d0b1df9d03689ed55fce345ad8dbfc861771761d543d734a4773045223846f9b",
+    "serve/web/app.js": "652ba51397f1ca356a88760a600c3996adc3e6e3fca688105fb6c4c3c9fa6bba",
+    "serve/web/index.html": "d9729d62dc26a8125fb7b9e40d85ce0e89df2fdcc45e7ea1b466bcdf697cd3f6",
+    "tools/prepare_hy3_profile.py": "0ae674e0cdd444caa59ed0d97f5e99363772972e900ef22f68910ea76d02a86e",
+    "serve/test_hy3.py": "adfdbadff420e7fd6a47372d1c9df40fd21592d91d2b91233306d9c62a5936fe",
+    "serve/test_hy3_http.py": "f4061c6b48cfb8bc3a3f4b006a628b9605f3aa2c7f9756d60dc4ad850d7844ae",
+    "tools/test_hy3_profile.py": "3f2b738bbcb4b21a1769baa4ce3508b7d2ba0909ad0880eb6c2f175657eea122",
+    "serve/test_hy3_settings_ui.cjs": "c0ecb53080e77cff59445777dc7cf48635f6f3ea9a851922ca14e25ab73bb528",
+    "tools/check_hy3_http.py": "486aea58a298d87aeb179ec0ccc17c44a49e58713b324867dbbbf6336fe8299c",
+    "serve/test_glm5next_profile.py": "1af6e6c59ec1de8180d989642bd856836f16a0e19c388966ee61cc7c15f9f5e0"
+  },
+  "initial_failures": {
+    "count": 2,
+    "module": "serve.test_glm5next_profile",
+    "cause": "stale expectations omitted already-existing pipeline/MTP defaults and assumed memory flags came last",
+    "fix": "updated test expectations; GLM profile exporter unchanged"
+  },
+  "ui_checks": [
+    {
+      "command": [
+        "node",
+        "serve/test_hy3_settings_ui.cjs"
+      ],
+      "exit_code": 0,
+      "stdout": "Hy3/GLM/Step/Qwen web reasoning settings PASS\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "serve/test_glm5next_settings_ui.cjs"
+      ],
+      "exit_code": 0,
+      "stdout": "GLM and Qwen web settings checks passed\n",
+      "stderr": ""
+    }
+  ]
+}
