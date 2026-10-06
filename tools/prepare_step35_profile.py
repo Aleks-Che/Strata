@@ -2,6 +2,7 @@
 
 Does not select a default model, edit existing profiles or start a server.
 Compute settings follow STEP-08/09; STEP-10 RAM checks set the cache cap.
+The explicit optimized profile adds STEP-18 native allocation reuse/batching.
 This is not a hardware autotuner.
 """
 import argparse
@@ -37,7 +38,7 @@ def load_tokenizer(path):
                      pre=config['pre'], special_ids=config['special_ids'])
 
 
-def prepare(model, engine, directory, cuda_dir=None):
+def prepare(model, engine, directory, cuda_dir=None, optimized=False):
     engine, directory = Path(engine).resolve(), Path(directory).resolve()
     if directory.exists():
         raise ValueError('Destination exists; choose a new directory for the experimental profile')
@@ -71,6 +72,10 @@ def prepare(model, engine, directory, cuda_dir=None):
            'backend_identity': identity, 'engine_sha256': hashlib.sha256(engine.read_bytes()).hexdigest(),
            'model_structural_fingerprint': report['structural_fingerprint_sha256'],
            'validated_eog_ids': sorted(template.resolve_stop_ids(tokenizer))}
+    if optimized:
+        cfg['args'] += ['--expert-cache-reuse', 'on', '--expert-pipeline-batch', 'on']
+        cfg['experimental_optimizations'] = ['cache-reuse', 'pipeline-batch']
+        cfg['fit_max_tokens'] = True
     profile = directory / 'step37.json'
     with profile.open('x', encoding='utf8') as stream:
         json.dump(cfg, stream, ensure_ascii=False, indent=2)
@@ -83,9 +88,10 @@ def main():
     for name in ('model', 'engine', 'output-dir'):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--cuda-dir', type=Path)
+    parser.add_argument('--optimized', action='store_true', help='requires the STEP-18 native engine; enables allocation reuse and batched copies, MTP off')
     args = parser.parse_args()
     try:
-        profile = prepare(args.model, args.engine, args.output_dir, args.cuda_dir)
+        profile = prepare(args.model, args.engine, args.output_dir, args.cuda_dir, optimized=args.optimized)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         parser.exit(1, f'Step profile preparation failed: {exc}\n')
     print(profile)

@@ -30,12 +30,13 @@ def main():
     ap.add_argument('--tokens', type=int, default=128)
     ap.add_argument('--generation-prompt', type=Path, help='UTF-8 file with the generation prompt')
     ap.add_argument('--repeats', type=int, default=1, help='Number of warm repeats of the same prompt')
+    ap.add_argument('--prefill-repeats', type=int, default=0, help='Repeat full prefill in fresh sessions after decode; preserves expert cache, never restores KV')
     ap.add_argument('--timeout', type=int, default=240, help='Seconds per request, including prefill')
     ap.add_argument('--physical-disk', help='psutil disk name, e.g. PhysicalDrive6; records device-wide physical reads, including other processes')
     ap.add_argument('--output', type=Path, default=ROOT / 'bench/results' / f'deepseek4-{time.strftime("%Y%m%d-%H%M%S")}.json')
     args = ap.parse_args()
-    if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10:
-        ap.error('Require prompt-tokens >= 64, tokens >= 1, timeout >= 30, repeats in [1, 10]')
+    if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10 or not 0 <= args.prefill_repeats <= 10:
+        ap.error('Require prompt-tokens >= 64, tokens >= 1, timeout >= 30, repeats in [1, 10], prefill-repeats in [0, 10]')
     cfg = json.loads(args.config.read_text(encoding='utf-8'))
     if cfg.get('architecture') != 'deepseek4':
         ap.error('This benchmark requires a DeepSeek profile')
@@ -66,7 +67,7 @@ def main():
                       'system_cpu_percent': psutil.cpu_percent()}
             for child in psutil.Process().children(recursive=True):
                 try:
-                    if child.name() not in ('strata-deepseek4.exe', 'strata-deepseek4'):
+                    if child.name().lower() != Path(cfg['exe']).name.lower():
                         continue
                     proc = tracked.setdefault(child.pid, child)
                     sample.update(pid=proc.pid, cpu_percent=proc.cpu_percent() / psutil.cpu_count(),
@@ -107,16 +108,19 @@ def main():
             ('decode', 'bench-generation', generation, args.tokens),
         ] + [('repeat' if i==0 else f'repeat_{i+1}', 'bench-generation', generation, args.tokens)
              for i in range(args.repeats)]
+        requests += [(f'full_prefill_{i+1}', f'bench-fresh-prefill-{i+1}', prefill, 8)
+                     for i in range(args.prefill_repeats)]
         for name, session, prompt, count in requests:
             phase, deadline = name, time.monotonic() + args.timeout
             ids = tok.encode(template.render([{'role': 'user', 'content': prompt}], enable_thinking=False), parse_special=True)
-            if name == 'prefill':
+            if name == 'prefill' or name.startswith('full_prefill_'):
                 if len(ids) < args.prompt_tokens:
                     raise ValueError('Not enough tokens in generated benchmark prompt')
                 ids = ids[:args.prompt_tokens - 16] + ids[-16:]
             if len(ids) + count + 8 > engine.max_context:
                 raise ValueError('Prompt plus output exceeds configured context')
             started, output, cancel = time.monotonic(), [], threading.Event()
+            cpu_before = psutil.Process(engine.proc.pid).cpu_times()
             disk_before = disk_counters()
             timer = threading.Timer(args.timeout - 10, cancel.set)
             timer.start()
@@ -129,6 +133,10 @@ def main():
             timings = dict(engine.last)
             entry = {'elapsed_seconds': time.monotonic() - started, 'timings': timings,
                      'token_ids': output, 'text': tok.decode(output)}
+            cpu_after = psutil.Process(engine.proc.pid).cpu_times()
+            entry['process_cpu_seconds'] = cpu_after.user + cpu_after.system - cpu_before.user - cpu_before.system
+            if name.startswith('full_prefill_') and timings.get('reused', 0) != 0:
+                raise RuntimeError('Full prefill unexpectedly reused sequence state')
             entry['vram_status'] = dict(getattr(engine, 'vram_status', {}) or {})
             if disk_before is not None:
                 disk_after = disk_counters()
@@ -144,6 +152,11 @@ def main():
         result['repeat_identical'] = all(result['requests']['decode']['token_ids'] == entry['token_ids'] for entry in repeats)
         if not result['repeat_identical']:
             raise RuntimeError('Greedy cached repeat differs from original output')
+        if args.prefill_repeats:
+            full = [entry for name, entry in result['requests'].items() if name.startswith('full_prefill_')]
+            result['full_prefill_median_ms'] = statistics.median(entry['timings']['prompt_ms'] for entry in full)
+            if any(entry['token_ids'] != result['requests']['prefill']['token_ids'] for entry in full):
+                raise RuntimeError('Repeated full prefill output differs')
     finally:
         if engine:
             engine.close()

@@ -46,20 +46,26 @@ def wait_for(predicate, timeout=240, engine=None):
         time.sleep(.05)
 
 
-def run(profile, reference, output):
+def run(profile, reference, output, allow_engine_change=False, lifecycle=False):
     output.mkdir(parents=True, exist_ok=False)
     cfg = json.loads(profile.read_text(encoding='utf8'))
     ref = json.loads(reference.read_text(encoding='utf8'))
     if cfg['architecture'] != 'step35' or ref['status'] != 'pass':
         raise ValueError('Step profile and passing reference required')
-    if hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest() != ref['engine_sha256']:
+    engine_sha = hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest()
+    if engine_sha != cfg['engine_sha256']:
+        raise ValueError('Engine differs from the explicit profile checksum')
+    if engine_sha != ref['engine_sha256'] and not allow_engine_change:
         raise ValueError('Real HTTP test requires the STEP-09 reference engine')
     tok = load_tokenizer(cfg['tokenizer'])
     tpl = server.configured_template(cfg, tok, Path(cfg['tokenizer']))
     report = {'status': 'error', 'scope': 'production Service/StrataEngine and loopback HTTP; local tool stub; no external tools or browser UI',
               'profile': str(profile), 'engine_args': server.engine_args(cfg),
-              'engine_sha256': ref['engine_sha256'], 'requests': [], 'cancellations': []}
+              'engine_sha256': engine_sha, 'reference_engine_sha256': ref['engine_sha256'],
+              'allow_engine_change': allow_engine_change, 'requests': [], 'cancellations': []}
     monitor, engine, httpd, worker = Monitor(), None, None, None
+    monitors = [monitor]
+    monitor_patch = None
     progress_done = threading.Event()
     phase = ['starting engine']
     def progress():
@@ -73,10 +79,13 @@ def run(profile, reference, output):
         contain = server.contain
         def monitored(proc):
             contain(proc)
-            monitor.start(proc)
-        with patch.object(server, 'contain', monitored):
-            engine = ObservedEngine(cfg['exe'], server.engine_args(cfg), cwd=cfg['cwd'],
-                                    log=str(output/'engine.log'), env=server.child_env(cfg))
+            if monitors[-1].thread is not None:
+                monitors.append(Monitor())
+            monitors[-1].start(proc)
+        monitor_patch = patch.object(server, 'contain', monitored)
+        monitor_patch.start()
+        engine = ObservedEngine(cfg['exe'], server.engine_args(cfg), cwd=cfg['cwd'],
+                                log=str(output/'engine.log'), env=server.child_env(cfg))
         engine.records = []
         svc = server.Service(engine, tok, tpl, model_name=cfg['model_name'], sampling_defaults=cfg['sampling'])
         svc.api_monitor = True
@@ -171,11 +180,21 @@ def run(profile, reference, output):
             assert item['done']['finish'] == 'cancel', item
             report['cancellations'].append(item); save()
             post('after_' + name, api, request(api, base), base)
+        if lifecycle:
+            phase[0] = 'unload_reload'
+            previous = engine.proc
+            unloaded = svc.unload()
+            assert not svc.loaded() and previous.poll() == 0, unloaded
+            loaded = svc.load()
+            assert svc.loaded() and engine.proc.pid != previous.pid, loaded
+            report['lifecycle'] = {'unload': unloaded, 'load': loaded,
+                                   'previous_pid': previous.pid, 'new_pid': engine.proc.pid}
+            post('after_reload', 'openai', request('openai', base), base)
         process = engine.proc
         engine.close()
         report['engine_exit_code'] = process.poll()
         assert report['engine_exit_code'] == 0
-        assert monitor.error is None, monitor.error
+        assert all(m.error is None for m in monitors), [m.error for m in monitors]
         report['status'] = 'pass'
     except BaseException as error:
         report.update(error=str(error), failed_phase=phase[0])
@@ -186,8 +205,12 @@ def run(profile, reference, output):
             httpd.shutdown(); httpd.server_close(); worker.join(5)
         if engine:
             engine.close()
-        monitor.close()
-        report.update(memory_samples=monitor.samples, memory_guard_error=monitor.error)
+        for m in monitors:
+            m.close()
+        if monitor_patch:
+            monitor_patch.stop()
+        report.update(memory_samples=[dict(s, process_index=i) for i,m in enumerate(monitors) for s in m.samples],
+                      memory_guard_error=next((m.error for m in monitors if m.error), None))
         save()
     return report
 
@@ -196,5 +219,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     for arg in ('profile', 'reference', 'output-dir'):
         p.add_argument('--'+arg, type=Path, required=True)
+    p.add_argument('--allow-engine-change', action='store_true', help='compare a new explicitly checksummed engine against the original reference IDs')
+    p.add_argument('--lifecycle', action='store_true', help='also unload/reload the real model and recheck reference IDs')
     args = p.parse_args()
-    run(args.profile.resolve(), args.reference.resolve(), args.output_dir.resolve())
+    run(args.profile.resolve(), args.reference.resolve(), args.output_dir.resolve(), args.allow_engine_change, args.lifecycle)

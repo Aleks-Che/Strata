@@ -12,6 +12,7 @@
 #include "expert_pipeline.hpp"
 #include "expert_reuse.hpp"
 #include "expert_frequency.hpp"
+#include "host_copy.hpp"
 
 static thread_local int strata_expert_thread_budget=-1;
 static void strata_cuda_expert_budget(int mib) {
@@ -42,6 +43,19 @@ struct StrataExpertTransfer {
     StrataExpertReuseFence reuse_fence;
     std::unique_ptr<StrataExpertFrequency> frequency;
     bool match_size=false;
+    bool prefill_cache_hits=false;
+
+    bool prefill_hit(void *dest,const void *key,size_t bytes) {
+        if(!prefill_cache_hits)return false;
+        auto found=entries.find(key);
+        if(found==entries.end())return false;
+        GGML_ASSERT(found->second.bytes==bytes);
+        auto *source=managed?found->second.allocation:arena+found->second.offset;
+        CUDA_CHECK(cudaMemcpyAsync(dest,source,bytes,cudaMemcpyDeviceToDevice,stream));
+        ++stats.hits;++stats.prefill_hits;stats.d2d_bytes+=bytes;
+        // Read-only prefill: no admission or frequency/LRU training.
+        return true;
+    }
 
     bool admits(const void *key,const StrataExpertTransfer &owner,const void *victim) {
         if(!frequency || !owner.frequency || frequency->score(key)>=owner.frequency->score(victim))return true;
@@ -68,7 +82,7 @@ struct StrataExpertTransfer {
         if(!pipeline)return;
         std::vector<StrataExpertSlice> misses;
         for(size_t i=0;i<count;++i) {
-            if(slices[i].cacheable && entries.find(slices[i].data)!=entries.end())
+            if((slices[i].cacheable || prefill_cache_hits) && entries.find(slices[i].data)!=entries.end())
                 protected_keys.insert(slices[i].data);
             else misses.push_back(slices[i]);
         }
@@ -106,6 +120,13 @@ struct StrataExpertTransfer {
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
         const char *wc=std::getenv("STRATA_EXPERT_STAGE_WC");
         bool write_combined=wc && std::strcmp(wc,"1")==0;
+        const char *early=std::getenv("STRATA_EXPERT_EARLY_REFILL");
+        const char *host=std::getenv("STRATA_EXPERT_HOST_COPY");
+        const char *prefill=std::getenv("STRATA_EXPERT_PREFILL_CACHE_HITS");
+        const bool early_refill=early && std::strcmp(early,"1")==0;
+        const bool avx2=host && std::strcmp(host,"avx2")==0;
+        prefill_cache_hits=prefill && std::strcmp(prefill,"1")==0;
+        if(avx2 && !strata_ds4_host_copy::available())throw std::runtime_error("AVX2 host copy requires AVX2 CPU/OS support");
         if(capacity && !managed) {
             CUDA_CHECK(cudaMalloc((void **)&arena,capacity));
             free_blocks.emplace(0,capacity);
@@ -119,7 +140,9 @@ struct StrataExpertTransfer {
         int n_readers=readers?std::atoi(readers):2;
         int read_mode=mode && std::strcmp(mode,"file")==0?1:mode && std::strcmp(mode,"auto")==0?2:0;
         try {
-            if(pipe && std::strcmp(pipe,"1")==0)pipeline=std::make_unique<StrataExpertPipeline>(device,stage_size,write_combined,n_readers,read_mode);
+            if(pipe && std::strcmp(pipe,"1")==0)pipeline=std::make_unique<StrataExpertPipeline>(device,stage_size,write_combined,n_readers,read_mode,
+                StrataExpertPipeline::CopyObserver{},1,early_refill,
+                avx2?StrataExpertPipeline::HostCopy(strata_ds4_host_copy::copy):StrataExpertPipeline::HostCopy{});
         } catch(...) {
             // A failed ring allocation or worker creation must not leak the
             // already allocated cache and legacy staging buffers.
@@ -131,12 +154,14 @@ struct StrataExpertTransfer {
             throw;
         }
         GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=%s prefill_bypass=1 stage_wc=%d pipeline=%d pipeline_slots=%zu readers=%d read_mode=%d\n",capacity>>20,stage_size>>20,frequency?"frequency":"lru",int(write_combined),int(bool(pipeline)),pipeline?StrataExpertPipeline::slots:0,n_readers,read_mode);
+        GGML_LOG_INFO("STRATA_EXPERT_TUNING host_copy=%s early_refill=%d prefill_cache_hits=%d\n",avx2?"avx2":"crt",int(early_refill),int(prefill_cache_hits));
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);
         finish_plan();
         CUDA_CHECK(cudaStreamSynchronize(stream));
         stats=counters();pipeline.reset();
+        GGML_LOG_INFO("STRATA_EXPERT_PREFILL hits=%llu\n",(unsigned long long)stats.prefill_hits);
         for(int i=0;i<2;++i) {
             if(ready[i]) CUDA_CHECK(cudaEventDestroy(ready[i]));
             if(stage[i]) CUDA_CHECK(cudaFreeHost(stage[i]));
@@ -244,7 +269,7 @@ struct StrataExpertTransfer {
         GGML_ASSERT(first>=0 && last>=first && last<count && width>0);
         // The quantized bytes and their original indices stay unchanged. The
         // extra 512 bytes preserve GGML's MMQ padding contract at expert edges.
-        if((!capacity || tokens>8) && !pipeline) {
+        if((!capacity || (tokens>8 && !prefill_cache_hits)) && !pipeline) {
             size_t offset=size_t(first)*width,bytes=size_t(last-first+1)*width+(last<count-1?std::min<size_t>(width,512):0);
             stats.bypass+=last-first+1;
             upload((uint8_t *)dest->data+offset,(const uint8_t *)source->data+offset,bytes);
@@ -253,6 +278,7 @@ struct StrataExpertTransfer {
         for(int id=first;id<=last;++id) {
             size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
             const void *key=(const uint8_t *)source->data+offset;
+            if(tokens>8 && prefill_hit((uint8_t *)dest->data+offset,key,bytes))continue;
             if(bytes>capacity || tokens>8) {++stats.bypass;upload((uint8_t *)dest->data+offset,key,bytes);continue;}
             if(frequency)frequency->record(key);
             auto found=entries.find(key);
@@ -389,13 +415,14 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
     const size_t width=source->nb[2];
     const int count=int(source->ne[2]);
     GGML_ASSERT(first>=0 && last>=first && last<count && width>0);
-    if(tokens>8 && !s.pipeline) {
+    if(tokens>8 && !s.prefill_cache_hits && !s.pipeline) {
         size_t offset=size_t(first)*width,bytes=size_t(last-first+1)*width+(last<count-1?std::min<size_t>(width,512):0);
         s.stats.bypass+=last-first+1;s.upload((uint8_t *)dest->data+offset,(const uint8_t *)source->data+offset,bytes);return;
     }
     for(int id=first;id<=last;++id) {
         size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
         const void *key=(const uint8_t *)source->data+offset;
+        if(tokens>8 && s.prefill_hit((uint8_t *)dest->data+offset,key,bytes))continue;
         if(tokens>8) {++s.stats.bypass;s.upload((uint8_t *)dest->data+offset,key,bytes);continue;}
         if(s.frequency)s.frequency->record(key);
         auto found=s.entries.find(key);

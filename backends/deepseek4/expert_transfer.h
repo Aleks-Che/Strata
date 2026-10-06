@@ -12,6 +12,7 @@ struct StrataExpertCounters {
     uint64_t file_read_bytes=0, mmap_read_bytes=0, read_peak=0;
     uint64_t ordered_reuses=0, reuse_events=0, eviction_syncs=0;
     uint64_t admission_rejects=0;
+    uint64_t prefill_hits=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Discard unconsumed lookahead and join the producer at every graph exit,

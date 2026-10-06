@@ -1,5 +1,6 @@
 #include "expert_pipeline.hpp"
 #include "expert_reuse.hpp"
+#include "host_copy.hpp"
 #include <atomic>
 #include <cstdio>
 
@@ -109,8 +110,10 @@ int main() {
         for(size_t i=0;i<size;++i)source[i]=uint8_t(i*17+(i>>7));
         uint8_t *dest=nullptr;cuda_ok(cudaMalloc((void **)&dest,size));
         cudaStream_t compute;cuda_ok(cudaStreamCreateWithFlags(&compute,cudaStreamNonBlocking));
-        {
-            StrataExpertPipeline pipeline(0,chunk,false);
+        for(bool avx2:{false,true})for(bool early:{false,true}) {
+            if(avx2 && !strata_ds4_host_copy::available())continue;
+            StrataExpertPipeline pipeline(0,chunk,false,2,0,{},1,early,
+                avx2?StrataExpertPipeline::HostCopy(strata_ds4_host_copy::copy):StrataExpertPipeline::HostCopy{});
             Gate gate(compute);
             cuda_ok(cudaLaunchHostFunc(compute,blocked,&gate));
             pipeline.start({{source.data(),size,false}});

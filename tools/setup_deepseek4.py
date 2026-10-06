@@ -1,7 +1,7 @@
 """Prepare a separate local DeepSeek V4 profile. No downloads or changes to Qwen.
 
 python tools/setup_deepseek4.py --model-dir H:/deepseek-v4-flash-0731/UD-Q8_K_XL
-Build the backend first; see docs/DEEPSEEK4.md.
+Build the backend first; see docs/deepseek-v4-flash-0731/DEEPSEEK4.md.
 """
 from __future__ import annotations
 
@@ -102,6 +102,9 @@ def main():
     ap.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0, help="Background mmap reads, four staging slots and a separate H2D stream; needs expert-stage-mib > 0")
     ap.add_argument("--expert-readers", type=int, choices=range(1, 5), default=2, help="Bounded reader concurrency; uses the existing four staging slots")
     ap.add_argument("--expert-read-mode", choices=("mmap", "file", "auto"), default="mmap", help="Windows file uses overlapped reads; auto queues nonresident prefill slices and uses mmap for decode")
+    ap.add_argument("--expert-host-copy", choices=("crt", "avx2"), default="crt", help="Mmap to pinned copy; AVX2 requires pipeline and a compatible CPU/OS")
+    ap.add_argument("--expert-early-refill", type=int, choices=(0, 1), default=0, help="Refill pinned slots after H2D while retaining device-slot protection")
+    ap.add_argument("--expert-prefill-cache-hits", type=int, choices=(0, 1), default=0, help="Read existing GPU cache entries in prefill without admitting new weights")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
     ap.add_argument("--draft-shared-scratch", type=int, choices=(0, 1), default=0, help="Use one GPU compute buffer for sequential target/draft execution; KV and expert caches remain separate")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
@@ -116,6 +119,8 @@ def main():
         ap.error("draft-shared-scratch requires --draft-model")
     if args.expert_pipeline and args.expert_stage_mib <= 0:
         ap.error("expert-pipeline requires expert-stage-mib > 0")
+    if (args.expert_host_copy != "crt" or args.expert_early_refill) and not args.expert_pipeline:
+        ap.error("AVX2 host-copy and early-refill require expert-pipeline")
     if args.expert_pipeline and args.expert_read_mode == "file" and sys.platform != "win32":
         ap.error("native expert file reads require Windows")
     if args.profile_tag and not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", args.profile_tag):
@@ -154,6 +159,9 @@ def main():
                     "--expert-cache-match-size", str(args.expert_cache_match_size),
                     "--expert-pipeline", str(args.expert_pipeline),
                     "--expert-readers", str(args.expert_readers), "--expert-read-mode", args.expert_read_mode,
+                    "--expert-host-copy", args.expert_host_copy,
+                    "--expert-early-refill", str(args.expert_early_refill),
+                    "--expert-prefill-cache-hits", str(args.expert_prefill_cache_hits),
                     "--conversation-cache-slots", "4", "--conversation-cache-min-free-mib", "8192"],
            "tokenizer": str(pack / "tokenizer"), "model_name": "deepseek-v4-flash-0731" + ("-" + args.profile_tag if args.profile_tag else ""),
            "log": str(ROOT / f"strata-{profile_name}.log"), "host": "127.0.0.1", "port": args.port,

@@ -343,6 +343,13 @@ reasoning не выдаётся за гарантированный лимит �
   host-copy callback; default CRT сохранён. AVX2 — offline MTP-кандидат.
   Отчёт: `STEP37_FLASH_HOST_COPY.md/json`. Далее admission reuse/batching/AVX2
   в native pipe/HTTP с long/cancel/recovery/pressure gates; MTP отдельно.
+  STEP-18: native reuse/batching подключены отдельными opt-in flags. Новый
+  `strata-step35-fast` и `START-STEP37-FAST.bat` используют отдельный HTTP-профиль
+  cap8GiB/context4096/MTP off.22 pipe/34 Python checks,10 exact HTTP responses,
+  3 disconnect/recovery, unload/reload и511+16/два P1 с exact IDs/logits PASS.
+  Пики RAM93,48%, VRAM24565MiB; monitor95 без срабатываний. Это функциональная
+  проверка переноса; нового paired speedup claim нет. Extreme pressure/OOM
+  остаются. Отчёт: `STEP37_FLASH_FAST_LAUNCH.md/json`.
 - [x] **P3.4:** реальные матрицы из всех shards и ранних/средних/поздних слоёв:
   byte parity, tails, guards, два streams, hit/miss/eviction/cancel/reload.
   Затем полные logits/IDs против P1 при pipeline on/off.

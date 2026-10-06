@@ -24,6 +24,7 @@ struct Options {
     ggml_type kv = GGML_TYPE_F32;
     size_t cache_cap=0;
     bool prefill_admission=true;
+    bool cache_reuse=false,pipeline_batch=false;
     int readers=0,chunk_mib=8,trace_graphs=8;
 };
 static Options options(int argc, char ** argv) {
@@ -45,6 +46,10 @@ static Options options(int argc, char ** argv) {
             require(value=="on" || value=="off","expert-cache-prefill must be on or off");
             out.prefill_admission=value=="on";
         }
+        else if (key == "--expert-cache-reuse" || key == "--expert-pipeline-batch") {
+            require(value=="on" || value=="off",key+" must be on or off");
+            (key=="--expert-cache-reuse" ? out.cache_reuse : out.pipeline_batch)=value=="on";
+        }
         else if (key == "--expert-cache-mib") {
             if (value=="auto") out.cache_cap=SIZE_MAX;
             else {const int mib=integer(value);require(mib>=0 && mib<=1048576,"invalid expert-cache-mib");out.cache_cap=size_t(mib)<<20;}
@@ -61,6 +66,8 @@ static Options options(int argc, char ** argv) {
         out.batch >= 1 && out.batch <= 256 && out.batch <= out.context, "invalid Step model/context/batch");
     require(!out.cache_cap || out.copy_mode==2,"expert cache requires pinned copy mode");
     require(out.prefill_admission || out.copy_mode==2,"prefill admission policy requires pinned copy mode");
+    require(!out.cache_reuse || (out.cache_cap && out.copy_mode==2),"cache reuse requires a nonzero pinned expert cache");
+    require(!out.pipeline_batch || out.readers>0,"pipeline batching requires pipeline readers");
     require(out.readers>=0 && out.readers<=2 && (!out.readers || out.copy_mode==2) &&
         (out.chunk_mib==4 || out.chunk_mib==8 || out.chunk_mib==16) && out.trace_graphs>=1 && out.trace_graphs<=128,"invalid Step pipeline/trace settings");
     if (!out.trace_file.empty()) {
@@ -162,6 +169,8 @@ static void execute(llama_context * ctx, const llama_vocab * vocab, const Option
             {"staging_bytes",s.staging_bytes},{"gpu_nodes",s.gpu_nodes},{"expert_nodes",s.expert_nodes},
             {"cache_hits",s.cache_hits},{"cache_misses",s.cache_misses},{"cache_evictions",s.cache_evictions},
             {"cache_bypasses",s.cache_bypasses},{"cache_oom",s.cache_oom},{"cache_rejected",s.cache_rejected},
+            {"cache_allocations",s.cache_allocations},{"cache_reuses",s.cache_reuses},
+            {"pipeline_copy_batches",s.pipeline_copy_batches},{"pipeline_copy_fences",s.pipeline_copy_fences},
             {"cache_bytes",s.cache_bytes},{"cache_limit",s.cache_limit},{"d2d_bytes",s.d2d_bytes},
             {"cache_fill_bytes",s.cache_fill_bytes},{"d2d_ms",s.d2d_ms},{"requested_bytes",s.requested_bytes},
             {"prefill_cache_fill_bytes",prefill_counters.cache_fill_bytes},{"decode_cache_fill_bytes",s.cache_fill_bytes-prefill_counters.cache_fill_bytes},
@@ -231,7 +240,8 @@ int main(int argc, char ** argv) {
             auto ctx = context(model.get(),config.context,config.batch,config.kv);
             register_cache(model.get(),config.model,config.cache_cap);
             strata_step_cache_prefill(config.prefill_admission);
-            strata_step_pipeline_config(config.readers,config.chunk_mib,config.trace_file.empty()?0:config.trace_graphs);
+            strata_step_cache_reuse(config.cache_reuse);
+            strata_step_pipeline_config_ex(config.readers,config.chunk_mib,config.trace_file.empty()?0:config.trace_graphs,false,config.pipeline_batch);
             const auto memory=strata_step_sync_snapshot();
             const auto * vocab = llama_model_get_vocab(model.get());
             std::cout << "INFO engine=step35-native architecture=step35 backend=llama.cpp gpu_only=1"
@@ -239,6 +249,7 @@ int main(int argc, char ** argv) {
                 << " expert_readers=" << config.readers << " expert_chunk_mib=" << config.chunk_mib
                 << " expert_cache_mib=" << (memory.cache_limit>>20) << " memory_target_percent=95"
                 << " expert_cache_prefill=" << (config.prefill_admission?"on":"off")
+                << " expert_cache_reuse=" << int(config.cache_reuse) << " expert_pipeline_batch=" << int(config.pipeline_batch)
                 << " expert_stage_mib=" << (config.readers ? 4*config.chunk_mib : config.copy_mode == 2 ? 16 : 0)
                 << " expert_copy=" << (config.readers ? "pinned-pipeline" : config.copy_mode == 2 ? "pinned-sync" : "native-reference")
                 << " kv=" << ggml_type_name(config.kv) << " flash_attention=0 tf32=0 conversation_cache=0\n"

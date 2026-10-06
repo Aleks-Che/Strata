@@ -1,4 +1,5 @@
 #include "expert_transfer.h"
+#include "host_copy.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -71,6 +72,10 @@ static bool mixed_arena(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPla
 }
 
 int main() {
+    const char *host_copy=std::getenv("STRATA_EXPERT_HOST_COPY");
+    if(host_copy && std::strcmp(host_copy,"avx2")==0 && !strata_ds4_host_copy::available()) {
+        std::puts("SKIP: AVX2 unavailable");return 77;
+    }
 #ifdef _WIN32
     _putenv_s("STRATA_EXPERT_CACHE_MIB","4");
     _putenv_s("STRATA_EXPERT_STAGE_MIB","1");
@@ -135,6 +140,19 @@ int main() {
     stats(gpu,&before);
     check(2,3,1);stats(gpu,&after);
     ok &= after.hits==before.hits+2 && after.h2d_bytes==before.h2d_bytes;
+    const char *prefill_env=std::getenv("STRATA_EXPERT_PREFILL_CACHE_HITS");
+    const bool prefill_hits=prefill_env && std::strcmp(prefill_env,"1")==0;
+    const char *pipeline_env=std::getenv("STRATA_EXPERT_PIPELINE");
+    const bool pipeline_enabled=pipeline_env && std::strcmp(pipeline_env,"1")==0;
+    const uint64_t prefill_copy_bytes=prefill_hits?0:2*width+(pipeline_enabled?1024:512);
+    before=after;check(2,3,32);stats(gpu,&after);
+    ok &= after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
+          after.hits-before.hits==uint64_t(prefill_hits?2:0) &&
+          after.h2d_bytes-before.h2d_bytes==prefill_copy_bytes &&
+          after.misses==before.misses && after.evictions==before.evictions;
+    // A prefill miss must not create a cache entry or displace either hit.
+    before=after;check(0,0,32);stats(gpu,&after);
+    ok &= after.misses==before.misses && after.evictions==before.evictions;
     // Force arena fragmentation, eviction, and reuse while CUDA copies are queued.
     for(int round=0;round<3;++round) {
         begin(gpu,0,count-1,1);
@@ -146,7 +164,8 @@ int main() {
     ok &= expected==actual;
     stats(gpu,&before);ok &= before.evictions>0;
     check(0,9,32);stats(gpu,&after); // prefill bypass must not populate/evict cache
-    ok &= before.hits==after.hits && before.misses==after.misses && before.evictions==after.evictions;
+    ok &= after.hits-before.hits==after.prefill_hits-before.prefill_hits &&
+          (prefill_hits || before.hits==after.hits) && before.misses==after.misses && before.evictions==after.evictions;
     check(9,9,1); // final expert: no padding beyond tensor end
     // A second context gets a separate smaller arena. It must neither inherit
     // the target's 4 MiB nor clear its entries when the draft context is freed.
@@ -180,6 +199,10 @@ int main() {
     policy.matrices=2;control(0,&policy,&live);ok &= live.matrices==2;
     stats(gpu,&before);check(3,4,1);stats(gpu,&after);
     ok &= after.hits==before.hits+2; // only the oldest was released
+    before=after;check(3,4,32);stats(gpu,&after);
+    ok &= after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
+          after.h2d_bytes-before.h2d_bytes==prefill_copy_bytes &&
+          after.misses==before.misses && after.evictions==before.evictions;
     // The matrix cap is shared with a second (DSpark) CUDA context.
     draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
     budget(1);begin(draft_gpu,5,5,1);copy(draft_gpu,source,dest,5,5,1);finish(draft_gpu);ggml_backend_synchronize(draft_gpu);

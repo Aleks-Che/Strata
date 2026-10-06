@@ -5,6 +5,19 @@ vocabulary/template oracles and CUDA checks. It does not install a profile or
 connect Step to the HTTP server. Qwen, DeepSeek and GLM keep their own backends.
 The GGUF architecture is `step35`.
 
+## Separate optimized web-chat launch
+
+`START-STEP37-FAST.bat` in the repository root starts the isolated profile on
+127.0.0.1:8093 and opens the web chat. Its separate `strata-step35-fast` build
+adds explicit native `--expert-cache-reuse on` and `--expert-pipeline-batch on`
+options; both default to off. They require a nonzero pinned expert cache and
+pipeline readers respectively. INFO reports the selected options. MTP remains
+off in this native launch; the short greedy probe below is a separate program.
+
+The profile uses context4096, cache8192MiB, reader1/chunk8, prefill admission off,
+F32 KV and CRT host copies. The existing engine/profile is preserved.
+[Launch guide and validation](../../docs/Step-3.7-Flash/STEP37_FLASH_FAST_LAUNCH.md).
+
 ## Offline MTP probe
 
 `STRATA_STEP_MTP_PROBE=ON` adds `strata-step35-mtp-check` and builds the pinned
@@ -75,8 +88,8 @@ cache between requests; every request still starts with fresh KV. A replacement
 may reuse an unpinned victim's allocation of the same charged size once its
 previous synchronous readers have completed. It keeps the admission policy,
 budget checks and trim behavior, with no spare allocation pool. This switch
-defaults to `off` and is exposed only by the offline probe. The native pipe and
-HTTP defaults do not enable it.
+defaults to `off`. The separate optimized native profile now selects the same
+allocation reuse; existing pipe/HTTP defaults do not enable it.
 
 The result includes `generation_io`: decode-only H2D bytes, source-copy CPU
 time, D2D wall time, consumer wait, cache hits/misses and allocation/reuse counts.
@@ -88,7 +101,8 @@ Measured results and reproduction commands:
 [cache reuse trials](../../docs/Step-3.7-Flash/STEP37_FLASH_CACHE_REUSE.md).
 
 `--pipeline-modes baseline,early,batch,batch-early` sweeps two additional
-probe-only options. `early` refills the pinned host slot after its previous H2D
+probe options. Native `--expert-pipeline-batch on` also selects `batch`, with
+early refill off. `early` refills the pinned host slot after its previous H2D
 event; the device slot still waits for its consumer event. `batch` delivers all
 selected expert matrices of one scheduler input, then fences once before that
 input is used. The native scratch dependency fence remains. Plan pins protect
@@ -97,7 +111,7 @@ the copy stream has drained, including exception cleanup. There is no CUDA work
 using those cache entries after the tensor-copy function returns.
 
 Both options default to off. The original pipeline API delegates to that default;
-only the probe and CUDA checks select the extended API. Changing batch delivery
+the optimized native profile, probe and CUDA checks select the extended API. Changing batch delivery
 alone preserves the ring. Changing early refill recreates it between requests,
 outside the request timer; if needed, the cache releases the replacement memory
 shortfall plus 64 MiB before the unchanged budget check. Capacity is unchanged.

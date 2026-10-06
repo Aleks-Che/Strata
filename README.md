@@ -11,7 +11,7 @@ Strata runs **[Qwen3.8-Flash-Next](https://huggingface.co/Qwen/Qwen3.8-Flash-Nex
 normally needs a server - on a normal PC. It chats, writes code, reads pictures and works with your apps and coding
 agents, and nothing leaves your PC.
 
-This checkout also has an experimental [DeepSeek V4 Flash 0731 backend](docs/DEEPSEEK4.md),
+This checkout also has an experimental [DeepSeek V4 Flash 0731 backend](docs/deepseek-v4-flash-0731/DEEPSEEK4.md),
 with a separate build and launch profile. Qwen keeps its existing engine and settings.
 
 ## How fast is it?

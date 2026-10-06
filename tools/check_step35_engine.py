@@ -150,11 +150,17 @@ def main():
     parser.add_argument("--pipeline-chunk-mib", type=int, choices=(4, 8, 16), default=8)
     parser.add_argument("--cache-mib", type=int, choices=(0, 1, 64), default=0)
     parser.add_argument("--cache-prefill", choices=("on", "off"), default="on")
+    parser.add_argument("--cache-reuse", choices=("on", "off"), default="off")
+    parser.add_argument("--pipeline-batch", choices=("on", "off"), default="off")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     extra = ["--expert-pipeline-readers", str(args.pipeline_readers),
              "--expert-pipeline-chunk-mib", str(args.pipeline_chunk_mib), "--expert-cache-mib", str(args.cache_mib),
              "--expert-cache-prefill", args.cache_prefill]
+    if args.cache_reuse == 'on':
+        extra += ['--expert-cache-reuse', 'on']
+    if args.pipeline_batch == 'on':
+        extra += ['--expert-pipeline-batch', 'on']
     report = fixture(args.engine.resolve(), args.fixture.resolve(), args.output_dir.resolve(), extra)
     report["engine_sha256"] = hashlib.sha256(args.engine.read_bytes()).hexdigest()
     report["fixture_sha256"] = hashlib.sha256(args.fixture.read_bytes()).hexdigest()

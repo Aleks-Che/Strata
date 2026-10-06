@@ -5,6 +5,7 @@
 #include "expert_transfer.h"
 #include "vram_control.hpp"
 #include "speculative.hpp"
+#include "host_copy.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -45,6 +46,8 @@ struct Options {
     int expert_pipeline=0;
     int expert_readers=2;
     std::string expert_read_mode="mmap";
+    std::string expert_host_copy="crt";
+    int expert_early_refill=0, expert_prefill_cache_hits=0;
     int draft_max=3, draft_expert_cache_mib=1024, draft_gpu_expert_layers=0;
     int draft_shared_scratch=0;
     float draft_min_confidence=0;
@@ -67,6 +70,8 @@ static Options options(int argc, char **argv) {
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
                 "--expert-readers 2 (1..4 bounded readers); --expert-read-mode mmap|file|auto\n"
+                "--expert-host-copy crt|avx2 --expert-early-refill 0 (0/1; both require pipeline)\n"
+                "--expert-prefill-cache-hits 0 (0/1; use existing GPU entries without prefill admission)\n"
                 "--draft-model FILE.gguf (0731 DSpark; omitted = speculation off)\n"
                 "--draft-shared-scratch 0 (0/1; serialize target/draft on one GPU compute buffer)\n"
                 "--draft-max 3 (1..5 target-verified draft tokens)\n"
@@ -102,6 +107,9 @@ static Options options(int argc, char **argv) {
         else if (k=="--expert-pipeline") o.expert_pipeline=integer(v);
         else if (k=="--expert-readers") o.expert_readers=integer(v);
         else if (k=="--expert-read-mode") o.expert_read_mode=v;
+        else if (k=="--expert-host-copy") o.expert_host_copy=v;
+        else if (k=="--expert-early-refill") o.expert_early_refill=integer(v);
+        else if (k=="--expert-prefill-cache-hits") o.expert_prefill_cache_hits=integer(v);
         else if (k=="--conversation-cache-slots") o.slots=integer(v);
         else if (k=="--conversation-cache-mib" || k=="--conversation-cache-min-free-mib" || k=="--working-set-mib") {
             int n=integer(v); if(n<0) throw std::runtime_error("negative memory limit");
@@ -120,6 +128,13 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("expert-pipeline must be 0/1 and requires expert-stage-mib > 0");
     if(o.expert_readers<1 || o.expert_readers>4 || (o.expert_read_mode!="mmap" && o.expert_read_mode!="file" && o.expert_read_mode!="auto"))
         throw std::runtime_error("expert-readers must be 1..4; expert-read-mode must be mmap/file/auto");
+    if((o.expert_host_copy!="crt" && o.expert_host_copy!="avx2") || o.expert_early_refill<0 || o.expert_early_refill>1 ||
+       o.expert_prefill_cache_hits<0 || o.expert_prefill_cache_hits>1)
+        throw std::runtime_error("expert-host-copy must be crt/avx2; early-refill and prefill-cache-hits must be 0/1");
+    if((o.expert_host_copy!="crt" || o.expert_early_refill) && !o.expert_pipeline)
+        throw std::runtime_error("host-copy avx2 and early-refill require expert-pipeline");
+    if(o.expert_host_copy=="avx2" && !strata_ds4_host_copy::available())
+        throw std::runtime_error("AVX2 host copy requires AVX2 CPU/OS support");
 #ifndef _WIN32
     if(o.expert_pipeline && o.expert_read_mode=="file")throw std::runtime_error("native expert file reads require Windows");
 #endif
@@ -511,6 +526,9 @@ int main(int argc,char**argv) {
         _putenv_s("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str());
         _putenv_s("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str());
         _putenv_s("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str());
+        _putenv_s("STRATA_EXPERT_HOST_COPY",o.expert_host_copy.c_str());
+        _putenv_s("STRATA_EXPERT_EARLY_REFILL",std::to_string(o.expert_early_refill).c_str());
+        _putenv_s("STRATA_EXPERT_PREFILL_CACHE_HITS",std::to_string(o.expert_prefill_cache_hits).c_str());
 #else
         setenv("GGML_OP_OFFLOAD_MIN_BATCH","1",1);
         setenv("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str(),1);
@@ -520,6 +538,9 @@ int main(int argc,char**argv) {
         setenv("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str(),1);
         setenv("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str(),1);
         setenv("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str(),1);
+        setenv("STRATA_EXPERT_HOST_COPY",o.expert_host_copy.c_str(),1);
+        setenv("STRATA_EXPERT_EARLY_REFILL",std::to_string(o.expert_early_refill).c_str(),1);
+        setenv("STRATA_EXPERT_PREFILL_CACHE_HITS",std::to_string(o.expert_prefill_cache_hits).c_str(),1);
 #endif
         ggml_backend_load_all();llama_backend_init();
         auto gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU);
@@ -627,6 +648,8 @@ int main(int argc,char**argv) {
             <<" expert_cache_match_size="<<o.expert_cache_match_size
             <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
             <<" expert_readers="<<(o.expert_pipeline?o.expert_readers:0)<<" expert_read_mode="<<o.expert_read_mode
+            <<" expert_host_copy="<<o.expert_host_copy<<" expert_early_refill="<<o.expert_early_refill
+            <<" expert_prefill_cache_hits="<<o.expert_prefill_cache_hits
             <<" draft_expert_cache_mib="<<(draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0)<<" draft_gpu_expert_layers="<<(draft_ctx?o.draft_gpu_expert_layers:0)
             <<" draft_shared_scratch="<<runner.scratch_shared()<<" draft_shared_scratch_saved_bytes="<<runner.scratch_saved()
             <<" draft_vram_weights_bytes="<<draft_memory.model<<" draft_vram_context_bytes="<<draft_memory.context<<" draft_vram_compute_bytes="<<draft_memory.compute

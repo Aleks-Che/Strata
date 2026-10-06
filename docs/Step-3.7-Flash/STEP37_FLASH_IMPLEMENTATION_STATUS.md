@@ -2,30 +2,33 @@
 
 Обновлено: **2026-10-06**, `Asia/Yekaterinburg`.
 План: [STEP37_FLASH_IMPLEMENTATION_PLAN.md](STEP37_FLASH_IMPLEMENTATION_PLAN.md).
+Удачные оптимизации и измеренный эффект:
+[STEP37_FLASH_SUCCESSFUL_OPTIMIZATIONS.md](STEP37_FLASH_SUCCESSFUL_OPTIMIZATIONS.md).
 
 Файл хранит проверенный прогресс и точку продолжения. План задаёт критерии,
 этот документ фиксирует выполненную работу. Наличие плана не означает готовую
 поддержку модели. Native engine и ограниченный GPU-кэш проверены на полной
 модели. Асинхронный конвейер также проверен; остаются расширенные memory-pressure проверки.
-Добавлен изолированный экспериментальный HTTP-профиль; интерактивный web chat,
-внешний MCP и HTTP unload/reload остаются отдельными проверками.
+Добавлены изолированные HTTP-профили и отдельный оптимизированный запуск.
+Server-side unload/reload прошёл STEP-18; интерактивный web chat и внешний MCP
+остаются отдельными проверками.
 
 ## Текущее состояние
 
 | Поле | Значение |
 |---|---|
-| Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4 TODO; P5 IN_PROGRESS (P5.1 DONE, P5.2–P5.5 частично); P6–P7 TODO |
+| Общий статус | PREP/P0 DONE; P1 IN_PROGRESS (P1.1–P1.3 DONE); P2 IN_PROGRESS (P2.1–P2.4 DONE, P2.5–P2.6 частично); P3 IN_PROGRESS (P3.1–P3.2/P3.4 DONE); P4 TODO; P5 IN_PROGRESS (P5.1 DONE, P5.2–P5.5 частично); P6 IN_PROGRESS (отдельный fast launcher); P7 TODO |
 | Проверенная ревизия Strata | `9c457bf526e5916d513bedccf0a25878cf36d026` перед STEP-13, дерево было чистое; первоначальный baseline PREP — `97e016de11754cccd1b5550232c6c198cdbe0723` |
-| Последняя выполненная работа | STEP-17: AVX2 host copy + pipeline profiling. MTP2:13,803 →14,777 токена/с (+7,06%), CPU-с/ответ −10,95%; четыре парных раунда положительные. Без MTP повтор не подтвердил ускорение.72 exact responses,828 byte/guard +3 profile/217 ring/217 runtime/24 Python checks PASS |
-| Активная задача / исполнитель | Нет; STEP-17 завершён в границах offline-эксперимента, CPU-нагрузка проверена, результаты сохранены |
-| Следующая задача | STEP-18 / P3,P6: admission reuse/batching и opt-in AVX2 в native pipe/HTTP с long/cancel/recovery/pressure gates и контролем CPU. Входы — STEP-13/STEP-17 и профиль8GiB; offline cap16GiB автоматически не переносить. P5 SWA512/MTP и остаток P2.5–P2.6 открыты |
+| Последняя выполненная работа | STEP-18: `START-STEP37-FAST.bat`, отдельный native fast binary и HTTP-профиль8GiB/context4096 с reuse/batching, MTP off.22 pipe/34 Python checks,10 exact HTTP replies,3 cancel/recovery, unload/reload,511+16 и два P1 с exact IDs/logits PASS. RAM peak93,48%, VRAM24565MiB |
+| Активная задача / исполнитель | Нет; отдельный запуск подготовлен и проверен. Старый engine/profile сохранён |
+| Следующая задача | STEP-19 / P5: проверить MTP target/draft rollback через SWA512 перед переносом MTP2/batch-early/AVX2 в обычный чат. Входы — STEP-11/17 и session snapshot. Pressure/OOM и остаток P2.5–P2.6 остаются открытыми |
 | Основная модель | `H:\models\Step-3.7-Flash\UD-Q4_K_S` |
 | Входной файл | `Step-3.7-Flash-UD-Q4_K_S-00001-of-00004.gguf` |
 | Фактическая архитектура | GGUF `step35`; display name `Step-3.7-Flash`; 45 основных блоков, 42 MoE, 12 full + 33 SWA |
 | Размер | 114 163 192 448 байт, 106,323 ГиБ; 754 тензора; routed 99,668 ГиБ, остальные 6,650 ГиБ |
 | Стенд | Windows, Ryzen 9 9950X, RAM 128 ГиБ, RTX 5090 32 ГиБ |
 | Разрешённый бюджет экспериментов | RAM/VRAM target 95%; реальные пики и запас для ОС учитывать отдельно |
-| Step backend / профиль | Отдельный native `strata-step35`; experimental HTTP profile: `build-local/step35-cuda/step10-http-profile-8g/step37.json`, создаётся `tools/prepare_step35_profile.py`. Активный профиль приложения не заменён |
+| Step backend / профиль | Прежний `strata-step35`/STEP-10 сохранён. Новый `START-STEP37-FAST.bat` → `strata-step35-fast` + `build-local/step35-cuda/step18-fast-profile/step37.json`,127.0.0.1:8093, создаётся prepare_step35_profile.py с `--optimized`. Активный профиль приложения не заменён |
 | Step dependency pin | Unsloth `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`; Step patches дополнены `step-prefill-cache-admission`; отдельная сборка |
 | Step tokenizer / API | deepseek-v3 и exported tokenizer по 2190/2190 native checks; Step template 215/215; parser/request adapters и HTTP registration готовы. Native EOG [1,128007], PAD2 не EOG; JSON/SSE, stop strings и low/medium/high effort подключены |
 | Native MTP | Официальный Q8_0 совместим; отдельный checker использует pinned common MTP driver. STEP-17: MTP2/shared embedding/reuse/batch+early/AVX2 —14,777 токена/с на двух P1 prompts, +7,06% к paired CRT control13,803. Нагрузка CPU менялась; исторические абсолютные скорости не A/B. Native pipe/HTTP MTP пока не подключён |
@@ -62,7 +65,8 @@
 
 - Полные checksum больших частей и совпадение с оригинальным опубликованным набором.
 - Численные weights и факторы `rope_freqs`; статический loader contract 754 tensors PASS.
-- Интерактивный web chat и HTTP unload/reload полной модели. API JSON/SSE,
+- Интерактивный web chat полной модели. Server-side unload/reload проверен
+  в STEP-18. API JSON/SSE,
   request adapters/parser, local tool dialogue и socket disconnect проверены;
   CLI lazy startup и отдача web HTML также проверены, без browser interaction.
 - Независимый CPU/scalar oracle logits полной модели. Native/pinned selected
@@ -92,7 +96,7 @@ Native inference полной модели выполнен; установка 
 | P3. Pipeline/cache | IN_PROGRESS | P3.1–P3.2/P3.4 DONE; shared ring,973 real-byte checks,context4096/pressure PASS; STEP-13–17 batching/reuse/readers/chunks/WC/cache scan/AVX2 измерены, MTP2 AVX2 +7,06% | Остаются startup OOM/предельная pressure и production admission новых options; cache copies завершаются до возврата из tensor-copy |
 | P4. Sessions/context | TODO | В P0 проверен in-process KV checkpoint на synthetic Step | Runtime sessions, budgets, sampler/output state, полная модель и длинные контексты |
 | P5. MTP | IN_PROGRESS | P5.1 DONE; официальный Q8, separate draft context/hidden/greedy verify, off/1/2/3, 60 exact MTP requests, RAM/VRAM trials в checker | Pipe/HTTP integration, SWA512 rollback, stochastic, stop/cancel/sessions, длинные и разнообразные prompts |
-| P6. Profile/release | TODO | Определена методика | Setup/profile, controls/benchmarks, регрессии и capabilities |
+| P6. Profile/release | IN_PROGRESS | STEP-18: отдельный fast launcher/profile, native reuse/batching, HTTP/cancel/reload и numerical checks | Общая setup integration, paired HTTP speed benchmark, release regressions/capabilities; MTP отдельно |
 | P7. Vision | TODO | Найден опубликованный mmproj | Отдельные encoder/input/state/memory проверки; необязателен для текстового выпуска |
 
 ## Правила обновления
@@ -128,7 +132,17 @@ Native inference полной модели выполнен; установка 
 | BLOCKED | Указаны воспроизводимое препятствие и условие разблокировки |
 | DONE | Конкретный критерий выполнен и подтверждён |
 
-## Точка продолжения после STEP-17
+## Точка продолжения после STEP-18
+
+**STEP-19 — MTP rollback через SWA512.** Обычный чат уже запускается отдельным
+[fast launcher](STEP37_FLASH_FAST_LAUNCH.md) без MTP. Для переноса MTP-кандидата
+STEP-17 нужно сначала проверить target/draft state на границе окна: rejection,
+acceptance, последующие logits/IDs относительно non-speculative control,
+отмена и свежий запрос. Не снимать лимит480 у checker до этой проверки.
+Новый обычный запуск сохраняет cap8GiB; экстремальная memory pressure/OOM и
+интерактивный browser/MCP остаются открытыми проверками.
+
+### Архивная точка продолжения после STEP-17
 
 **STEP-18 — проверить перенос ускорений в native pipe/HTTP.**
 
@@ -1503,3 +1517,31 @@ Raw: `build-local/step35-cuda/step17-host/`. Сохранённый probe:
 `32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
 Shared header изменён только для optional callback; production defaults и
 бинарники остальных моделей не заменены. Дальше — STEP-18 admission с gates.
+
+## STEP-18 — отдельный оптимизированный запуск (2026-10-06)
+
+Создан `START-STEP37-FAST.bat`: веб-чат127.0.0.1:8093, отдельный
+`strata-step35-fast.exe`, отдельный профиль context4096/cache8192MiB, reader1,
+batch17/F32, prefill admission off. Новые native flags `--expert-cache-reuse on`
+и `--expert-pipeline-batch on` включают ранее проверенные механизмы. Defaults
+обоих flags off; INFO подтверждает выбор. Старая native сборка не заменена.
+MTP off: fastest MTP checker всё ещё ограничен480 позициями и не выдан за
+обычный чат. CRT/early-off сохранены для no-MTP.
+
+22 synthetic pipe checks и5 startup rejection checks PASS.34 Python
+profile/template/API tests PASS. Launcher выполнен с `--help` без загрузки
+модели. Реальная модель:10 exact HTTP-ответов через OpenAI/Anthropic JSON/SSE,
+tools и recovery;3 disconnect checks (prefill/decode/partial tool); unload и
+reload новым process с exact ответом. Отдельно511+16 через SWA512 и два P1:
+полные F32 logits и IDs побитово совпали с прежними controls. Всего13
+завершённых reference comparisons в новых full-model сериях.
+
+Пики RAM93,48%, VRAM24565MiB; monitor95 без срабатываний. Сохранён cap8GiB,
+offline cap16GiB не переносился. Это функциональное подтверждение переноса,
+не новый paired HTTP speed benchmark и не forced pressure/OOM admission.
+Server-side lifecycle проверен, взаимодействие в браузере не автоматизировалось.
+
+Инструкция: [STEP37_FLASH_FAST_LAUNCH.md](STEP37_FLASH_FAST_LAUNCH.md).
+Профиль/checks/commands/hashes: [STEP37_FLASH_FAST_LAUNCH.json](STEP37_FLASH_FAST_LAUNCH.json).
+Новый engine SHA `41971c992e0bcb5f0858f44e168d75ed8552c605fe58101e7d9f1b5abf1b8763`.
+Прежний engine SHA `32a88bd85855395dbc79df2da323d971a9543c2847c618e7e34245a771bf9df3`.
