@@ -576,12 +576,29 @@ sampled memory. Первый запрос каждого prompt/config поме�
 MIMO-16: runner принимает `--expert-cache-mib` (default14336) и `--d2d-batch 0|1|2`
 (default0). Остальные параметры transport задаются явно: slab16, tensor batch1,
 decay65536, guards1, fill0, early0; они сверяются с ответными метриками probe.
-Нужен пересобранный `strata-mimo2-spec-check` с этими полями/CLI. Старый snapshot
-MIMO-06 следует запускать соответствующей ему версией runner, не нынешней.
+Нужен пересобранный `strata-mimo2-spec-check` с соответствующими полями/CLI.
+Старые snapshots MIMO-06/MIMO-16 следует запускать сохранённой вместе с ними
+версией runner: нынешний runner передаёт также параметры MIMO-17.
 Новый измеренный build: `build-local/mimo2-mtp-q4-current-measured/build-local/mimo2-cuda`.
 Q4/head0/depth1/p_min0.7 после оптимизаций:9,015 ток/с; со scatter9,076;
 контроль без MTP10,520. Oracle снова расходится на18-м токене, MTP serving off.
 [Условия и проверки](../../docs/mimo-v2.6-flash/MIMO26_FLASH_MTP_Q4_RETEST.md).
+
+MIMO-17: `--target-head-columns 1` включает эксперимент только для выходной
+BF16-головы target при2–8 столбцах. Каждый столбец использует обычную GPU
+проекцию; F32 активации, веса sidecar и verify/rollback не меняются. Default0.
+`--memory-stages` добавляет диагностический prefill8/verify2 до обычного
+all-logit warmup8 и записывает глобальную память по этапам. В замере скорости
+этот дополнительный прогрев выключен. Сам warmup8 перед заполнением cache
+сохраняется в обоих режимах MTP.
+
+Отдельный `strata-mimo2-head-check MODEL` (target сборки при SPEC_PROBE=ON)
+проверяет настоящую выходную матрицу на одинаковых синтетических активациях:
+1/2/8 столбцов, contiguous/padded inputs, независимый single-column CUDA oracle.
+В JSON пишет точность, время GPU graph и глобальную дельту VRAM; последняя
+включает влияние других приложений и не является точным размером CUDA pool.
+Основной engine не получает этот CLI; MTP serving остаётся выключен.
+[MIMO-17: результаты, ограничения и команды](../../docs/mimo-v2.6-flash/MIMO26_FLASH_TARGET_HEAD.md).
 
 Проверены только greedy и один sequence. Stochastic correction, HTTP streaming,
 cancellation, context shift и MTP heads2/3 в этот probe не входят. Его скорости

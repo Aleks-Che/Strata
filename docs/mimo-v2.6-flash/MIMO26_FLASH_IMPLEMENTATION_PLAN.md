@@ -518,7 +518,11 @@ ABBA при cache8 ГиБ9,131→8,035 (−12,01%); поэтому default0 со
 MIMO-16 повторил Q4 MTP на текущем transport: без draft10,520 ток/с,
 Q4 9,015, Q4 +scatter9,076. Short corpus IDs совпали, но oracle снова расходится
 на18-м токене; [результаты](MIMO26_FLASH_MTP_Q4_RETEST.md). Serving остаётся off.
-Следующая задача **MIMO-17**: target batch2 parity и рабочие VRAM buffers;
+MIMO-17 реализовал opt-in per-column target BF16 head без полной F32-копии:
+Q4 9,880→10,929 ток/с, контроль без MTP10,615; cache+2,085 ГиБ,
+H2D−14,48%. Head fixture bit-exact, oracle batch2 по-прежнему расходится.
+[Результаты и ограничения](MIMO26_FLASH_TARGET_HEAD.md); default0, serving off.
+Следующая задача **MIMO-18**: target batch2 parity по слоям, BF16 dense/routed MMVQ;
 для скорости без draft —
 direct resident weights, групповые H2D, chunks4/16 и границы синхронизации.
 Для chunk A/B сохранять `--fixed-pack-guards 1`; D2D задавать одинаково в обоих вариантах.

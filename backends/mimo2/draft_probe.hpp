@@ -23,13 +23,15 @@ inline llama_token draft_greedy(llama_context *ctx,int row) {
     for(int i=0;i<n;++i)require(std::isfinite(l[i]),"non-finite logits");
     return int(std::max_element(l,l+n)-l);
 }
-inline Context probe_context(llama_model *model,bool mtp=false,llama_context *other=nullptr) {
+inline Context probe_context(llama_model *model,bool mtp=false,llama_context *other=nullptr,
+                             ggml_backend_sched_eval_callback callback=nullptr,void *callback_data=nullptr) {
     auto cp=llama_context_default_params();cp.n_ctx=512;cp.n_batch=cp.n_ubatch=8;cp.n_seq_max=1;
     cp.type_k=cp.type_v=GGML_TYPE_F32;cp.swa_full=true; // Preserve all tested positions for exact rollback.
     cp.n_threads=cp.n_threads_batch=4;cp.offload_kqv=cp.op_offload=true;
     cp.flash_attn_type=LLAMA_FLASH_ATTN_TYPE_ENABLED;
     cp.ctx_type=mtp?LLAMA_CONTEXT_TYPE_MTP:LLAMA_CONTEXT_TYPE_DEFAULT;
     cp.ctx_other=other;
+    cp.cb_eval=callback;cp.cb_eval_user_data=callback_data;
     Context ctx(llama_init_from_model(model,cp),llama_free);require(bool(ctx),"probe context failed");
     clear(ctx.get());strata_mimo_memory();return ctx;
 }

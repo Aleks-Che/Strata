@@ -1,0 +1,160 @@
+# MiMo: выходная BF16-голова без полной F32-копии
+
+Дата: **2026-10-07**, этап **MIMO-17**.
+Сравнение на Ryzen9 9950X, RTX5090 32GB, 128GB RAM, Windows,
+CUDA13.0.48/sm120, MSVC19.44.35222.0, NVIDIA581.80.
+
+Q4 MTP с новой головой дал **10,929 ток/с** против **9,880** с прежней:
+**+10,62%**. Обычная генерация в этой же серии — **10,615 ток/с**;
+преимущество нового MTP над ней **2,95%**, над быстрейшим контрольным процессом
+**1,89%**. Это небольшой локальный выигрыш, не общий прогноз скорости.
+
+Кеш экспертов вырос с9,797 до11,882 ГиБ, decode H2D сократился на14,48%.
+Историческое расхождение target batch2 на18-м токене осталось. Опция головы
+экспериментальная, default0; MTP serving и рабочие defaults не менялись.
+
+Данные: [benchmark](MIMO26_FLASH_TARGET_HEAD_BENCHMARK.json),
+[validation, память и oracle failure](MIMO26_FLASH_TARGET_HEAD_VALIDATION.json).
+
+## Что изменено
+
+Target `output.weight` — BF16,4096×152576. В прежнем пути короткий batch
+переходит с MMVF на cuBLAS F32 и создаёт F32-представление всей матрицы:
+2499805184 байта /2,328125 ГиБ. Его размер не зависит от числа выходных
+столбцов; уменьшения all-logit warmup8 до2 недостаточно.
+
+`target_head.hpp` и MiMo-local `SpeculativePatches.cmake` добавляют opt-in
+проекцию2–8 столбцов через обычные одностолбцовые GPU matmul с последующим
+concat. Сохраняются F32 активации и накопление, исходные BF16-веса и путь
+`build_lora_mm` с его scaling/LoRA. Остальные матрицы, target hidden states,
+draft, confidence cutoff и verify/rollback не изменены. Одна выходная позиция
+по-прежнему проходит исходный путь. Патч входит только в SPEC_PROBE-сборку.
+
+Probe/runner принимают `--target-head-columns 0|1` и `--memory-stages`.
+Диагностика памяти отдельно прогревает last-logit prefill8, verify2 и all-logit8
+до заполнения cache. В performance runs дополнительная диагностика выключена;
+обычный all-logit warmup8 остаётся в обоих вариантах MTP, до admission cache.
+
+## Изолированная проверка головы
+
+Новый `strata-mimo2-head-check MODEL` использует настоящие BF16-веса из GGUF
+и одинаковые синтетические F32-входы. Все умножения на CUDA. Контроль —
+отдельные одностолбцовые GPU graphs;6 случаев:1/2/8 столбцов ×contiguous/padded
+inputs. Все **3356672** выходных значения нового пути совпали с контролем
+побитно, входные buffers не изменились. CPU matrix fallback отсутствует.
+
+| Столбцы | Новый путь, мс | Прежний batch, мс |
+|---|---:|---:|
+| 1 | 0,779–0,782 | 0,784–0,787 |
+| 2 | 1,531–1,534 | 4,204–4,373 |
+| 8 | 6,079–6,248 | 4,169–4,198 |
+
+Среднее трёх graph executions после одного прогрева; включает host dispatch
+и синхронизацию, не является временем одного CUDA kernel. Диапазон относится
+к двум layouts. При8 столбцах вариант медленнее; данный MTP проверяет максимум2,
+а8 используются при загрузочном прогреве. DFlash speedup не проверялся.
+
+Новый путь не показал большого прироста глобальной VRAM при первом вычислении.
+Прежний batch2/8 показал рост примерно2277–2426 МиБ. Эти NVML deltas включают
+другие приложения, allocator rounding и освобождения, поэтому не равны
+точному размеру pool. Прежний batch не bit-exact с single-column oracle:
+max_abs0,000229389 для2 столбцов и0,000264645 для8.
+
+## Память полной модели
+
+Отдельные диагностические процессы, глобально занятая VRAM в ГиБ:
+
+| Этап | Прежняя голова | По столбцам |
+|---|---:|---:|
+| Target last-logit prefill8 | 18,840 | 18,758 |
+| Target verify2, все logits | 20,920 | 18,725 |
+| Target all-logit warmup8 | 20,920 | 18,654 |
+| После draft warmup | 20,924 | 18,658 |
+
+В старом процессе verify2 добавил около2,08 ГиБ после обычного prefill;
+в новом такого роста нет. Небольшие отрицательные дельты отражают глобальный
+учёт с другими приложениями. Это не раздельный счётчик allocator pools.
+Совпадение расчёта buffer, отдельного head fixture и full-model cache подтверждает
+полезную экономию; точную долю каждого CUDA allocation эти данные не выделяют.
+
+## Полная генерация
+
+Модель `MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf`,134982426368 байт;
+draft `mtp-MiMo-V2.6-Flash-MOPD-Q4_0.gguf`, только head0, depth1, p_min0.7.
+Context512, batch8, F32 KV, полный физический SWA KV для rollback, FA on,
+greedy/thinking off, TF32/CUDA Graphs off. Mmap, reader1, chunk8 МиБ,
+slab16, decay65536, tensor delivery1, packed guards1, D2D0; fills/early refill/
+prefill admission off. Request cache14 ГиБ, live limit95% общей RAM/VRAM.
+
+Один executable, порядок **A B C C B A**: без draft; Q4 с прежней головой;
+Q4 с новой; затем обратно. В каждом процессе count/code/ru, на тему2 прогрева
+и3 измеряемых ответа по32 токена. Свежий KV на запрос, expert cache сохраняется
+в процессе. Всего90 ответов /2880 IDs. Скорость —558 шагов после первого
+токена за суммарное generation time двух процессов каждого режима; load,
+prefill и первый токен исключены. Sampling/logits export входят во время.
+
+| Режим | Процесс1 | Процесс2 | Вместе, ток/с | Cache allocations, ГиБ | H2D, ГиБ/выходной шаг |
+|---|---:|---:|---:|---:|---:|
+| Без MTP | 10,726 | 10,507 | **10,615** | 12,729 | 1,038 |
+| Q4, прежняя голова | 9,986 | 9,777 | **9,880** | 9,797 | 1,199 |
+| Q4, по столбцам | 10,924 | 10,933 | **10,929** | 11,882 | 1,025 |
+
+| Тема | Без MTP | Q4, прежняя | Q4, по столбцам |
+|---|---:|---:|---:|
+| Счёт | 13,427 | 12,591 | 13,945 |
+| Код | 8,827 | 8,189 | 9,122 |
+| Русский | 10,544 | 9,793 | 10,734 |
+
+Средний полный timed запрос:5739,18 /6066,31 /5634,36 мс соответственно;
+это не cold TTFT. MTP в каждом варианте принял228/228 предложений после cutoff,
+покрыв228/558 выходных шагов. Target cycles558→330. Draft+catch-up нового
+варианта заняли1,22% generation time. H2D у нового MTP лишь примерно на1,25%
+меньше, чем без draft: выигрыш над обычным decode остаётся небольшим.
+
+Это сравнение готовых режимов с live clamp, не изоляция одного kernel при
+одинаковом cache. Величины cache и H2D немного различаются даже между повторами.
+Главный выигрыш измеряется относительно нового контроля; прежние числа
+MIMO-16 нельзя использовать как контроль одной этой правки.
+
+Sampled global peaks performance серии: VRAM29,510 ГиБ /92,67%,
+RAM113,368 ГиБ /90,29%. Предел95% соблюдён. Это секундные глобальные выборки,
+которые включают другие процессы и могут пропустить краткие пики.
+
+## Корректность и ограничения
+
+Все60 MTP-ответов, включая прогревы, совпали с no-draft по1920 IDs; из них
+30 ответов /960 IDs относятся к новому пути. No-draft controls побитно совпали
+по logits с сохранённым MIMO-16 и между собой. Logits MTP не bit-exact.
+Отдельный новый Q4 SWA128 случай совпал по16 IDs, приняты7/7 предложений.
+
+**Oracle без draft по-прежнему output_mismatch в обоих режимах головы.**
+Первое отличие — индекс17:129258→38379. Оно возникает до первого rejection
+rollback, оба режима имеют12/18 принятых oracle proposals. Max_abs по общему
+историческому префиксу1,036537 у старой головы и1,038829 у новой. Успешный
+confidence-filtered corpus не закрывает эту проблему и не доказывает общую
+эквивалентность speculative decoding. Изменение только головы её не устранило.
+
+Python30, C++ verified-prefix10 и head fixture6 PASS; GPU/drain audit всех
+завершённых запросов PASS. Матрицы модели вычисляются на GPU. Normal production
+executable сохранён побитно, SHA256
+`f56fc8f97d140e743e54d06fdd443b3016a2f1944a01b82e34988ed67532b771`.
+CMake возвращён к SPEC_PROBE=OFF. Head flag default0, MTP serving off.
+
+## Воспроизведение и следующий шаг
+
+Измеренная сборка и source hashes: `build-local/mimo2-target-head-measured`.
+Spec executable SHA256:
+`1672274e549db6721db36327646871a9fbfd42be2042a037ab5d41cc35eaf61c`.
+Raw logits, logs, requests, scripts: `build-local/mimo2-validation/target-head`.
+Команды всех запусков входят в JSON. Пример с новым каталогом результатов:
+
+```powershell
+python -m tools.check_mimo2_speculative --build build-local/mimo2-target-head-measured/build-local/mimo2-cuda --model H:/models/mimo-v2.6-flash/MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf --kind mtp --draft H:/models/mimo-v2.6-flash/mtp-MiMo-V2.6-Flash-MOPD-Q4_0.gguf --requests build-local/mimo2-validation/target-head/requests-q4.json --target-head-columns 1 --expert-cache-mib 14336 --d2d-batch 0 --output-dir build-local/mimo2-validation/target-head-new --reference-dir build-local/mimo2-validation/target-head/a0-none
+```
+
+Следующий **MIMO-18**: локализовать target batch2 по слоям на одинаковой
+истории, затем проверить BF16 dense и routed MMVQ с одиночной арифметикой.
+На Blackwell routed MMVQ уже выбирается для коротких batches; сравнивать
+нужно также порядок арифметики, а не только название kernel. Возможный перенос
+GLM tokenwise/short-batch требует MiMo fixtures с Q2_K/Q3_K/MXFP4 и его strides.
+До oracle parity не расширять confidence/depth и не включать serving.

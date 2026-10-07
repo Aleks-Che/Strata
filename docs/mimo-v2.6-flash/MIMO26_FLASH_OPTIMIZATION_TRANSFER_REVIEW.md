@@ -183,6 +183,52 @@ GLM fixture не покрывает MXFP4 и batch8. Для DFlash нужно о
 После проверки арифметики — повтор full/SWA boundary, rejection и замера
 MTP Q4 против нового no-draft baseline. MTP serving до этого остаётся off.
 
+### Уточнение MIMO-17: выходная BF16-матрица и CUDA pool
+
+Статический разбор от7 октября2026, исходники `d2b4156`, затем
+[измеренный MIMO-17](MIMO26_FLASH_TARGET_HEAD.md) на9950X/RTX5090/128GB:
+Q4 MTP9,880→10,929 ток/с, no-draft10,615; cache9,797→11,882 ГиБ,
+H2D−14,48%. Это новый A/B с собственным контролем. Head fixture bit-exact,
+историческое расхождение oracle batch2 не исправлено; default0, serving off.
+
+В [инвентаризации](MIMO26_FLASH_INSPECTION.json) `output.weight` имеет тип BF16,
+форму4096×152576 и размер1249902592 байта. В текущем CUDA dispatch для NVIDIA
+Ampere+ BF16 MMVF выбирается при одном столбце. При двух и более столбцах
+`StrictF32.cmake` исключает BF16 MMF, а заданный в `runtime.hpp`
+`GGML_CUDA_CUBLAS_COMPUTE_TYPE=f32` приводит к cuBLAS F32. Его
+`ggml_cuda_mul_mat_cublas_impl` выделяет `ggml_nelements(src0)` элементов float
+и конвертирует всю матрицу весов перед умножением.
+
+Для этой головы отдельный F32 buffer равен **2499805184 байта /2,328125 ГиБ**.
+Это расчёт по коду и форме весов, а не измеренная прибавка к pool или кешу:
+pool переиспользуется другими операциями, а live clamp зависит от общей VRAM.
+Размер такого buffer одинаков при2 и8 выходных столбцах. Поэтому одно лишь
+уменьшение all-logit прогрева с8 до2 не убирает этот расход.
+
+Реализованный эксперимент — отдельный opt-in путь только для target `output.weight`:
+проецировать каждый нужный столбец обычным GPU MMVF с F32 активациями и
+накоплением, не конвертируя всю голову в F32. В
+`SpeculativePatches.cmake` уже есть аналогичный приём для DFlash shared-head;
+для target теперь добавлен `target_head.hpp`. Обрабатывается также all-logit warmup8,
+иначе прежний прогрев заранее расширит pool. Предварительный прогрев рабочих
+форм перед наполнением expert cache и предел95% сохранять.
+
+MIMO-17 записал глобальную GPU memory по этапам: target context, draft weights/context,
+обычный prefill8, verify2/all-logit warmup8; заполненный expert cache входит
+в метрики запросов. Старый verify2 добавил примерно2,08 ГиБ после prefill,
+новый этого роста не показал; это глобальные deltas, не отдельные pool counters.
+Проверены head на одинаковых входах, oracle/rejection/SWA boundary и Q4 A/B.
+Изменение одной головы не устранило расхождение target batch2:
+routed matmul и attention ещё требуют отдельной локализации. Только после
+этого расширять перенос GLM tokenwise/short-batch MMVQ на остальные матрицы.
+
+Для ускорения без MTP следующий небольшой опыт уже поддержан benchmark runner:
+`--axis chunk` с4/8/16 МиБ, packed guards1, D2D0, одинаковым физическим cache
+и чередованием с контролем. Более крупный опыт — чтение resident experts прямо
+из cache вместо cache→scratch D2D. Он требует адресации весов в CUDA kernels
+и защиты cache slots до окончания consumer; простого удаления текущих fences
+недостаточно. Ранее измеренные D2D intervals не равны обещанному ускорению.
+
 ## Что пока не брать первым
 
 - **Shared embedding/head:** в Step веса проверены на равенство; локальные

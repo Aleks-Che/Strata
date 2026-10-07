@@ -8,7 +8,7 @@ function(mimo_spec_source name hash)
   endif()
   file(READ "${original}" content)
   if(name STREQUAL "mimo2")
-    string(PREPEND content "#include <algorithm>\n")
+    string(PREPEND content "#include <algorithm>\n#include \"target_head.hpp\"\n")
     mimo_replace_once(content "    int mtp_flags         = trunk_only ? TENSOR_NOT_REQUIRED : 0;"
       "    int mtp_flags         = trunk_only ? TENSOR_NOT_REQUIRED : 0;\n    const bool mtp_only = hparams.n_layer_nextn > 0 && ml.get_weight(\"blk.0.attn_norm.weight\") == nullptr;")
     mimo_replace_once(content "const int  flags    = is_nextn ? mtp_flags : 0;"
@@ -19,6 +19,8 @@ function(mimo_spec_source name hash)
       "    for (int il = 0; il < n_layer; ++il) {\n        res->t_layer_inp[il] = inpL;\n        ggml_tensor * inpSA = inpL;")
     mimo_replace_once(content "    cur = inpL;\n\n    if (emit_h_nextn) {"
       "    cur = inpL;\n    res->t_layer_inp[n_layer] = inpL;\n    if (features && !emit_h_nextn && inp_out_ids) cur = ggml_get_rows(ctx0, cur, inp_out_ids);\n\n    if (emit_h_nextn) {")
+    mimo_replace_once(content "    cur = build_lora_mm(model.output, cur, model.output_s);"
+      "    if (mimo2_target_head_columns_enabled() && model.output->type == GGML_TYPE_BF16 &&\n        cur->type == GGML_TYPE_F32 && cur->ne[1] > 1 && cur->ne[1] <= 8 && cur->ne[2] == 1 && cur->ne[3] == 1) {\n        cur = mimo2_project_head_columns(ctx0, cur, [&](ggml_tensor * column) {\n            return build_lora_mm(model.output, column, model.output_s);\n        });\n    } else {\n        cur = build_lora_mm(model.output, cur, model.output_s);\n    }")
   else()
     string(PREPEND content "#include <cstdlib>\n")
     set(load_anchor "void llama_model_dflash::load_arch_tensors(llama_model_loader &) {\n    LLAMA_LOAD_LOCALS;")
@@ -57,10 +59,12 @@ function(mimo_spec_source name hash)
   endif()
   list(REMOVE_ITEM sources ${matches})
   set_property(TARGET llama PROPERTY SOURCES "${sources};${output}")
-  set_source_files_properties("${output}" TARGET_DIRECTORY llama PROPERTIES INCLUDE_DIRECTORIES "${mimo_source}/src/models")
+  set_source_files_properties("${output}" TARGET_DIRECTORY llama PROPERTIES
+    INCLUDE_DIRECTORIES "${mimo_source}/src/models;${CMAKE_CURRENT_SOURCE_DIR}"
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/target_head.hpp")
 endfunction()
 mimo_spec_source(mimo2 "${STRATA_MIMO_LOADER_SHA256}")
 file(SHA256 "${mimo_source}/src/models/dflash.cpp" mimo_dflash_hash)
 # The archive hash pins this source in addition to its recorded generated hash.
 mimo_spec_source(dflash "${mimo_dflash_hash}")
-string(APPEND mimo_patch_set ",mimo-experimental-draft-features-sidecar-dflash-vscale")
+string(APPEND mimo_patch_set ",mimo-experimental-draft-features-sidecar-dflash-vscale,optional-target-head-columns")

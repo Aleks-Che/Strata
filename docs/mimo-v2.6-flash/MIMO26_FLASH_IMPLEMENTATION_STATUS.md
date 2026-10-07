@@ -15,6 +15,9 @@ MIMO-15 добавил scatter-copy mode2: основной ABBA+7,23%, отде
 при cache8 ГиБ−12,01%; поэтому default0 сохранён, mode2 opt-in.
 MIMO-16 повторил Q4 MTP:9,01 ток/с, со scatter9,08, без MTP10,52;
 oracle parity по-прежнему не пройдена, MTP serving off.
+MIMO-17 убрал полную F32-копию выходной BF16-головы в opt-in режиме:
+Q4 MTP9,880→10,929 ток/с (+10,62%); новый контроль без MTP10,615.
+Cache9,797→11,882 ГиБ, но oracle batch2 всё ещё расходится; default0.
 API и установочный профиль ещё не готовы.
 Существенный overlap H2D/compute пока не подтверждён; P3 в целом не закрыт.
 Из P2 проверены IDs/bytes/tokenizer/raw Jinja.
@@ -52,10 +55,11 @@ API и установочный профиль ещё не готовы.
 | Пакетная D2D, MIMO-14 | Default off: поздний пакет9,421→9,342 ток/с; ранний при фиксированном cache11 ГиБ9,619→9,418 (−2,09%). IDs/logits exact, H2D/compute overlap практически отсутствует |
 | CUDA scatter-copy, MIMO-15 | Mode2 opt-in, default0: основной ABBA9,567→10,259 ток/с (+7,23%); русский при фиксированном cache8 ГиБ9,131→8,035 (−12,01%). IDs/logits exact, прирост зависит от условий |
 | Q4 MTP после оптимизаций, MIMO-16 | Head0/depth1/p_min0.7:9,015 ток/с, +scatter9,076; без MTP10,520. Acceptance228/228, IDs короткого corpus/SWA совпали; oracle снова расходится на18-м токене. Serving off |
+| Target BF16 head, MIMO-17 | GPU projection по столбцам: Q4 9,880→10,929 ток/с; без MTP10,615. Cache+2,085 ГиБ, H2D−14,48%. Head fixture bit-exact; oracle по-прежнему mismatch, опция default0 |
 | Локальная скорость | Прогретый sync5,103–5,160; pipeline reader1:7,053, reader2:6,914 ток/с; условия MIMO-05 ниже |
 | Память / TTFT | Pipeline corpus с trace: peak RSS93,42 ГиБ; request-end global VRAM30,00 ГиБ; TTFT6,57с EN /39,64с long249 |
 | Рекомендуемый профиль | Engine defaults выбраны по локальным опытам; setup/API profile и P6 benchmark ещё TODO |
-| Следующая задача | MIMO-17: target batch2 parity/VRAM pools для MTP; также разброс scatter-copy, direct resident weights, пакетные H2D, chunks4/16, mixed/F32 диагностика и P2 API |
+| Следующая задача | MIMO-18: target batch2 parity по слоям, BF16 dense/routed MMVQ; также разброс scatter-copy, direct resident weights, пакетные H2D, chunks4/16, mixed/F32 диагностика и P2 API |
 
 В PREP-01 созданы план/статус; MIMO-01 добавил `backends/mimo2`, MiMo tools/tests
 и `qwen2` branch общего Python tokenizer. Действующие профили и GGUF не менялись.
@@ -155,7 +159,7 @@ checkpoint Xiaomi. Основное текстовое внедрение мож
 P5/P7 не блокируют P0–P4/P6. `DONE` означает только указанную проверенную часть;
 наличие внешней реализации не закрывает native engine или MTP.
 
-## Точка продолжения: MIMO-17
+## Точка продолжения: MIMO-18
 
 Разбор переноса от7 октября: [GLM / Step / DeepSeek](MIMO26_FLASH_OPTIMIZATION_TRANSFER_REVIEW.md).
 Три шага выполнены: [MIMO-07](MIMO26_FLASH_SLAB_CACHE.md) — плотный cache;
@@ -183,9 +187,16 @@ direct resident weights, пакетные H2D, chunks4/16 и границы си
 обычный режим10,520 ток/с, Q4 9,015, Q4 +scatter9,076. Кеш12,00→9,13 ГиБ,
 H2D на выходной шаг1,051→1,246/1,250 ГиБ. Пакетный target без draft снова
 расходится на18-м токене; сначала локализовать арифметику и рабочие буферы batch2.
+[MIMO-17](MIMO26_FLASH_TARGET_HEAD.md) проверил отдельную target head projection:
+Q4 9,880→10,929 ток/с, без MTP10,615; кеш вырос на2,085 ГиБ.
+Оптимизация памяти работает, однако расхождение на18-м токене осталось.
 
 1. Разобрать расхождение batched target с последовательным greedy из MIMO-06.
    Сначала replay известных target tokens без draft, затем kernel/attention isolation.
+   MIMO-17 подтвердил экономию от per-column GPU MMVF головы: F32 buffer
+   2,328125 ГиБ больше не нужен; full-model verify2 не расширяет pool как раньше,
+   в performance серии cache+2,085 ГиБ. Head fixture6 PASS, oracle не исправлен.
+   Теперь локализовать остальные BF16 dense/routed MMVQ и attention по слоям.
    Первая гипотеза — tokenwise small-batch dispatch из GLM; для MiMo дополнительно
    проверить MXFP4, формы4096×2048/2048×4096 и batch8. Причина ещё не установлена.
    Не включать speculative serving до проверки correctness и полезной скорости.
@@ -222,6 +233,32 @@ H2D на выходной шаг1,051→1,246/1,250 ГиБ. Пакетный tar
 Тяжёлые тесты начинать после нового global memory admission; чужие процессы не останавливать.
 
 ## Подтверждённый журнал
+
+### MIMO-17 / P5 — 2026-10-07 — Target head без полной F32-копии
+
+Добавлена opt-in проекция BF16 target head по столбцам, только в spec build.
+`--target-head-columns 1`, default0; `--memory-stages` для отдельных замеров
+prefill8/verify2/warmup8 до заполнения кеша. Standalone head fixture на настоящих
+весах:6 случаев,3356672 значений bit-exact с независимым GPU single-token oracle.
+Batch2 head graph1,531–1,534 против4,204–4,373 мс; batch8 медленнее и используется
+в этом MTP только для загрузочного all-logit прогрева, который сохранён.
+
+A B C C B A: без MTP10,615 ток/с; Q4 прежний9,880; Q4 columns10,929.
+Прирост к прежнему Q4+10,62%, к no-draft+2,95%, к быстрейшему контролю+1,89%.
+Cache9,797→11,882 ГиБ, H2D1,199→1,025 ГиБ/выходной шаг (−14,48%).
+Новая голова дважды дала10,924/10,933 ток/с. Все90 ответов/2880 IDs совпали;
+MTP logits не bit-exact. Boundary16 IDs PASS,7/7 proposals accepted.
+
+Oracle off/on снова расходится на18-м токене129258→38379 до первого rollback;
+оба результата сохранены как output_mismatch. Head optimization не закрывает P5.
+Python30, C++ prefix10, GPU/drain audit PASS. Peak performance RAM90,29%,
+VRAM92,67%, общий предел95% сохранён. Production executable побитно прежний,
+CMake SPEC_PROBE возвращён OFF. Нормальные defaults и MTP serving не менялись.
+
+[Отчёт](MIMO26_FLASH_TARGET_HEAD.md), [benchmark](MIMO26_FLASH_TARGET_HEAD_BENCHMARK.json),
+[validation и сохранённые failures](MIMO26_FLASH_TARGET_HEAD_VALIDATION.json).
+Следующий MIMO-18: локализация batch2 по слоям, BF16 dense и routed MMVQ;
+расширение confidence/depth и serving только после oracle parity.
 
 ### MIMO-16 / P5 — 2026-10-07 — Повтор Q4 MTP на текущем transport
 

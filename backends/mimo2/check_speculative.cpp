@@ -10,23 +10,35 @@ using Clock=std::chrono::steady_clock;
 static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
 int main(int argc,char **argv) {
     try {
-        std::string model_path,draft_path,kind="none";bool shared_target=false;size_t cache_mib=14336;
+        std::string model_path,draft_path,kind="none";bool shared_target=false,head_columns=false,memory_stages=false;size_t cache_mib=14336;
         for(int i=1;i<argc;++i) {std::string k=argv[i];require(i+1<argc,"missing option");std::string v=argv[++i];
             if(k=="--model")model_path=v;else if(k=="--draft")draft_path=v;else if(k=="--kind")kind=v;
             else if(k=="--expert-cache-mib") {size_t end=0;cache_mib=std::stoull(v,&end);require(end==v.size() && cache_mib>0 && cache_mib<=14336,"invalid cache limit");}
+            else if(k=="--target-head-columns" && (v=="0" || v=="1"))head_columns=v=="1";
+            else if(k=="--memory-stages" && (v=="0" || v=="1"))memory_stages=v=="1";
             else if(k=="--share-target" && (v=="0" || v=="1"))shared_target=v=="1";else throw std::runtime_error("unknown option "+k);}
         require(!model_path.empty() && (kind=="none" || kind=="mtp" || kind=="dflash") && ((kind=="none")==draft_path.empty()),"invalid probe inputs");
         require(!shared_target || kind=="dflash","shared target is a DFlash experiment");
         _putenv_s("STRATA_MIMO_DFLASH_SHARE_TARGET",shared_target?"1":"0");
+        _putenv_s("STRATA_MIMO_TARGET_HEAD_COLUMNS",head_columns?"1":"0");
         environment();ggml_backend_load_all();strata_mimo_mode(2);
         {
-            auto model=load(model_path);auto ctx=probe_context(model.get());
+            json stages=json::array();
+            auto stage=[&](const char *name) {if(memory_stages) {
+                strata_mimo_memory();const auto s=strata_mimo_snapshot();
+                stages.push_back({{"name",name},{"gpu_free",s.gpu_free},{"gpu_total",s.gpu_total},
+                    {"ram_free",s.ram_free},{"ram_total",s.ram_total},{"cache_bytes",s.cache_bytes}});
+            }};
+            stage("before_load");auto model=load(model_path);stage("target_weights");
+            auto ctx=probe_context(model.get());stage("target_context");
             std::unique_ptr<DraftMask> mask;
             Model dm(nullptr,llama_model_free);Context dc(nullptr,llama_free);std::unique_ptr<DraftProbe> draft;
             if(kind!="none") {
                 dm=probe_load_draft(draft_path,kind=="mtp");
+                stage("draft_weights");
                 if(shared_target) {require(!dm->tok_embd && !dm->output,"shared weights were not skipped");mask=std::make_unique<DraftMask>(draft_path);dm->tok_embd=mask->tensor;}
                 dc=probe_context(dm.get(),kind=="mtp",shared_target?ctx.get():nullptr);draft=std::make_unique<DraftProbe>(ctx.get(),dc.get(),kind=="mtp");
+                stage("draft_context");
             }
             // Lazy CUDA pools for batched verification differ from last-logit
             // prefill. Warm all-logit batch8 BEFORE the expert cache can fill.
@@ -35,8 +47,14 @@ int main(int argc,char **argv) {
             std::vector<llama_token> warm(8,11);
             bool verify_warmed=bool(draft);
             if(draft) {
+                if(memory_stages) {
+                    decode(ctx.get(),warm,0,8,0);stage("target_last_logit_prefill8");clear(ctx.get());
+                    decode(ctx.get(),warm,0,2,0,true);stage("target_all_logit_verify2");clear(ctx.get());
+                }
                 decode(ctx.get(),warm,0,8,0,true);
+                stage("target_all_logit_warmup8");
                 draft->process(warm,0);draft->propose(11,8,kind=="mtp"?1:7,0);draft->reset();
+                stage("draft_warmup");
             }
             clear(ctx.get());strata_mimo_cache(cache_mib<<20);strata_mimo_cache_prefill(false);strata_mimo_pipeline_config(1,8);
             std::cout<<"READY\n"<<std::flush;
@@ -94,6 +112,7 @@ int main(int argc,char **argv) {
                     {"prefill_ms",prefill_ms},{"generation_ms",generation_ms},{"tokens_per_second",1000.0*(out.size()-1)/generation_ms},
                     {"target_ms",target_ms},{"draft_ms",draft_ms},{"catchup_ms",catchup_ms},{"proposed",proposed},{"accepted",accepted},
                     {"cycles",cycles},{"proposed_counts",proposed_counts},{"accepted_counts",accepted_counts},{"cache_bytes",s.cache_bytes},
+                    {"target_head_columns",head_columns},{"memory_stages",stages},
                     {"cache_payload_bytes",s.cache_payload_bytes},{"cache_limit",s.cache_limit},{"decode_h2d_bytes",s.h2d_bytes-prefill_stats.h2d_bytes},
                     {"cache_request_mib",cache_mib},{"cache_slab_mib",s.cache_slab_mib},{"cache_decay",s.cache_decay},
                     {"pipeline_batch",s.pipeline_batch},{"pipeline_packed_guards",s.pipeline_packed_guards},
