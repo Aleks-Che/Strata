@@ -4,6 +4,8 @@
 #include "../common/device_memory.hpp"
 #include "../glm5next/host_pages.hpp"
 #include "expert_cache.hpp"
+#include "expert_slab.hpp"
+#include <cstdlib>
 #include <chrono>
 #include <cstring>
 #include <stdexcept>
@@ -14,8 +16,27 @@ static thread_local const std::atomic<bool> * mimo_cancel=nullptr;
 static thread_local strata_mimo_observer mimo_observer=nullptr;
 static thread_local void * mimo_owner=nullptr;
 static constexpr size_t mimo_staging_limit=16*1024*1024;
+static thread_local std::unique_ptr<mimo2::ExpertSlab> mimo_slab;
+// Cache returns its slots before the slab owner is destroyed, including TLS exit.
 static thread_local std::unique_ptr<mimo2::ExpertCache> mimo_cache;
+int strata_mimo_cache_slab_mib() {
+    const char *value=std::getenv("STRATA_MIMO_CACHE_SLAB_MIB");
+    if(!value)return 16;
+    if(std::strcmp(value,"0")==0)return 0;
+    if(std::strcmp(value,"16")==0)return 16;
+    if(std::strcmp(value,"32")==0)return 32;
+    throw std::runtime_error("STRATA_MIMO_CACHE_SLAB_MIB must be 0, 16 or 32");
+}
 static thread_local cudaStream_t mimo_cache_stream=nullptr;
+int strata_mimo_cache_decay() {
+    const char *value=std::getenv("STRATA_MIMO_CACHE_DECAY");
+    if(!value)return 65536;
+    if(std::strcmp(value,"0")==0)return 0;
+    if(std::strcmp(value,"16384")==0)return 16384;
+    if(std::strcmp(value,"65536")==0)return 65536;
+    if(std::strcmp(value,"131072")==0)return 131072;
+    throw std::runtime_error("STRATA_MIMO_CACHE_DECAY must be 0, 16384, 65536 or 131072");
+}
 static thread_local uint64_t mimo_generation=0;
 static thread_local bool mimo_prefill=false,mimo_prefill_admit=true;
 static thread_local bool mimo_mmap_reader=false;
@@ -50,6 +71,7 @@ void strata_mimo_reset() {
     mimo_stats.staging_bytes=mimo_staging?mimo_staging_limit:0;
     if(mimo_host_budget)mimo_stats.host_working_set_limit=host_limit;
     if(mimo_cache)mimo_cache->reset_stats();
+    if(mimo_slab)mimo_slab->reset_stats();
     mimo_pipeline_reset_counters();
 }
 strata_mimo_stats strata_mimo_snapshot() {
@@ -59,6 +81,15 @@ strata_mimo_stats strata_mimo_snapshot() {
         auto c=mimo_cache->stats();s.cache_hits=c.hits;s.cache_misses=c.misses;s.cache_evictions=c.evictions;
         s.cache_allocations=c.allocations;s.cache_reuses=c.reuses;s.cache_bypasses=c.bypasses;s.cache_oom=c.oom;
         s.cache_bytes=mimo_cache->bytes();s.cache_payload_bytes=mimo_cache->payload_bytes();s.cache_limit=mimo_cache->budget();
+        s.cache_slot_bytes=mimo_cache->slot_bytes();
+        s.cache_pending=mimo_cache->pending();
+        s.cache_decay=mimo_cache->decay_period();s.cache_history_keys=mimo_cache->history_keys();
+        s.cache_frequency_updates=c.frequency_updates;s.cache_frequency_rejected=c.frequency_rejected;
+        s.cache_frequency_candidates=c.frequency_candidates;
+    }
+    if(mimo_slab) {
+        auto a=mimo_slab->stats();s.cache_slab_mib=strata_mimo_cache_slab_mib();s.cache_slab_blocks=a.blocks;
+        s.cache_slab_allocations=a.allocations;s.cache_slab_reuses=a.reuses;s.cache_slab_denied=a.denied;s.cache_slab_oom=a.oom;
     }
     return s;
 }
@@ -98,7 +129,7 @@ void strata_mimo_release() {
     if(mimo_staging)cudaFreeHost(mimo_staging);
     mimo_staging=nullptr;mimo_cancel=nullptr;mimo_observer=nullptr;mimo_owner=nullptr;
     if(mimo_cache_stream)cudaStreamSynchronize(mimo_cache_stream);
-    mimo_cache.reset();mimo_tensors.clear();
+    mimo_cache.reset();mimo_slab.reset();mimo_tensors.clear();
     if(mimo_cache_stream)cudaStreamDestroy(mimo_cache_stream);
     mimo_cache_stream=nullptr;
     mimo_mmap_reader=false;
@@ -117,14 +148,25 @@ void strata_mimo_cache(size_t bytes) {
     if(mimo_pipeline_enabled())throw std::runtime_error("configure MiMo cache before pipeline readers");
     if(bytes && mimo_mode!=2)throw std::runtime_error("MiMo cache requires pinned copy mode");
     if(mimo_cache_stream)mimo_cuda(cudaStreamSynchronize(mimo_cache_stream));
-    mimo_cache.reset();
+    mimo_cache.reset();mimo_slab.reset();
     if(bytes) {
         if(!mimo_cache_stream)mimo_cuda(cudaStreamCreateWithFlags(&mimo_cache_stream,cudaStreamNonBlocking));
-        mimo_cache=std::make_unique<mimo2::ExpertCache>(bytes,[](size_t n)->void * {
+        auto allocate=[](size_t n)->void * {
             void *p=nullptr;const auto rc=cudaMalloc(&p,n);
             if(rc==cudaErrorMemoryAllocation) {cudaGetLastError();return nullptr;}
             mimo_cuda(rc);return p;
-        },[](void *p) {cudaFree(p);},2u<<20); // Measured WDDM allocation rounding; NVML also clamps the live budget.
+        };
+        auto release=[](void *p) {cudaFree(p);};
+        const int slab=strata_mimo_cache_slab_mib();
+        if(slab) {
+            mimo_slab=std::make_unique<mimo2::ExpertSlab>(size_t(slab)<<20,2u<<20,allocate,release);
+            mimo_cache=std::make_unique<mimo2::ExpertCache>(bytes,
+                [](size_t n) {return mimo_slab->get(n,mimo_cache->budget());},
+                [](void *p) {mimo_slab->put(p);},256,
+                [] {return mimo_slab->reserved();},[](size_t n) {return mimo_slab->growth(n);},strata_mimo_cache_decay());
+        } else mimo_cache=std::make_unique<mimo2::ExpertCache>(bytes,allocate,release,2u<<20,
+            std::function<size_t()>{},std::function<size_t(size_t)>{},strata_mimo_cache_decay());
+        // NVML clamps whole blocks, including free slots, not just payload.
         strata_mimo_memory();
     }
 }
@@ -142,6 +184,7 @@ void strata_mimo_workspace_ready() {mimo_workspace_pending=false;}
 static void mimo_d2d(void *dst,const void *src,size_t bytes) {
     const auto start=std::chrono::steady_clock::now();
     const auto rc=cudaMemcpyAsync(dst,src,bytes,cudaMemcpyDeviceToDevice,mimo_cache_stream);
+    ++mimo_stats.pipeline_copy_fences;
     const auto fence=cudaStreamSynchronize(mimo_cache_stream); // also drain on submission errors
     mimo_cuda(rc);mimo_cuda(fence);
     mimo_stats.d2d_ms+=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
@@ -228,6 +271,7 @@ static bool mimo_copy_range(ggml_backend_t backend,ggml_tensor *dst,const ggml_t
             if(mimo_cancelled())return false;
             const size_t at=offset+n*id.stride;
             const mimo2::MatrixKey key{mimo_generation,id.id,uint32_t(at/id.stride)};
+            if(admit)mimo_cache->record(key);
             void *cached=admit?mimo_cache->get(key,id.stride):existing[n];
             auto *device=static_cast<char *>(dst->data)+at;
             if(cached) {

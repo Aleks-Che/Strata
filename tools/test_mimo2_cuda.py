@@ -6,6 +6,15 @@ from tools.check_mimo2_cuda import check_ceiling, validate_result
 
 
 class MiMoCudaAdmission(unittest.TestCase):
+    def test_fill_batch_requires_extended_runtime_coverage(self):
+        manifest = {'source_revision': 'pin', 'archive_sha256': 'archive', 'patches': 'patches'}
+        for enabled, count in [(False, 212), (True, 244)]:
+            result = dict(status='pass', requested_revision='pin', archive_sha256='archive', patch_set='patches',
+                          case_count=count, results=[{'pass': True} for _ in range(count)])
+            validate_result(result, manifest, 'runtime', enabled)
+            with self.assertRaises(ValueError):
+                validate_result(result, manifest, 'runtime', not enabled)
+
     def test_global_memory_ceiling(self):
         base = {'ram_total': 10000, 'ram_available': 500, 'gpu': {'total': 10000, 'used': 9500}}
         check_ceiling(base)

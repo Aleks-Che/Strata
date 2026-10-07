@@ -249,7 +249,7 @@ ctest --test-dir build-local/mimo2-cuda -R mimo2_cache_ownership --output-on-fai
 python -m tools.check_mimo2_engine --build build-local/mimo2-cuda --model $mimoModel --suite repeat --expert-cache-mib 14336 --expert-reader mmap --expert-cache-prefill off --output-dir build-local/mimo2-validation/cache-repeat-new --cuda-bin build-local/cuda-13.0/bin/x64
 ```
 
-LRU хранит отдельные quantized matrices Q2_K/Q3_K/MXFP4. Ключ включает generation,
+Кеш хранит отдельные quantized matrices Q2_K/Q3_K/MXFP4. Ключ включает generation,
 зарегистрированный tensor identity и expert ID; registry проверяет type/shape/
 stride/file range. Entry публикуется только после успешной завершённой копии.
 D2D hit/fill и H2D fence защищают адреса до eviction/reuse; pipeline дополнительно
@@ -262,6 +262,120 @@ Allocation probe на этой Windows/5090 выявил округление н
 запаса. До первого успешного полного batch дополнительно сохраняются3 ГиБ
 для ленивых FP32 cuBLAS pools. Поэтому стартовый INFO limit может быть меньше
 запрошенного; после прогрева он пересчитывается.
+
+По умолчанию `STRATA_MIMO_CACHE_SLAB_MIB=16`: несколько матриц одинакового
+размера размещаются в общем блоке. `0` возвращает отдельные allocations;
+`32` — экспериментальный вариант, скорость которого ещё не измерена.
+Размер блока округлён до2 МиБ, slots — до256 байт; последний блок уменьшается
+под остаток бюджета. `cache_bytes` включает весь блок, свободные slots и padding,
+`cache_slot_bytes` — живые slots, `cache_payload_bytes` — полезные веса.
+Адреса живых slots не перемещаются; пустые блоки освобождаются.
+Global admission продолжает учитывать NVML, KV, workspace и прочие процессы.
+Переменную задавать до запуска. В измеренном MIMO-07 A/B менялся только allocator:
+tensor batching был выключен, частотная история и compaction не перенесены.
+На RTX5090/128 ГБ RAM итоговый ABBA дал6,434→6,952 ток/с (+8,1%),
+payload9,855→12,370 ГиБ при cache около12,9 ГиБ. Условия, проверки и
+ограничения: [MIMO-07](../../docs/mimo-v2.6-flash/MIMO26_FLASH_SLAB_CACHE.md).
+
+Воспроизводимый A/B без MTP (новый каталог результатов):
+
+```powershell
+python -m tools.benchmark_mimo2_cache --build build-local/mimo2-cuda --model $mimoModel --cuda-bin build-local/cuda-13.0/bin/x64 --order 0,16,16,0 --output-dir build-local/mimo2-validation/slab-abba-new
+```
+
+Runner сравнивает все сохранённые logits и IDs, исключает первый запрос каждого
+prompt из скорости, сохраняет system disk read counters, memory samples и
+счётчики cache. `tools.check_mimo2_engine` и `tools.check_mimo2_cuda` принимают
+`--cache-slab-mib 0|16|32` и явно задают соответствующую переменную процессу
+(default этих контрольных runners — `0`, default самого engine — `16`).
+Проверки `mimo2_cache_ownership` и `mimo2_slab_ownership` выполняются без GPU;
+вторая покрывает реальные размеры квантованных матриц, OOM, holes, pins,
+ошибки заполнения, давление бюджета и5000 операций со смешанными размерами.
+
+По умолчанию `STRATA_MIMO_PIPELINE_BATCH=1` объединяет доставку выбранных экспертов одного
+scheduler input. Одна backend fence защищает scratch от предыдущего consumer;
+одна copy-stream fence завершает доставку всех матриц и guard tails. Route pins
+сохраняют cache sources. Затем воспроизводится прежний порядок LRU/admission:
+каждый новый cache fill по-прежнему завершается перед публикацией. Это не
+асинхронная публикация кеша и не изменение арифметики модели. `0` — контроль.
+
+`pipeline_copy_batches` считает завершённые tensor deliveries;
+`pipeline_copy_fences` — host waits доставки и cache fills, включая prefill;
+`pipeline_scratch_fences` — дополнительные backend waits перед доставкой.
+Счётчики не включают route drains, прочие scheduler fences и producer events.
+`pipeline_batch_ms` включает source waits и admission, это wall time, не GPU time.
+Контрольные runners принимают `--pipeline-batch 0|1` (default0).
+
+Сравнение с одинаковым slab16, без MTP:
+
+```powershell
+python -m tools.benchmark_mimo2_cache --build build-local/mimo2-cuda --model $mimoModel --cuda-bin build-local/cuda-13.0/bin/x64 --axis pipeline --fixed-slab-mib 16 --order 0,1,1,0 --output-dir build-local/mimo2-validation/tensor-abba-new
+```
+
+Slab-axis runner явно выключает tensor batching, чтобы сохранять контроль
+прежнего эксперимента. Оба режима не меняют лимиты global RAM/VRAM95%.
+На RTX5090/128 ГБ RAM ABBA дал6,591→7,299 ток/с (+10,7%); относительно
+последнего прогретого контроля6,933 прибавка5,3%. Logits/IDs совпали побитово.
+[Условия, сборки и ограничения MIMO-08](../../docs/mimo-v2.6-flash/MIMO26_FLASH_TENSOR_BATCH.md).
+
+По умолчанию `STRATA_MIMO_CACHE_DECAY=65536` включает частотный допуск:
+редкая новая матрица сохраняет более частого кандидата на вытеснение. Сравниваются
+64 старых unpinned entries, прежде всего того же размера allocation. Равные
+частоты разрешают замену. При свободном месте допуск сохраняется. `0` возвращает
+прежний LRU; `16384`/`131072` доступны для опытов, их скорость ещё не измерена.
+
+История до65536 ключей generation/tensor/expert учитывает только выбранные
+полные матрицы, включая misses, которым отказано в admission. Guard tails и
+prefill при admission off её не обучают. Период65536 наблюдений — примерно58
+обычных decode tokens этой модели, после него частоты лениво делятся пополам.
+Reset статистики запроса сохраняет историю; новый кеш её очищает. Pins, бюджет
+и завершение fill перед публикацией не менялись. Переменную задавать до запуска.
+
+`INFO expert_cache_decay` и метрики `cache_decay`, `cache_history_keys`,
+`cache_frequency_updates/rejected/candidates` показывают выбранную политику
+и её работу. `check_mimo2_cuda`/`check_mimo2_engine` принимают `--cache-decay`
+(default0), поэтому текущий режим проверяется с
+`--cache-slab-mib 16 --pipeline-batch 1 --cache-decay 65536`.
+CPU CTest `mimo2_frequency_ownership` покрывает21 случай и5000 операций.
+
+```powershell
+python -m tools.benchmark_mimo2_cache --build build-local/mimo2-cuda --model $mimoModel --cuda-bin build-local/cuda-13.0/bin/x64 --axis frequency --fixed-slab-mib 16 --order 0,65536,65536,0 --output-dir build-local/mimo2-validation/frequency-abba-new
+```
+
+Frequency axis сохраняет tensor delivery1 и slab16; остальные axes явно ставят
+decay0. На RTX5090/128 ГБ RAM, без MTP, warm ABBA дал6,923→7,692 ток/с
+(+11,1%), к быстрейшему контролю+8,2%. H2D прогретого decode−11,8%, fills−82,9%.
+При смене темы первый запрос может копировать больше весов, пока история
+адаптируется. [Измерения и ограничения MIMO-09](../../docs/mimo-v2.6-flash/MIMO26_FLASH_FREQUENCY_CACHE.md).
+
+`STRATA_MIMO_CACHE_FILL_BATCH=0` остаётся default. Экспериментальный `1`
+резервирует невидимые cache entries, затем копирует сохранившиеся reservations
+одного scheduler input до общей fence. До submit их можно переиспользовать;
+после submit ошибка сначала завершает копии, затем удаляет pending entries.
+Требует tensor delivery1 и pipeline; sync/per-matrix delivery не меняются.
+Метрики `cache_fill_batch`, `cache_pending`, `pipeline_fill_batches` и
+`pipeline_fill_submissions` показывают режим и завершение копий.
+Контрольные runners принимают `--cache-fill-batch 0|1` (default0).
+
+На этой RTX5090 групповые fills снизили waits на19,17%, но ABBA дал
+7,861→7,826 ток/с (−0,45%). Один повтор synthetic mixed/file/cache8 также
+дал exact-logit mismatch при совпавших байтах. Режим остаётся выключенным;
+повтор PASS не считается исправлением. Новые ownership tests:17 cases,
+16 000 mixed operations; CUDA checker добавляет32 fill-error/recovery cases.
+
+В обычную сборку включена перегрузка `require(bool,const char *)`, устраняющая
+временные строки на успешной проверке logits. NaN/Inf и динамические ошибки
+проверяются по-прежнему. На MSVC Release CPU guard152576 значений потребовал
+0 вместо152576 allocations и около0,057 вместо3,22 мс; это отдельный microbenchmark.
+`strata-mimo2-literals-check` / CTest `mimo2_literal_guards` проверяет11 случаев.
+Отдельный ABBA полной модели с fill0:7,721→7,933 ток/с (+2,74%), все logits/IDs
+exact. Время вне decode снизилось с3,877 до0,345 мс/output; forward почти не изменился.
+[Замеры полной модели и диагностика MIMO-10](../../docs/mimo-v2.6-flash/MIMO26_FLASH_FILL_AND_GUARDS.md).
+
+Benchmark axis `fill` сравнивает0/1 с tensor delivery1 и fixed decay65536;
+`binary` с `--control-binary <preserved.exe>` сравнивает два executable,
+сохраняя fill0. Для этих axes явно задавать `--order 0,1,1,0`.
+Прочие axes выключают fill batching, сохраняя прежние контроли.
 
 Mmap reader ограничивает **собственный** working set с расчётом на94% общей RAM,
 с учётом других процессов. Windows может вытеснять чистые страницы GGUF;

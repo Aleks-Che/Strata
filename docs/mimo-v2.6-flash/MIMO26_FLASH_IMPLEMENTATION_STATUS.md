@@ -6,8 +6,10 @@
 Файл хранит фактический прогресс и точку продолжения.
 **P0, P1, P3.1 и транспорт P3.2 реализованы: GPU engine с cache и async pipeline.**
 Проверены context512, F32 KV, FA on, greedy, file/mmap, sync и bounded pipeline.
-Defaults engine: cache до14 ГиБ с live clamp, mmap, один reader, chunk8 МиБ,
-decode-only admission. API и установочный профиль ещё не готовы.
+Defaults engine: cache до14 ГиБ с live clamp, блоки16 МиБ, mmap, один reader,
+chunk8 МиБ, доставка по тензорам, decode-only frequency admission с decay65536.
+CPU literal guard включён; экспериментальные групповые fills выключены.
+API и установочный профиль ещё не готовы.
 Существенный overlap H2D/compute пока не подтверждён; P3 в целом не закрыт.
 Из P2 проверены IDs/bytes/tokenizer/raw Jinja.
 Наличие `mimo2` в llama.cpp не означает готовую интеграцию в Strata.
@@ -33,11 +35,15 @@ decode-only admission. API и установочный профиль ещё н�
 | Raw Jinja / API | PASS 85/85 template checks; HTTP/parser/tools round-trip TODO |
 | Python / native checks | 40 unit/regression tests; 3 CPU CTest; 23 cache +212 runtime +96 kernels +132 graph PASS |
 | Engine | PASS: 6 full-model corpus cases; A/B/A с4×32 токена, bit-exact transport parity |
-| Cache / pipeline / sessions | Bounded LRU и async transport проверены; существенный compute overlap / sessions TODO |
+| Cache / pipeline / sessions | Bounded LRU/decaying frequency и async transport проверены; существенный compute overlap / sessions TODO |
+| Плотный cache, MIMO-07 | Default16; payload9,855→12,370 ГиБ, итоговый ABBA6,434→6,952 ток/с (+8,1%), logits bit-exact |
+| Доставка по тензорам, MIMO-08 | Default on; ABBA6,591→7,299 ток/с (+10,7%); к последнему прогретому контролю+5,3%, logits bit-exact |
+| Частотный кеш, MIMO-09 | Default decay65536; ABBA6,923→7,692 ток/с (+11,1%), к быстрейшему контролю+8,2%; exact logits |
+| Fills / CPU guard, MIMO-10 | Literal guard:7,721→7,933 ток/с (+2,74%), включён. Grouped fills:−0,45%, default off, mixed diagnostic открыт |
 | Локальная скорость | Прогретый sync5,103–5,160; pipeline reader1:7,053, reader2:6,914 ток/с; условия MIMO-05 ниже |
 | Память / TTFT | Pipeline corpus с trace: peak RSS93,42 ГиБ; request-end global VRAM30,00 ГиБ; TTFT6,57с EN /39,64с long249 |
 | Рекомендуемый профиль | Engine defaults выбраны по локальным опытам; setup/API profile и P6 benchmark ещё TODO |
-| Следующая задача | Приёмка batched target / speculative quality; затем P3 overlap и P2 API |
+| Следующая задача | Cache lookup/CPU overhead и адаптация к смене темы; mixed/F32 диагностика, speculative quality и P2 API |
 
 В PREP-01 созданы план/статус; MIMO-01 добавил `backends/mimo2`, MiMo tools/tests
 и `qwen2` branch общего Python tokenizer. Действующие профили и GGUF не менялись.
@@ -47,6 +53,14 @@ MIMO-04 добавил GPU expert cache, выбор reader/admission, RAM budget
 MIMO-05 добавил bounded async transport, route pins, диагностику и defaults reader1.
 MIMO-06 проверил все пять MTP/DFlash sidecars отдельным GPU probe. На этом корпусе
 без draft быстрее; основной engine и его defaults сохранены.
+MIMO-07 добавил плотное размещение expert cache, измерил отдельный ABBA без MTP
+и включил default16. [Результаты и ограничения](MIMO26_FLASH_SLAB_CACHE.md).
+MIMO-08 объединил доставку экспертов одного scheduler input, сохранив прежние
+LRU/admission и синхронные cache fills. [Результаты](MIMO26_FLASH_TENSOR_BATCH.md).
+MIMO-09 добавил частотный допуск с забыванием истории; снизил H2D прогретого
+decode на11,8% и объём cache fills на82,9%. [Результаты](MIMO26_FLASH_FREQUENCY_CACHE.md).
+MIMO-10 проверил grouped fills и оставил их off; убрал временные строки CPU
+проверки logits. [Измерения и диагностика](MIMO26_FLASH_FILL_AND_GUARDS.md).
 Изменения Hy3/common transport относятся к другой работе и не являются MiMo validation.
 
 ## Подтверждено при подготовке
@@ -100,8 +114,8 @@ checkpoint Xiaomi. Основное текстовое внедрение мож
 - Full-model context2K/4K, длительная работа при внешнем memory pressure,
   process commit и physical SSD I/O. Замерены working set/global memory,
   TTFT/prefill/decode и native read/H2D bytes, cancel/invalid-request recovery.
-- CUDA Graphs, существенный overlap H2D/compute, sessions, другие cache policies сверх LRU
-  с проверенными prefill admission on/off и file/mmap readers.
+- CUDA Graphs, существенный overlap H2D/compute, sessions, другие cache policies
+  сверх LRU/decay65536. Prefill admission on/off и file/mmap readers проверены.
 - Serving MTP/DFlash, native heads2/3 и multimodal companions. Структура пяти sidecars и offline greedy сравнение вынесены в MIMO-06.
 
 ## Таблица этапов
@@ -121,39 +135,184 @@ checkpoint Xiaomi. Основное текстовое внедрение мож
 P5/P7 не блокируют P0–P4/P6. `DONE` означает только указанную проверенную часть;
 наличие внешней реализации не закрывает native engine или MTP.
 
-## Точка продолжения: MIMO-07
+## Точка продолжения: MIMO-11
 
 Разбор переноса от7 октября: [GLM / Step / DeepSeek](MIMO26_FLASH_OPTIMIZATION_TRANSFER_REVIEW.md).
-Новых GPU-замеров в этом разборе нет. Для скорости без MTP приоритет:
-slab allocator → tensor batching → frequency admission. В MIMO-06 no-draft
-cache12,842 ГиБ содержит9,798 ГиБ весов: разница3,044 ГиБ задаёт основание
-для опыта со slabs, но не гарантированную экономию. Reuse и prefill hits уже есть.
+Три шага выполнены: [MIMO-07](MIMO26_FLASH_SLAB_CACHE.md) — плотный cache;
+[MIMO-08](MIMO26_FLASH_TENSOR_BATCH.md) — tensor delivery;
+[MIMO-09](MIMO26_FLASH_FREQUENCY_CACHE.md) — частотный допуск.
+Их ABBA имеют разные контроли; проценты нельзя складывать.
+[MIMO-10](MIMO26_FLASH_FILL_AND_GUARDS.md) проверил grouped fills без speedup
+и добавил literal guard. Далее cache lookup/CPU overhead и численная диагностика.
 
 1. Разобрать расхождение batched target с последовательным greedy из MIMO-06.
    Сначала replay известных target tokens без draft, затем kernel/attention isolation.
    Первая гипотеза — tokenwise small-batch dispatch из GLM; для MiMo дополнительно
    проверить MXFP4, формы4096×2048/2048×4096 и batch8. Причина ещё не установлена.
    Не включать speculative serving до проверки correctness и полезной скорости.
-2. Уменьшить per-matrix D2D/fences: рассмотреть tensor-batched delivery и consumer
-   events. Scratch может содержать живые активации; перед асинхронным reuse нужны
-   проверенные lifetimes. Сохранить синхронный baseline `--expert-readers 0`.
+2. Tensor delivery уже уменьшает waits: одна scratch fence и одна delivery
+   fence на scheduler input. Defaults сохраняют синхронные cache fills.
+   Grouped fills реализованы с ownership pending reservations, но остаются
+   off: ABBA не показал ускорения, новый mixed synthetic mismatch не объяснён.
+   Scratch может содержать живые активации. Сохранить `--expert-readers 0`
+   и контроль `STRATA_MIMO_PIPELINE_BATCH=0`.
 3. Route pins уже защищают будущие hits. Любая новая асинхронная запись cache
    потребует защиты fills/consumers до их завершения, повторения bytes/logits,
    cancel/error/drain checks. CUDA Graphs одновременно не включать.
 4. Уточнить CPU/driver затраты и kernel timeline: текущий CUDA event trace показывает
    лишь небольшой overlap. Проверить chunks4/16 на полной модели, разные темы,
    physical SSD I/O и длительный external pressure. Reader1/2 при chunk8 измерены.
-5. Cache14 запрашивает14 ГиБ allocations, live clamp оставляет около12,4–12,6.
-   Из-за2-МиБ округления payload около9,5–9,6 ГиБ; GPU arena — отдельный опыт.
-   Сравнивать минимум три прогретых повтора и возвращаться к control baseline.
+5. Cache14 запрашивает14 ГиБ allocations. В ABBA MIMO-07 live clamp оставлял
+   около12,9 ГиБ; payload с блоками16 составил12,37 ГиБ вместо9,855.
+   Размер32 не измерен. Новые варианты сравнивать минимум тремя прогретыми
+   повторами и возвратом к контролю; учитывать ненулевой system disk I/O.
+   MIMO-09 выбрал decay65536; периоды16384/131072 не измерены. На первых
+   запросах тем частота увеличила H2D, на прогретых уменьшила. Проверить поток
+   разных однократных запросов и возвращение к прежней теме отдельно.
 6. P2: отдельный API adapter/parser/tools и setup profile. До него использовать
    только документированный pipe. Контексты выше512 требуют отдельной проверки.
+7. Локализовать повторяющийся F32 synthetic mismatch: в MIMO-08 он возник
+   в старом `file_pipe_1_256`, в MIMO-07 — `mmap_pipe_2_256`, с одинаковой
+   ошибкой. Повтор PASS не доказывает исправление; численные пороги не ослаблять.
+   В MIMO-10 отдельно возник mixed/file_pipe_1_8 max_abs0,0007548183;
+   байты совпали, повтор244/244 PASS, оба сохранённых старых контроля212/212.
+   Не объявлять эти две сигнатуры одной причиной без локализации.
 
 Не запускать GLM/Step/Hy3 engine с этим файлом как проверку поддержки MiMo.
 Не выделять весь объём модели в RAM. Наличие sidecar не означает готовность MTP/DFlash serving.
 Тяжёлые тесты начинать после нового global memory admission; чужие процессы не останавливать.
 
 ## Подтверждённый журнал
+
+### MIMO-10 / P3 — 2026-10-07 — grouped fills и literal guard
+
+Добавлен opt-in FillBatch: резервирование без GPU submit, невидимые pending
+entries, копирование только surviving reservations, fence перед публикацией
+и cleanup на ошибке. Ticket защищает от повторного ключа/адреса. CPU tests
+сравнивают policy/residency/payload с прежним алгоритмом на16 000 операций.
+Включать через `STRATA_MIMO_CACHE_FILL_BATCH=1`; default остаётся0.
+
+С тем же GGUF/RTX5090/128 ГБ RAM, decay65536 и tensor delivery1, ABBA
+**7,861→7,826 ток/с (−0,45%)**. Host fences−19,17%, полезного speedup нет.
+Corpus6 prompts,3 509 248 logits и ABBA1536 IDs/all logits exact.
+Native runtime244/244 сначала отвергнут wrapper из-за старого ожидаемого
+count212; wrapper исправлен, добавлен Python regression. Затем243/244:
+mixed/file_pipe_1_8/logits, max_abs0,0007548183 при совпавших bytes. Повтор
+244/244 и два сохранённых pre-change212/212 прошли. Причина остаётся открытой.
+
+Отдельно добавлена перегрузка `require(bool,const char *)`. Проверка конечных
+logits больше не создаёт временную string для каждого элемента; прежние
+NaN/Inf и динамические сообщения сохранены. MSVC Release microbenchmark:
+152576→0 allocations и3,22→0,057 мс на одну строку из152576 значений.
+Это время CPU guard, не общей генерации. Изменение включено в обычную сборку.
+Его отдельный binary ABBA с fill0 дал **7,721→7,933 ток/с (+2,74%)**,
+к быстрейшему контролю+2,63%. Процессы:7,729 /7,978 /7,889 /7,713.
+Время вне decode3,877→0,345 мс/output (−91,11%); суммарный forward почти
+не изменился (+0,15%). Все48 запросов/1536 IDs и logits exact; corpus6 prompts
+с3 509 248 exact logits и error/cancel recovery PASS. Peak VRAM29,506 ГиБ/92,66%,
+RAM107,752 ГиБ/85,82%. Default/unset-env проверка EN/SWA249 — в validation.
+
+27 cache +56 slab +21 frequency +17 fill-batch +11 literal cases,
+5000/5000/16000 mixed operations и29 Python tests PASS. CUDA runtime counts
+212 для контроля и244 для grouped mode включают32 новых error/recovery checks;
+исходные numerical FAIL и wrapper error не удалены.
+[Полные замеры и ограничения](MIMO26_FLASH_FILL_AND_GUARDS.md),
+[validation](MIMO26_FLASH_OPTIMIZATION10_VALIDATION.json).
+
+Общий transport, frequency helper, другие backend и model weights не менялись.
+Новый compute overlap, MTP serving, API, sessions и context выше512 не проверены.
+
+### MIMO-09 / P3 — 2026-10-07 — частотный допуск
+
+Общая ограниченная частотная история подключена к MiMo с полными ключами
+generation/tensor/expert. Hits и misses обучают историю; guard tails и prefill
+с admission off её не меняют. Кандидат выбирается среди64 старых unpinned
+entries, с учётом размера allocation. Редкий newcomer сохраняет более частую
+запись. Route pins, синхронная публикация fills, GPU-only audit и global95% сохранены.
+`STRATA_MIMO_CACHE_DECAY=65536` включён по умолчанию; `0` — прежний LRU.
+
+Windows, RTX5090/128 ГБ RAM, тот же GGUF, slab16 и tensor delivery в обоих
+режимах. Same-binary ABBA **6,923→7,692 ток/с (+11,1%)**; относительно
+быстрейшего контроля+8,2%. Процессы:7,112 /7,826 /7,563 /6,744.
+Decode H2D прогретых запросов−11,8%, cache-fill D2D−82,9%, host fences−58,9%.
+Reserved cache практически одинаков:12,708/12,711 ГиБ. Пик нового режима:
+VRAM29,506 ГиБ/92,66%, RAM111,540 ГиБ/88,84%.
+Первые запросы тем увеличили H2D с251,799 до347,100 ГиБ: сохраняется цена
+адаптации частотной истории. Они сохранены отдельно, не смешаны с warm throughput.
+[Условия и ограничения](MIMO26_FLASH_FREQUENCY_CACHE.md),
+[замеры](MIMO26_FLASH_FREQUENCY_BENCHMARK.json).
+
+27 cache,56 slab и21 frequency cases, две серии по5000 смешанных операций,
+28 Python tests PASS. Runtime212/212 при decay0 и65536; corpus6 prompts,
+3 509 248 exact logits, cancel/error recovery и unload PASS. ABBA48 запросов,
+1536 IDs и все logits exact. После default-only пересборки запуск без env/CLI
+overrides EN/SWA249 и recovery PASS;1 220 608 logits exact.
+Сборки, исходники, команды и hashes — в [validation](MIMO26_FLASH_FREQUENCY_VALIDATION.json).
+
+Общий frequency header и другие backend не менялись. Прежняя F32 synthetic
+ошибка в этой серии не возникла; её причина остаётся открытой. Пороги не ослаблены.
+Периоды16384/131072, длинный context и внешний pressure stress не измерены;
+MTP, API, sessions и существенный compute overlap этим этапом не закрыты.
+
+### MIMO-08 / P3.3 — 2026-10-07 — tensor delivery
+
+Selected matrices и guard tails одного scheduler input доставляются до общей
+copy fence. Route pins сохраняют sources, scratch fence остаётся перед tensor.
+Затем воспроизводится исходный LRU/fill order; fills публикуются синхронно.
+`STRATA_MIMO_PIPELINE_BATCH=1` включён по умолчанию; `0` оставлен для контроля.
+Общий transport, арифметика, memory95% и GPU-only compute не менялись.
+
+На том же GGUF/RTX5090/128 ГБ RAM, slab16 в обоих режимах, same-binary ABBA:
+**6,591→7,299 ток/с (+10,7%)**. Последний прогретый контроль дал6,933,
+относительно него прибавка5,3%. Четыре процесса:6,282 /7,388 /7,212 /6,933.
+Ранний русский контроль медленнее позднего; все его запросы включены в итог.
+Host waits доставки/fills−74,92%, дополнительные scratch fences−90,41%
+(prefill+decode); decode H2D практически одинаков. Пик нового режима:
+VRAM29,506 ГиБ/92,66%, RAM113,454 ГиБ/90,36%.
+[Условия и ограничения](MIMO26_FLASH_TENSOR_BATCH.md),
+[полные замеры](MIMO26_FLASH_TENSOR_BATCH_BENCHMARK.json).
+
+27 cache +56 slab cases,5000 смешанных операций и28 Python tests PASS.
+Новый runtime212/212, corpus6 prompts с3 509 248 exact logits, error/cancel
+recovery и unload PASS. ABBA48 запросов/1536 токенов и все logits bit-exact.
+Измеренная сборка сохранена отдельно от default-only shipping build;
+проверка unset env/CLI на EN/SWA249 и recovery записана в
+[validation](MIMO26_FLASH_TENSOR_BATCH_VALIDATION.json).
+
+Первый выключенный контроль дал211/212 из-за прежнего F32 mismatch
+`file_pipe_1_256`; доставленные bytes совпали. Повтор212/212 без изменения
+арифметики/порогов. Этот дефект не решён. MTP serving, API, sessions и
+существенный compute overlap этим этапом не закрыты.
+
+### MIMO-07 / P3 — 2026-10-07 — плотное размещение cache
+
+Добавлен allocator общих GPU-блоков, выравнивание slots256 байт и physical
+accounting целых блоков. Индекс неполных блоков сокращает поиск свободного места.
+Pins, fenced fill, byte audit, global95% и GPU-only compute сохранены.
+Defaults pipe engine: `STRATA_MIMO_CACHE_SLAB_MIB=16`; `0` возвращает контроль.
+Групповые копии, частотная история и MTP этим изменением не реализованы.
+
+Итоговый same-binary ABBA0/16/16/0, три темы, один прогрев и три запроса×32
+на тему: **6,434→6,952 ток/с (+8,1%)**. Payload9,855→12,370 ГиБ,
+decode H2D−16,7%, peak global VRAM29,513 ГиБ (92,68%), RAM109,894 ГиБ
+(87,53%). Ненулевые system disk reads сохранены; модельный I/O не изолирован.
+Нельзя сравнивать эти скорости напрямую с другим тестом MIMO-05/MIMO-06.
+[Условия и результаты](MIMO26_FLASH_SLAB_CACHE.md),
+[ABBA](MIMO26_FLASH_SLAB_BENCHMARK.json).
+
+23 cache +56 slab cases и5000 смешанных операций,28 Python tests PASS.
+Итоговый runtime212/212, полный corpus6 prompts с3 509 248 точными logits,
+cancel/error recovery и unload PASS. Все1536 токенов и logits ABBA совпали.
+После пересборки с default16 без env/CLI overrides полный corpus повторён:
+logits/IDs и recovery PASS. Измеренная и итоговая сборки сохранены раздельно.
+[Hashes и проверки](MIMO26_FLASH_SLAB_BUILD_VALIDATION.json).
+
+Первый slabOFF runtime повторил прежнее F32 `mmap_pipe_2_256` расхождение;
+его причина не решена, численные пороги не ослаблены. Первый packed runtime
+требовал адаптации8 small-cache occupancy assertions; численные проверки прошли.
+Uncached native corpus остановился по RAM guard95%; для итогового сравнения
+использован managed cache0. Эти неудачи не включены в скорость и сохранены в
+[журнале опытов](MIMO26_FLASH_SLAB_EXPERIMENTS.json). P3 целиком остаётся открытым.
 
 ### MIMO-06 / P5 — 2026-10-06 — сравнение пяти MTP/DFlash sidecars
 

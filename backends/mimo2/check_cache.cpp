@@ -62,6 +62,17 @@ int main() {
             check(!cache.contains(d,100),"future synchronous fills are not pinned");
         }
         check(live.empty(),"plan ownership cleanup");
+        {
+            ExpertCache cache(2*page,alloc,free);cache.constrain(size_t(8)<<30,size_t(32)<<30);
+            cache.store(a,100,[](void *) {});cache.store(b,100,[](void *) {});
+            cache.get(a,100,false);const auto hits=cache.stats().hits;cache.touch(a);
+            check(cache.stats().hits==hits,"deferred LRU touch does not double-count hits");
+            cache.store(c,100,[](void *) {});
+            check(cache.contains(a,100) && !cache.contains(b,100),"deferred touch preserves LRU victim order");
+            bool missing=false;try {cache.touch(d);} catch(...) {missing=true;}
+            check(missing,"absent deferred touch rejected");
+        }
+        check(live.empty(),"deferred touch cleanup");
         bool invalid=false;try {ExpertCache::charge(SIZE_MAX);} catch(...) {invalid=true;}
         check(invalid,"size overflow rejected");
         std::cout<<"PASS "<<cases<<" cache ownership/budget cases\n";return 0;

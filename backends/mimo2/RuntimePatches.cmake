@@ -23,6 +23,8 @@ function(mimo_runtime_source target relative expected output)
     mimo_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n#include \"pipeline_runtime.inc\"\n${anchor}\n    MimoPlanScope mimo_scope;\n#include \"gpu_only_audit.inc\"")
     mimo_replace_once(content "                        prev_ids_tensor = ids_tensor;"
       "                        prev_ids_tensor = ids_tensor;\n#include \"pipeline_sched.inc\"")
+    mimo_replace_once(content "                    // group consecutive experts and copy them together"
+      "                    if (mimo_mode == 2 && mimo_pipeline && mimo_pipeline_batch) {\n                        if (!mimo_pipeline_copy_tensor(split_backend, input_cpy, input)) return GGML_STATUS_FAILED;\n                        continue;\n                    }\n\n                    // group consecutive experts and copy them together")
     mimo_replace_once(content "ggml_backend_graph_compute_async(split_backend, &split->graph)" "mimo_graph_compute(split_backend, &split->graph)")
     mimo_replace_once(content "ggml_backend_graph_compute_async(split_backend, &gv)" "mimo_graph_compute(split_backend, &gv)")
     mimo_replace_once(content "        prev_backend_id = split_backend_id;\n    }\n\n    return GGML_STATUS_SUCCESS;"
@@ -74,6 +76,10 @@ function(mimo_runtime_source target relative expected output)
     INCLUDE_DIRECTORIES "${directory};${CMAKE_CURRENT_SOURCE_DIR}"
     OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/device_memory.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../glm5next/host_pages.hpp")
   set_property(SOURCE "${generated}" TARGET_DIRECTORY ${target} APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/expert_slab.hpp")
+  set_property(SOURCE "${generated}" TARGET_DIRECTORY ${target} APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_frequency.hpp")
+  set_property(SOURCE "${generated}" TARGET_DIRECTORY ${target} APPEND PROPERTY OBJECT_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_trace.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_slice.hpp")
 endfunction()
 mimo_runtime_source(ggml-base ggml/src/ggml-backend.cpp
@@ -86,6 +92,10 @@ get_property(mimo_runtime_hashes GLOBAL PROPERTY MIMO_RUNTIME_HASHES)
 string(APPEND mimo_patch_set ",mimo-sync-selected-file-copy-gpu-audit-demand-mmap")
 string(APPEND mimo_patch_set ",mimo-bounded-matrix-cache")
 string(APPEND mimo_patch_set ",mimo-route-prefetch-pipeline")
+string(APPEND mimo_patch_set ",mimo-optional-packed-cache-blocks")
+string(APPEND mimo_patch_set ",mimo-tensor-delivery-fence")
+string(APPEND mimo_patch_set ",mimo-decaying-cache-admission")
+string(APPEND mimo_patch_set ",mimo-deferred-cache-fill-batch")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
 target_compile_features(ggml-base PRIVATE cxx_std_17)
 target_include_directories(ggml-base PRIVATE "${mimo_source}/vendor")

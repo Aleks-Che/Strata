@@ -121,6 +121,13 @@ static void execute(llama_context *ctx,const llama_vocab *vocab,const Options &o
         {"requested_bytes",s.requested_bytes},{"cache_hits",s.cache_hits},{"cache_misses",s.cache_misses},
         {"cache_hit_bytes",s.cache_hit_bytes},{"cache_fill_bytes",s.cache_fill_bytes},{"d2d_ms",s.d2d_ms},
         {"cache_bytes",s.cache_bytes},{"cache_payload_bytes",s.cache_payload_bytes},{"cache_limit",s.cache_limit},{"cache_evictions",s.cache_evictions},
+        {"cache_slot_bytes",s.cache_slot_bytes},{"cache_slab_mib",s.cache_slab_mib},{"cache_slab_blocks",s.cache_slab_blocks},
+        {"cache_slab_allocations",s.cache_slab_allocations},{"cache_slab_reuses",s.cache_slab_reuses},
+        {"cache_slab_denied",s.cache_slab_denied},{"cache_slab_oom",s.cache_slab_oom},
+        {"cache_decay",s.cache_decay},{"cache_history_keys",s.cache_history_keys},{"cache_frequency_updates",s.cache_frequency_updates},
+        {"cache_fill_batch",s.cache_fill_batch},{"cache_pending",s.cache_pending},
+        {"pipeline_fill_batches",s.pipeline_fill_batches},{"pipeline_fill_submissions",s.pipeline_fill_submissions},
+        {"cache_frequency_rejected",s.cache_frequency_rejected},{"cache_frequency_candidates",s.cache_frequency_candidates},
         {"cache_allocations",s.cache_allocations},{"cache_reuses",s.cache_reuses},{"cache_bypasses",s.cache_bypasses},{"cache_oom",s.cache_oom},
         {"host_working_set_limit",s.host_working_set_limit},
         {"pipeline_groups",s.pipeline_groups},{"pipeline_chunks",s.pipeline_chunks},{"pipeline_device_bytes",s.pipeline_device_bytes},
@@ -128,6 +135,8 @@ static void execute(llama_context *ctx,const llama_vocab *vocab,const Options &o
         {"pipeline_read_peak",s.pipeline_read_peak},{"pipeline_reader_owned",s.pipeline_reader_owned},{"pipeline_queued",s.pipeline_queued},
         {"pipeline_consumer_wait_us",s.pipeline_consumer_wait_us},{"pipeline_slot_wait_us",s.pipeline_slot_wait_us},
         {"pipeline_submit_us",s.pipeline_submit_us},
+        {"pipeline_batch",s.pipeline_batch},{"pipeline_copy_batches",s.pipeline_copy_batches},
+        {"pipeline_copy_fences",s.pipeline_copy_fences},{"pipeline_scratch_fences",s.pipeline_scratch_fences},{"pipeline_batch_ms",s.pipeline_batch_ms},
         {"pipeline_file_bytes",s.pipeline_file_bytes},{"pipeline_mmap_bytes",s.pipeline_mmap_bytes},{"pipeline_d2d_bytes",s.pipeline_d2d_bytes},
         {"prefill_h2d_bytes",prefill_h2d},{"decode_h2d_bytes",s.h2d_bytes-prefill_h2d},
         {"source_ms",s.source_ms},{"h2d_ms",s.h2d_ms},{"staging_bytes",s.staging_bytes},
@@ -187,6 +196,10 @@ int main(int argc,char **argv) {
                 <<" expert_readers="<<o.readers<<" expert_chunk_mib="<<o.chunk
                 <<" expert_stage_mib="<<(o.readers?4*o.chunk:o.mode==2 && !o.mmap?16:0)<<" memory_target_percent=95 kv=f32 flash_attention=1"
                 <<" host_working_set_target_percent="<<(o.mode==2 && o.mmap?94:0)
+                <<" expert_cache_slab_mib="<<(o.cache?strata_mimo_cache_slab_mib():0)
+                <<" expert_cache_decay="<<(o.cache?strata_mimo_cache_decay():0)
+                <<" expert_pipeline_batch="<<(o.readers?strata_mimo_pipeline_batch_mode():0)
+                <<" expert_cache_fill_batch="<<(o.readers && strata_mimo_pipeline_batch_mode()?strata_mimo_cache_fill_batch_mode():0)
                 <<" tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645\n"
                 <<"READY "<<o.context<<" stop\n"<<std::flush;
             serve(ctx.get(),llama_model_get_vocab(model.get()),o);strata_mimo_trace_write(o.trace.c_str());strata_mimo_release();

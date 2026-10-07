@@ -124,12 +124,17 @@ def main():
     p.add_argument('--timeout', type=int, default=1200)
     p.add_argument('--batch-size', type=int, default=8)
     p.add_argument('--expert-cache-mib', type=int, default=0, help='Cache applies to pinned mode; native stays the reference')
+    p.add_argument('--cache-slab-mib', type=int, choices=[0,16,32], default=0)
+    p.add_argument('--pipeline-batch', type=int, choices=[0,1], default=0)
+    p.add_argument('--cache-decay', type=int, choices=[0,16384,65536,131072], default=0)
+    p.add_argument('--cache-fill-batch', type=int, choices=[0,1], default=0)
     p.add_argument('--expert-cache-prefill', choices=['on', 'off'], default='on')
     p.add_argument('--expert-reader', choices=['file', 'mmap'], default='file')
     p.add_argument('--expert-readers', type=int, choices=[0, 1, 2], default=0)
     p.add_argument('--expert-chunk-mib', type=int, choices=[4, 8, 16], default=8)
     p.add_argument('--trace-graphs', type=int, default=0, help='Diagnostic CUDA timeline, excluded from speed comparisons')
-    p.add_argument('--reference-dir', type=Path, help='Completed run containing native logits for the identical cases')
+    p.add_argument('--reference-dir', type=Path, help='Completed run containing reference-mode logits for the identical cases')
+    p.add_argument('--reference-mode', choices=['native','pinned'], default='native', help='Explicit mode from the completed reference run')
     args = p.parse_args()
     build, model = args.build.resolve(), args.model.resolve()
     manifest_path = build/'mimo2-build-manifest.json'
@@ -140,8 +145,12 @@ def main():
     binary = build/'bin'/(name+'.exe')
     directory = args.output_dir.resolve(); directory.mkdir(parents=True, exist_ok=False)
     env = os.environ.copy(); env['PATH'] = str(args.cuda_bin.resolve())+os.pathsep+env.get('PATH', '')
-    report = dict(status='error', scope='synchronous GPU pipe and optional expert cache; no pipeline/MTP/API',
-        model=str(model), model_bytes=model.stat().st_size, suite=args.suite,
+    env['STRATA_MIMO_CACHE_SLAB_MIB'] = str(args.cache_slab_mib)
+    env['STRATA_MIMO_PIPELINE_BATCH'] = str(args.pipeline_batch)
+    env['STRATA_MIMO_CACHE_DECAY'] = str(args.cache_decay)
+    env['STRATA_MIMO_CACHE_FILL_BATCH'] = str(args.cache_fill_batch)
+    report = dict(status='error', scope='GPU pipe with selected cache/transport; no MTP/API', cache_slab_mib=args.cache_slab_mib,
+        model=str(model), model_bytes=model.stat().st_size, suite=args.suite, pipeline_batch=args.pipeline_batch, cache_decay=args.cache_decay, cache_fill_batch=args.cache_fill_batch,
         binary_sha256=sha(binary), manifest=manifest, manifest_sha256=sha(manifest_path),
         modes=[], comparisons=[], memory_ceiling=.95, memory_sampling_seconds=1)
     if args.suite == 'fixture':
@@ -248,9 +257,10 @@ def main():
             reference = json.loads((reference_path/'engine-report.json').read_text(encoding='utf8'))
             if reference.get('status') != 'pass' or reference['model'] != str(model) or reference['model_bytes'] != model.stat().st_size:
                 raise ValueError('reference must be a completed run for this model')
-            ref = next(x for x in reference['modes'] if x['mode'] == 'native')
-            expected = np.fromfile(reference_path/'native'/'logits.f32', dtype='<f4').reshape(-1, vocab)
+            ref = next(x for x in reference['modes'] if x['mode'] == args.reference_mode)
+            expected = np.fromfile(reference_path/args.reference_mode/'logits.f32', dtype='<f4').reshape(-1, vocab)
             report['external_reference'] = str(reference_path)
+            report['external_reference_mode'] = args.reference_mode
             report['external_comparisons'] = []
             for current in report['modes']:
                 if len(ref['cases']) != len(current['cases']): raise ValueError('reference case count differs')
@@ -258,11 +268,11 @@ def main():
                 offset = 0
                 for a_case, b_case in zip(current['cases'], ref['cases']):
                     if any(a_case[key] != b_case[key] for key in ('name', 'ids', 'tokens')):
-                        raise AssertionError('external native reference case/IDs differ')
+                        raise AssertionError('external reference case/IDs differ')
                     n = len(a_case['tokens']); check = compare_logits(actual[offset:offset+n], expected[offset:offset+n]); offset += n
                     check.update(name=a_case['name'], mode=current['mode']); report['external_comparisons'].append(check)
-                    if not check['pass_']: raise AssertionError('external native reference logits differ')
-            report['parity'] = 'bit-exact logits and greedy IDs against external native reference'
+                    if not check['pass_']: raise AssertionError('external reference logits differ')
+            report['parity'] = 'bit-exact logits and greedy IDs against external '+args.reference_mode+' reference'
         report['status'] = 'pass'
     except Exception as error:
         report['error'] = str(error)

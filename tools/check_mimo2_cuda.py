@@ -38,13 +38,14 @@ def check_ceiling(sample):
         raise RuntimeError('95% global RAM/VRAM ceiling reached; only this check may be stopped')
 
 
-def validate_result(result, manifest, kind):
+def validate_result(result, manifest, kind, cache_fill_batch=False):
     for field, key in [('requested_revision', 'source_revision'), ('archive_sha256', 'archive_sha256'), ('patch_set', 'patches')]:
         if result.get(field) != manifest.get(key):
             raise ValueError('Binary result differs from build manifest: '+field)
     if result.get('status') == 'pass':
         cases = result.get('results', [])
-        if result.get('case_count') != len(cases) or len(cases) != {'kernels': 96, 'graph': 132, 'runtime': 212}[kind]:
+        expected = {'kernels': 96, 'graph': 132, 'runtime': 244 if cache_fill_batch else 212}[kind]
+        if result.get('case_count') != len(cases) or len(cases) != expected:
             raise ValueError('Incomplete MiMo numerical test coverage')
         if any(r.get('pass') is not True for r in cases):
             raise ValueError('A numerical case failed inside a passing report')
@@ -56,6 +57,10 @@ def main():
     parser.add_argument('--kind', choices=['kernels', 'graph', 'runtime'], required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--cuda-bin', type=Path, help='CUDA DLL directory to prepend to child PATH')
+    parser.add_argument('--cache-slab-mib', type=int, choices=[0,16,32], default=0)
+    parser.add_argument('--pipeline-batch', type=int, choices=[0,1], default=0)
+    parser.add_argument('--cache-decay', type=int, choices=[0,16384,65536,131072], default=0)
+    parser.add_argument('--cache-fill-batch', type=int, choices=[0,1], default=0)
     args = parser.parse_args()
     build = args.build.resolve()
     binary = build/'bin'/('strata-mimo2-'+args.kind+'-check'+('.exe' if os.name == 'nt' else ''))
@@ -72,6 +77,14 @@ def main():
                   gpu_sampling_seconds=0.5, ceiling_fraction=0.95,
                   peak_scope='sampled system-wide usage includes other processes; not an allocation guarantee')
     env = os.environ.copy()
+    env['STRATA_MIMO_CACHE_SLAB_MIB'] = str(args.cache_slab_mib)
+    report['cache_slab_mib'] = args.cache_slab_mib
+    env['STRATA_MIMO_PIPELINE_BATCH'] = str(args.pipeline_batch)
+    report['pipeline_batch'] = args.pipeline_batch
+    env['STRATA_MIMO_CACHE_DECAY'] = str(args.cache_decay)
+    report['cache_decay'] = args.cache_decay
+    env['STRATA_MIMO_CACHE_FILL_BATCH'] = str(args.cache_fill_batch)
+    report['cache_fill_batch'] = args.cache_fill_batch
     env['NVIDIA_TF32_OVERRIDE'] = '0'
     env['GGML_CUDA_CUBLAS_COMPUTE_TYPE'] = 'f32'
     env['GGML_CUDA_DISABLE_GRAPHS'] = '1'
@@ -121,7 +134,7 @@ def main():
             raise RuntimeError(f"Native check exited with code {report['exit_code']} without a numerical report; see stderr.log")
         report['result'] = json.loads(result_path.read_text(encoding='utf8'))
         report['result_sha256'] = sha(result_path)
-        validate_result(report['result'], meta, args.kind)
+        validate_result(report['result'], meta, args.kind, bool(args.pipeline_batch and args.cache_fill_batch))
         report['status'] = 'pass' if report['exit_code'] == 0 and report['result']['status'] == 'pass' else 'fail'
     except Exception as error:
         report['error'] = str(error)

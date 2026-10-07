@@ -312,20 +312,41 @@ decode-only admission, ограничение working set и async reader/H2D ri
 overlap; существенное перекрытие H2D/compute, pressure и широкий benchmark TODO.
 
 Разбор от2026-10-07: [перенос оптимизаций GLM/Step/DeepSeek](MIMO26_FLASH_OPTIMIZATION_TRANSFER_REVIEW.md).
-Ближайшие отдельные опыты без MTP: slabs для уменьшения2-МиБ округления каждой
-матрицы, tensor-batched delivery, затем frequency admission. Allocation reuse
-и prefill hits уже реализованы. Числа других моделей не являются обещанием
-ускорения MiMo; новые defaults требуют собственного A/B и byte/logits parity.
+MIMO-07 реализовал общие блоки16 МиБ и physical accounting. Собственный ABBA
+дал6,434→6,952 ток/с (+8,1%), payload9,855→12,370 ГиБ; default16 проверен
+на полном корпусе с bit-exact logits. [Условия и ограничения](MIMO26_FLASH_SLAB_CACHE.md).
+MIMO-08 добавил tensor delivery:6,591→7,299 ток/с в ABBA (+10,7%), либо+5,3%
+относительно последнего прогретого контроля. [Условия](MIMO26_FLASH_TENSOR_BATCH.md).
+MIMO-09 добавил частотный допуск decay65536:6,923→7,692 ток/с в ABBA (+11,1%),
+к быстрейшему контролю+8,2%. H2D прогретого decode−11,8%; первые запросы тем
+копируют больше весов. [Условия и ограничения](MIMO26_FLASH_FREQUENCY_CACHE.md).
+MIMO-10 проверил grouping cache fills:−19,17% waits, но7,861→7,826 ток/с,
+плюс незакрытая mixed synthetic диагностика; default off. В обычную сборку
+добавлен literal guard, убирающий временные строки проверки logits.
+Его отдельный ABBA с fill0:7,721→7,933 ток/с (+2,74%), logits/IDs exact.
+[Измерения и проверки](MIMO26_FLASH_FILL_AND_GUARDS.md).
+Ближайшие отдельные опыты без MTP: lookup/admission CPU cost и kernel timeline.
+Allocation reuse и prefill hits уже реализованы. Новый default требует своего A/B;
+проценты разных этапов нельзя складывать.
 
 - **P3.1:** matrix key с model generation/layer/tensor/expert/type, byte-budget
   по реальным allocations. Mixed-format cache, pin активных entries,
-  reuse только после завершения consumer. Проверить eviction и смену модели.
+  reuse только после завершения consumer. MIMO-07 добавил packed blocks,
+  учёт padding/свободных slots и pressure/OOM unit checks. Проверить смену модели
+  и длительное внешнее давление отдельно.
 - **P3.2:** bounded reader→pinned staging→H2D stream→GPU compute.
   H2D event защищает чтение новых данных, consumer event — перезапись device slot.
   Mapping, cache entries и destinations живут до завершения всех пользователей.
 - **P3.3:** batch ranges, allocation reuse, early host refill и host-copy варианты
   включать отдельно. Byte/logits parity с P1 на Q2_K/Q3_K/MXFP4,
   repeated experts, prefill и отмене в середине pipeline.
+  MIMO-08: доставка одного scheduler input до общей fence проверена и включена;
+  LRU order и синхронная публикация fills сохранены. Async fills остаются TODO.
+  MIMO-09: frequency admission с периодом65536 наблюдений включён по результатам
+  отдельного ABBA; pins и fenced fill сохранены, prefill off не обучает историю.
+  MIMO-10: grouped reservations/fills реализованы opt-in, pending entries скрыты
+  до fence, enqueue-error/recovery проверены. Скорость не выросла и один mixed
+  synthetic повтор FAIL; не считать готовым recommended profile или compute overlap.
 - **P3.4:** управляемый RAM working set и GPU-resident weights без обязательной
   постоянной RAM-копии. Глобальный memory admission включает other processes,
   model weights, KV, scratch, ring, allocator reserve и будущий draft.
@@ -466,9 +487,14 @@ Engine уже создан; API/setup в таблице пока заплани�
 | Отчёты | `docs/mimo-v2.6-flash/MIMO26_FLASH_INSPECTION.json`, validation/benchmark reports |
 
 Порядок: **P0 → P1 → P2/P3 → P4 → P6**. P2.1 можно делать в P0;
-MIMO-06 добавляет отдельное сравнение пяти MTP/DFlash sidecars. Следующая задача —
-**MIMO-07: проверить batched target parity**, затем уменьшать D2D/fences и проверять
-H2D/compute overlap; отдельно P2 API. P7 требует modality companions.
+MIMO-06 добавляет отдельное сравнение пяти MTP/DFlash sidecars, MIMO-07 — плотный
+cache и измеренный default16; MIMO-08 — tensor delivery с проверенными lifetimes;
+MIMO-09 — частотный кеш с измеренным decay65536.
+MIMO-10 измерил fills (off) и устранил временные строки CPU guard (on).
+Следующая задача **MIMO-11**: cache lookup/CPU overhead, локализация mixed
+synthetic mismatch и отдельная проверка однократных запросов при смене темы.
+Для MTP отдельно проверить batched target parity. H2D/compute overlap и P2 API
+ещё открыты. P7 требует modality companions.
 
 ## 7. Контроль завершения
 

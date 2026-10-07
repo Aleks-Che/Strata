@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 namespace mimo2 {
+inline void require(bool ok,const char *message) {if(!ok)throw std::runtime_error(message);}
 inline void require(bool ok,const std::string &message) {if(!ok)throw std::runtime_error(message);}
 struct Contract {uint32_t blocks,width,vocab;uint64_t fixed_bytes=0,routed_bytes=0;};
 inline Contract inspect(const std::string &path,bool fixture=false) {

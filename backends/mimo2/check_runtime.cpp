@@ -107,8 +107,13 @@ int main(int argc,char **argv) {
                 tests.push_back(compare(label+"/logits",values,native,true));
                 tests.push_back({{"name",label+"/accounting"},{"pass",stats.cache_bytes<=cap && stats.cache_bytes<=stats.cache_limit &&
                     stats.cache_hit_bytes+stats.h2d_bytes==stats.requested_bytes && (mmap?stats.source_bytes==0:stats.source_bytes==stats.h2d_bytes) &&
-                    audit.bytes==stats.requested_bytes && !stats.rejected_cpu_nodes && !stats.rejected_full_copies}});
-                tests.push_back({{"name",label+"/hits_or_eviction"},{"pass",cap==(256u<<20)?stats.cache_hits>0 && stats.cache_hit_bytes>0:stats.cache_evictions>0 && stats.cache_reuses>0}});
+                    audit.bytes==stats.requested_bytes && !stats.rejected_cpu_nodes && !stats.rejected_full_copies &&
+                    stats.cache_decay==uint64_t(strata_mimo_cache_decay()) && stats.cache_history_keys<=65536 &&
+                    (stats.cache_decay?(stats.cache_frequency_updates>0 && stats.cache_history_keys>0):stats.cache_frequency_updates==0)}});
+                // At a small cap packed size classes can hit or recycle blocks;
+                // physical block recycling need not reuse the same slot pointer.
+                tests.push_back({{"name",label+"/hits_or_eviction"},{"pass",cap==(256u<<20)?stats.cache_hits>0 && stats.cache_hit_bytes>0:
+                    stats.cache_slab_mib?(stats.cache_hits>0 || stats.cache_evictions>0):stats.cache_evictions>0 && stats.cache_reuses>0}});
                 runs.push_back({{"fixture",name},{"cache_cap",cap},{"cache_bytes",stats.cache_bytes},{"cache_hits",stats.cache_hits},
                     {"cache_evictions",stats.cache_evictions},{"cache_reuses",stats.cache_reuses},{"requested_bytes",stats.requested_bytes},
                     {"h2d_bytes",stats.h2d_bytes},{"cache_hit_bytes",stats.cache_hit_bytes},{"byte_checked",audit.bytes}});
@@ -121,7 +126,7 @@ int main(int argc,char **argv) {
                 strata_mimo_cache(cap);strata_mimo_cache_prefill(false);strata_mimo_phase(true);strata_mimo_reset();clear(cached_ctx.get());
                 const auto no_admission=run(cached_ctx.get(),0,9,8,3);
                 tests.push_back(compare(label+"/prefill_no_admission_logits",no_admission,fresh,true));
-                tests.push_back({{"name",label+"/prefill_no_admission_bytes"},{"pass",strata_mimo_snapshot().cache_bytes==0 && strata_mimo_snapshot().cache_fill_bytes==0}});
+                tests.push_back({{"name",label+"/prefill_no_admission_bytes"},{"pass",strata_mimo_snapshot().cache_bytes==0 && strata_mimo_snapshot().cache_fill_bytes==0 && !strata_mimo_snapshot().cache_frequency_updates}});
                 strata_mimo_phase(false);strata_mimo_cache_prefill(true);strata_mimo_release();
             }
             for(bool mmap:{false,true})for(int readers:{1,2})for(size_t cap:{size_t(8)<<20,size_t(256)<<20}) {
@@ -137,13 +142,25 @@ int main(int argc,char **argv) {
                 tests.push_back({{"name",label+"/bytes_budget_drain"},{"pass",s.requested_bytes==s.h2d_bytes+s.cache_hit_bytes &&
                     audit.bytes==s.requested_bytes && s.pipeline_delivered_bytes>0 && s.pipeline_groups>0 && s.pipeline_chunks>0 &&
                     s.pipeline_device_bytes==size_t(4*chunk)*(1u<<20) && !s.pipeline_reader_owned && !s.pipeline_queued &&
-                    s.cache_bytes<=s.cache_limit && s.cache_limit<=cap && !s.rejected_cpu_nodes && !s.rejected_full_copies}});
-                tests.push_back({{"name",label+"/hits_evictions"},{"pass",cap==(256u<<20)?s.cache_hits>0:s.cache_evictions>0}});
+                    s.cache_bytes<=s.cache_limit && s.cache_limit<=cap && !s.rejected_cpu_nodes && !s.rejected_full_copies && !s.cache_pending &&
+                    s.cache_fill_batch==uint64_t(s.pipeline_batch && strata_mimo_cache_fill_batch_mode()) &&
+                    (s.cache_fill_batch?(s.pipeline_fill_batches>0 && s.pipeline_fill_submissions>=s.pipeline_fill_batches):s.pipeline_fill_batches==0) &&
+                    s.pipeline_batch==uint64_t(strata_mimo_pipeline_batch_mode()) &&
+                    s.cache_decay==uint64_t(strata_mimo_cache_decay()) && s.cache_history_keys<=65536 &&
+                    (s.cache_decay?(s.cache_frequency_updates>0 && s.cache_history_keys>0):s.cache_frequency_updates==0) &&
+                    (s.pipeline_batch?(s.pipeline_copy_batches>0 && s.pipeline_copy_batches==s.pipeline_scratch_fences &&
+                        s.pipeline_copy_fences>=s.pipeline_copy_batches && s.pipeline_copy_batches<=s.ranges):s.pipeline_copy_batches==0)}});
+                runs.push_back({{"fixture",label},{"pipeline_batch",s.pipeline_batch},{"requested_bytes",s.requested_bytes},
+                    {"byte_checked",audit.bytes},{"copy_fences",s.pipeline_copy_fences},{"scratch_fences",s.pipeline_scratch_fences},
+                    {"tensor_batches",s.pipeline_copy_batches},{"cache_bytes",s.cache_bytes},{"cache_limit",s.cache_limit},
+                    {"fill_batch",s.cache_fill_batch},{"fill_batches",s.pipeline_fill_batches},{"fill_submissions",s.pipeline_fill_submissions},{"pending",s.cache_pending}});
+                tests.push_back({{"name",label+"/hits_evictions"},{"pass",cap==(256u<<20)?s.cache_hits>0:
+                    s.cache_slab_mib?(s.cache_hits>0 || s.cache_evictions>0):s.cache_evictions>0}});
                 clear(ctx.get());const auto fresh=run(ctx.get(),0,9,8,3);
                 clear(ctx.get());std::atomic<bool> cancel{false};audit.cancel=&cancel;strata_mimo_cancel(&cancel);
                 bool aborted=false;try {run(ctx.get(),0,9,8,3);}catch(const std::exception &) {aborted=true;}
                 const auto cancelled=strata_mimo_snapshot();
-                tests.push_back({{"name",label+"/cancel_drains"},{"pass",aborted && cancel.load() && !cancelled.pipeline_reader_owned && !cancelled.pipeline_queued}});
+                tests.push_back({{"name",label+"/cancel_drains"},{"pass",aborted && cancel.load() && !cancelled.pipeline_reader_owned && !cancelled.pipeline_queued && !cancelled.cache_pending}});
                 strata_mimo_cancel(nullptr);audit.cancel=nullptr;clear(ctx.get());
                 tests.push_back(compare(label+"/cancel_recovery",run(ctx.get(),0,9,8,3),fresh,true));
                 strata_mimo_pipeline_config(0);strata_mimo_cache(cap);strata_mimo_pipeline_config(readers,chunk);
@@ -152,10 +169,19 @@ int main(int argc,char **argv) {
                 const auto failure=strata_mimo_snapshot();
                 tests.push_back({{"name",label+"/reader_error_drains"},{"pass",failed && !failure.pipeline_reader_owned && !failure.pipeline_queued}});
                 clear(ctx.get());tests.push_back(compare(label+"/reader_error_recovery",run(ctx.get(),0,9,8,3),fresh,true));
+                if(s.cache_fill_batch) {
+                    strata_mimo_pipeline_config(0);strata_mimo_cache(cap);strata_mimo_pipeline_config(readers,chunk);
+                    strata_mimo_test_fill_failure(0);clear(ctx.get());strata_mimo_reset();
+                    bool fill_failed=false;try {run(ctx.get(),0,9,8,3);}catch(const std::exception &) {fill_failed=true;}
+                    const auto fill_error=strata_mimo_snapshot();
+                    tests.push_back({{"name",label+"/fill_error_drains"},{"pass",fill_failed && fill_error.pipeline_fill_submissions==1 &&
+                        fill_error.pipeline_fill_batches==1 && !fill_error.cache_pending && !fill_error.pipeline_reader_owned && !fill_error.pipeline_queued}});
+                    clear(ctx.get());tests.push_back(compare(label+"/fill_error_recovery",run(ctx.get(),0,9,8,3),fresh,true));
+                }
                 strata_mimo_pipeline_config(0);strata_mimo_cache(cap);strata_mimo_pipeline_config(readers,chunk);
                 strata_mimo_cache_prefill(false);strata_mimo_phase(true);strata_mimo_reset();clear(ctx.get());
                 auto no_admission=compare(label+"/prefill_no_admission",run(ctx.get(),0,9,8,3),fresh,true);
-                no_admission["pass"]=no_admission["pass"].get<bool>() && !strata_mimo_snapshot().cache_bytes && !strata_mimo_snapshot().cache_fill_bytes;
+                no_admission["pass"]=no_admission["pass"].get<bool>() && !strata_mimo_snapshot().cache_bytes && !strata_mimo_snapshot().cache_fill_bytes && !strata_mimo_snapshot().cache_frequency_updates;
                 tests.push_back(no_admission);strata_mimo_release();
             }
         }
@@ -172,7 +198,7 @@ int main(int argc,char **argv) {
             strata_mimo_release();
         }
         size_t passed=0;for(const auto &t:tests)passed+=t["pass"].get<bool>();
-        require(tests.size()==212,"incomplete runtime coverage");
+        require(tests.size()==size_t(strata_mimo_pipeline_batch_mode() && strata_mimo_cache_fill_batch_mode()?244:212),"incomplete runtime coverage");
         json report={{"status",passed==tests.size()?"pass":"fail"},{"scope","synthetic native full/SWA GPU graph; no full-model inference"},
             {"requested_revision",STRATA_MIMO_SOURCE_SHA},{"archive_sha256",STRATA_MIMO_ARCHIVE_SHA256},{"patch_set",STRATA_MIMO_PATCH_SET},
             {"passed",passed},{"case_count",tests.size()},{"positions",273},{"runs",runs},{"results",tests}};
