@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-07",
+  "hardware": "Windows, Ryzen9 9950X, RTX5090 32GB,128GB RAM",
+  "files_sha256": {
+    "START-MIMO26-Q4-MTP.bat": "b42b940ee79c06fee00f3018f4a5bb90af657f69bb067bb41b5ab2eddb88f5eb",
+    "strata-mimo26-q4-mtp-10_93.json": "eff748df08e4e122fd6a0df97c7acbf8bc938106189b0cfc61da730727795cf5",
+    "tools/run_mimo2_profile.py": "455b660064e816b3dd2c8f73cf5e340a340120129c13c5a526383eef229c0fe3",
+    "docs/mimo-v2.6-flash/profiles/q4-mtp-10_93-requests.json": "13bd4ad09262d2ad0da50a4c9f332d02d611210eebb799008c18c6cf09ba9287"
+  },
+  "checks": {
+    "batch_check_from_other_directory": true,
+    "binary_and_manifest_sha256": true,
+    "gguf_contracts": true,
+    "invalid_max_tokens_rejected": true,
+    "oversized_prompt_rejected": true,
+    "interactive_two_requests_and_exit": true
+  },
+  "reference": {
+    "path": "build-local\\mimo2-validation\\target-head\\c0-q4-on\\spec-report.json",
+    "sha256": "8a7fcda916d3e33367b2bec9f5c76e5a7328bada4296c7be7d155e8caf0c6254"
+  },
+  "runs": [
+    {
+      "mode": "console",
+      "path": "build-local\\mimo2-runs\\20261007-161421-f466d19c\\run.json",
+      "sha256": "b81ce213631002de80122156b353ee3a098671a899b3582942d2b17d4e5e098a",
+      "requests": 2,
+      "ids_checked": 64,
+      "ids_equal": true,
+      "exit_code": 0,
+      "peak_global_vram_percent": 92.6610850430889,
+      "peak_global_ram_percent": 79.37645405756136
+    },
+    {
+      "mode": "benchmark",
+      "path": "build-local\\mimo2-runs\\20261007-161702-ec1d86c3\\run.json",
+      "sha256": "7c75f97638f02a9e50c76a2328c8ae0570f5a42886fb8acb6bd5b02ed529bcd4",
+      "requests": 15,
+      "ids_checked": 480,
+      "ids_equal": true,
+      "exit_code": 0,
+      "peak_global_vram_percent": 92.6610850430889,
+      "peak_global_ram_percent": 92.41403398562797,
+      "timed": {
+        "request_count": 9,
+        "generated_after_first": 279,
+        "generation_ms": 29664.8765,
+        "tokens_per_second": 9.405061908820015,
+        "accepted": 114,
+        "proposed": 114,
+        "acceptance": 1.0,
+        "cycles": 165,
+        "target_ms": 29191.749299999996,
+        "draft_ms": 255.4483,
+        "catchup_ms": 85.41210000000001,
+        "mean_prefill_ms": 3129.0408,
+        "mean_cache_allocated_bytes": 11293629553.777779,
+        "mean_cache_payload_bytes": 10961602332.444445,
+        "decode_h2d_bytes": 346037245440,
+        "ids_equal": null
+      }
+    }
+  ],
+  "production_binary_sha256": "f56fc8f97d140e743e54d06fdd443b3016a2f1944a01b82e34988ed67532b771",
+  "scope": "Existing pinned MIMO-17 binary; real console requests and one15-request benchmark. Historical10.929 tok/s not guaranteed. This launcher does not close the MIMO-17 batch2 numerical correctness issue or add HTTP/streaming/history."
+}

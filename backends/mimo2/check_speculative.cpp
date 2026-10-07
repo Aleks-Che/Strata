@@ -10,17 +10,21 @@ using Clock=std::chrono::steady_clock;
 static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
 int main(int argc,char **argv) {
     try {
-        std::string model_path,draft_path,kind="none";bool shared_target=false,head_columns=false,memory_stages=false;size_t cache_mib=14336;
+        std::string model_path,draft_path,kind="none",tokenwise="0";bool shared_target=false,head_columns=false,memory_stages=false;size_t cache_mib=14336;
         for(int i=1;i<argc;++i) {std::string k=argv[i];require(i+1<argc,"missing option");std::string v=argv[++i];
             if(k=="--model")model_path=v;else if(k=="--draft")draft_path=v;else if(k=="--kind")kind=v;
             else if(k=="--expert-cache-mib") {size_t end=0;cache_mib=std::stoull(v,&end);require(end==v.size() && cache_mib>0 && cache_mib<=14336,"invalid cache limit");}
             else if(k=="--target-head-columns" && (v=="0" || v=="1"))head_columns=v=="1";
             else if(k=="--memory-stages" && (v=="0" || v=="1"))memory_stages=v=="1";
+            else if(k=="--tokenwise-matmul" && v.size()==1 && v[0]>='0' && v[0]<='7')tokenwise=v;
             else if(k=="--share-target" && (v=="0" || v=="1"))shared_target=v=="1";else throw std::runtime_error("unknown option "+k);}
         require(!model_path.empty() && (kind=="none" || kind=="mtp" || kind=="dflash") && ((kind=="none")==draft_path.empty()),"invalid probe inputs");
         require(!shared_target || kind=="dflash","shared target is a DFlash experiment");
+        require(tokenwise=="0" || kind!="dflash","tokenwise experiment supports target/MTP only");
         _putenv_s("STRATA_MIMO_DFLASH_SHARE_TARGET",shared_target?"1":"0");
         _putenv_s("STRATA_MIMO_TARGET_HEAD_COLUMNS",head_columns?"1":"0");
+        auto set_tokenwise=[&](bool active) {_putenv_s("STRATA_MIMO_TOKENWISE_MATMUL",active?tokenwise.c_str():"0");};
+        set_tokenwise(false);
         environment();ggml_backend_load_all();strata_mimo_mode(2);
         {
             json stages=json::array();
@@ -47,12 +51,16 @@ int main(int argc,char **argv) {
             std::vector<llama_token> warm(8,11);
             bool verify_warmed=bool(draft);
             if(draft) {
-                if(memory_stages) {
+                if(memory_stages || tokenwise!="0") {
                     decode(ctx.get(),warm,0,8,0);stage("target_last_logit_prefill8");clear(ctx.get());
+                }
+                set_tokenwise(true);
+                if(memory_stages) {
                     decode(ctx.get(),warm,0,2,0,true);stage("target_all_logit_verify2");clear(ctx.get());
                 }
                 decode(ctx.get(),warm,0,8,0,true);
                 stage("target_all_logit_warmup8");
+                set_tokenwise(false);
                 draft->process(warm,0);draft->propose(11,8,kind=="mtp"?1:7,0);draft->reset();
                 stage("draft_warmup");
             }
@@ -75,8 +83,11 @@ int main(int argc,char **argv) {
                     // Oracle diagnostics also need batched logits. Normal no-draft
                     // requests must retain the memory saved by never using them.
                     require(strata_mimo_snapshot().cache_bytes==0,"oracle diagnostic must be the first request");
-                    strata_mimo_phase(true);decode(ctx.get(),warm,0,8,0,true);verify_warmed=true;
+                    strata_mimo_phase(true);
+                    if(tokenwise!="0") {decode(ctx.get(),warm,0,8,0);clear(ctx.get());}
+                    set_tokenwise(true);decode(ctx.get(),warm,0,8,0,true);set_tokenwise(false);verify_warmed=true;
                 }
+                set_tokenwise(false);
                 clear(ctx.get());if(draft)draft->reset();strata_mimo_reset();strata_mimo_phase(true);
                 double target_ms=0,draft_ms=0,catchup_ms=0;auto start=Clock::now();
                 for(size_t i=0;i<prompt.size();i+=8) {
@@ -84,7 +95,7 @@ int main(int argc,char **argv) {
                     decode(ctx.get(),ids,0,int(ids.size()),int(i));
                     if(draft)draft->process(ids,int(i));
                 }
-                const double prefill_ms=ms(start);const auto prefill_stats=strata_mimo_snapshot();strata_mimo_phase(false);
+                const double prefill_ms=ms(start);const auto prefill_stats=strata_mimo_snapshot();strata_mimo_phase(false);set_tokenwise(true);
                 std::ofstream logits;
                 const std::string path=req.value("logits",std::string());
                 if(!path.empty()) {require(std::filesystem::path(path).extension()==".f32" && !std::filesystem::exists(path),"fresh .f32 required");logits.open(path,std::ios::binary);require(bool(logits),"cannot write logits");}
@@ -93,7 +104,7 @@ int main(int argc,char **argv) {
                 auto generation=Clock::now();std::vector<llama_token> out{sample(-1)};int pos=int(prompt.size()),proposed=0,accepted=0,cycles=0;
                 std::vector<int> proposed_counts,accepted_counts;
                 while(int(out.size())<predict && !is_stop(out.back())) {
-                    auto tick=Clock::now();const int n=std::min(depth,predict-int(out.size())-1);
+                    auto tick=Clock::now();const int n=bounded_proposal_count(depth,predict-int(out.size()),pos,tokenwise!="0");
                     auto proposals=draft?draft->propose(out.back(),pos,n,pmin):std::vector<llama_token>{};draft_ms+=ms(tick);
                     if(!oracle.empty())proposals.assign(oracle.begin()+out.size(),oracle.begin()+out.size()+n);
                     std::vector<llama_token> input{out.back()};input.insert(input.end(),proposals.begin(),proposals.end());
@@ -113,6 +124,7 @@ int main(int argc,char **argv) {
                     {"target_ms",target_ms},{"draft_ms",draft_ms},{"catchup_ms",catchup_ms},{"proposed",proposed},{"accepted",accepted},
                     {"cycles",cycles},{"proposed_counts",proposed_counts},{"accepted_counts",accepted_counts},{"cache_bytes",s.cache_bytes},
                     {"target_head_columns",head_columns},{"memory_stages",stages},
+                    {"tokenwise_matmul",std::stoi(tokenwise)},
                     {"cache_payload_bytes",s.cache_payload_bytes},{"cache_limit",s.cache_limit},{"decode_h2d_bytes",s.h2d_bytes-prefill_stats.h2d_bytes},
                     {"cache_request_mib",cache_mib},{"cache_slab_mib",s.cache_slab_mib},{"cache_decay",s.cache_decay},
                     {"pipeline_batch",s.pipeline_batch},{"pipeline_packed_guards",s.pipeline_packed_guards},

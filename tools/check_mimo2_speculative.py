@@ -22,6 +22,7 @@ def main():
     p.add_argument('--expert-cache-mib',type=int,default=14336)
     p.add_argument('--d2d-batch',type=int,choices=[0,1,2],default=0)
     p.add_argument('--target-head-columns',type=int,choices=[0,1],default=0)
+    p.add_argument('--tokenwise-matmul',type=int,choices=range(8),default=0,help='Verification-only bits: 1=dense weights, 2=routed quantized, 4=single-query FA tile')
     p.add_argument('--memory-stages',action='store_true',help='Extra load-time prefill8/verify2 before the usual all-logit warmup8')
     a=p.parse_args()
     if not 1<=a.expert_cache_mib<=14336:p.error('expert cache must be 1..14336 MiB')
@@ -29,7 +30,8 @@ def main():
     binary=(a.build/'bin/strata-mimo2-spec-check.exe').resolve()
     report=dict(status='error',scope='Offline greedy experiment; all tested positions retained in F32 KV, context512/batch8. MTP head0 only. No serving integration.',
         command=[str(binary),'--model',str(a.model.resolve()),'--kind',a.kind,'--expert-cache-mib',str(a.expert_cache_mib),
-                 '--target-head-columns',str(a.target_head_columns),'--memory-stages',str(int(a.memory_stages))],binary_sha256=sha(binary),
+                 '--target-head-columns',str(a.target_head_columns),'--memory-stages',str(int(a.memory_stages)),
+                 '--tokenwise-matmul',str(a.tokenwise_matmul)],binary_sha256=sha(binary),
         manifest=json.loads((a.build/'mimo2-build-manifest.json').read_text()),requests=[],samples=[])
     report['runner_command']=[sys.executable,*sys.argv]
     report['requests_source']=dict(path=str(a.requests.resolve()),sha256=sha(a.requests))
@@ -60,6 +62,7 @@ def main():
             process.send(json.dumps(q));r=json.loads(process.read());r['request']=request
             report['requests'].append(r)
             assert r['target_head_columns']==bool(a.target_head_columns)
+            assert r['tokenwise_matmul']==a.tokenwise_matmul
             assert r['cache_request_mib']==a.expert_cache_mib and r['cache_slab_mib']==16 and r['cache_decay']==65536
             assert r['pipeline_batch']==1 and r['pipeline_packed_guards']==1
             assert r['pipeline_d2d_batch']==a.d2d_batch and not r['cache_fill_batch'] and not r['pipeline_early_host_refill']

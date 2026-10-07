@@ -7,6 +7,7 @@
   "generated_mmf_sha256": "@mimo_mmf_generated_sha256@",
   "generated_dispatch_sha256": "@mimo_dispatch_generated_sha256@",
   "generated_mmq_sha256": "@mimo_mmq_generated_sha256@",
+  "generated_fattn_sha256": "@mimo_fattn_generated_sha256@",
   "compiler": "@CMAKE_CXX_COMPILER_ID@",
   "compiler_version": "@CMAKE_CXX_COMPILER_VERSION@",
   "generator": "@CMAKE_GENERATOR@",

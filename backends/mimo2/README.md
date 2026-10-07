@@ -531,6 +531,12 @@ Physical SSD I/O не измеряется.
 
 ## Отдельное сравнение MTP / DFlash
 
+Для локальных консольных запросов с закреплённым профилем MIMO-17/Q4 MTP:
+[`START-MIMO26-Q4-MTP.bat`](../../START-MIMO26-Q4-MTP.bat).
+`--check` проверяет пути/SHA256/контракты, `--benchmark` повторяет15 запросов
+профиля замера10,93 ток/с. Контекст512, независимые запросы, ответ до128 токенов;
+HTTP/streaming не подключены. [Инструкция](../../docs/mimo-v2.6-flash/MIMO26_FLASH_FAST_LAUNCH.md).
+
 `STRATA_MIMO_SPEC_PROBE=ON` добавляет offline greedy executable и private patches
 для MiMo-only NextN sidecar, пяти target features и DFlash value scale0.612.
 По умолчанию опция выключена. Основной `strata-mimo2` не получает MTP/API switches.
@@ -599,6 +605,27 @@ all-logit warmup8 и записывает глобальную память по
 включает влияние других приложений и не является точным размером CUDA pool.
 Основной engine не получает этот CLI; MTP serving остаётся выключен.
 [MIMO-17: результаты, ограничения и команды](../../docs/mimo-v2.6-flash/MIMO26_FLASH_TARGET_HEAD.md).
+
+MIMO-18: offline `--tokenwise-matmul 0..7` выбирает три независимых изменения
+CUDA verification: bit1 — dense weights по одному столбцу, bit2 — quantized
+routed matmul по одному токену, bit4 — существующее FA ядро с одной query
+в tile для MiMo192/128, GQA8/16 на Blackwell. Default0; режим7 включает все
+три. Prefill сохраняет обычную арифметику. При ненулевом режиме verifier
+ограничивает proposals на границе256 позиций KV; это соответствует его
+context512 с одной непрерывной последовательностью. Для DFlash флаг запрещён.
+Обычный prefill workspace и all-logit verification workspace прогреваются
+до заполнения expert cache. `--target-head-columns 0` достаточно при bit1.
+
+`strata-mimo2-tokenwise-check` проверяет48 synthetic CUDA matrix cases:
+BF16/Q2_K/Q3_K/MXFP4, batch1/2/8, padded strides, single-token GPU oracle и
+неизменность входов/весов. `strata-mimo2-batch-parity-check MODEL REQUEST.json
+FRESH_DIR` сохраняет послойные teacher-forced captures для modes5/7 в двух
+позициях русского oracle запроса. Callback может менять fusion; этот trace
+не заменяет обычную генерацию и не используется для скорости.
+[MIMO-18: результаты и границы проверки](../../docs/mimo-v2.6-flash/MIMO26_FLASH_TOKENWISE.md).
+В новой серии Q4 MTP9,878→10,447 ток/с (+5,76%), no-draft9,525;
+у Q4 decode logits exact на проверенном корпусе, первый prefill logit ещё
+отличается. Полное время короткого запроса с prefill почти не изменилось.
 
 Проверены только greedy и один sequence. Stochastic correction, HTTP streaming,
 cancellation, context shift и MTP heads2/3 в этот probe не входят. Его скорости

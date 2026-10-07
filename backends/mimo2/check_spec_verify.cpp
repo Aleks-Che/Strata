@@ -24,5 +24,18 @@ int main() {
     try {verify_greedy({},0,[](int) {return 0;},[](int) {return false;});}
     catch(const std::invalid_argument &) {rejected=true;}
     if(!rejected)throw std::runtime_error("zero budget accepted");
-    std::cout << checks+1 << " verified-prefix checks PASS\n";
+    ++checks;
+    for(int pos: {0,127,248,249,254,255,256,511}) {
+        for(int depth: {0,1,7}) {
+            for(int remaining: {1,2,8,32}) {
+                const int n=bounded_proposal_count(depth,remaining,pos,true);
+                if(n<0 || n>depth || n>=remaining || pos/256!=(pos+n)/256 ||
+                    (n<depth && n<remaining-1 && (pos+n)%256!=255) ||
+                    bounded_proposal_count(depth,remaining,pos,false)!=std::min(depth,remaining-1))
+                    throw std::runtime_error("wrong KV boundary limit");
+                ++checks;
+            }
+        }
+    }
+    std::cout << checks << " verified-prefix/boundary checks PASS\n";
 }

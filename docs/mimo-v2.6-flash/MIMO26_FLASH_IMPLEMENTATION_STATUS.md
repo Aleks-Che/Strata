@@ -2,6 +2,8 @@
 
 Обновлено: **2026-10-07**, `Asia/Yekaterinburg`.
 План: [MIMO26_FLASH_IMPLEMENTATION_PLAN.md](MIMO26_FLASH_IMPLEMENTATION_PLAN.md).
+Подтверждённые ускорения, замеры и настройки:
+[MIMO26_FLASH_SUCCESSFUL_OPTIMIZATIONS.md](MIMO26_FLASH_SUCCESSFUL_OPTIMIZATIONS.md).
 
 Файл хранит фактический прогресс и точку продолжения.
 **P0, P1, P3.1 и транспорт P3.2 реализованы: GPU engine с cache и async pipeline.**
@@ -18,6 +20,14 @@ oracle parity по-прежнему не пройдена, MTP serving off.
 MIMO-17 убрал полную F32-копию выходной BF16-головы в opt-in режиме:
 Q4 MTP9,880→10,929 ток/с (+10,62%); новый контроль без MTP10,615.
 Cache9,797→11,882 ГиБ, но oracle batch2 всё ещё расходится; default0.
+MIMO-18 исправил проверенный target batch2/8: single-token matmul, FA query tile
+и ограничение пакета на KV256. Oracle corpus/boundaries logits bit-exact;
+у Q4 MTP точен decode после первого токена, prefill logit ещё отличается.
+Новый режим7 opt-in:10,447 против прежнего Q4 9,878 ток/с (+5,76%);
+новый no-draft контроль9,525 (быстрейший процесс9,921). Serving off.
+Для выбранного пользователем исторического MIMO-17/Q4 профиля10,929 ток/с
+добавлен `START-MIMO26-Q4-MTP.bat`: консольные независимые запросы и benchmark,
+с проверкой SHA256 сохранённой сборки. [Запуск](MIMO26_FLASH_FAST_LAUNCH.md).
 API и установочный профиль ещё не готовы.
 Существенный overlap H2D/compute пока не подтверждён; P3 в целом не закрыт.
 Из P2 проверены IDs/bytes/tokenizer/raw Jinja.
@@ -56,10 +66,12 @@ API и установочный профиль ещё не готовы.
 | CUDA scatter-copy, MIMO-15 | Mode2 opt-in, default0: основной ABBA9,567→10,259 ток/с (+7,23%); русский при фиксированном cache8 ГиБ9,131→8,035 (−12,01%). IDs/logits exact, прирост зависит от условий |
 | Q4 MTP после оптимизаций, MIMO-16 | Head0/depth1/p_min0.7:9,015 ток/с, +scatter9,076; без MTP10,520. Acceptance228/228, IDs короткого corpus/SWA совпали; oracle снова расходится на18-м токене. Serving off |
 | Target BF16 head, MIMO-17 | GPU projection по столбцам: Q4 9,880→10,929 ток/с; без MTP10,615. Cache+2,085 ГиБ, H2D−14,48%. Head fixture bit-exact; oracle по-прежнему mismatch, опция default0 |
+| Short-batch parity, MIMO-18 | Mode7: dense/routed single-token CUDA + MiMo FA tile1; KV256 cap. Q4 9,878→10,447 ток/с (+5,76%), no-draft9,525. Oracle/decode logits exact на corpus/boundaries; первый MTP prefill logit не exact. Default0, serving off |
 | Локальная скорость | Прогретый sync5,103–5,160; pipeline reader1:7,053, reader2:6,914 ток/с; условия MIMO-05 ниже |
 | Память / TTFT | Pipeline corpus с trace: peak RSS93,42 ГиБ; request-end global VRAM30,00 ГиБ; TTFT6,57с EN /39,64с long249 |
 | Рекомендуемый профиль | Engine defaults выбраны по локальным опытам; setup/API profile и P6 benchmark ещё TODO |
-| Следующая задача | MIMO-18: target batch2 parity по слоям, BF16 dense/routed MMVQ; также разброс scatter-copy, direct resident weights, пакетные H2D, chunks4/16, mixed/F32 диагностика и P2 API |
+| Локальный launcher | `START-MIMO26-Q4-MTP.bat` + `strata-mimo26-q4-mtp-10_93.json`: закреплённый MIMO-17/Q4, консоль, `--check`, `--benchmark`. Experimental, context512, HTTP off |
+| Следующая задача | MIMO-19: остаток first-logit prefill, cutoff после decode parity; также разброс scatter-copy, direct resident weights, пакетные H2D, chunks4/16, mixed/F32 диагностика и P2 API |
 
 В PREP-01 созданы план/статус; MIMO-01 добавил `backends/mimo2`, MiMo tools/tests
 и `qwen2` branch общего Python tokenizer. Действующие профили и GGUF не менялись.
@@ -159,7 +171,7 @@ checkpoint Xiaomi. Основное текстовое внедрение мож
 P5/P7 не блокируют P0–P4/P6. `DONE` означает только указанную проверенную часть;
 наличие внешней реализации не закрывает native engine или MTP.
 
-## Точка продолжения: MIMO-18
+## Точка продолжения: MIMO-19
 
 Разбор переноса от7 октября: [GLM / Step / DeepSeek](MIMO26_FLASH_OPTIMIZATION_TRANSFER_REVIEW.md).
 Три шага выполнены: [MIMO-07](MIMO26_FLASH_SLAB_CACHE.md) — плотный cache;
@@ -191,15 +203,14 @@ H2D на выходной шаг1,051→1,246/1,250 ГиБ. Пакетный tar
 Q4 9,880→10,929 ток/с, без MTP10,615; кеш вырос на2,085 ГиБ.
 Оптимизация памяти работает, однако расхождение на18-м токене осталось.
 
-1. Разобрать расхождение batched target с последовательным greedy из MIMO-06.
-   Сначала replay известных target tokens без draft, затем kernel/attention isolation.
-   MIMO-17 подтвердил экономию от per-column GPU MMVF головы: F32 buffer
-   2,328125 ГиБ больше не нужен; full-model verify2 не расширяет pool как раньше,
-   в performance серии cache+2,085 ГиБ. Head fixture6 PASS, oracle не исправлен.
-   Теперь локализовать остальные BF16 dense/routed MMVQ и attention по слоям.
-   Первая гипотеза — tokenwise small-batch dispatch из GLM; для MiMo дополнительно
-   проверить MXFP4, формы4096×2048/2048×4096 и batch8. Причина ещё не установлена.
-   Не включать speculative serving до проверки correctness и полезной скорости.
+1. [MIMO-18](MIMO26_FLASH_TOKENWISE.md) локализовал различия dense, routed и FA
+   арифметики. Mode7 даёт exact oracle на count/code/ru и boundaries127/255
+   при depth1/7; Q4 MTP с p_min0/0.7 сохраняет IDs и все decode logits.
+   Остался только первый prefill logit с max_abs до0,000289. Проверить последний
+   FFN при включённых NextN features; затем измерить cutoff на точном decode.
+   48 fixtures покрывают BF16/Q2_K/Q3_K/MXFP4, batch1/2/8 и padded strides.
+   Контекст выше512, stochastic и serving lifecycle ещё не проверены.
+   Не включать speculative serving до их проверки и полезной скорости.
 2. Tensor delivery уже уменьшает waits: одна scratch fence и одна delivery
    fence на scheduler input. Defaults сохраняют синхронные cache fills.
    Grouped fills реализованы с ownership pending reservations, но остаются
@@ -233,6 +244,29 @@ Q4 9,880→10,929 ток/с, без MTP10,615; кеш вырос на2,085 Ги�
 Тяжёлые тесты начинать после нового global memory admission; чужие процессы не останавливать.
 
 ## Подтверждённый журнал
+
+### MIMO-18 / P5 — 2026-10-07 — Target short-batch parity
+
+Добавлены MiMo-local CUDA dense/routed tokenwise dispatch, FA query tile1
+для192/128 GQA8/16 на Blackwell и ограничение verification на KV256 boundary.
+Опция `--tokenwise-matmul 0..7`, default0; только offline, DFlash запрещён.
+Prefill mode0 сохраняется; normal/verify workspace прогреваются до cache.
+
+Послойный teacher-forced diagnostic: mode7 совпал по483 именованным
+активациям каждого токена в двух парах;95 отсутствующих aliases исключены.
+Untraced oracle:192 corpus +64 boundary IDs и все logits exact, в том числе
+прежний русский сбой на18-м токене. Реальный Q4:224 IDs exact; все216 decode
+строк logits exact. Первая prefill строка пока отличается до0,000289.
+Это ограниченный corpus, не общая оценка качества и не допуск к serving.
+
+48 synthetic GPU matrix fixtures,106 prefix/boundary cases,30 Python PASS.
+Матрицы считаются на GPU; production executable сохранён, SPEC_PROBE=OFF.
+Performance A B C C B A: no-draft9,525; прежний MIMO-17 Q4 9,878;
+новый Q4 10,447 ток/с (+5,76%). К быстрейшему no-draft9,921 прирост5,30%.
+Все90 ответов /2880 IDs совпали; у нового Q4 все930 decode строк logits exact.
+Полное время короткого запроса с prefill относительно прежнего MTP почти
+не изменилось:6220,69→6214,92 мс. Peaks VRAM92,68%, RAM90,64%.
+[Отчёт, скорость и воспроизведение](MIMO26_FLASH_TOKENWISE.md).
 
 ### MIMO-17 / P5 — 2026-10-07 — Target head без полной F32-копии
 

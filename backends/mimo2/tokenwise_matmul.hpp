@@ -2,11 +2,11 @@
 #include "ggml.h"
 #include "ggml-backend.h"
 #include <cstdlib>
-// Offline diagnostic: 1=dense weights, 2=routed quantized weights, 3=both.
+// Offline diagnostic bits: 1=dense weights, 2=routed quantized, 4=FA query tile.
 // The probe enables this only during verification, not prompt prefill.
 inline int mimo2_tokenwise_mode() {
     const char *v=std::getenv("STRATA_MIMO_TOKENWISE_MATMUL");
-    return v && v[0]>='1' && v[0]<='3' && v[1]=='\0' ? v[0]-'0' : 0;
+    return v && v[0]>='1' && v[0]<='7' && v[1]=='\0' ? v[0]-'0' : 0;
 }
 inline bool mimo2_tokenwise_dense(const ggml_tensor *a,const ggml_tensor *b,const ggml_tensor *y) {
     return (mimo2_tokenwise_mode()&1) && a->buffer &&

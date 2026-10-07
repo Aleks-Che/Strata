@@ -429,6 +429,12 @@ draft — MTP Q4 head0/cutoff0.7 —5,55 ток/с. Выигрыш не подт
 quality gate не пройден из-за расхождения batched target. Условия и все варианты:
 [сравнение MTP/DFlash](MIMO26_FLASH_SPECULATIVE_COMPARISON.md).
 
+MIMO-18 локализовал target arithmetic: mode7 dense/routed tokenwise +FA tile1
+и KV256 cap дали exact oracle corpus/boundaries при depth1/7. Реальный Q4
+сохраняет все проверенные IDs и decode logits, но первый prefill logit ещё
+не exact. Это прогресс P5 correctness, не закрытие P5 или serving.
+[Проверки и замеры](MIMO26_FLASH_TOKENWISE.md).
+
 ### P6. Установка, замеры и рекомендуемые настройки
 
 - Изолированные setup/profile/help/INFO с architecture `mimo2`, text-only,
@@ -522,13 +528,19 @@ MIMO-17 реализовал opt-in per-column target BF16 head без полн�
 Q4 9,880→10,929 ток/с, контроль без MTP10,615; cache+2,085 ГиБ,
 H2D−14,48%. Head fixture bit-exact, oracle batch2 по-прежнему расходится.
 [Результаты и ограничения](MIMO26_FLASH_TARGET_HEAD.md); default0, serving off.
-Следующая задача **MIMO-18**: target batch2 parity по слоям, BF16 dense/routed MMVQ;
+MIMO-18 добавил MiMo-local tokenwise dense/routed CUDA и FA tile1, проверил
+48 matrix cases и exact target oracle batch2/8, включая границы KV.
+Q4 decode logits exact; первый prefill logit требует отдельной проверки.
+В новом A B C C B A: Q4 9,878→10,447 ток/с (+5,76%); no-draft9,525,
+быстрейший контроль9,921. Полное время короткого запроса с prefill почти прежнее.
+[Результаты](MIMO26_FLASH_TOKENWISE.md); default0 и serving off сохранены.
+Следующая задача **MIMO-19**: first-logit prefill и cutoff после decode parity;
 для скорости без draft —
 direct resident weights, групповые H2D, chunks4/16 и границы синхронизации.
 Для chunk A/B сохранять `--fixed-pack-guards 1`; D2D задавать одинаково в обоих вариантах.
 Сохраняются задачи
 локализации mixed/F32 synthetic mismatch и проверки запросов при смене темы.
-Для MTP отдельно проверить batched target parity. H2D/compute overlap и P2 API
+Для MTP расширить parity за context512/greedy и проверить serving lifecycle. H2D/compute overlap и P2 API
 ещё открыты. P7 требует modality companions.
 
 ## 7. Контроль завершения

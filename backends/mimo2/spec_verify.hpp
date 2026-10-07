@@ -4,6 +4,14 @@
 #include <vector>
 
 namespace mimo2 {
+// This offline context uses one contiguous sequence and 256-cell KV padding.
+// Crossing a padded KV extent inside one verification batch changes FA's
+// reduction geometry for its early queries compared with single-token decode.
+inline int bounded_proposal_count(int depth, int remaining, int pos, bool tokenwise) {
+    if(depth<0 || remaining<=0 || pos<0) throw std::invalid_argument("invalid verification range");
+    const int limit=std::min(depth,remaining-1);
+    return tokenwise ? std::min(limit,255-pos%256) : limit;
+}
 struct VerifiedPrefix {
     std::vector<int> tokens;
     int accepted = 0;

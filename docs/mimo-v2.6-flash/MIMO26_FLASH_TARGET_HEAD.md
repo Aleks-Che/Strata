@@ -146,11 +146,18 @@ CMake возвращён к SPEC_PROBE=OFF. Head flag default0, MTP serving off.
 Spec executable SHA256:
 `1672274e549db6721db36327646871a9fbfd42be2042a037ab5d41cc35eaf61c`.
 Raw logits, logs, requests, scripts: `build-local/mimo2-validation/target-head`.
-Команды всех запусков входят в JSON. Пример с новым каталогом результатов:
+Команды всех запусков входят в JSON. Для этого сохранённого executable
+добавлен launcher с проверкой SHA256 и совместимым протоколом. Пример
+повторения15 запросов, с автоматически новым каталогом результатов:
 
 ```powershell
-python -m tools.check_mimo2_speculative --build build-local/mimo2-target-head-measured/build-local/mimo2-cuda --model H:/models/mimo-v2.6-flash/MiMo-V2.6-Flash-RL-GSQ-RCO-3.5bit.gguf --kind mtp --draft H:/models/mimo-v2.6-flash/mtp-MiMo-V2.6-Flash-MOPD-Q4_0.gguf --requests build-local/mimo2-validation/target-head/requests-q4.json --target-head-columns 1 --expert-cache-mib 14336 --d2d-batch 0 --output-dir build-local/mimo2-validation/target-head-new --reference-dir build-local/mimo2-validation/target-head/a0-none
+.\START-MIMO26-Q4-MTP.bat --benchmark
 ```
+
+Без аргументов `.bat` открывает консоль для собственных запросов.
+[Профиль и инструкция](MIMO26_FLASH_FAST_LAUNCH.md). Текущий общий runner
+`check_mimo2_speculative` передаёт флаг MIMO-18, которого нет в старом binary;
+для исходных низкоуровневых команд нужна сохранённая рядом версия runner.
 
 Следующий **MIMO-18**: локализовать target batch2 по слоям на одинаковой
 истории, затем проверить BF16 dense и routed MMVQ с одиночной арифметикой.
@@ -158,3 +165,8 @@ python -m tools.check_mimo2_speculative --build build-local/mimo2-target-head-me
 нужно также порядок арифметики, а не только название kernel. Возможный перенос
 GLM tokenwise/short-batch требует MiMo fixtures с Q2_K/Q3_K/MXFP4 и его strides.
 До oracle parity не расширять confidence/depth и не включать serving.
+
+Продолжение выполнено в [MIMO-18](MIMO26_FLASH_TOKENWISE.md): точные
+dense/routed/FA short-batch и KV boundary cap устранили проверенный oracle
+mismatch. У реального Q4 остался небольшой остаток только в первом prefill
+logit; serving всё ещё off. Исторические результаты MIMO-17 выше сохранены.
