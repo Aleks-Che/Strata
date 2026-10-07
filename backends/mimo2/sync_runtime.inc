@@ -5,12 +5,14 @@
 #include "../glm5next/host_pages.hpp"
 #include "expert_cache.hpp"
 #include "expert_slab.hpp"
+#include "gpu_trace.hpp"
 #include <cstdlib>
 #include <chrono>
 #include <cstring>
 #include <stdexcept>
 static thread_local int mimo_mode=0;
 static thread_local strata_mimo_stats mimo_stats{};
+static thread_local std::unique_ptr<mimo2::GpuTrace> mimo_trace;
 static thread_local void * mimo_staging=nullptr;
 static thread_local const std::atomic<bool> * mimo_cancel=nullptr;
 static thread_local strata_mimo_observer mimo_observer=nullptr;
@@ -183,7 +185,9 @@ void strata_mimo_reader(bool mmap) {
 void strata_mimo_workspace_ready() {mimo_workspace_pending=false;}
 static void mimo_d2d(void *dst,const void *src,size_t bytes) {
     const auto start=std::chrono::steady_clock::now();
+    if(mimo_trace)mimo_trace->record(mimo_cache_stream,nullptr,true,4);
     const auto rc=cudaMemcpyAsync(dst,src,bytes,cudaMemcpyDeviceToDevice,mimo_cache_stream);
+    if(mimo_trace)mimo_trace->record(mimo_cache_stream,nullptr,false,4);
     ++mimo_stats.pipeline_copy_fences;
     const auto fence=cudaStreamSynchronize(mimo_cache_stream); // also drain on submission errors
     mimo_cuda(rc);mimo_cuda(fence);

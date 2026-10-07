@@ -372,10 +372,83 @@ decay0. На RTX5090/128 ГБ RAM, без MTP, warm ABBA дал6,923→7,692 т�
 exact. Время вне decode снизилось с3,877 до0,345 мс/output; forward почти не изменился.
 [Замеры полной модели и диагностика MIMO-10](../../docs/mimo-v2.6-flash/MIMO26_FLASH_FILL_AND_GUARDS.md).
 
+`MatrixHash` перемешивает generation/tensor/expert во всех битах. Это устраняет
+скопление разных слоёв в одной корзине MSVC history map. В CPU-тесте141×256
+ключей максимальная цепочка141→7,4 млн обращений примерно44× быстрее.
+`strata-mimo2-hash-check` / CTest `mimo2_hash_history`:1488776 сравнений истории;
+`--benchmark` добавляет CPU ABBA. Полная модель сохранила IDs/logits и cache
+policy, но устойчивый end-to-end прирост не подтверждён из-за разброса
+контролей. [Измерения MIMO-11](../../docs/mimo-v2.6-flash/MIMO26_FLASH_HASH_CACHE.md).
+
+Резидентный `ExpertCache` использует unordered index, LRU по стабильным
+указателям и pin count в самой записи. Rehash сохраняет адреса; map iterators
+между операциями не удерживаются. Порядок victim scan/admission, pending tickets
+и route ownership сохранены. `strata-mimo2-cache-index-check` / CTest
+`mimo2_cache_index_policy` сравнивает replay с замороженным ordered-map reference;
+`--benchmark` добавляет144000 обращений. CPU63,330→32,505 мс, но прогретый
+decode8,390 против контроля8,401 ток/с. Индекс включён как сокращение CPU-работы,
+без заявления об ускорении генерации. [MIMO-12](../../docs/mimo-v2.6-flash/MIMO26_FLASH_CACHE_INDEX.md).
+
+`STRATA_MIMO_PACK_GUARDS=1` — default для mmap +tensor batching. Missing guard
+tails до512 байт собираются по route и передаются одним H2D. Дополнительные
+буферы2MiB RAM +2MiB VRAM ограничены4096 plan entries и не пересекаются со scratch;
+end_plan дожидается copy stream до их повторного использования и освобождения.
+Cache policy, route pins и GPU math сохранены. File/per-range используют прежний путь.
+Значение0 отключает объединение. `expert_stage_mib=34` включает guard staging;
+к `pipeline_device_bytes` ring добавлять `pipeline_guard_capacity_bytes`.
+`pipeline_guard_ranges/batches/bytes` показывают объединение; `pipeline_chunks`
+считает и обычные H2D, и guard batches. Unused guard bytes при abort учтены.
+
+`STRATA_MIMO_EARLY_HOST_REFILL=0` — default. Значение1 разрешает ранее заполнять
+host slot после его H2D; device reuse остаётся защищён consumer event.
+Измерение7,992→7,912 ток/с не подтвердило speedup. Guard batching дал10,336 ток/с,
++24,02% к быстрейшему контролю8,334, H2D operations−49,03%. Два кандидата10,300/10,372;
+контроли8,334/7,275 различались. [MIMO-13](../../docs/mimo-v2.6-flash/MIMO26_FLASH_HOST_PIPELINE.md).
+CUDA runtime вырос до224 случаев (256 при grouped fills): добавлены scattered
+F32/mixed fixtures с реальными missing guards, byte audit, cancel/error/recovery.
+Оба режима224/224 и final-default full-model corpus прошли; прежние F32/mixed
+диагностики остаются открытыми. CPU7 CTest/Python29 PASS.
+
+Benchmark axes `early` и `guards` сравнивают0/1 с `--order 0,1,1,0`, slab16,
+tensor batch1, decay65536 и fill0. `chunk` допускает0(control8MiB),4,16;
+full-model ranking chunk4/16 ещё не выполнялся. CUDA/engine checkers принимают
+`--early-host-refill 0|1` и `--pack-guards 0|1` (checker default0, явно для контроля).
+
 Benchmark axis `fill` сравнивает0/1 с tensor delivery1 и fixed decay65536;
 `binary` с `--control-binary <preserved.exe>` сравнивает два executable,
 сохраняя fill0. Для этих axes явно задавать `--order 0,1,1,0`.
 Прочие axes выключают fill batching, сохраняя прежние контроли.
+`--warmups` (default1) задаёт число исключённых запросов на тему,
+`--expert-cache-mib` (default14336) — запрос кеша для сравнений с фиксированным
+бюджетом. Live clamp95% продолжает действовать; engine defaults не меняются.
+
+`STRATA_MIMO_D2D_BATCH=2` — эксперимент MIMO-15: собственное CUDA scatter-copy ядро
+для cache/guard → scratch одного тензора. Один запуск получает до32 независимых
+диапазонов, tile16 КиБ; metadata передаются значением, без дополнительных GPU
+allocations. Default0 сохраняет отдельные CUDA copies, mode1 — экспериментальный
+CUDA13 `cudaMemcpyBatchAsync`. Режим1 требует CUDA13 и не показал ускорения в
+[MIMO-14](../../docs/mimo-v2.6-flash/MIMO26_FLASH_D2D_BATCH.md).
+
+Все источники защищены route pins; назначения не пересекаются. Пакет отправляется
+до ожидания недостающих матриц; ring slots доставляются и освобождаются отдельно.
+Admission/fills начинаются после прежней общей fence. Drain при ошибке/отмене
+завершается до освобождения pins. Без tensor delivery эти режимы не используются.
+`pipeline_d2d_batch/batches/ranges` показывают режим и логические пакеты;
+`pipeline_d2d_kernel_launches` — фактические запуски scatter-copy.
+CUDA/engine checkers принимают `--d2d-batch 0|1|2`; режимы1/2 требуют ещё
+четырёх проверок ошибки после enqueue и восстановления (228/260 runtime cases).
+`strata-mimo2-scatter-check fresh.json --benchmark` проверяет bytes/canaries,
+границы пакетов и production strides; его microbenchmark не измеряет inference.
+
+Benchmark: `--axis d2d --order 0,2,2,0 --fixed-pack-guards 1`.
+На RTX5090 основной ABBA дал9,567→10,259 ток/с (+7,23%); токены/logits exact.
+У первого контроля cache немного менялся; два кандидата и последний контроль
+имели одинаковые cache/traffic. Отдельный русский ABBA при фиксированном cache8 ГиБ
+дал9,131→8,035 ток/с (−12,01%). Поэтому default0 сохранён. Условия и различия между темами — в
+[MIMO-15](../../docs/mimo-v2.6-flash/MIMO26_FLASH_SCATTER_COPY.md).
+Для `chunk` сравнений со scatter задавать `--fixed-pack-guards 1 --fixed-d2d-batch 2`:
+исторические defaults benchmark0 отключают эти оптимизации. При сравнении
+старых binaries режим2 допустим только если оба executable его поддерживают.
 
 Mmap reader ограничивает **собственный** working set с расчётом на94% общей RAM,
 с учётом других процессов. Windows может вытеснять чистые страницы GGUF;
@@ -435,6 +508,14 @@ python -m tools.check_mimo2_engine --build build-local/mimo2-cuda --model $mimoM
 Для диагностики добавить `--trace-graphs 4` runner; прямой engine дополнительно
 требует `--trace-file <new.json>`. CUDA events ставятся на реальные H2D/compute
 streams. Trace меняет timing, поэтому не используется для throughput сравнения.
+Engine принимает `--trace-skip-graphs N`, чтобы пропустить prefill/прогрев.
+Счётчик включает каждый вызов graph compute и не сбрасывается между запросами.
+Trace отдельно записывает `cached_d2d`, `ring_d2d` и синхронные `fill_d2d`;
+ring marker ставится после ожидания ready event, до фактической D2D-копии.
+CUDA events повторно используются между графами. Первый записанный граф
+создаёт пул событий; последующие могут его расширять. `span_ms` включает
+паузы CPU/driver и не равен сумме времени kernels. Даже время между markers
+содержит влияние инструментирования; это диагностика, не замер ускорения.
 Пересечение интервалов graph submission не равно профилю отдельных CUDA kernels;
 в первом полном trace overlap был небольшим, на двух decode graphs — нулевым.
 
@@ -492,10 +573,20 @@ sampled memory. Первый запрос каждого prompt/config поме�
 отличаться от последовательного; диагностический `oracle_ids` проверяет это
 без draft model и также пропускает все предложения через target.
 
+MIMO-16: runner принимает `--expert-cache-mib` (default14336) и `--d2d-batch 0|1|2`
+(default0). Остальные параметры transport задаются явно: slab16, tensor batch1,
+decay65536, guards1, fill0, early0; они сверяются с ответными метриками probe.
+Нужен пересобранный `strata-mimo2-spec-check` с этими полями/CLI. Старый snapshot
+MIMO-06 следует запускать соответствующей ему версией runner, не нынешней.
+Новый измеренный build: `build-local/mimo2-mtp-q4-current-measured/build-local/mimo2-cuda`.
+Q4/head0/depth1/p_min0.7 после оптимизаций:9,015 ток/с; со scatter9,076;
+контроль без MTP10,520. Oracle снова расходится на18-м токене, MTP serving off.
+[Условия и проверки](../../docs/mimo-v2.6-flash/MIMO26_FLASH_MTP_Q4_RETEST.md).
+
 Проверены только greedy и один sequence. Stochastic correction, HTTP streaming,
 cancellation, context shift и MTP heads2/3 в этот probe не входят. Его скорости
 следует сравнивать с его же baseline, а не напрямую с прежним pipeline benchmark.
 
-Проверены23 cache ownership cases,212 runtime cases,96 kernels и132 graph checks,
+Проверены23 cache ownership cases,224 runtime cases,96 kernels и132 graph checks,
 полный corpus, отмена/recovery и bit-exact logits/IDs. API/profile — следующий
-отдельный этап; batched D2D и более широкий pressure/context stress ещё предстоят.
+отдельный этап; более широкий pressure/context stress ещё предстоит.

@@ -325,7 +325,18 @@ MIMO-10 проверил grouping cache fills:−19,17% waits, но7,861→7,826
 добавлен literal guard, убирающий временные строки проверки logits.
 Его отдельный ABBA с fill0:7,721→7,933 ток/с (+2,74%), logits/IDs exact.
 [Измерения и проверки](MIMO26_FLASH_FILL_AND_GUARDS.md).
-Ближайшие отдельные опыты без MTP: lookup/admission CPU cost и kernel timeline.
+MIMO-11 исправил распределение ключей истории на MSVC: CPU microbenchmark
+примерно44× быстрее. Два full-model ABBA прошли exact parity; контрольные
+скорости заметно колеблются, устойчивый end-to-end прирост не подтверждён.
+Хеш включён, cache defaults сохранены. [Результаты](MIMO26_FLASH_HASH_CACHE.md).
+MIMO-12 заменил resident/pin lookup: CPU microbenchmark63,330→32,505 мс,
+но decode8,390 против прогретого контроля8,401 ток/с. Индекс включён как
+снижение CPU-затрат. [Проверки и ограничения](MIMO26_FLASH_CACHE_INDEX.md).
+MIMO-13 объединил guard tails по route:10,336 ток/с, +24,02% к быстрейшему
+контролю8,334; H2D operations−49,03%, corpus и224 CUDA cases PASS.
+Guard batching on; early refill off после7,992→7,912 ток/с.
+[Результаты и defaults](MIMO26_FLASH_HOST_PIPELINE.md).
+Ближайшие отдельные опыты без MTP: D2D/compute timeline и промежуточные копии.
 Allocation reuse и prefill hits уже реализованы. Новый default требует своего A/B;
 проценты разных этапов нельзя складывать.
 
@@ -491,8 +502,28 @@ MIMO-06 добавляет отдельное сравнение пяти MTP/DF
 cache и измеренный default16; MIMO-08 — tensor delivery с проверенными lifetimes;
 MIMO-09 — частотный кеш с измеренным decay65536.
 MIMO-10 измерил fills (off) и устранил временные строки CPU guard (on).
-Следующая задача **MIMO-11**: cache lookup/CPU overhead, локализация mixed
-synthetic mismatch и отдельная проверка однократных запросов при смене темы.
+MIMO-11 исправил хеш истории (on), подтвердил точную parity и сохранил оба
+ABBA с оговоркой о влиянии фоновой нагрузки на end-to-end скорость.
+MIMO-12 ускорил resident cache metadata (on), сохранил exact policy/logits;
+прогретый decode практически прежний. MIMO-13 включил пакетную передачу guard tails
+после full-model ABBA и проверки defaults; early host refill оставлен off.
+MIMO-14 добавил прогретый H2D/D2D/compute trace и два варианта CUDA13 batched D2D.
+Ускорение не подтверждено: поздний9,421→9,342; ранний с фиксированным cache11 ГиБ
+9,619→9,418 ток/с. CUDA API batch остаётся opt-in; полные [результаты](MIMO26_FLASH_D2D_BATCH.md).
+MIMO-15 добавил собственное GPU scatter-copy ядро для resident cache → scratch.
+Основной ABBA9,567→10,259 ток/с (+7,23%); IDs/logits exact. Отдельный русский
+ABBA при cache8 ГиБ9,131→8,035 (−12,01%); поэтому default0 сохранён, mode2 opt-in.
+Условия, влияние live clamp и отдельная проверка русского
+запроса — в [отчёте](MIMO26_FLASH_SCATTER_COPY.md).
+MIMO-16 повторил Q4 MTP на текущем transport: без draft10,520 ток/с,
+Q4 9,015, Q4 +scatter9,076. Short corpus IDs совпали, но oracle снова расходится
+на18-м токене; [результаты](MIMO26_FLASH_MTP_Q4_RETEST.md). Serving остаётся off.
+Следующая задача **MIMO-17**: target batch2 parity и рабочие VRAM buffers;
+для скорости без draft —
+direct resident weights, групповые H2D, chunks4/16 и границы синхронизации.
+Для chunk A/B сохранять `--fixed-pack-guards 1`; D2D задавать одинаково в обоих вариантах.
+Сохраняются задачи
+локализации mixed/F32 synthetic mismatch и проверки запросов при смене темы.
 Для MTP отдельно проверить batched target parity. H2D/compute overlap и P2 API
 ещё открыты. P7 требует modality companions.
 

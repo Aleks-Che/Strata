@@ -128,6 +128,9 @@ def main():
     p.add_argument('--pipeline-batch', type=int, choices=[0,1], default=0)
     p.add_argument('--cache-decay', type=int, choices=[0,16384,65536,131072], default=0)
     p.add_argument('--cache-fill-batch', type=int, choices=[0,1], default=0)
+    p.add_argument('--early-host-refill', type=int, choices=[0,1], default=0)
+    p.add_argument('--pack-guards', type=int, choices=[0,1], default=0)
+    p.add_argument('--d2d-batch', type=int, choices=[0,1,2], default=0)
     p.add_argument('--expert-cache-prefill', choices=['on', 'off'], default='on')
     p.add_argument('--expert-reader', choices=['file', 'mmap'], default='file')
     p.add_argument('--expert-readers', type=int, choices=[0, 1, 2], default=0)
@@ -149,8 +152,13 @@ def main():
     env['STRATA_MIMO_PIPELINE_BATCH'] = str(args.pipeline_batch)
     env['STRATA_MIMO_CACHE_DECAY'] = str(args.cache_decay)
     env['STRATA_MIMO_CACHE_FILL_BATCH'] = str(args.cache_fill_batch)
+    env['STRATA_MIMO_EARLY_HOST_REFILL'] = str(args.early_host_refill)
+    env['STRATA_MIMO_PACK_GUARDS'] = str(args.pack_guards)
+    env['STRATA_MIMO_D2D_BATCH'] = str(args.d2d_batch)
     report = dict(status='error', scope='GPU pipe with selected cache/transport; no MTP/API', cache_slab_mib=args.cache_slab_mib,
         model=str(model), model_bytes=model.stat().st_size, suite=args.suite, pipeline_batch=args.pipeline_batch, cache_decay=args.cache_decay, cache_fill_batch=args.cache_fill_batch,
+        early_host_refill=args.early_host_refill,
+        pack_guards=args.pack_guards,d2d_batch=args.d2d_batch,
         binary_sha256=sha(binary), manifest=manifest, manifest_sha256=sha(manifest_path),
         modes=[], comparisons=[], memory_ceiling=.95, memory_sampling_seconds=1)
     if args.suite == 'fixture':

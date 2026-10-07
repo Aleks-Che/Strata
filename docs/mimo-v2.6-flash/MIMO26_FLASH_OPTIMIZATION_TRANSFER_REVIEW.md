@@ -23,6 +23,35 @@ Decode H2D прогретых запросов−11,8%, fills−82,9%; перв�
 waits−19,17%, speedup нет (7,861→7,826 ток/с), default off; mixed numeric
 diagnostic открыт. Перегрузка CPU guard для литералов добавлена в обычную сборку.
 Её отдельный ABBA дал7,721→7,933 ток/с (+2,74%) при совпавших logits/IDs.
+[MIMO-11](MIMO26_FLASH_HASH_CACHE.md) исправил распределение ключей истории:
+CPU microbenchmark примерно44× быстрее, две full-model серии exact.
+Средние7,532→7,976 и7,377→7,682 ток/с, но лучший контроль второй серии
+быстрее нового среднего. Устойчивый end-to-end speedup пока не установлен;
+cache defaults сохранены, исправление хеша включено.
+[MIMO-12](MIMO26_FLASH_CACHE_INDEX.md) добавил unordered resident index,
+LRU по стабильным указателям и pin count в записи. CPU replay63,330→32,505 мс;
+прогретый decode8,390 против контроля8,401 ток/с. Политика кеша и logits exact,
+ускорение генерации не подтверждено.
+[MIMO-13](MIMO26_FLASH_HOST_PIPELINE.md) проверил early refill:7,992→7,912 ток/с,
+off. Отдельное объединение512-байтных guard tails сократило H2D operations
+на49,03%:10,336 ток/с, +24,02% к быстрейшему контролю8,334. Новый default on,
+bytes/logits exact,224 CUDA cases и финальный corpus PASS.
+[MIMO-14](MIMO26_FLASH_D2D_BATCH.md) измерил поздние и ранние пакеты D2D:
+9,421→9,342 и9,619→9,418 ток/с. Второй ABBA держал cache11264 МиБ и одинаковые
+cache/traffic counters; выигрыш не подтвердился, default off. Trace уменьшил
+cached submissions1423,75→138, но сами intervals выросли13,885→21,184 мс.
+Существенного H2D/compute overlap пока нет. Следующий приоритет — иной GPU
+copy path/direct resident weights, групповые H2D, chunks4/16 и границы sync.
+[MIMO-15](MIMO26_FLASH_SCATTER_COPY.md) добавил собственный scatter-copy kernel:
+copy micro118,027→63,163 мкс, основной ABBA9,567→10,259 ток/с (+7,23%).
+Отдельный русский ABBA с точным cache8 ГиБ и traffic дал9,131→8,035 (−12,01%).
+Mode2 оставлен opt-in, default0 сохранён; все token IDs/logits exact.
+Причину разброса ещё нужно локализовать перед сменой default.
+[MIMO-16](MIMO26_FLASH_MTP_Q4_RETEST.md) повторил Q4 MTP с этими оптимизациями:
+без draft10,520 ток/с; Q4 9,015; Q4 +scatter9,076. При принятии228/228 предложений
+MTP всё ещё медленнее: cache12,00→9,13 ГиБ, H2D/выходной шаг+18,5–19,0%.
+Пакетный target без draft снова расходится на18-м токене, как в MIMO-06.
+Гипотеза переноса одиночной арифметики из GLM ниже остаётся задачей, не исправлением.
 
 ## Что уже используется
 

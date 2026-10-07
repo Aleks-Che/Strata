@@ -38,13 +38,14 @@ def check_ceiling(sample):
         raise RuntimeError('95% global RAM/VRAM ceiling reached; only this check may be stopped')
 
 
-def validate_result(result, manifest, kind, cache_fill_batch=False):
+def validate_result(result, manifest, kind, cache_fill_batch=False, d2d_batch=False):
     for field, key in [('requested_revision', 'source_revision'), ('archive_sha256', 'archive_sha256'), ('patch_set', 'patches')]:
         if result.get(field) != manifest.get(key):
             raise ValueError('Binary result differs from build manifest: '+field)
     if result.get('status') == 'pass':
         cases = result.get('results', [])
-        expected = {'kernels': 96, 'graph': 132, 'runtime': 244 if cache_fill_batch else 212}[kind]
+        expected = {'kernels': 96, 'graph': 132, 'runtime': 256 if cache_fill_batch else 224}[kind]
+        if kind == 'runtime' and d2d_batch: expected += 4
         if result.get('case_count') != len(cases) or len(cases) != expected:
             raise ValueError('Incomplete MiMo numerical test coverage')
         if any(r.get('pass') is not True for r in cases):
@@ -61,6 +62,9 @@ def main():
     parser.add_argument('--pipeline-batch', type=int, choices=[0,1], default=0)
     parser.add_argument('--cache-decay', type=int, choices=[0,16384,65536,131072], default=0)
     parser.add_argument('--cache-fill-batch', type=int, choices=[0,1], default=0)
+    parser.add_argument('--early-host-refill', type=int, choices=[0,1], default=0)
+    parser.add_argument('--pack-guards', type=int, choices=[0,1], default=0)
+    parser.add_argument('--d2d-batch', type=int, choices=[0,1,2], default=0)
     args = parser.parse_args()
     build = args.build.resolve()
     binary = build/'bin'/('strata-mimo2-'+args.kind+'-check'+('.exe' if os.name == 'nt' else ''))
@@ -84,6 +88,12 @@ def main():
     env['STRATA_MIMO_CACHE_DECAY'] = str(args.cache_decay)
     report['cache_decay'] = args.cache_decay
     env['STRATA_MIMO_CACHE_FILL_BATCH'] = str(args.cache_fill_batch)
+    env['STRATA_MIMO_EARLY_HOST_REFILL'] = str(args.early_host_refill)
+    report['early_host_refill'] = args.early_host_refill
+    env['STRATA_MIMO_PACK_GUARDS'] = str(args.pack_guards)
+    env['STRATA_MIMO_D2D_BATCH'] = str(args.d2d_batch)
+    report['pack_guards'] = args.pack_guards
+    report['d2d_batch'] = args.d2d_batch
     report['cache_fill_batch'] = args.cache_fill_batch
     env['NVIDIA_TF32_OVERRIDE'] = '0'
     env['GGML_CUDA_CUBLAS_COMPUTE_TYPE'] = 'f32'
@@ -134,7 +144,7 @@ def main():
             raise RuntimeError(f"Native check exited with code {report['exit_code']} without a numerical report; see stderr.log")
         report['result'] = json.loads(result_path.read_text(encoding='utf8'))
         report['result_sha256'] = sha(result_path)
-        validate_result(report['result'], meta, args.kind, bool(args.pipeline_batch and args.cache_fill_batch))
+        validate_result(report['result'], meta, args.kind, bool(args.pipeline_batch and args.cache_fill_batch), bool(args.pipeline_batch and args.d2d_batch))
         report['status'] = 'pass' if report['exit_code'] == 0 and report['result']['status'] == 'pass' else 'fail'
     except Exception as error:
         report['error'] = str(error)

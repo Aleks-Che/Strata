@@ -16,7 +16,7 @@ using Clock=std::chrono::steady_clock;
 static double ms(Clock::time_point start) {return std::chrono::duration<double,std::milli>(Clock::now()-start).count();}
 static int integer(const std::string &s) {size_t end=0;int v=std::stoi(s,&end);require(end==s.size(),"invalid integer");return v;}
 struct Options {
-    std::string model,logits,trace;int context=512,batch=8,mode=2,readers=1,chunk=8,trace_graphs=0;
+    std::string model,logits,trace;int context=512,batch=8,mode=2,readers=1,chunk=8,trace_graphs=0,trace_skip=0;
     size_t cache=14ull<<30;bool prefill=false,mmap=true;
 };
 static Options options(int argc,char **argv) {
@@ -31,6 +31,7 @@ static Options options(int argc,char **argv) {
         else if(key=="--expert-readers") {out.readers=integer(value);readers_explicit=true;}
         else if(key=="--expert-chunk-mib")out.chunk=integer(value);
         else if(key=="--trace-graphs")out.trace_graphs=integer(value);
+        else if(key=="--trace-skip-graphs")out.trace_skip=integer(value);
         else if(key=="--trace-file")out.trace=value;
         else if(key=="--expert-cache-mib") {int n=integer(value);require(n>=0 && n<=32768,"invalid expert cache size");out.cache=size_t(n)<<20;cache_explicit=true;}
         else if(key=="--expert-cache-prefill") {require(value=="on" || value=="off","invalid prefill cache policy");out.prefill=value=="on";}
@@ -43,7 +44,7 @@ static Options options(int argc,char **argv) {
     if(!readers_explicit && (out.mode==1 || !out.cache))out.readers=0;
     require(!out.cache || out.mode==2,"expert cache requires pinned copy mode");
     require(out.readers>=0 && out.readers<=2 && (out.chunk==4 || out.chunk==8 || out.chunk==16) &&
-        out.trace_graphs>=0 && out.trace_graphs<=128 && (!out.readers || (out.mode==2 && out.cache)) &&
+        out.trace_graphs>=0 && out.trace_graphs<=128 && out.trace_skip>=0 && (!out.trace_skip || out.trace_graphs) && (!out.readers || (out.mode==2 && out.cache)) &&
         (!out.trace_graphs || (out.readers && !out.trace.empty())),"invalid pipeline/trace configuration");
     if(!out.trace.empty())require(out.trace_graphs && std::filesystem::path(out.trace).extension()==".json" &&
         !std::filesystem::exists(out.trace) && out.trace!=out.logits,"trace requires a fresh .json output");
@@ -136,6 +137,11 @@ static void execute(llama_context *ctx,const llama_vocab *vocab,const Options &o
         {"pipeline_consumer_wait_us",s.pipeline_consumer_wait_us},{"pipeline_slot_wait_us",s.pipeline_slot_wait_us},
         {"pipeline_submit_us",s.pipeline_submit_us},
         {"pipeline_batch",s.pipeline_batch},{"pipeline_copy_batches",s.pipeline_copy_batches},
+        {"pipeline_early_host_refill",s.pipeline_early_host_refill},
+        {"pipeline_packed_guards",s.pipeline_packed_guards},{"pipeline_guard_capacity_bytes",s.pipeline_guard_capacity_bytes},
+        {"pipeline_guard_batches",s.pipeline_guard_batches},{"pipeline_guard_ranges",s.pipeline_guard_ranges},{"pipeline_guard_bytes",s.pipeline_guard_bytes},
+        {"pipeline_d2d_batch",s.pipeline_d2d_batch},{"pipeline_d2d_batches",s.pipeline_d2d_batches},{"pipeline_d2d_ranges",s.pipeline_d2d_ranges},
+        {"pipeline_d2d_kernel_launches",s.pipeline_d2d_kernel_launches},
         {"pipeline_copy_fences",s.pipeline_copy_fences},{"pipeline_scratch_fences",s.pipeline_scratch_fences},{"pipeline_batch_ms",s.pipeline_batch_ms},
         {"pipeline_file_bytes",s.pipeline_file_bytes},{"pipeline_mmap_bytes",s.pipeline_mmap_bytes},{"pipeline_d2d_bytes",s.pipeline_d2d_bytes},
         {"prefill_h2d_bytes",prefill_h2d},{"decode_h2d_bytes",s.h2d_bytes-prefill_h2d},
@@ -187,18 +193,22 @@ int main(int argc,char **argv) {
             auto ctx=context(model.get(),o.context,o.batch);
             strata_mimo_cache(o.cache);strata_mimo_cache_prefill(o.prefill);
             strata_mimo_reader(o.mode==2 && o.mmap);
-            strata_mimo_pipeline_config(o.readers,o.chunk,o.trace_graphs);
+            strata_mimo_pipeline_config(o.readers,o.chunk,o.trace_graphs,o.trace_skip);
             std::cerr<<"STRATA_MIMO_LOAD_MS "<<ms(start)<<'\n';
             std::cout<<"INFO engine=mimo2-native architecture=mimo2 gpu_only=1 text_only=1 mtp=0 spec=0"
                 <<" expert_compute=gpu expert_storage=mmap expert_pipeline="<<bool(o.readers)<<" expert_cache_mib="<<(strata_mimo_snapshot().cache_limit>>20)
                 <<" expert_cache_requested_mib="<<(o.cache>>20)<<" expert_cache_prefill="<<(o.prefill?"on":"off")
                 <<" expert_copy="<<(o.readers?(o.mmap?"mmap-pipeline":"file-pipeline"):o.mode==2?(o.mmap?"mmap-cache-sync":"pinned-file-sync"):"native-reference")
                 <<" expert_readers="<<o.readers<<" expert_chunk_mib="<<o.chunk
-                <<" expert_stage_mib="<<(o.readers?4*o.chunk:o.mode==2 && !o.mmap?16:0)<<" memory_target_percent=95 kv=f32 flash_attention=1"
+                <<" expert_stage_mib="<<((o.readers?4*o.chunk:o.mode==2 && !o.mmap?16:0)+(strata_mimo_snapshot().pipeline_guard_capacity_bytes>>20))<<" memory_target_percent=95 kv=f32 flash_attention=1"
                 <<" host_working_set_target_percent="<<(o.mode==2 && o.mmap?94:0)
                 <<" expert_cache_slab_mib="<<(o.cache?strata_mimo_cache_slab_mib():0)
                 <<" expert_cache_decay="<<(o.cache?strata_mimo_cache_decay():0)
                 <<" expert_pipeline_batch="<<(o.readers?strata_mimo_pipeline_batch_mode():0)
+                <<" expert_early_host_refill="<<(o.readers?strata_mimo_early_host_refill_mode():0)
+                <<" expert_packed_guards="<<strata_mimo_snapshot().pipeline_packed_guards
+                <<" expert_guard_stage_mib="<<(strata_mimo_snapshot().pipeline_guard_capacity_bytes>>20)
+                <<" expert_d2d_batch="<<strata_mimo_snapshot().pipeline_d2d_batch
                 <<" expert_cache_fill_batch="<<(o.readers && strata_mimo_pipeline_batch_mode()?strata_mimo_cache_fill_batch_mode():0)
                 <<" tf32=0 cuda_graphs=0 conversation_cache=0 sampling=greedy add_bos=0 stop_ids=151645\n"
                 <<"READY "<<o.context<<" stop\n"<<std::flush;

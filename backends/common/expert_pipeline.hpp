@@ -238,7 +238,7 @@ public:
     }
     // False means the source was not in the bounded lookahead plan. The
     // caller cancels that plan and uses the original ordered transfer path.
-    bool transfer(void *destination,const void *source,size_t bytes,cudaStream_t consumer) {
+    bool transfer(void *destination,const void *source,size_t bytes,cudaStream_t consumer,const CopyObserver &delivery_observer={}) {
         std::unique_lock<std::mutex> lock(mutex);
         if(error)std::rethrow_exception(error);
         size_t count=0;
@@ -258,7 +258,9 @@ public:
             // ready is recorded before publication; waiting on an unrecorded
             // CUDA event would otherwise be a no-op.
             check(cudaStreamWaitEvent(consumer,slot.ready,0));
+            if(destination && delivery_observer)delivery_observer(consumer,true,n);
             if(destination)check(cudaMemcpyAsync((uint8_t *)destination+off,slot.device,n,cudaMemcpyDeviceToDevice,consumer));
+            if(destination && delivery_observer)delivery_observer(consumer,false,n);
             check(cudaEventRecord(slot.used,consumer));
             lock.lock();
             if(destination)totals.d2d_bytes+=n;

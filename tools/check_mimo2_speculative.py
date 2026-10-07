@@ -19,11 +19,17 @@ def main():
     p.add_argument('--cuda-bin',type=Path,default=Path('build-local/cuda-13.0/bin/x64'))
     p.add_argument('--requests',type=Path,required=True);p.add_argument('--output-dir',type=Path,required=True)
     p.add_argument('--reference-dir',type=Path);p.add_argument('--timeout',type=int,default=1800)
-    a=p.parse_args();dest=a.output_dir.resolve();dest.mkdir(parents=True,exist_ok=False)
+    p.add_argument('--expert-cache-mib',type=int,default=14336)
+    p.add_argument('--d2d-batch',type=int,choices=[0,1,2],default=0)
+    a=p.parse_args()
+    if not 1<=a.expert_cache_mib<=14336:p.error('expert cache must be 1..14336 MiB')
+    dest=a.output_dir.resolve();dest.mkdir(parents=True,exist_ok=False)
     binary=(a.build/'bin/strata-mimo2-spec-check.exe').resolve()
     report=dict(status='error',scope='Offline greedy experiment; all tested positions retained in F32 KV, context512/batch8. MTP head0 only. No serving integration.',
-        command=[str(binary),'--model',str(a.model.resolve()),'--kind',a.kind],binary_sha256=sha(binary),
+        command=[str(binary),'--model',str(a.model.resolve()),'--kind',a.kind,'--expert-cache-mib',str(a.expert_cache_mib)],binary_sha256=sha(binary),
         manifest=json.loads((a.build/'mimo2-build-manifest.json').read_text()),requests=[],samples=[])
+    report['runner_command']=[sys.executable,*sys.argv]
+    report['requests_source']=dict(path=str(a.requests.resolve()),sha256=sha(a.requests))
     process=None
     try:
         assert report['manifest'].get('speculative_probe'), 'Configure/build with STRATA_MIMO_SPEC_PROBE=ON'
@@ -37,6 +43,10 @@ def main():
         else: assert a.kind=='none'
         report['before']=memory(gpu_memory());check_ceiling(report['before'])
         env=os.environ.copy();env['PATH']=str(a.cuda_bin.resolve())+os.pathsep+env['PATH']
+        settings=dict(CACHE_SLAB_MIB=16,PIPELINE_BATCH=1,CACHE_DECAY=65536,CACHE_FILL_BATCH=0,
+                      EARLY_HOST_REFILL=0,PACK_GUARDS=1,D2D_BATCH=a.d2d_batch)
+        report['runtime_environment']={'STRATA_MIMO_'+k:str(v) for k,v in settings.items()}
+        env.update(report['runtime_environment'])
         process=Engine(report['command'],env,dest,a.timeout)
         assert process.read()=='READY'
         import time
@@ -46,6 +56,10 @@ def main():
             q=dict(request);q['logits']=str(dest/f'{index}.f32')
             process.send(json.dumps(q));r=json.loads(process.read());r['request']=request
             report['requests'].append(r)
+            assert r['cache_request_mib']==a.expert_cache_mib and r['cache_slab_mib']==16 and r['cache_decay']==65536
+            assert r['pipeline_batch']==1 and r['pipeline_packed_guards']==1
+            assert r['pipeline_d2d_batch']==a.d2d_batch and not r['cache_fill_batch'] and not r['pipeline_early_host_refill']
+            if a.d2d_batch==2:assert r['pipeline_d2d_kernel_launches']>=r['pipeline_d2d_batches']>0
             if a.reference_dir:
                 refs=json.loads((a.reference_dir/'spec-report.json').read_text(encoding='utf8'))['requests']
                 matches=[i for i,ref in enumerate(refs) if request['tokens']==ref['request']['tokens'] and request['predict']==ref['request']['predict']]

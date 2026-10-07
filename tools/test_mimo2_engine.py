@@ -26,7 +26,7 @@ class MiMoEngineReports(unittest.TestCase):
     def test_runtime_coverage_and_build_identity(self):
         manifest = dict(source_revision='pin', archive_sha256='archive', patches='patch')
         result = dict(status='pass', requested_revision='pin', archive_sha256='archive',
-                      patch_set='patch', case_count=212, results=[{'pass': True} for _ in range(212)])
+                      patch_set='patch', case_count=224, results=[{'pass': True} for _ in range(224)])
         validate_result(result, manifest, 'runtime')
         result['results'].pop(); result['case_count'] -= 1
         with self.assertRaises(ValueError): validate_result(result, manifest, 'runtime')

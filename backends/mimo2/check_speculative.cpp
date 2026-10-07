@@ -10,9 +10,10 @@ using Clock=std::chrono::steady_clock;
 static double ms(Clock::time_point t) {return std::chrono::duration<double,std::milli>(Clock::now()-t).count();}
 int main(int argc,char **argv) {
     try {
-        std::string model_path,draft_path,kind="none";bool shared_target=false;
+        std::string model_path,draft_path,kind="none";bool shared_target=false;size_t cache_mib=14336;
         for(int i=1;i<argc;++i) {std::string k=argv[i];require(i+1<argc,"missing option");std::string v=argv[++i];
             if(k=="--model")model_path=v;else if(k=="--draft")draft_path=v;else if(k=="--kind")kind=v;
+            else if(k=="--expert-cache-mib") {size_t end=0;cache_mib=std::stoull(v,&end);require(end==v.size() && cache_mib>0 && cache_mib<=14336,"invalid cache limit");}
             else if(k=="--share-target" && (v=="0" || v=="1"))shared_target=v=="1";else throw std::runtime_error("unknown option "+k);}
         require(!model_path.empty() && (kind=="none" || kind=="mtp" || kind=="dflash") && ((kind=="none")==draft_path.empty()),"invalid probe inputs");
         require(!shared_target || kind=="dflash","shared target is a DFlash experiment");
@@ -37,7 +38,7 @@ int main(int argc,char **argv) {
                 decode(ctx.get(),warm,0,8,0,true);
                 draft->process(warm,0);draft->propose(11,8,kind=="mtp"?1:7,0);draft->reset();
             }
-            clear(ctx.get());strata_mimo_cache(14ull<<30);strata_mimo_cache_prefill(false);strata_mimo_pipeline_config(1,8);
+            clear(ctx.get());strata_mimo_cache(cache_mib<<20);strata_mimo_cache_prefill(false);strata_mimo_pipeline_config(1,8);
             std::cout<<"READY\n"<<std::flush;
             std::string line;
             while(std::getline(std::cin,line) && line!="QUIT") {
@@ -94,6 +95,12 @@ int main(int argc,char **argv) {
                     {"target_ms",target_ms},{"draft_ms",draft_ms},{"catchup_ms",catchup_ms},{"proposed",proposed},{"accepted",accepted},
                     {"cycles",cycles},{"proposed_counts",proposed_counts},{"accepted_counts",accepted_counts},{"cache_bytes",s.cache_bytes},
                     {"cache_payload_bytes",s.cache_payload_bytes},{"cache_limit",s.cache_limit},{"decode_h2d_bytes",s.h2d_bytes-prefill_stats.h2d_bytes},
+                    {"cache_request_mib",cache_mib},{"cache_slab_mib",s.cache_slab_mib},{"cache_decay",s.cache_decay},
+                    {"pipeline_batch",s.pipeline_batch},{"pipeline_packed_guards",s.pipeline_packed_guards},
+                    {"pipeline_d2d_batch",s.pipeline_d2d_batch},{"pipeline_d2d_batches",s.pipeline_d2d_batches},
+                    {"pipeline_d2d_kernel_launches",s.pipeline_d2d_kernel_launches},{"cache_fill_batch",s.cache_fill_batch},
+                    {"pipeline_early_host_refill",s.pipeline_early_host_refill},{"verify_warmup_tokens",verify_warmed?8:0},
+                    {"pipeline_consumer_wait_us",s.pipeline_consumer_wait_us},{"pipeline_submit_us",s.pipeline_submit_us},
                     {"gpu_free",s.gpu_free},{"gpu_total",s.gpu_total},{"ram_free",s.ram_free},{"ram_total",s.ram_total},
                     {"gpu_nodes",s.gpu_nodes},{"rejected_cpu_nodes",s.rejected_cpu_nodes},{"pipeline_queued",s.pipeline_queued}}).dump()<<'\n'<<std::flush;
             }

@@ -23,15 +23,18 @@ class GpuTrace {
     struct Span {Event start,end;bool complete=false;};
     Event origin;
     bool started=false;
-    std::atomic<int> remaining;
+    std::atomic<int> remaining,skip;
+    int graph_index=0;
     std::mutex mutex;
-    std::vector<Span> copies,computes;
+    struct Pool {std::vector<Span> spans;size_t used=0;};
+    Pool pools[5]; // H2D, compute, cached delivery, ring delivery, cache fill
     nlohmann::json graphs=nlohmann::json::array();
     static void check(cudaError_t e) {trace_require(e==cudaSuccess,cudaGetErrorString(e));}
     using Intervals=std::vector<std::pair<double,double>>;
-    Intervals intervals(std::vector<Span> & spans) {
+    Intervals intervals(Pool & pool) {
         Intervals result;
-        for (const auto & s:spans) {
+        for (size_t i=0;i<pool.used;++i) {
+            const auto &s=pool.spans[i];
             if (!s.complete) continue;
             check(cudaEventSynchronize(s.end.event));
             float a=0,b=0;check(cudaEventElapsedTime(&a,origin.event,s.start.event));
@@ -46,15 +49,19 @@ class GpuTrace {
     }
     static double duration(const Intervals & intervals) {double t=0;for(auto s:intervals)t+=s.second-s.first;return t;}
 public:
-    explicit GpuTrace(int count):remaining(count) {trace_require(count>=1 && count<=128,"MiMo trace graphs must be 1..128");}
-    void record(cudaStream_t stream,ggml_backend_t backend,bool begin) {
-        if (remaining.load()==0) return;
+    explicit GpuTrace(int count,int skip_count=0):remaining(count),skip(skip_count) {trace_require(count>=1 && count<=128 && skip_count>=0,"invalid MiMo trace range");}
+    void record(cudaStream_t stream,ggml_backend_t backend,bool begin,int kind=0) {
+        if (remaining.load()==0 || skip.load()>0) return;
         std::lock_guard<std::mutex> lock(mutex);
         if (!started) {check(cudaEventRecord(origin.event,nullptr));check(cudaEventSynchronize(origin.event));started=true;}
-        auto & spans=backend?computes:copies;
-        if (begin) spans.emplace_back();
-        trace_require(!spans.empty(),"unpaired CUDA trace marker");
-        auto & s=spans.back();auto event=begin?s.start.event:s.end.event;
+        trace_require(kind>=0 && kind<5,"invalid CUDA trace category");
+        auto & pool=pools[backend?1:kind];
+        if (begin) {
+            if(pool.used==pool.spans.size())pool.spans.emplace_back();
+            pool.spans[pool.used++].complete=false;
+        }
+        trace_require(pool.used>0,"unpaired CUDA trace marker");
+        auto & s=pool.spans[pool.used-1];auto event=begin?s.start.event:s.end.event;
         if (backend) {
             // Audited CUDA backend stores cudaEvent_t in this event's context.
             // The public recorder uses the backend's real compute stream.
@@ -67,18 +74,31 @@ public:
     void finish(bool cancelled) {
         if (remaining.load()==0) return;
         std::lock_guard<std::mutex> lock(mutex);
+        ++graph_index;
+        if(skip.load()>0) {--skip;return;}
         if (!started) return;
-        const auto h=intervals(copies),c=intervals(computes);double overlap=0;
+        const auto h=intervals(pools[0]),c=intervals(pools[1]);double overlap=0;
         size_t i=0,j=0;
         while (i<h.size() && j<c.size()) {
             overlap+=std::max(0.0,std::min(h[i].second,c[j].second)-std::max(h[i].first,c[j].first));
             if (h[i].second<c[j].second) ++i;else ++j;
         }
         graphs.push_back({{"h2d_ms",duration(h)},{"compute_ms",duration(c)},{"overlap_ms",overlap},
-            {"h2d_submissions",copies.size()},{"compute_splits",computes.size()},{"cancelled",cancelled},
+            {"graph_index",graph_index},{"h2d_submissions",pools[0].used},{"compute_splits",pools[1].used},{"cancelled",cancelled},
             {"h2d_intervals_ms",h},{"compute_intervals_ms",c}});
-        copies.clear();computes.clear();started=false;--remaining;
+        const char *names[]={"cached_d2d","ring_d2d","fill_d2d"};
+        double end=0;
+        for(int k=0;k<5;++k) {
+            const auto v=intervals(pools[k]);if(!v.empty())end=std::max(end,v.back().second);
+            if(k>=2) {
+                graphs.back()[std::string(names[k-2])+"_ms"]=duration(v);
+                graphs.back()[std::string(names[k-2])+"_submissions"]=pools[k].used;
+                graphs.back()[std::string(names[k-2])+"_intervals_ms"]=v;
+            }
+            pools[k].used=0;
+        }
+        graphs.back()["span_ms"]=end;started=false;--remaining;
     }
-    nlohmann::json snapshot() const {return {{"kind","CUDA events on actual streams"},{"graphs",graphs}};}
+    nlohmann::json snapshot() const {return {{"kind","CUDA events on actual streams; pooled events; diagnostic overhead included"},{"graphs",graphs}};}
 };
 }

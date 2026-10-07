@@ -146,11 +146,18 @@ int main(int argc,char **argv) {
                     s.cache_fill_batch==uint64_t(s.pipeline_batch && strata_mimo_cache_fill_batch_mode()) &&
                     (s.cache_fill_batch?(s.pipeline_fill_batches>0 && s.pipeline_fill_submissions>=s.pipeline_fill_batches):s.pipeline_fill_batches==0) &&
                     s.pipeline_batch==uint64_t(strata_mimo_pipeline_batch_mode()) &&
+                    s.pipeline_early_host_refill==uint64_t(strata_mimo_early_host_refill_mode()) &&
+                    s.pipeline_packed_guards==uint64_t(mmap && s.pipeline_batch && strata_mimo_pack_guards_mode()) &&
+                    s.pipeline_guard_capacity_bytes==(s.pipeline_packed_guards?2u<<20:0) &&
+                    s.staging_bytes==s.pipeline_device_bytes+s.pipeline_guard_capacity_bytes &&
+                    (s.pipeline_packed_guards?s.pipeline_guard_batches<=s.pipeline_guard_ranges:s.pipeline_guard_bytes==0) &&
                     s.cache_decay==uint64_t(strata_mimo_cache_decay()) && s.cache_history_keys<=65536 &&
                     (s.cache_decay?(s.cache_frequency_updates>0 && s.cache_history_keys>0):s.cache_frequency_updates==0) &&
                     (s.pipeline_batch?(s.pipeline_copy_batches>0 && s.pipeline_copy_batches==s.pipeline_scratch_fences &&
                         s.pipeline_copy_fences>=s.pipeline_copy_batches && s.pipeline_copy_batches<=s.ranges):s.pipeline_copy_batches==0)}});
                 runs.push_back({{"fixture",label},{"pipeline_batch",s.pipeline_batch},{"requested_bytes",s.requested_bytes},
+                    {"early_host_refill",s.pipeline_early_host_refill},
+                    {"packed_guards",s.pipeline_packed_guards},{"guard_batches",s.pipeline_guard_batches},{"guard_ranges",s.pipeline_guard_ranges},{"guard_bytes",s.pipeline_guard_bytes},
                     {"byte_checked",audit.bytes},{"copy_fences",s.pipeline_copy_fences},{"scratch_fences",s.pipeline_scratch_fences},
                     {"tensor_batches",s.pipeline_copy_batches},{"cache_bytes",s.cache_bytes},{"cache_limit",s.cache_limit},
                     {"fill_batch",s.cache_fill_batch},{"fill_batches",s.pipeline_fill_batches},{"fill_submissions",s.pipeline_fill_submissions},{"pending",s.cache_pending}});
@@ -185,6 +192,64 @@ int main(int argc,char **argv) {
                 tests.push_back(no_admission);strata_mimo_release();
             }
         }
+        // The original bias chooses adjacent experts and seldom needs missing
+        // guard tails. A permuted bias exercises those bytes on every warm route.
+        for(bool mixed:{false,true}) {
+            const std::string label=mixed?"mixed/scattered":"f32/scattered";
+            const auto path=(dir/(mixed?"scattered-mixed.gguf":"scattered-f32.gguf")).string();
+            write_synthetic_mimo2(path,mixed,false,true);Floats reference;
+            {
+                strata_mimo_mode(1);auto model=load(path,false,true);auto ctx=context(model.get(),512,8);
+                reference=run(ctx.get(),0,273,8);strata_mimo_release();
+            }
+            strata_mimo_mode(2);auto model=load(path,false,true);auto ctx=context(model.get(),512,8);
+            strata_mimo_cache(256u<<20);strata_mimo_reader(true);strata_mimo_cache_prefill(true);strata_mimo_phase(false);
+            strata_mimo_pipeline_config(1,8,2);strata_mimo_reset();Observer audit;strata_mimo_observe(Observer::check,&audit);
+            const auto values=run(ctx.get(),0,273,8);const auto s=strata_mimo_snapshot();
+            tests.push_back(compare(label+"/logits",values,reference,true));
+            const bool packed=strata_mimo_pack_guards_mode() && strata_mimo_pipeline_batch_mode();
+            const int d2d_batch=strata_mimo_pipeline_batch_mode()?strata_mimo_d2d_batch_mode():0;
+            tests.push_back({{"name",label+"/guard_bytes_budget_drain"},{"pass",
+                s.pipeline_d2d_batch==uint64_t(d2d_batch) &&
+                (d2d_batch==2?s.pipeline_d2d_kernel_launches>=s.pipeline_d2d_batches && s.pipeline_d2d_kernel_launches>0:!s.pipeline_d2d_kernel_launches) &&
+                (d2d_batch?s.pipeline_d2d_ranges>s.pipeline_d2d_batches && s.pipeline_d2d_batches>0:!s.pipeline_d2d_batches) &&
+                s.pipeline_packed_guards==uint64_t(packed) && audit.bytes==s.requested_bytes &&
+                s.requested_bytes==s.h2d_bytes+s.cache_hit_bytes && !s.pipeline_unused_bytes &&
+                !s.pipeline_reader_owned && !s.pipeline_queued && !s.cache_pending &&
+                !s.rejected_cpu_nodes && !s.rejected_full_copies && s.cache_bytes<=s.cache_limit &&
+                (packed?s.pipeline_guard_bytes>0 && s.pipeline_guard_ranges>s.pipeline_guard_batches &&
+                    s.pipeline_guard_capacity_bytes==(2u<<20):!s.pipeline_guard_bytes)}});
+            runs.push_back({{"fixture",label},{"packed_guards",s.pipeline_packed_guards},
+                {"guard_batches",s.pipeline_guard_batches},{"guard_ranges",s.pipeline_guard_ranges},
+                {"guard_bytes",s.pipeline_guard_bytes},{"byte_checked",audit.bytes},
+                {"d2d_batches",s.pipeline_d2d_batches},{"d2d_ranges",s.pipeline_d2d_ranges},{"scatter_launches",s.pipeline_d2d_kernel_launches}});
+            strata_mimo_trace_write((dir/(mixed?"scattered-mixed-trace.json":"scattered-f32-trace.json")).string().c_str());
+            clear(ctx.get());const auto fresh=run(ctx.get(),0,9,8,3);
+            clear(ctx.get());std::atomic<bool> cancel{false};audit.cancel=&cancel;strata_mimo_cancel(&cancel);
+            bool stopped=false;try {run(ctx.get(),0,9,8,3);}catch(const std::exception &) {stopped=true;}
+            const auto cancelled=strata_mimo_snapshot();
+            tests.push_back({{"name",label+"/cancel_drains"},{"pass",stopped && cancel.load() &&
+                !cancelled.pipeline_reader_owned && !cancelled.pipeline_queued && !cancelled.cache_pending}});
+            strata_mimo_cancel(nullptr);audit.cancel=nullptr;clear(ctx.get());
+            tests.push_back(compare(label+"/cancel_recovery",run(ctx.get(),0,9,8,3),fresh,true));
+            // Keep the warm cache: in packed mode this fails the guard upload
+            // before the matrix reader starts, rather than a cold matrix upload.
+            strata_mimo_test_pipeline_failure(0);clear(ctx.get());
+            bool failed=false;try {run(ctx.get(),0,9,8,3);}catch(const std::exception &) {failed=true;}
+            const auto failure=strata_mimo_snapshot();
+            tests.push_back({{"name",label+"/upload_error_drains"},{"pass",failed &&
+                !failure.pipeline_reader_owned && !failure.pipeline_queued && !failure.cache_pending}});
+            clear(ctx.get());tests.push_back(compare(label+"/upload_error_recovery",run(ctx.get(),0,9,8,3),fresh,true));
+            if(d2d_batch) {
+                strata_mimo_test_d2d_failure(0);clear(ctx.get());
+                bool failed_d2d=false;try {run(ctx.get(),0,9,8,3);}catch(const std::exception &) {failed_d2d=true;}
+                const auto ds=strata_mimo_snapshot();
+                tests.push_back({{"name",label+"/d2d_error_drains"},{"pass",failed_d2d &&
+                    !ds.pipeline_reader_owned && !ds.pipeline_queued && !ds.cache_pending}});
+                clear(ctx.get());tests.push_back(compare(label+"/d2d_error_recovery",run(ctx.get(),0,9,8,3),fresh,true));
+            }
+            strata_mimo_release();
+        }
         {
             auto *cpu=ggml_backend_dev_by_name("CPU");ggml_backend_dev_t devices[]={cpu,nullptr};
             auto mp=llama_model_default_params();mp.devices=devices;mp.n_gpu_layers=0;
@@ -198,7 +263,13 @@ int main(int argc,char **argv) {
             strata_mimo_release();
         }
         size_t passed=0;for(const auto &t:tests)passed+=t["pass"].get<bool>();
-        require(tests.size()==size_t(strata_mimo_pipeline_batch_mode() && strata_mimo_cache_fill_batch_mode()?244:212),"incomplete runtime coverage");
+        if(strata_mimo_pack_guards_mode() && strata_mimo_pipeline_batch_mode()) {
+            uint64_t guarded=0;for(const auto &r:runs)guarded+=r.value("guard_bytes",uint64_t(0));
+            require(guarded>0,"runtime did not exercise packed guards");
+        }
+        const size_t expected=(strata_mimo_pipeline_batch_mode() && strata_mimo_cache_fill_batch_mode()?256:224)+
+            (strata_mimo_pipeline_batch_mode() && strata_mimo_d2d_batch_mode()?4:0);
+        require(tests.size()==expected,"incomplete runtime coverage");
         json report={{"status",passed==tests.size()?"pass":"fail"},{"scope","synthetic native full/SWA GPU graph; no full-model inference"},
             {"requested_revision",STRATA_MIMO_SOURCE_SHA},{"archive_sha256",STRATA_MIMO_ARCHIVE_SHA256},{"patch_set",STRATA_MIMO_PATCH_SET},
             {"passed",passed},{"case_count",tests.size()},{"positions",273},{"runs",runs},{"results",tests}};

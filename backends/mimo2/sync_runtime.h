@@ -19,6 +19,11 @@ struct strata_mimo_stats {
     uint64_t pipeline_consumer_wait_us=0,pipeline_slot_wait_us=0,pipeline_submit_us=0;
     uint64_t pipeline_file_bytes=0,pipeline_mmap_bytes=0,pipeline_d2d_bytes=0;
     uint64_t pipeline_batch=0,pipeline_copy_batches=0,pipeline_copy_fences=0,pipeline_scratch_fences=0;
+    uint64_t pipeline_early_host_refill=0;
+    uint64_t pipeline_packed_guards=0,pipeline_guard_capacity_bytes=0;
+    uint64_t pipeline_guard_batches=0,pipeline_guard_ranges=0,pipeline_guard_bytes=0;
+    uint64_t pipeline_d2d_batch=0,pipeline_d2d_batches=0,pipeline_d2d_ranges=0;
+    uint64_t pipeline_d2d_kernel_launches=0;
     uint64_t cache_fill_batch=0,cache_pending=0,pipeline_fill_batches=0,pipeline_fill_submissions=0;
     double pipeline_batch_ms=0;
 };
@@ -39,9 +44,13 @@ void strata_mimo_cache_prefill(bool admit); // Hits remain usable when admission
 void strata_mimo_phase(bool prefill);
 void strata_mimo_reader(bool mmap); // file: bounded native read buffer; mmap: driver copy from mapped pages
 void strata_mimo_workspace_ready(); // First successful decode at configured batch capacity warmed CUDA pools.
-void strata_mimo_pipeline_config(int readers,int chunk_mib=8,int trace_graphs=0);
+void strata_mimo_pipeline_config(int readers,int chunk_mib=8,int trace_graphs=0,int trace_skip=0);
 int strata_mimo_pipeline_batch_mode(); // STRATA_MIMO_PIPELINE_BATCH=0/1, fixed at config.
+int strata_mimo_early_host_refill_mode(); // STRATA_MIMO_EARLY_HOST_REFILL=0/1, default off.
+int strata_mimo_pack_guards_mode(); // STRATA_MIMO_PACK_GUARDS=0/1, default on; requires mmap + tensor batching.
+int strata_mimo_d2d_batch_mode(); // 0: memcpy, 1: CUDA13 batch API, 2: scatter kernel; requires tensor batching.
 int strata_mimo_cache_fill_batch_mode(); // Only tensor pipeline supports grouped cache fills.
 void strata_mimo_trace_write(const char *path);
 void strata_mimo_test_pipeline_failure(int submissions); // One-shot injected reader error, fixtures only.
 void strata_mimo_test_fill_failure(int submissions); // Throws after enqueueing the selected fill, fixtures only.
+void strata_mimo_test_d2d_failure(int submissions); // Throws after enqueueing the selected D2D batch, fixtures only.

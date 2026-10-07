@@ -80,7 +80,7 @@ function(mimo_runtime_source target relative expected output)
   set_property(SOURCE "${generated}" TARGET_DIRECTORY ${target} APPEND PROPERTY OBJECT_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_frequency.hpp")
   set_property(SOURCE "${generated}" TARGET_DIRECTORY ${target} APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_trace.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_slice.hpp")
+    "${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/gpu_trace.hpp;${CMAKE_CURRENT_SOURCE_DIR}/scatter_copy.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_slice.hpp")
 endfunction()
 mimo_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-mimo2-backend.cpp)
@@ -96,6 +96,7 @@ string(APPEND mimo_patch_set ",mimo-optional-packed-cache-blocks")
 string(APPEND mimo_patch_set ",mimo-tensor-delivery-fence")
 string(APPEND mimo_patch_set ",mimo-decaying-cache-admission")
 string(APPEND mimo_patch_set ",mimo-deferred-cache-fill-batch")
+string(APPEND mimo_patch_set ",mimo-expert-scatter-copy")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
 target_compile_features(ggml-base PRIVATE cxx_std_17)
 target_include_directories(ggml-base PRIVATE "${mimo_source}/vendor")

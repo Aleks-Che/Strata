@@ -8,7 +8,7 @@
 #include <exception>
 #include <list>
 #include <iterator>
-#include <map>
+#include <unordered_map>
 #include <stdexcept>
 #include <tuple>
 #include <memory>
@@ -22,7 +22,14 @@ struct MatrixKey {
 };
 struct MatrixHash {
     size_t operator()(const MatrixKey &key) const {
-        return std::hash<uint64_t>{}(key.generation)^(size_t(key.tensor)<<16)^key.expert;
+        // MSVC uses power-of-two bucket counts. Keeping the tensor only above
+        // bit 15 puts every layer's same expert in one history bucket at the
+        // usual table size. Mix all identity fields into the low bits too.
+        uint64_t value=key.generation*0x9e3779b97f4a7c15ULL;
+        value^=(uint64_t(key.tensor)<<32)|key.expert;
+        value=(value^(value>>30))*0xbf58476d1ce4e5b9ULL;
+        value=(value^(value>>27))*0x94d049bb133111ebULL;
+        return size_t(value^(value>>31));
     }
 };
 class ExpertCache {
@@ -32,9 +39,12 @@ public:
     struct Counters {uint64_t hits=0,misses=0,evictions=0,allocations=0,reuses=0,bypasses=0,oom=0;
         uint64_t frequency_updates=0,frequency_rejected=0,frequency_candidates=0;};
 private:
-    struct Entry {void *data;size_t bytes,charge;std::list<MatrixKey>::iterator order;uint64_t pending;};
-    std::map<MatrixKey,Entry> entries;std::list<MatrixKey> order;
-    std::map<MatrixKey,size_t> pins;
+    struct Entry;
+    using Order=std::list<Entry *>;
+    struct Entry {MatrixKey key;void *data;size_t bytes,charge;Order::iterator order;uint64_t pending;size_t pins=0;};
+    // Rehash invalidates iterators, but not pointers to unordered_map elements.
+    // LRU and route pins retain those pointers; neither stores map iterators.
+    std::unordered_map<MatrixKey,Entry,MatrixHash> entries;Order order;
     size_t cap,limit=0,resident=0,payload=0,granularity;Allocate allocate;Free release;Counters counters;
     std::function<size_t()> physical_bytes;
     std::function<size_t(size_t)> physical_growth;
@@ -46,16 +56,15 @@ private:
     // Oldest 64 eligible entries, lowest frequency first; LRU breaks ties.
     // Prefer a compatible allocation so slab holes in other classes need not
     // force release of a whole block. Pins always override admission policy.
-    auto victim(size_t matching_charge=0) {
-        auto best=entries.end();unsigned score=0;size_t scanned=0;
-        for(const auto &key:order) {
-            if(pins.count(key))continue;
+    Entry *victim(size_t matching_charge=0) {
+        Entry *best=nullptr;unsigned score=0;size_t scanned=0;
+        for(auto *entry:order) {
+            if(entry->pins)continue;
             if(scanned++==64)break;
-            auto it=entries.find(key);
-            if(matching_charge && it->second.charge!=matching_charge)continue;
+            if(matching_charge && entry->charge!=matching_charge)continue;
             ++counters.frequency_candidates;
-            const auto value=history->score(key);
-            if(best==entries.end() || value<score) {best=it;score=value;}
+            const auto value=history->score(entry->key);
+            if(!best || value<score) {best=entry;score=value;}
             if(!score)break;
         }
         return best;
@@ -68,24 +77,28 @@ private:
         const size_t used=bytes(),extra=physical_growth?physical_growth(charge):charge;
         return used<=limit && extra<=limit-used;
     }
-    void erase(std::map<MatrixKey,Entry>::iterator it) {
-        release(it->second.data);resident-=it->second.charge;payload-=it->second.bytes;
-        if(it->second.pending)--pending_entries;
-        order.erase(it->second.order);entries.erase(it);++counters.evictions;
+    void *detach(Entry *entry) {
+        const auto key=entry->key;void *data=entry->data;
+        resident-=entry->charge;payload-=entry->bytes;
+        if(entry->pending)--pending_entries;
+        order.erase(entry->order);entries.erase(key);++counters.evictions;
+        return data;
     }
+    void erase(Entry *entry) {release(entry->data);detach(entry);}
 public:
     // Protect only completed entries already resident when the route is planned.
     class PlanPins {
-        ExpertCache &cache;std::vector<MatrixKey> keys;
+        std::vector<Entry *> entries;
     public:
-        PlanPins(ExpertCache &cache,const std::vector<MatrixKey> &requested):cache(cache) {
+        PlanPins(ExpertCache &cache,const std::vector<MatrixKey> &requested) {
+            entries.reserve(requested.size());
             try {for(const auto &key:requested) {
                 auto it=cache.entries.find(key);if(it==cache.entries.end() || it->second.pending)continue;
-                keys.push_back(key);++cache.pins[key];
+                entries.push_back(&it->second);++it->second.pins;
             }} catch(...) {release();throw;}
         }
         PlanPins(const PlanPins &)=delete;
-        void release() {for(const auto &key:keys) {auto it=cache.pins.find(key);if(it!=cache.pins.end() && !--it->second)cache.pins.erase(it);}keys.clear();}
+        void release() {for(auto *entry:entries)--entry->pins;entries.clear();}
         ~PlanPins() {release();}
     };
     std::unique_ptr<PlanPins> protect(const std::vector<MatrixKey> &keys) {return std::make_unique<PlanPins>(*this,keys);}
@@ -123,7 +136,7 @@ public:
     void reset_stats() {counters={};}
     void trim(size_t bytes) {
         for(auto it=order.begin();this->bytes()>bytes && it!=order.end();) {
-            auto key=*it++;if(!pins.count(key))erase(entries.find(key));
+            auto *entry=*it++;if(!entry->pins)erase(entry);
         }
     }
     void constrain(size_t free,size_t total) {
@@ -168,7 +181,7 @@ public:
         }
         void discard() {
             if(closed)return;
-            for(const auto &w:work)if(matches(w))cache.erase(cache.entries.find(w.key));
+            for(const auto &w:work)if(matches(w))cache.erase(&cache.entries.find(w.key)->second);
             cache.batch_active=false;closed=true;
         }
     public:
@@ -211,23 +224,17 @@ private:
         void *data=nullptr;
         if(!fits(charged) && history) {
             auto selected=victim(charged);
-            if(selected!=entries.end()) {
-                if(colder(key,selected->first))return;
-                data=selected->second.data;resident-=charged;payload-=selected->second.bytes;
-                if(selected->second.pending)--pending_entries;
-                order.erase(selected->second.order);entries.erase(selected);
-                ++counters.evictions;++counters.reuses;
+            if(selected) {
+                if(colder(key,selected->key))return;
+                data=detach(selected);++counters.reuses;
             }
         } else if(!fits(charged)) {
             // Reuse a compatible allocation among old entries; no cudaMalloc in a warm steady state.
             size_t scanned=0;
             for(auto it=order.begin();it!=order.end() && scanned++<64;++it) {
-                auto victim=entries.find(*it);
-                if(victim->second.charge==charged && !pins.count(victim->first)) {
-                    data=victim->second.data;resident-=charged;payload-=victim->second.bytes;
-                    if(victim->second.pending)--pending_entries;
-                    entries.erase(victim);order.erase(it);
-                    ++counters.evictions;++counters.reuses;break;
+                auto *entry=*it;
+                if(entry->charge==charged && !entry->pins) {
+                    data=detach(entry);++counters.reuses;break;
                 }
             }
         }
@@ -236,21 +243,24 @@ private:
         const size_t needed=data && physical_bytes?0:charged;
         if(history) {
             while(!fits(needed)) {
-                auto selected=victim();if(selected==entries.end())break;
-                if(!data && colder(key,selected->first))return;
+                auto selected=victim();if(!selected)break;
+                if(!data && colder(key,selected->key))return;
                 erase(selected);
             }
         } else for(auto it=order.begin();!fits(needed) && it!=order.end();) {
-            auto key=*it++;if(!pins.count(key))erase(entries.find(key));
+            auto *entry=*it++;if(!entry->pins)erase(entry);
         }
         if(!fits(needed)) {if(data)release(data);++counters.bypasses;return;}
         if(!data) {data=allocate(charged);if(!data) {++counters.oom;return;}++counters.allocations;}
         resident+=charged;
         try {
             fill(data);
-            order.push_back(key);
-            try {entries.emplace(key,Entry{data,bytes,charged,std::prev(order.end()),ticket});}
-            catch(...) {order.pop_back();throw;}
+            auto inserted=entries.emplace(key,Entry{key,data,bytes,charged,order.end(),ticket});
+            if(!inserted.second)throw std::runtime_error("duplicate cache store during fill");
+            auto &entry=inserted.first->second;
+            try {order.push_back(&entry);}
+            catch(...) {entries.erase(inserted.first);throw;}
+            entry.order=std::prev(order.end());
             payload+=bytes;
             if(ticket)++pending_entries;
         } catch(...) {release(data);resident-=charged;throw;}

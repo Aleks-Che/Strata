@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-inline void write_synthetic_mimo2(const std::string & path, bool mixed, bool dequantized = false) {
+inline void write_synthetic_mimo2(const std::string & path, bool mixed, bool dequantized = false, bool scattered_routes = false) {
     std::unique_ptr<gguf_context, decltype(&gguf_free)> file(gguf_init_empty(), gguf_free);
     std::unique_ptr<ggml_context, decltype(&ggml_free)> ctx(
         ggml_init({ggml_tensor_overhead()*128, nullptr, true}), ggml_free);
@@ -50,7 +50,7 @@ inline void write_synthetic_mimo2(const std::string & path, bool mixed, bool deq
             rng ^= rng << 13; rng ^= rng >> 17; rng ^= rng << 5;
             a = (float(rng & 0xffffu)/32767.5f-1)*scale;
             if (norm) a += 1;
-            if (name.find("exp_probs_b.bias") != std::string::npos) a = .2f*float(i)-1.5f;
+            if (name.find("exp_probs_b.bias") != std::string::npos) a = .2f*float(scattered_routes?(i*7)%16:i)-1.5f;
             if (name.find("attn_sinks") != std::string::npos) a = 1.f + .01f*float(i);
             ++i;
         }
