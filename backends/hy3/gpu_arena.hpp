@@ -26,20 +26,32 @@ private:
         std::vector<uint8_t> live;
     };
     std::map<uintptr_t,std::unique_ptr<Slab>> slabs;
-    size_t cap;
+    size_t cap,block;
     Probe probe;
     Stats stats;
-    static constexpr size_t page=2<<20,block=64<<20;
+    static constexpr size_t page=2<<20;
     static void *take(Slab &s) {
         const auto index=s.free.back();s.free.pop_back();s.live[index]=1;++s.used;
         return static_cast<uint8_t*>(s.base)+index*s.stride;
     }
 public:
-    GpuArena(size_t limit,Probe read):cap(limit),probe(std::move(read)) {}
+    GpuArena(size_t limit,Probe read,size_t block_bytes=64u<<20):cap(limit),block(block_bytes),probe(std::move(read)) {
+        if(block<page || block%page)throw std::runtime_error("invalid arena block size");
+    }
     ~GpuArena() {for(auto &p:slabs)cudaFree(p.second->base);}
     GpuArena(const GpuArena&)=delete;
     GpuArena&operator=(const GpuArena&)=delete;
     Stats snapshot() const {auto s=stats;s.blocks=slabs.size();return s;}
+    // Read-only identity of the physical allocation owning a live slot.
+    // It remains stable until the last slot is released; never persist it.
+    uintptr_t allocation_group(const void *ptr) const {
+        const auto address=reinterpret_cast<uintptr_t>(ptr);
+        auto it=slabs.upper_bound(address);
+        if(it==slabs.begin())return 0;
+        --it;const auto &s=*it->second;
+        const size_t offset=address-it->first,index=offset/s.stride;
+        return offset<s.bytes && offset%s.stride==0 && index<s.live.size() && s.live[index]?it->first:0;
+    }
     void reset_counters() {stats.allocations=stats.frees=stats.budget_rejects=0;}
     cudaError_t allocate(void **out,size_t n) {
         *out=nullptr;

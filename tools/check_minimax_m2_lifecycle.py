@@ -35,7 +35,11 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--cases', nargs='+', choices=list(CASES), default=list(CASES))
     p.add_argument('--gpu-cache-mib', type=int, default=0)
+    p.add_argument('--ram-cache-mib', type=int, default=0)
     p.add_argument('--gpu-cache-allocator', choices=['cuda', 'arena'], default='cuda')
+    p.add_argument('--arena-growth-reserve-mib', type=int, default=0)
+    p.add_argument('--cache-group-experts', type=int, choices=[0, 1], default=0)
+    p.add_argument('--arena-block-mib', type=int, choices=[8, 16, 32, 64], default=64)
     p.add_argument('--expert-reader', choices=['file', 'mmap', 'mmap-direct', 'mmap-decode'], default='file')
     p.add_argument('--engine', type=Path, default=ROOT / 'build-local/minimax-m2-cuda/bin/strata-minimax-m2-lifecycle-check.exe')
     p.add_argument('--cuda-root', type=Path, default=ROOT / 'build-local/cuda-13.0')
@@ -44,8 +48,14 @@ def main():
     p.add_argument('--pipeline-lookahead', type=int, choices=[0, 1], default=0)
     p.add_argument('--pipeline-d2d-batch', type=int, choices=[0, 1], default=0)
     args = p.parse_args()
+    if not 0 <= args.arena_growth_reserve_mib <= 1024:
+        p.error('invalid arena growth reserve MiB')
     if args.pipeline_readers and args.expert_reader != 'file':
         p.error('pipeline requires file reader')
+    if not 0 <= args.ram_cache_mib <= 131072:
+        p.error('invalid RAM cache cap')
+    if args.ram_cache_mib and not args.pipeline_readers:
+        p.error('RAM cache requires pipeline readers')
     if not 0 <= args.gpu_cache_mib <= 131072:
         p.error('invalid GPU cache cap')
     if any(c != 'fixture' for c in args.cases) and (not args.model or not args.model.is_file()):
@@ -70,6 +80,14 @@ def main():
             directory = args.out / name
             command = [str(retained.resolve()), '--out', str(directory), *CASES[name]]
             command += ['--gpu-cache-mib', str(args.gpu_cache_mib), '--gpu-cache-allocator', args.gpu_cache_allocator]
+            if args.ram_cache_mib:
+                command += ['--ram-cache-mib', str(args.ram_cache_mib)]
+            if args.arena_block_mib != 64:
+                command += ['--arena-block-mib', str(args.arena_block_mib)]
+            if args.arena_growth_reserve_mib:
+                command += ['--arena-growth-reserve-mib', str(args.arena_growth_reserve_mib)]
+            if args.cache_group_experts:
+                command += ['--cache-group-experts', str(args.cache_group_experts)]
             command += ['--expert-reader', args.expert_reader]
             command += ['--pipeline-readers', str(args.pipeline_readers), '--pipeline-chunk-mib', str(args.pipeline_chunk_mib), '--pipeline-lookahead', str(args.pipeline_lookahead), '--pipeline-d2d-batch', str(args.pipeline_d2d_batch)]
             if name != 'fixture':

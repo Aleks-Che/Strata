@@ -5,9 +5,15 @@
   "source_revision": "@STRATA_MM27_SOURCE_SHA@",
   "archive_sha256": "@STRATA_MM27_ARCHIVE_SHA256@",
   "loader_sha256": "@STRATA_MM27_LOADER_SHA256@",
+  "dflash_original_sha256": "@mm27_dflash_original_sha256@",
+  "dflash_generated_sha256": "@mm27_dflash_generated_sha256@",
+  "dflash_support_sha256": "@mm27_dflash_support_hashes@",
+  "group_cache_support_sha256": "@mm27_group_support_hashes@",
+  "sampling_support_sha256": "@mm27_sampling_support_hashes@",
   "patches": "@mm27_patch_set@",
   "oracle_source_sha256": {
     "loader": "@mm27_loader_sha256@",
+    "dflash_loader": "@mm27_dflash_loader_sha256@",
     "tokenizer": "@mm27_tokenizer_sha256@",
     "template": "@mm27_template_sha256@"
   },

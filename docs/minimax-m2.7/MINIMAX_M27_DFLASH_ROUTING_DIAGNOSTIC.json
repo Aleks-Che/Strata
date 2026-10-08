@@ -1,0 +1,48 @@
+{
+  "scope": "first changed routed selection in retained position84 trace; excludes diagnostic timings",
+  "position": 84,
+  "layer": 30,
+  "tolerances_changed": false,
+  "observations": {
+    "off": {
+      "trace_path": "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-dflash-trace-01\\off\\2-trace.json",
+      "trace_sha256": "9749eeffcc923c7c04cd5044f78d6dbeee9b000e7441149eaac308bada85276a",
+      "batch_position": 84,
+      "batch_count": 1,
+      "top8": [
+        128,
+        151,
+        26,
+        108,
+        221,
+        34,
+        45,
+        76
+      ],
+      "scores": {
+        "76": 2.3240184783935547,
+        "160": 2.3240184783935547
+      }
+    },
+    "q4-depth2": {
+      "trace_path": "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-dflash-trace-01\\q4-depth2\\2-trace.json",
+      "trace_sha256": "ba5d27e0f07f8289c0564e4f9618de9d61769585cbcf8bf759210838c031bd58",
+      "batch_position": 84,
+      "batch_count": 3,
+      "top8": [
+        128,
+        151,
+        26,
+        108,
+        221,
+        34,
+        45,
+        160
+      ],
+      "scores": {
+        "76": 2.3240182399749756,
+        "160": 2.3240184783935547
+      }
+    }
+  }
+}

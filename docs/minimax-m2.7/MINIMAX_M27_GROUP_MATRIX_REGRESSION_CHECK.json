@@ -1,0 +1,1008 @@
+{
+  "cache_group_experts": false,
+  "arena_block_mib": 64,
+  "arena_growth_reserve_mib": 0,
+  "pipeline_readers": 2,
+  "pipeline_chunk_mib": 4,
+  "pipeline_lookahead": true,
+  "pipeline_d2d_batch": true,
+  "tests": [
+    {
+      "name": "0/cuda/f32/batch_uncached_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/batch_uncached_fences",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/batch_fences_and_fill_pins/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/batch_without_observer_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/batch_fences_and_fill_pins/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/batch_without_observer_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/pending_batch_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/f32/working_set_restored",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_uncached_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_uncached_fences",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_fences_and_fill_pins/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_without_observer_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_fences_and_fill_pins/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/batch_without_observer_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/pending_batch_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/cuda/mixed/working_set_restored",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_uncached_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_uncached_fences",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_fences_and_fill_pins/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_without_observer_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_fences_and_fill_pins/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/batch_without_observer_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pinned_pressure_drains",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pinned_pressure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pending_batch_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/working_set_restored",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_uncached_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_uncached_fences",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_fences_and_fill_pins/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_without_observer_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_fences_and_fill_pins/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/batch_without_observer_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pinned_pressure_drains",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pinned_pressure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pending_batch_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/working_set_restored",
+      "pass": true
+    }
+  ],
+  "runs": [
+    {
+      "fixture": "0/cuda/f32/",
+      "cap": 2097152,
+      "resident": 1769472,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 302247936,
+      "hit_bytes": 0,
+      "cold_evictions": 213,
+      "cold_reuses": 213,
+      "arena_reserved": 0,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/cuda/f32/",
+      "cap": 268435456,
+      "resident": 41877504,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 302211072,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 0,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/cuda/mixed/",
+      "cap": 2097152,
+      "resident": 2097152,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 44888064,
+      "hit_bytes": 0,
+      "cold_evictions": 560,
+      "cold_reuses": 560,
+      "arena_reserved": 0,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/cuda/mixed/",
+      "cap": 268435456,
+      "resident": 9437184,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 44851200,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 0,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/arena/f32/",
+      "cap": 2097152,
+      "resident": 1769472,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 302247936,
+      "hit_bytes": 0,
+      "cold_evictions": 213,
+      "cold_reuses": 213,
+      "arena_reserved": 2097152,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/arena/f32/",
+      "cap": 268435456,
+      "resident": 41877504,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 302211072,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 134217728,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/arena/mixed/",
+      "cap": 2097152,
+      "resident": 2097152,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 44888064,
+      "hit_bytes": 0,
+      "cold_evictions": 560,
+      "cold_reuses": 560,
+      "arena_reserved": 2097152,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    },
+    {
+      "fixture": "0/arena/mixed/",
+      "cap": 268435456,
+      "resident": 9437184,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 44851200,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 67108864,
+      "groups": 0,
+      "partial_groups": 0,
+      "ready_bytes": 0,
+      "plan_pins_peak": 0
+    }
+  ],
+  "cases": 216,
+  "failures": 0,
+  "pass": true
+}

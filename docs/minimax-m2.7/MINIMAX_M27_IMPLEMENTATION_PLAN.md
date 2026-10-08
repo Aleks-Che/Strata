@@ -6,7 +6,7 @@
 Ход выполнения: [MINIMAX_M27_IMPLEMENTATION_STATUS.md](MINIMAX_M27_IMPLEMENTATION_STATUS.md).
 
 Цель — запустить в Strata
-`H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf`
+`H:\models\MiniMax-M2.7\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf`
 на Windows, 128 ГиБ RAM и RTX 5090 32 ГиБ: вычисления модели на GPU,
 ограниченные кэши экспертов, асинхронную доставку SSD/RAM → VRAM,
 диалоги, reasoning, tools и сессии. Глобальный бюджет RAM/VRAM — до95%,
@@ -28,10 +28,36 @@ MM27-10 добавил router lookahead до трёх матриц: +17,74–31,
 парах A/B, CUDA event overlap и 2424 fixture checks; lifecycle/reload PASS.
 MM27-11 добавил одно D2D-ожидание на тензор и pins незавершённых fills:
 +6,61–14,24% decode в трёх A/B парах; 4920 fixtures и lifecycle/reload PASS.
-API, RAM LRU/GPU-resident partition и рабочий профиль
-ещё не реализованы; mapped working set с target94%/hard guard95% уже проверен.
+MM27-12 проверил caps 12/16/18/20/24, readers 1/2 и chunks 4/8/16. Кандидат 20/2/8
+не улучшил полное время в трёх A/B парах; сохранён экспериментальный 18/2/4.
+Длинная генерация и24 pressure/4K lifecycle checks PASS. MM27-13 исправил
+избыточное вытеснение: arena освобождает целые блоки с учётом plan/fill pins.
+Controlled replay,4920 pipeline,47 lifecycle,55 reload и три full-model A/B пары
+прошли. MM27-14 проверил блоки8/16/32/64 МиБ: default64 сохранён,32 не дал
+ускорения в трёх A/B парах у VRAM-лимита. MM27-15 добавил запас для роста:
+controlled replay,1152 pipeline/cache,37 lifecycle и три повтора каждого варианта
+прошли; небольшой выигрыш не изменил defaults64/reserve0.
+MM27-16 реализовал optional группы gate/up/down: совместная замена, readiness,
+plan pins и admission один раз за router plan. 488 проверок и три пары на
+полной модели PASS; все logits совпали со старым EXE. Медиана агрегата decode
+3,912→3,930 токена/с не подтверждает устойчивого ускорения; default grouping off.
+[Измерения и границы MM27-16](MINIMAX_M27_GROUP_CACHE.md).
+MM27-17 реализовал optional RAM LRU read-only views, удаляемых после GPU fill.
+Отложенное admission уменьшило лишние mappings;816 checks и full-logit parity
+1344 generated tokens PASS. Три пары: RAM64 decode3,485 против3,941 токена/с
+off; default RAM0 сохранён. Long256 проверил55,859 ГиБ views без numerical FAIL.
+[Измерения RAM/GPU partition](MINIMAX_M27_RAM_CACHE.md).
+API и рабочий профиль ещё не реализованы; target94%/hard guard95% проверен.
 Размеры ниже рассчитаны по тензорам. **MTP-тензоров в локальном файле нет**;
 первый рабочий профиль будет без speculation, MTP — отдельный этап P5.
+После переноса в `H:\models\MiniMax-M2.7` найдены DFlash Q3/Q4/Q5;
+[инспекция и отдельный план подключения](MINIMAX_M27_DFLASH.md).
+P5.DF-02: loader и borrowed head adapter проверены для всех трёх квантов;
+90 коротких GPU checks PASS. P5.DF-03 добавил offline greedy driver,
+full-logit corpus parity и [измерения скорости](MINIMAX_M27_DFLASH_BENCHMARK.md).
+Q3/Q4/Q5 depths1/2/4/7 проверены; strict tokenwise verification устранил
+изменение routing на близких scores в этом корпусе. Live EOS/cancel/pressure,
+длинный контекст, sessions и serving остаются открыты; DFlash default off.
 
 ## 1. Проверенные исходные данные
 
@@ -290,8 +316,19 @@ MM27-05 добавил bounded GPU matrix cache, MM27-06 — packed allocations,
 MM27-08 — bounded mmap working set. Универсального ускорения от mmap нет:
 decode повтора быстрее, первого/нового запроса медленнее. MM27-09 добавил async file pipeline
 текущей матрицы, MM27-10 — lookahead следующих матриц того же router.
-MM27-11 объединил D2D-ожидания в пределах тензора (P3.3). Следующий шаг —
-подбор cache/readers/chunks с учётом prefill и длинных ответов (P3.5). Под нагрузкой RAM лучше
+MM27-11 объединил D2D-ожидания в пределах тензора (P3.3).
+MM27-12 проверил cache/readers/chunks и длинную генерацию (P3.5).
+MM27-13 добавил освобождение целых физических блоков с меньшей потерей live
+cache и защитой plan/fill pins; controlled pressure, byte/logit parity и A/B PASS.
+MM27-14 добавил настраиваемый размер блока8/16/32/64; меньшая потеря при единичном
+освобождении подтверждена, speedup малых блоков у VRAM-лимита не подтверждён.
+MM27-15 проверил запас роста:20 циклов frees/allocations стали0 в replay;
+на полной модели выигрыш мал и defaults сохранены. MM27-16 добавил group
+admission/replacement/pins трёх матриц эксперта. Density/bytes/logits/pressure
+и три пары A/B прошли; устойчивого ускорения не получено, grouping default off.
+MM27-17 реализовал P3.4 RAM LRU/partition в пределах собственных mapped views;
+short A/B дал замедление, полезный speedup и policy длинных сессий открыты.
+Под нагрузкой RAM лучше
 проверять file-backed pages: доступный commit на этом ПК меньше свободной
 физической RAM, а большие GPU allocations тоже увеличивают process commit.
 Для RAM admission учитывать оба бюджета; не строить второй полный heap copy
@@ -314,13 +351,20 @@ MM27-11 объединил D2D-ожидания в пределах тензор
   включая последний chunk и смену selected experts.
   MM27-11 добавил opt-in tensor D2D batch, pins новых fills, queued faults,
   byte/logit parity и полный A/B; defaults сохранены.
+  MM27-16 добавил opt-in semantic groups с readiness после copy fence,
+  целиком закреплёнными тройками и запретом позднего admission. 488 checks
+  и три пары PASS, но defaults сохранены из-за отсутствия устойчивого speedup.
 - **P3.4:** managed RAM working set и GPU-resident expert partition, admission
   с global RAM/VRAM caps. Не дублировать весь routed набор в locked/heap memory.
   При внешнем давлении уменьшать cache, прекращать admission и возвращать
   понятную ошибку, если базовый рабочий набор уже не помещается.
   MM27-08 реализовал process working-set target94%, restore на release,
   три mapped reader варианта и проверки95%/pressure/cancel/reload/2K/4K.
-  RAM LRU и отделение GPU-resident матриц от RAM working set ещё не реализованы.
+  MM27-17 реализовал RAM LRU read-only views и удаление overlap после GPU fill.
+  Admission ждёт ранее наблюдённого GPU refusal; protected readers не теряют
+  source при trim/drop/cancel.816 checks, три короткие пары и long256 parity
+  PASS; короткий workload медленнее, default0. Это partition собственных views,
+  не гарантия отсутствия file pages GPU-экспертов в системном кеше Windows.
 - **P3.5:** перебрать GPU cache12/16/20/24 ГиБ с live clamp,
   readers1/2, chunks4/8/16 МиБ, prefill admission и frequency decay.
   Замерять hit по байтам, disk reads/page faults, H2D и consumer wait;
@@ -346,11 +390,23 @@ MM27-11 объединил D2D-ожидания в пределах тензор
 **Готово:** заявленные контексты и сохранение диалогов проверены; context204800
 остаётся metadata-возможностью до отдельного измерения и реализации размещения.
 
-### P5. MTP и другие draft-механизмы — дополнительный этап
+### P5. Native MTP и DFlash — дополнительный этап
 
-Здесь два независимых пробела: **нет локальных draft weights** и **нет MiniMax
-MTP graph/loader в выбранном candidate**. Нельзя включить MTP флагом или просто
-скопировать драйвер Hy3. Основной текстовый профиль выпускается без MTP.
+Для **native MTP** остаются два пробела: нет локальных NextN weights и нет
+MiniMax MTP graph/loader в выбранном candidate. Основной текстовый профиль
+выпускается без MTP.
+
+Для **DFlash** найдены три локальных sidecar Q3/Q4/Q5. Статическая инспекция
+и full draft SHA-256 выполнены в P5.DF-01; общий DFlash graph уже есть в candidate.
+P5.DF-02 проверил loader oracle, borrowed embedding/head, согласование
+vocabulary200055/200064, захват пяти target features и короткий verification/rollback.
+P5.DF-03 реализовал offline greedy driver и измерил Q3/Q4/Q5 depths1/2/4/7
+на heretic target с настоящим chat template. Итоговый screen побитно совпал
+с serial target после добавления opt-in tokenwise verification; исходный
+batched path провалил logit gate на router tie. Результаты повторений и границы
+вывода — [benchmark](MINIMAX_M27_DFLASH_BENCHMARK.md).
+Следующие gates: live EOS/cancel/pressure/recovery, длинный контекст и sessions.
+Подробный список и размеры — [MINIMAX_M27_DFLASH.md](MINIMAX_M27_DFLASH.md).
 
 - **P5.1:** установить фактическую доступность MTP checkpoint/sidecar и точный
   контракт трёх модулей официального M2.7. Config-флаг не доказывает наличие
@@ -370,8 +426,8 @@ MTP graph/loader в выбранном candidate**. Нельзя включит�
   Считать полезные output tokens/s, TTFT/request time, draft/verify/repair,
   H2D на принятый токен и acceptance. MTP default — только при выигрыше.
 
-Если native MTP weights недоступны, внешний draft рассматривать как другой
-метод с собственной проверкой; не называть его native MTP. Отсутствие P5
+Локальные DFlash рассматриваются как отдельный метод со своей проверкой;
+не называть его native MTP. Отсутствие готового P5
 не блокирует P0–P4/P6 и оптимизации без speculation.
 
 ### P6. Установка, измерения, defaults и регрессии
@@ -460,8 +516,30 @@ MM27-09 реализовал tensor file pipeline: 1416 fixture checks, 55 reloa
 ожидание D2D, исходный native FAIL остаётся OPEN. MM27-10 добавил router
 lookahead, CUDA event overlap и +17,74–31,44% decode в трёх A/B парах.
 MM27-11 объединил D2D-ожидания с сохранением lifetime: +6,61–14,24% decode,
-4920 fixtures и full-model lifecycle/reload PASS. Следующий шаг — MM27-12/P3.5:
-подбор размеров cache/readers/chunks и проверка более длинных ответов.
+4920 fixtures и full-model lifecycle/reload PASS. MM27-12 выполнил подбор
+cache/readers/chunks, три подтверждающих A/B пары, длинную генерацию и 24
+pressure/4K lifecycle checks. Увеличение cap/chunk не улучшило полное время.
+MM27-13 реализовал освобождение целых физических блоков и проверил pressure
+replay: при снижении бюджета256→255 МиБ сохранено192 МиБ вместо полного сброса.
+4920 pipeline,47 lifecycle,55 reload checks и три A/B пары PASS.
+MM27-14 проверил размеры блоков8/16/32/64: default64 сохранён, маленькие блоки
+часто выделялись заново у VRAM-лимита. MM27-15 добавил запас роста с прежним
+порогом сокращения:50 arena/reclaim,1152 cache/pipeline,37 lifecycle checks и
+13 full-model workloads PASS. Defaults64/reserve0 сохранены. MM27-16 реализовал
+плотные группы gate/up/down: 488 checks и три full-model A/B пары PASS,
+grouping default off, устойчивого ускорения нет. MM27-17 добавил P3.4 RAM LRU
+и удаление views после GPU fill;816 checks и1344-token parity PASS. RAM64
+замедлил короткий corpus, default RAM0 сохранён. Long256 достиг55,859 ГиБ views,
+но законченных ответов и natural EOS не дал. MM27-18 снял предел256 в пользу
+свободного context budget: английский ответ и повтор завершились на414 tokens,
+17 live JSONL budget/EOS/cancel/recovery scenarios PASS. Русский запрос1..96
+зациклился в reasoning и остановился по length1536: полный completion gate FAIL.
+13 parser/tokenizer tests и18 real-output replay checks PASS; parser пока
+не подключён к API. Следующий этап — MM27-18b: диагностика повторов и проверка
+sampling перед P2 history/tools/API. Экспериментальные18/2/4 сохраняются.
+Контроль без cache/pipeline побитно повторил1024 tokens и204865536 logits
+русского цикла. Повторная проверка того же транспорта не заменяет проверку
+sampling/качества и независимого model/framework reference.
 При повторении numerical FAIL приоритет получает трасса первого расхождения
 в сохранённой сборке. До установления причины default-профиль не утверждать.
 
@@ -480,6 +558,18 @@ MM27-11 объединил D2D-ожидания с сохранением lifeti
 - [x] Tensor file pipeline: bounded ring/events, cache pins/drain, worker faults, full A/B и pressure/2K/4K (MM27-09); перекрытие с compute добавлено следующим этапом.
 - [x] Router lookahead до трёх матриц, H2D/compute CUDA event trace, full A/B и 2424 fixtures (MM27-10).
 - [x] Tensor D2D batch с pins незавершённых fills, faults/pressure/reload, 4920 fixtures и три full A/B пары (MM27-11).
+- [x] Подбор cache/readers/chunks, три подтверждающих A/B пары, длинная генерация и 24 pressure/4K checks (MM27-12); прежний экспериментальный набор сохранён.
+- [x] Освобождение целых arena blocks с учётом pins, controlled pressure replay,4920 pipeline,47 lifecycle,55 reload checks и три A/B пары (MM27-13).
+- [x] Настраиваемые блоки8/16/32/64,1872 fixture checks,37 lifecycle и три A/B пары64↔32 (MM27-14); default64 сохранён.
+- [x] Запас роста новых блоков, controlled oscillation,1152 cache/pipeline,37 lifecycle и три повторения каждого варианта (MM27-15); defaults64/reserve0 сохранены.
+- [x] MM27-16: семантическая группа gate/up/down, плотность, readiness/pins, correctness/pressure и три пары измерений; ускорение не подтверждено, default off.
+- [x] MM27-17/P3.4: bounded RAM view LRU, отложенное admission, partition с GPU-кешем, pressure/lifecycle/parity и short A/B; default0 из-за замедления.
+- [x] MM27-18: output budget в пределах context, natural EOS английского ответа, полный повтор, live JSONL cancel/recovery и отдельный reasoning parser; [область проверки](MINIMAX_M27_COMPLETION.md).
+- [ ] MM27-18b: устойчивое завершение multilingual corpus; русский greedy повтор1..96 не дал final за1536 токенов. Проверить sampling отдельно, не ослабляя численные gates.
+- [ ] P3.4/P3.5: полезное ускорение RAM policy на длинных законченных ответах, page residency/SSD traffic; MM27-17 выигрыша не подтвердил.
 - [ ] Pressure/cancel/unload, sessions и заявленные контексты проверены.
 - [ ] Есть изолированный профиль, замеры defaults и регрессии.
-- [ ] Дополнительно: P5 закрыт только после получения весов, реализации и A/B.
+- [x] P5.DF-01: локальные DFlash Q3/Q4/Q5, static ranges/tokenizer checks и full draft SHA-256; новый путь target проверен.
+- [x] P5.DF-02: no-allocation loader, borrowed head/vocab adapter, MASK, короткий GPU feature/block/rollback probe для Q3/Q4/Q5.
+- [x] P5.DF-03a: offline greedy DFlash driver, corpus full-logit parity, acceptance и измерение полезной скорости Q3/Q4/Q5 depths1/2/4/7; исправлена batch-sensitive arithmetic в проверенном корпусе.
+- [ ] P5.DF-03b: live GPU EOS/cancel/pressure/recovery, длинный контекст, sessions и полезный speedup для serving. Native MTP по-прежнему требует весов/backend.

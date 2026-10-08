@@ -1,0 +1,440 @@
+{
+  "cache_group_experts": true,
+  "arena_block_mib": 64,
+  "arena_growth_reserve_mib": 0,
+  "pipeline_readers": 2,
+  "pipeline_chunk_mib": 4,
+  "pipeline_lookahead": true,
+  "pipeline_d2d_batch": false,
+  "tests": [
+    {
+      "name": "0/arena/f32/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/complete_group_readiness/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/complete_group_readiness/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pinned_pressure_drains",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/pinned_pressure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/arena/f32/working_set_restored",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/lookahead_plan_bound/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pipeline_capacity_and_drain/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reader_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/complete_group_readiness/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cold_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/lookahead_plan_bound/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pipeline_capacity_and_drain/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reader_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/warm_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/complete_group_readiness/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/bounded/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/byte_accounting/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/eviction_or_all_hits/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_topic_exact/268435456",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pinned_pressure_drains",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/pinned_pressure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/0",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/1",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_drains/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/worker_fault_recovery/2",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "0/arena/mixed/working_set_restored",
+      "pass": true
+    }
+  ],
+  "runs": [
+    {
+      "fixture": "0/arena/f32/",
+      "cap": 2097152,
+      "resident": 1769472,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 302247936,
+      "hit_bytes": 0,
+      "cold_evictions": 23,
+      "cold_reuses": 23,
+      "arena_reserved": 2097152,
+      "groups": 1,
+      "partial_groups": 0,
+      "ready_bytes": 1574400,
+      "plan_pins_peak": 3
+    },
+    {
+      "fixture": "0/arena/f32/",
+      "cap": 268435456,
+      "resident": 42467328,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 302211072,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 67108864,
+      "groups": 24,
+      "partial_groups": 0,
+      "ready_bytes": 37780992,
+      "plan_pins_peak": 24
+    },
+    {
+      "fixture": "0/arena/mixed/",
+      "cap": 2097152,
+      "resident": 1966080,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 44888064,
+      "hit_bytes": 0,
+      "cold_evictions": 115,
+      "cold_reuses": 115,
+      "arena_reserved": 2097152,
+      "groups": 5,
+      "partial_groups": 0,
+      "ready_bytes": 1113600,
+      "plan_pins_peak": 15
+    },
+    {
+      "fixture": "0/arena/mixed/",
+      "cap": 268435456,
+      "resident": 9437184,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 44851200,
+      "cold_evictions": 0,
+      "cold_reuses": 0,
+      "arena_reserved": 67108864,
+      "groups": 24,
+      "partial_groups": 0,
+      "ready_bytes": 5611008,
+      "plan_pins_peak": 24
+    }
+  ],
+  "cases": 90,
+  "failures": 0,
+  "pass": true
+}

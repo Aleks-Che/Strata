@@ -1,0 +1,43 @@
+{
+  "pass": true,
+  "engine_sha256": "d6c669ec216815f4c0499d62443cb5ee73f0fb072c443f6575ed6920425afbb5",
+  "baseline_sources": "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-group-baseline-01",
+  "baseline_manifest_sha256": "95918e207bb31914349b4d91e578557457793d21a0564f09bc6b3e46b779a845",
+  "request_sha256": "4fbe4d5c6bc455b12e528cde7eb312636998c8e610f73a68b41e260a0830076c",
+  "logits_sha256": "08fe123e0d412271f4ed9d01339027803571e8a9b8c91aebd96f367890982809",
+  "checks": {
+    "configuration": true,
+    "gpu_only": true,
+    "budget95": true,
+    "bytes": true,
+    "bounded_and_drained": true,
+    "requests": true
+  },
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-group-reference-01\\engine.exe",
+    "--gguf",
+    "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "--request",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-group-reference-01\\requests.json",
+    "--output",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-group-reference-01\\report.json",
+    "--logits",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-group-reference-01\\logits.f32",
+    "--ctx",
+    "2048",
+    "--batch",
+    "16",
+    "--gpu-cache-mib",
+    "18432",
+    "--gpu-cache-allocator",
+    "arena",
+    "--pipeline-readers",
+    "2",
+    "--pipeline-chunk-mib",
+    "4",
+    "--pipeline-lookahead",
+    "1",
+    "--pipeline-d2d-batch",
+    "1"
+  ]
+}

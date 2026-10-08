@@ -1,0 +1,73 @@
+{
+  "pass": true,
+  "reference": "build-local\\minimax-m2-completion-01\\generation.json",
+  "reference_sha256": "964f9442051bad6e3466a0006916c2ed30b0667f9d309397b0f2879c8b6b4878",
+  "source_sha256": {
+    "serve/minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "tools/check_minimax_m2_output.py": "51e062db2cc8a86931c1f4e73ebbbe890356e017dc58310d7ee8171947700ef7",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "tools/strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34"
+  },
+  "cases": [
+    {
+      "request": 0,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 414,
+      "reasoning": "The user asks: \"Explain in a few sentences why the sky appears blue during the day.\"\n\nWe need to answer concisely, a few sentences, explaining Rayleigh scattering: shorter wavelengths (blue) scatter more than longer wavelengths (red). Also mention that the sun's light is white, scattering in the atmosphere leads to blue sky. Possibly mention that at sunrise/sunset, longer wavelengths dominate due to longer path length.\n\nWe need to produce a short answer. The user is not asking for disallowed content. So we can comply.\n\nWe should ensure we follow policy: no disallowed content. It's a simple scientific explanation.\n\nThus answer: The sky appears blue because of Rayleigh scattering of sunlight by atmospheric molecules, which scatter shorter wavelengths (blue) more efficiently than longer wavelengths (red). At sunrise/sunset, the path length is longer, scattering out most blue, leaving red/orange.\n\nWe can also mention that the sky is not actually blue but appears blue due to scattering.\n\nWe can also mention that the color of the sky depends on the angle of the sun and atmospheric conditions.\n\nThus answer: The blue color is due to Rayleigh scattering, etc.\n\nWe can keep it to a few sentences (maybe 3-4). Provide a clear explanation.\n\nWe should not mention policy. Just answer.\n\nThus final answer.\n",
+      "content": "\n\nThe sky looks blue during the day because of **Rayleigh scattering**—the preferential scattering of short‑wavelength light by the molecules and tiny particles in Earth’s atmosphere. Blue light (≈ 450 nm) is scattered in all directions much more efficiently than longer wavelengths such as red light (≈ 650 nm). When the Sun is high, its light travels a relatively short path through the atmosphere, so most of the blue light is scattered across the sky while the direct sunlight that reaches us is slightly depleted of blue, giving the Sun a pale yellow hue. At sunrise or sunset, the longer path length scatters away even more blue light, allowing the longer red and orange wavelengths to dominate, producing the reddish colors we see then.",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 1,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 414,
+      "reasoning": "The user asks: \"Explain in a few sentences why the sky appears blue during the day.\"\n\nWe need to answer concisely, a few sentences, explaining Rayleigh scattering: shorter wavelengths (blue) scatter more than longer wavelengths (red). Also mention that the sun's light is white, scattering in the atmosphere leads to blue sky. Possibly mention that at sunrise/sunset, longer wavelengths dominate due to longer path length.\n\nWe need to produce a short answer. The user is not asking for disallowed content. So we can comply.\n\nWe should ensure we follow policy: no disallowed content. It's a simple scientific explanation.\n\nThus answer: The sky appears blue because of Rayleigh scattering of sunlight by atmospheric molecules, which scatter shorter wavelengths (blue) more efficiently than longer wavelengths (red). At sunrise/sunset, the path length is longer, scattering out most blue, leaving red/orange.\n\nWe can also mention that the sky is not actually blue but appears blue due to scattering.\n\nWe can also mention that the color of the sky depends on the angle of the sun and atmospheric conditions.\n\nThus answer: The blue color is due to Rayleigh scattering, etc.\n\nWe can keep it to a few sentences (maybe 3-4). Provide a clear explanation.\n\nWe should not mention policy. Just answer.\n\nThus final answer.\n",
+      "content": "\n\nThe sky looks blue during the day because of **Rayleigh scattering**—the preferential scattering of short‑wavelength light by the molecules and tiny particles in Earth’s atmosphere. Blue light (≈ 450 nm) is scattered in all directions much more efficiently than longer wavelengths such as red light (≈ 650 nm). When the Sun is high, its light travels a relatively short path through the atmosphere, so most of the blue light is scattered across the sky while the direct sunlight that reaches us is slightly depleted of blue, giving the Sun a pale yellow hue. At sunrise or sunset, the longer path length scatters away even more blue light, allowing the longer red and orange wavelengths to dominate, producing the reddish colors we see then.",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 2,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 1536,
+      "reasoning": "The user asks: \"Прочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96\"\n\nThus the list is numbers from 1 to 96 inclusive. The user wants to read the list and explain in Russian how to find its sum. So we need to respond in Russian, explaining the sum of arithmetic series: sum = n*(first+last)/2 = 96* (1+96)/2 = 96*97/2 = 48*97 = 4656. Actually 48*97 = 4656. So the sum is 4656.\n\nWe can also show the formula: sum of first n natural numbers = n(n+1)/2. Here n=96, sum = 96*97/2 = 4656.\n\nWe can also show step-by-step: pair numbers: 1+96=97, 2+95=97, etc. There are 48 pairs, each sum 97, total 48*97 = 4656.\n\nThus answer: sum = 4656.\n\nWe can also mention that the sum of numbers from 1 to 96 is 4656.\n\nThus answer in Russian: \"Сумма = 4656\". Provide explanation.\n\nWe should also note that the list includes numbers from 1 to 96 inclusive. So we can explain that the sum of an arithmetic progression with first term a1=1, last term an=96, number of terms n=96, sum = n*(a1+an)/2.\n\nThus answer: 4656.\n\nWe can also show alternative method: using formula n(n+1)/2.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1 to 96 is 4656.\n\nThus answer: 4656.\n\nWe can also show that the sum of numbers from 1",
+      "content": "",
+      "reasoning_complete": false,
+      "event_kinds": [
+        "reasoning"
+      ]
+    }
+  ],
+  "checks": 18
+}

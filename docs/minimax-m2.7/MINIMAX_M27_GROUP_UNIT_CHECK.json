@@ -1,0 +1,146 @@
+{
+  "pass": true,
+  "tests": [
+    {
+      "name": "complete_groups_and_ready_bytes",
+      "pass": true
+    },
+    {
+      "name": "two_dense_blocks",
+      "pass": true
+    },
+    {
+      "name": "group_reuses_one_allocation",
+      "pass": true
+    },
+    {
+      "name": "replacement_removes_all_three_matrices",
+      "pass": true
+    },
+    {
+      "name": "one_matrix_pin_protects_all_three",
+      "pass": true
+    },
+    {
+      "name": "reused_group_has_no_stale_ready_bits",
+      "pass": true
+    },
+    {
+      "name": "complete_reused_group_exact",
+      "pass": true
+    },
+    {
+      "name": "pressure_releases_whole_unpinned_block",
+      "pass": true
+    },
+    {
+      "name": "pinned_pressure_refused",
+      "pass": true
+    },
+    {
+      "name": "drained_zero_budget_frees_all_groups",
+      "pass": true
+    },
+    {
+      "name": "new_generation_and_last_expert_guard",
+      "pass": true
+    },
+    {
+      "name": "wrong_guard_size_rejected",
+      "pass": true
+    },
+    {
+      "name": "complete_groups_and_ready_bytes",
+      "pass": true
+    },
+    {
+      "name": "two_dense_blocks",
+      "pass": true
+    },
+    {
+      "name": "group_reuses_one_allocation",
+      "pass": true
+    },
+    {
+      "name": "replacement_removes_all_three_matrices",
+      "pass": true
+    },
+    {
+      "name": "one_matrix_pin_protects_all_three",
+      "pass": true
+    },
+    {
+      "name": "reused_group_has_no_stale_ready_bits",
+      "pass": true
+    },
+    {
+      "name": "complete_reused_group_exact",
+      "pass": true
+    },
+    {
+      "name": "pressure_releases_whole_unpinned_block",
+      "pass": true
+    },
+    {
+      "name": "pinned_pressure_refused",
+      "pass": true
+    },
+    {
+      "name": "drained_zero_budget_frees_all_groups",
+      "pass": true
+    },
+    {
+      "name": "new_generation_and_last_expert_guard",
+      "pass": true
+    },
+    {
+      "name": "wrong_guard_size_rejected",
+      "pass": true
+    },
+    {
+      "name": "pending_allocation",
+      "pass": true
+    },
+    {
+      "name": "pending_group_pin_survives_pressure",
+      "pass": true
+    },
+    {
+      "name": "aborted_unpublished_fill_discards_state",
+      "pass": true
+    },
+    {
+      "name": "failed_fill_recovery_exact",
+      "pass": true
+    },
+    {
+      "name": "first_matrix_admission_refused_while_pinned",
+      "pass": true
+    },
+    {
+      "name": "declined_group_cannot_enter_at_later_matrix",
+      "pass": true
+    },
+    {
+      "name": "next_route_can_retry_whole_group",
+      "pass": true
+    }
+  ],
+  "measurements": [
+    {
+      "mixed": false,
+      "groups": 16,
+      "physical_bytes": 134217728,
+      "charged_bytes": 128974848,
+      "ready_bytes": 127426560
+    },
+    {
+      "mixed": true,
+      "groups": 14,
+      "physical_bytes": 134217728,
+      "charged_bytes": 130285568,
+      "ready_bytes": 128529408
+    }
+  ],
+  "cases": 31
+}

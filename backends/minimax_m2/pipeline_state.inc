@@ -12,6 +12,8 @@ struct mm27_plan_tensor {const ggml_tensor *source;mm27_ranges ranges;};
 static thread_local std::vector<mm27_plan_tensor> mm27_plan;
 static thread_local size_t mm27_plan_next=0;
 static thread_local std::unique_ptr<step35::ExpertCache::PlanPins> mm27_plan_pins;
+// New expert groups also survive until all three planned matrices complete.
+static thread_local std::vector<std::unique_ptr<step35::ExpertCache::PlanPins>> mm27_plan_fill_pins;
 static thread_local std::unique_ptr<StrataExpertPipeline> mm27_pipeline_queue;
 static thread_local cudaStream_t mm27_pipeline_stream=nullptr;
 static thread_local StrataExpertPipeline::Counters mm27_pipeline_accounted;
@@ -43,11 +45,13 @@ static void mm27_pipeline_dispose() {
     }
     if(mm27_pipeline_stream)cudaStreamDestroy(mm27_pipeline_stream);
     mm27_pipeline_stream=nullptr;mm27_pipeline_job.reset();mm27_pipeline_accounted={};mm27_pipeline_active=false;
-    mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
+    mm27_plan_fill_pins.clear();mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
+    if(mm27_cache)mm27_cache->end_plan();
     mm27_stats.staging_bytes=mm27_staging?mm27_staging_limit:0;
     mm27_stats.pipeline_device_bytes=mm27_stats.pipeline_queued_bytes=mm27_stats.pipeline_reader_owned_bytes=0;
 }
 void strata_mm27_pipeline(int readers,int chunk_mib,bool lookahead,bool d2d_batch) {
+    if(!readers && mm27_ram_cache)throw std::invalid_argument("disable MiniMax RAM cache before pipeline");
     if(readers<0 || readers>2 || (chunk_mib!=4 && chunk_mib!=8 && chunk_mib!=16) ||
         (readers && (mm27_mode!=2 || mm27_reader)) || ((lookahead || d2d_batch) && !readers))
         throw std::invalid_argument("MiniMax pipeline requires mode 2/file, 0..2 readers and 4/8/16 MiB chunks");
@@ -56,6 +60,20 @@ void strata_mm27_pipeline(int readers,int chunk_mib,bool lookahead,bool d2d_batc
     mm27_pipeline_lookahead=lookahead;
     mm27_pipeline_d2d_batch=d2d_batch;
     if(readers && mm27_staging) {cudaFreeHost(mm27_staging);mm27_staging=nullptr;mm27_stats.staging_bytes=0;}
+}
+void strata_mm27_ram_cache_configure(uint64_t bytes) {
+    if(mm27_pipeline_active)throw std::logic_error("cannot configure active MiniMax RAM cache");
+    if(bytes && (mm27_mode!=2 || mm27_reader || !mm27_pipeline_readers || bytes>(131072ull<<20)))
+        throw std::invalid_argument("MiniMax RAM cache requires file pipeline and cap <=131072 MiB");
+    mm27_pipeline_dispose();mm27_ram_cache.reset();
+    if(bytes) {
+        auto cache=std::make_shared<minimax_m2::HostCache>(bytes);
+        cache->set_gpu_partition(bool(mm27_cache));
+        if(!mm27_host_budget)mm27_host_budget=std::make_unique<strata_glm::HostWorkingSetBudget>();
+        mm27_stats.host_working_set_limit=mm27_host_budget->apply(94);
+        ++mm27_stats.host_budget_updates;mm27_host_refresh=mm27_clock::now();
+        mm27_ram_cache=std::move(cache);mm27_ram_cache->set_prefill(!mm27_cache_admit);
+    } else if(!mm27_reader) {mm27_host_budget.reset();mm27_stats.host_working_set_limit=0;}
 }
 static void mm27_pipeline_create() {
     if(mm27_pipeline_queue)return;
@@ -68,16 +86,17 @@ static void mm27_pipeline_create() {
     try {
         step35::cuda_check(cudaStreamCreateWithFlags(&mm27_pipeline_stream,cudaStreamNonBlocking));
         mm27_pipeline_job=std::make_shared<mm27_pipeline_job_state>();const auto job=mm27_pipeline_job;
-        const auto trace=mm27_pipeline_trace;
+        const auto trace=mm27_pipeline_trace;const auto ram_cache=mm27_ram_cache;
         mm27_pipeline_queue=std::make_unique<StrataExpertPipeline>(device,chunk,false,mm27_pipeline_readers,1,
             [job,trace](cudaStream_t stream,bool begin,size_t) {
                 if(begin && job->cancel && job->cancel->load())throw std::runtime_error("MiniMax request cancelled");
                 if(begin && job->copy_failure)throw std::runtime_error("injected MiniMax pipeline copy failure");
                 if(trace)trace->record(stream,true,begin);
             },mm27_pipeline_readers,true,StrataExpertPipeline::HostCopy{},
-            [job](const std::shared_ptr<strata_expert_file::Source> &file,const void *src,void *dst,size_t bytes,
+            [job,ram_cache](const std::shared_ptr<strata_expert_file::Source> &file,const void *src,void *dst,size_t bytes,
                 const std::atomic<bool> &cancel,strata_expert_file::Request &request) {
                 if(job->read_failure)throw std::runtime_error("injected MiniMax pipeline read failure");
+                if(ram_cache)return ram_cache->read(file,file->offset_of(src,bytes),dst,bytes,cancel,request);
                 return request.read(*file,src,dst,bytes,cancel);
             });
         mm27_pipeline_account();

@@ -1,0 +1,38 @@
+{
+  "scope": "isolated MiniMax build; execution results are recorded separately",
+  "runtime_enabled": "OFF",
+  "runtime_generated_sha256": "",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "loader_sha256": "6574a8618655d8164588627c1a4d2fc4fa8953b65fd783b8c1849f1c5c93638e",
+  "dflash_original_sha256": "",
+  "dflash_generated_sha256": "",
+  "dflash_support_sha256": "dflash_contract.hpp:5f1b28789a65a0af55dc59c4724659d2be69b82bc2b6ee44ffbc05d37b7ccd61;check_dflash.cpp:55cb3e7881b3e1bd52596f2e79d754eb891d223d8606afaf13e0634686c0669a;DFlash.cmake:3f48d322b250236415825ec76fe38e0b768a2e0172c4dc11e5974be84ca84337;",
+  "patches": "none",
+  "oracle_source_sha256": {
+    "loader": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+    "dflash_loader": "05ae9690d7d5752811f3fb9ce06ab773930438bb4f911752b91dbe010494ff38",
+    "tokenizer": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+    "template": "98bd356fda9b659076c6ce276d21ed1ae68bc7d4f0a0fdb8d838a866ca1c0337"
+  },
+  "compiler": "MSVC",
+  "compiler_version": "19.44.35222.0",
+  "generator": "Ninja",
+  "build_type": "Release",
+  "cxx_flags": "/DWIN32 /D_WINDOWS /EHsc",
+  "release_flags": "/O2 /Ob2 /DNDEBUG",
+  "cuda": false,
+  "cuda_compiler_version": "",
+  "cuda_architectures": "",
+  "cuda_backend_architectures": "",
+  "cuda_mmf_generated_sha256": "",
+  "cuda_dispatch_generated_sha256": "",
+  "cuda_quant_dispatch_generated_sha256": "",
+  "numerical_source_sha256": {
+    "kernels": "",
+    "graph": "",
+    "fixture": ""
+  },
+  "shared_libraries": false,
+  "dynamic_backends": false
+}

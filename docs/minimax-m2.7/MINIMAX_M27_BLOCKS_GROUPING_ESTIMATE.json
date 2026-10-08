@@ -1,0 +1,18 @@
+{
+  "scope": "GGUF-derived size arithmetic, not an implemented placement or throughput result",
+  "groups": {
+    "Q4_K/Q4_K/Q6_K": {
+      "layers": 30,
+      "expert_payload_mib": 8.75390625,
+      "three_aligned_slots_mib": 8.875,
+      "allocator_2mib_rounded_mib": 10
+    },
+    "Q4_K/Q4_K/Q4_K": {
+      "layers": 32,
+      "expert_payload_mib": 7.59375,
+      "three_aligned_slots_mib": 7.6875,
+      "allocator_2mib_rounded_mib": 8
+    }
+  },
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db"
+}

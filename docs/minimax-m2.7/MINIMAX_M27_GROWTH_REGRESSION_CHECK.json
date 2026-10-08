@@ -1,0 +1,52 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "name": "cpu",
+      "command": [
+        "C:\\Users\\Aleks\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "tools.test_minimax_m2_gguf",
+        "tools.test_minimax_m2_tokenizer",
+        "tools.test_mimo2_tokenizer",
+        "tools.test_hy3_tokenizer",
+        "tools.test_step35_tokenizer",
+        "tools.test_glm5next_tokenizer"
+      ],
+      "exit_code": 0,
+      "tests": 41,
+      "pass": true
+    },
+    {
+      "name": "invalid_growth_reserve",
+      "value": "-1",
+      "exit_code": 2,
+      "stderr": "MiniMax: invalid arena growth reserve MiB\n",
+      "pass": true
+    },
+    {
+      "name": "invalid_growth_reserve",
+      "value": "1025",
+      "exit_code": 2,
+      "stderr": "MiniMax: arena growth reserve MiB too large\n",
+      "pass": true
+    },
+    {
+      "name": "invalid_growth_reserve",
+      "value": "32x",
+      "exit_code": 2,
+      "stderr": "MiniMax: invalid arena growth reserve MiB\n",
+      "pass": true
+    },
+    {
+      "name": "invalid_growth_reserve",
+      "value": "99999999999999999999999999",
+      "exit_code": 2,
+      "stderr": "MiniMax: stoull argument out of range\n",
+      "pass": true
+    }
+  ]
+}

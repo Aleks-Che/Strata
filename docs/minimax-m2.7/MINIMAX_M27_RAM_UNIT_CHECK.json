@@ -1,0 +1,151 @@
+{
+  "final": {
+    "bytes": 1114112,
+    "mapped_bytes": 3146240,
+    "file_bytes": 2097152
+  },
+  "pass": true,
+  "tests": [
+    {
+      "name": "prefill_bytes_exact",
+      "pass": true
+    },
+    {
+      "name": "prefill_does_not_admit",
+      "pass": true
+    },
+    {
+      "name": "unaligned_map_and_guard_exact",
+      "pass": true
+    },
+    {
+      "name": "page_and_granularity_charge",
+      "pass": true
+    },
+    {
+      "name": "warm_bytes_exact",
+      "pass": true
+    },
+    {
+      "name": "warm_view_reuse",
+      "pass": true
+    },
+    {
+      "name": "gpu_commit_removes_view",
+      "pass": true
+    },
+    {
+      "name": "gpu_eviction_can_refill",
+      "pass": true
+    },
+    {
+      "name": "last_file_bytes_exact",
+      "pass": true
+    },
+    {
+      "name": "out_of_file_rejected",
+      "pass": true
+    },
+    {
+      "name": "cancelled_read_does_not_publish",
+      "pass": true
+    },
+    {
+      "name": "clear_releases_all_views",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_bytes_and_cap",
+      "pass": true
+    },
+    {
+      "name": "lru_replacement",
+      "pass": true
+    },
+    {
+      "name": "lru_recent_hit",
+      "pass": true
+    },
+    {
+      "name": "separate_source_identity",
+      "pass": true
+    },
+    {
+      "name": "physical_pressure_drops_views",
+      "pass": true
+    },
+    {
+      "name": "pressure_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "commit_pressure_disables_admission",
+      "pass": true
+    },
+    {
+      "name": "pressure_recovery",
+      "pass": true
+    },
+    {
+      "name": "concurrent_read_drop_clear_exact",
+      "pass": true
+    },
+    {
+      "name": "concurrent_views_drained_and_bounded",
+      "pass": true
+    },
+    {
+      "name": "reset_empty_accounting",
+      "pass": true
+    },
+    {
+      "name": "final_refill_exact",
+      "pass": true
+    },
+    {
+      "name": "GPU_gets_first_admission_chance",
+      "pass": true
+    },
+    {
+      "name": "prior_GPU_bypass_allows_RAM_map",
+      "pass": true
+    },
+    {
+      "name": "split_matrix_chunk_eligible",
+      "pass": true
+    },
+    {
+      "name": "GPU_commit_clears_views_and_history",
+      "pass": true
+    },
+    {
+      "name": "GPU_commit_resets_RAM_eligibility",
+      "pass": true
+    },
+    {
+      "name": "RAM_only_mode_can_admit",
+      "pass": true
+    }
+  ],
+  "cases": 35
+}

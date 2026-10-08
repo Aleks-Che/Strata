@@ -1,0 +1,135 @@
+{
+  "pass": true,
+  "hy3_arena": {
+    "status": "pass",
+    "cases": [
+      {
+        "name": "27_matrices_one_64MiB_block",
+        "pass": true
+      },
+      {
+        "name": "unique_aligned_slots",
+        "pass": true
+      },
+      {
+        "name": "misaligned_release_refused",
+        "pass": true
+      },
+      {
+        "name": "partial_release_keeps_live_block",
+        "pass": true
+      },
+      {
+        "name": "double_release_refused",
+        "pass": true
+      },
+      {
+        "name": "reuse_preserves_other_slots",
+        "pass": true
+      },
+      {
+        "name": "empty_block_returned",
+        "pass": true
+      },
+      {
+        "name": "mixed_classes_accounted",
+        "pass": true
+      },
+      {
+        "name": "empty_class_released_independently",
+        "pass": true
+      },
+      {
+        "name": "pressure_refuses_new_block",
+        "pass": true
+      },
+      {
+        "name": "plan_pin_preserves_arena_slot",
+        "pass": true
+      },
+      {
+        "name": "unpin_trim_returns_physical_block",
+        "pass": true
+      },
+      {
+        "name": "arena_holes_remain_available_at_reserve",
+        "pass": true
+      },
+      {
+        "name": "cache_pressure_frees_backing",
+        "pass": true
+      },
+      {
+        "name": "allocation_fallback_respects_pins",
+        "pass": true
+      },
+      {
+        "name": "allocation_fallback_reuses_colder_slot",
+        "pass": true
+      },
+      {
+        "name": "allocation_fallback_preserves_frequency",
+        "pass": true
+      },
+      {
+        "name": "fallback_release_complete",
+        "pass": true
+      }
+    ],
+    "case_count": 18
+  },
+  "cpu_cases": 41,
+  "cpu_exit_code": 0,
+  "tests": [
+    {
+      "name": "invalid_block_0",
+      "command": [
+        "build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe",
+        "--arena-block-mib",
+        "0"
+      ],
+      "exit_code": 2,
+      "pass": true,
+      "stderr": "MiniMax: invalid arena block MiB\n"
+    },
+    {
+      "name": "invalid_block_7",
+      "command": [
+        "build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe",
+        "--arena-block-mib",
+        "7"
+      ],
+      "exit_code": 2,
+      "pass": true,
+      "stderr": "MiniMax: invalid arena block MiB\n"
+    },
+    {
+      "name": "invalid_block_-8",
+      "command": [
+        "build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe",
+        "--arena-block-mib",
+        "-8"
+      ],
+      "exit_code": 2,
+      "pass": true,
+      "stderr": "MiniMax: invalid arena block MiB\n"
+    },
+    {
+      "name": "invalid_block_65",
+      "command": [
+        "build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe",
+        "--arena-block-mib",
+        "65"
+      ],
+      "exit_code": 2,
+      "pass": true,
+      "stderr": "MiniMax: invalid arena block MiB\n"
+    }
+  ],
+  "initial_cli_attempt": {
+    "exit_code": 3221225781,
+    "stdout": "",
+    "stderr": "",
+    "reason": "harness omitted runtime_environment/CUDA PATH; retried with the same environment as other engine checks"
+  }
+}

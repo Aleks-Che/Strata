@@ -1,0 +1,961 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "name": "CACHE/retained_engine",
+      "pass": true
+    },
+    {
+      "name": "CACHE/MM27-11_engine",
+      "pass": true
+    },
+    {
+      "name": "CACHE/model_header",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-start/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-start/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-start/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c12-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c12-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c12-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c24-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c24-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c24-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c16-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c16-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c16-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c20-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c20-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c20-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-end/gates",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-end/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-end/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-start/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c12-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c24-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c16-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c20-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/01-c18-r2-s4-end/bits",
+      "pass": true
+    },
+    {
+      "name": "CACHE/historical_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/retained_engine",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/MM27-11_engine",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/model_header",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-start/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-start/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-start/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s16/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s16/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s16/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s16/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s16/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s16/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-end/gates",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-end/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-end/raw_report",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-start/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s16/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s16/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r1-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/01-c20-r2-s4-end/bits",
+      "pass": true
+    },
+    {
+      "name": "TRANSPORT/historical_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/retained_engine",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/MM27-11_engine",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/model_header",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-baseline-c18-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-baseline-c18-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-baseline-c18-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-candidate-c20-r2-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-candidate-c20-r2-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-candidate-c20-r2-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-candidate-c20-r2-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-candidate-c20-r2-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-candidate-c20-r2-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-baseline-c18-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-baseline-c18-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-baseline-c18-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-baseline-c18-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-baseline-c18-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-baseline-c18-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-candidate-c20-r2-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-candidate-c20-r2-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-candidate-c20-r2-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-baseline-c18-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/01-candidate-c20-r2-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-candidate-c20-r2-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/02-baseline-c18-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-baseline-c18-r2-s4/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/03-candidate-c20-r2-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "CONFIRM/historical_logits",
+      "pass": true
+    },
+    {
+      "name": "LONG/retained_engine",
+      "pass": true
+    },
+    {
+      "name": "LONG/MM27-11_engine",
+      "pass": true
+    },
+    {
+      "name": "LONG/model_header",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-baseline-c18-r2-s4/gates",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-baseline-c18-r2-s4/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-baseline-c18-r2-s4/raw_report",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-candidate-c20-r2-s8/gates",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-candidate-c20-r2-s8/raw_logits",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-candidate-c20-r2-s8/raw_report",
+      "pass": true
+    },
+    {
+      "name": "LONG/01-candidate-c20-r2-s8/bits",
+      "pass": true
+    },
+    {
+      "name": "LIFECYCLE/retained_engine",
+      "pass": true
+    },
+    {
+      "name": "01-baseline-c18-r2-s4/repeated_prompt_ids",
+      "pass": true
+    },
+    {
+      "name": "01-baseline-c18-r2-s4/repeated_prompt_bits",
+      "pass": true
+    },
+    {
+      "name": "01-candidate-c20-r2-s8/repeated_prompt_ids",
+      "pass": true
+    },
+    {
+      "name": "01-candidate-c20-r2-s8/repeated_prompt_bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/gpu_and_budget_audit/mode2",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cache_admitted_with_bounded_backing",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_prefill",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_prefill/fresh_recovery",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_decode",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_decode/fresh_recovery",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/RAM_pressure_injected",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/RAM_pressure_injected/fresh_recovery",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/VRAM_pressure_injected",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/VRAM_pressure_injected/fresh_recovery",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_GPU_pressure_reclaims_warm_cache",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_pressure/logits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_pressure/at_least_85_percent_both",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/after_pressure_or_fault_release",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/full_unload_mapping_release",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/full_unload_reload",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/gpu_and_budget_audit/mode1",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/file_vs_native/long_context",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/file_vs_native/continuation_ids",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/gpu_and_budget_audit/mode2",
+      "pass": true
+    },
+    {
+      "name": "context4096/cache_admitted_with_bounded_backing",
+      "pass": true
+    },
+    {
+      "name": "context4096/gpu_and_budget_audit/mode1",
+      "pass": true
+    },
+    {
+      "name": "context4096/file_vs_native/long_context",
+      "pass": true
+    },
+    {
+      "name": "context4096/file_vs_native/continuation_ids",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "backends/common/device_memory.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/common/expert_file.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/common/expert_frequency.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/common/expert_pipeline.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/common/expert_slice.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/common/vram_policy.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/glm5next/host_pages.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/hy3/gpu_arena.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/CMakeLists.txt/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/QuantF32.cmake/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/RoutedStrides.cmake/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/RuntimePatches.cmake/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/StrictF32.cmake/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/build_manifest.json.in/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/cache_runtime.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_arena.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_cache.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_graph.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_kernels.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_lifecycle.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_reload.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/check_runtime.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/contract.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/gpu_arena.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/gpu_only_audit.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/loader_oracle.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/main.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/pipeline_runtime.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/pipeline_sched.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/pipeline_state.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/pipeline_trace.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/runtime.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/sync_runtime.h/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/sync_runtime.inc/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/sync_test.h/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/synthetic_minimax_m2.hpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/template_oracle.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/minimax_m2/tokenizer_oracle.cpp/unchanged",
+      "pass": true
+    },
+    {
+      "name": "backends/step35/expert_cache.hpp/unchanged",
+      "pass": true
+    }
+  ],
+  "confirmation": {
+    "configurations": [
+      {
+        "name": "baseline-c18-r2-s4",
+        "cache_mib": 18432,
+        "readers": 2,
+        "chunk_mib": 4
+      },
+      {
+        "name": "candidate-c20-r2-s8",
+        "cache_mib": 20480,
+        "readers": 2,
+        "chunk_mib": 8
+      }
+    ],
+    "workload_seconds": [
+      77.69993600000001,
+      81.0195998
+    ],
+    "workload_reduction_percent": -4.272415102117955,
+    "decode_speedup_percent": [
+      0.8873667166814592,
+      1.4079601024704624,
+      0.7449635176573599
+    ],
+    "requests": [
+      {
+        "baseline": {
+          "prompt_tokens": 52,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 3.4067314614153665,
+          "decode_range_tok_s": [
+            3.3773286681166668,
+            3.440603779889199
+          ],
+          "ttft_ms": 11251.3936,
+          "request_ms": 17949.192,
+          "hit_byte_percent": 43.73209030648921,
+          "h2d_gib_per_token": 2.2230539321899414,
+          "cache_limit_gib": [
+            18.0,
+            18.0,
+            18.0
+          ],
+          "cache_resident_gib": [
+            17.43310546875,
+            17.43310546875,
+            17.43310546875
+          ],
+          "arena_reserved_gib": [
+            18.0,
+            18.0,
+            18.0
+          ]
+        },
+        "candidate": {
+          "prompt_tokens": 52,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 3.4369616625306825,
+          "decode_range_tok_s": [
+            3.370905643045538,
+            3.452106768979507
+          ],
+          "ttft_ms": 11717.2192,
+          "request_ms": 18392.7736,
+          "hit_byte_percent": 44.72677195439626,
+          "h2d_gib_per_token": 2.1837559575619907,
+          "cache_limit_gib": [
+            19.00745391845703,
+            18.999977111816406,
+            19.002540588378906
+          ],
+          "cache_resident_gib": [
+            18.40283203125,
+            13.59375,
+            18.40283203125
+          ],
+          "arena_reserved_gib": [
+            19.0,
+            18.9375,
+            19.0
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "prompt_tokens": 52,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 4.608197430244713,
+          "decode_range_tok_s": [
+            4.604771832955055,
+            4.6180975855421265
+          ],
+          "ttft_ms": 7991.4467,
+          "request_ms": 12995.5713,
+          "hit_byte_percent": 57.983728622527835,
+          "h2d_gib_per_token": 1.659995286361031,
+          "cache_limit_gib": [
+            18.0,
+            18.0,
+            18.0
+          ],
+          "cache_resident_gib": [
+            17.43310546875,
+            17.43310546875,
+            17.43310546875
+          ],
+          "arena_reserved_gib": [
+            18.0,
+            18.0,
+            18.0
+          ]
+        },
+        "candidate": {
+          "prompt_tokens": 52,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 4.673079011505628,
+          "decode_range_tok_s": [
+            4.0458081171013065,
+            4.686751870864742
+          ],
+          "ttft_ms": 7950.3588,
+          "request_ms": 12870.7432,
+          "hit_byte_percent": 59.258971111479,
+          "h2d_gib_per_token": 1.6096123819765837,
+          "cache_limit_gib": [
+            19.00366973876953,
+            18.999855041503906,
+            19.012184143066406
+          ],
+          "cache_resident_gib": [
+            18.40283203125,
+            16.01226806640625,
+            18.40283203125
+          ],
+          "arena_reserved_gib": [
+            19.0,
+            18.9375,
+            19.0
+          ]
+        }
+      },
+      {
+        "baseline": {
+          "prompt_tokens": 343,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 4.130872135767758,
+          "decode_range_tok_s": [
+            4.111511925922997,
+            4.142803368754783
+          ],
+          "ttft_ms": 40857.7097,
+          "request_ms": 46438.3541,
+          "hit_byte_percent": 50.610606411641896,
+          "h2d_gib_per_token": 1.951296039249586,
+          "cache_limit_gib": [
+            18.0,
+            18.0,
+            18.0
+          ],
+          "cache_resident_gib": [
+            17.43310546875,
+            17.43310546875,
+            17.43310546875
+          ],
+          "arena_reserved_gib": [
+            18.0,
+            18.0,
+            18.0
+          ]
+        },
+        "candidate": {
+          "prompt_tokens": 343,
+          "generated_tokens": [
+            24,
+            24,
+            24
+          ],
+          "decode_tok_s": 4.161645626140301,
+          "decode_range_tok_s": [
+            4.140712277044473,
+            4.181177397376681
+          ],
+          "ttft_ms": 42826.3216,
+          "request_ms": 48393.77,
+          "hit_byte_percent": 53.38625802185169,
+          "h2d_gib_per_token": 1.8416337552277937,
+          "cache_limit_gib": [
+            18.998634338378906,
+            19.028236389160156,
+            18.979347229003906
+          ],
+          "cache_resident_gib": [
+            18.344970703125,
+            18.405029296875,
+            18.3427734375
+          ],
+          "arena_reserved_gib": [
+            18.9375,
+            19.0,
+            18.9375
+          ]
+        }
+      }
+    ]
+  },
+  "long_samples": [
+    {
+      "name": "01-baseline-c18-r2-s4",
+      "generated_tokens": [
+        256,
+        256,
+        256
+      ],
+      "stop_reasons": [
+        "length",
+        "length",
+        "length"
+      ],
+      "think_closed": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "name": "01-candidate-c20-r2-s8",
+      "generated_tokens": [
+        256,
+        256,
+        256
+      ],
+      "stop_reasons": [
+        "length",
+        "length",
+        "length"
+      ],
+      "think_closed": [
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "logit_pairs": 427336704,
+  "token_id_pairs": 2136,
+  "notes": [
+    "screening is one pass with bookend controls, not an isolated ranking",
+    "confirmation combines cache cap 18->20 GiB and chunk 4->8 MiB; readers remain two",
+    "OS file cache and external load uncontrolled; effective GPU budgets can differ",
+    "long generation is one pair, correctness/stability rather than repeated throughput evidence"
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "pass": false,
+  "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "engine_sha256": "6da69ae31c6ed936b1bcbbee07b8beb038f1faf170f262b9a0717e523f474680",
+  "driver_sha256": "2aead7512d38074391775e81bddee828c1757521a1459dfb7ab82bd6e16a3fc3",
+  "precision_environment": {
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32",
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "LLAMA_GRAPH_REUSE_DISABLE": "1",
+    "GGML_OP_OFFLOAD_MIN_BATCH": "1",
+    "STRATA_MM27_QUANT_F32": "1",
+    "STRATA_MM27_TOKENWISE": "0"
+  },
+  "configuration": {
+    "name": "completion-18-2-4",
+    "cache_mib": 18432,
+    "readers": 2,
+    "chunk_mib": 4
+  },
+  "tokens_requested": 1536,
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-completion-01\\engine.exe",
+    "--gguf",
+    "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "--request",
+    "build-local\\minimax-m2-completion-01\\requests.json",
+    "--output",
+    "build-local\\minimax-m2-completion-01\\generation.json",
+    "--logits",
+    "build-local\\minimax-m2-completion-01\\generation.f32",
+    "--ctx",
+    "2048",
+    "--batch",
+    "16",
+    "--gpu-cache-mib",
+    "18432",
+    "--gpu-cache-allocator",
+    "arena",
+    "--pipeline-readers",
+    "2",
+    "--pipeline-chunk-mib",
+    "4",
+    "--pipeline-lookahead",
+    "1",
+    "--pipeline-d2d-batch",
+    "1"
+  ],
+  "scope": "one process; KV cleared between requests; cache retained; uncontrolled OS cache/external load; sampled memory",
+  "reference": {
+    "report": "build-local\\minimax-m2-tune-long-01\\01-baseline-c18-r2-s4.json",
+    "report_sha256": "92fba3629bac2fa229ac215980a4246547ad948fbb7e536e4242e8a6f3bda005",
+    "logits": "build-local\\minimax-m2-tune-long-01\\01-baseline-c18-r2-s4.f32",
+    "logits_sha256": "0d8e7c552e0dbe08b96a5f611f0ec370077de791edbd0f1846354ecaa4e7a3dc"
+  },
+  "exit_code": 0,
+  "gates": {
+    "configuration": true,
+    "gpu_only": true,
+    "budget95": true,
+    "bytes": true,
+    "bounded_and_drained": true,
+    "requests": true
+  },
+  "prefix_comparisons": [
+    {
+      "pass": true,
+      "finite": true,
+      "bit_exact": true,
+      "elements": 51216384,
+      "max_abs": 0.0,
+      "token_ids_equal": true,
+      "request": 0
+    },
+    {
+      "pass": true,
+      "finite": true,
+      "bit_exact": true,
+      "elements": 51216384,
+      "max_abs": 0.0,
+      "token_ids_equal": true,
+      "request": 1
+    },
+    {
+      "pass": true,
+      "finite": true,
+      "bit_exact": true,
+      "elements": 51216384,
+      "max_abs": 0.0,
+      "token_ids_equal": true,
+      "request": 2
+    }
+  ],
+  "completions": [
+    {
+      "request": 0,
+      "generated_tokens": 414,
+      "stop_reason": "eos",
+      "natural_eos": true,
+      "reasoning_closed": true,
+      "final": "The sky looks blue during the day because of **Rayleigh scattering**—the preferential scattering of short‑wavelength light by the molecules and tiny particles in Earth’s atmosphere. Blue light (≈ 450 nm) is scattered in all directions much more efficiently than longer wavelengths such as red light (≈ 650 nm). When the Sun is high, its light travels a relatively short path through the atmosphere, so most of the blue light is scattered across the sky while the direct sunlight that reaches us is slightly depleted of blue, giving the Sun a pale yellow hue. At sunrise or sunset, the longer path length scatters away even more blue light, allowing the longer red and orange wavelengths to dominate, producing the reddish colors we see then.",
+      "finite_logits": true,
+      "max_tokens": 1536,
+      "within_context": true,
+      "decode_tokens_per_second": 4.169641915665185,
+      "request_ms": 112252.3388,
+      "pass": true
+    },
+    {
+      "request": 1,
+      "generated_tokens": 414,
+      "stop_reason": "eos",
+      "natural_eos": true,
+      "reasoning_closed": true,
+      "final": "The sky looks blue during the day because of **Rayleigh scattering**—the preferential scattering of short‑wavelength light by the molecules and tiny particles in Earth’s atmosphere. Blue light (≈ 450 nm) is scattered in all directions much more efficiently than longer wavelengths such as red light (≈ 650 nm). When the Sun is high, its light travels a relatively short path through the atmosphere, so most of the blue light is scattered across the sky while the direct sunlight that reaches us is slightly depleted of blue, giving the Sun a pale yellow hue. At sunrise or sunset, the longer path length scatters away even more blue light, allowing the longer red and orange wavelengths to dominate, producing the reddish colors we see then.",
+      "finite_logits": true,
+      "max_tokens": 1536,
+      "within_context": true,
+      "decode_tokens_per_second": 4.248001193809711,
+      "request_ms": 107592.3669,
+      "pass": true
+    },
+    {
+      "request": 2,
+      "generated_tokens": 1536,
+      "stop_reason": "length",
+      "natural_eos": false,
+      "reasoning_closed": false,
+      "final": "",
+      "finite_logits": true,
+      "max_tokens": 1536,
+      "within_context": true,
+      "decode_tokens_per_second": 4.757186509502443,
+      "request_ms": 370232.5289,
+      "pass": false
+    }
+  ],
+  "repeat": {
+    "pass": true,
+    "finite": true,
+    "bit_exact": true,
+    "elements": 82826496,
+    "max_abs": 0.0,
+    "token_ids_equal": true
+  },
+  "generation_report_sha256": "964f9442051bad6e3466a0006916c2ed30b0667f9d309397b0f2879c8b6b4878",
+  "generation_logits_sha256": "170e125aa5ead9ebe99a52642e5ee36a5102b6e29917c7561d7e534012f2b842"
+}

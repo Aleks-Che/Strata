@@ -34,6 +34,7 @@ static double mm27_elapsed(mm27_clock::time_point start) {
 void strata_mm27_mode(int mode) {
     if(mode<0 || mode>2)throw std::invalid_argument("invalid MiniMax copy mode");
     if(mode!=2 && mm27_cache)throw std::invalid_argument("disable MiniMax cache before changing copy mode");
+    if(mode!=2 && mm27_ram_cache)throw std::invalid_argument("disable MiniMax RAM cache before changing copy mode");
     if(mode!=2 && mm27_pipeline_readers)throw std::invalid_argument("disable MiniMax pipeline before changing copy mode");
     mm27_mode=mode;
 }
@@ -45,7 +46,7 @@ void strata_mm27_reader(int reader) {
         auto budget=std::make_unique<strata_glm::HostWorkingSetBudget>();
         mm27_stats.host_working_set_limit=budget->apply(94);
         ++mm27_stats.host_budget_updates;mm27_host_refresh=mm27_clock::now();mm27_host_budget=std::move(budget);
-    } else if(!reader) {mm27_host_budget.reset();mm27_stats.host_working_set_limit=0;}
+    } else if(!reader && !mm27_ram_cache) {mm27_host_budget.reset();mm27_stats.host_working_set_limit=0;}
     mm27_reader=reader;
 }
 void strata_mm27_observe(strata_mm27_observer fn,void *owner) {mm27_observer=fn;mm27_owner=owner;}
@@ -56,6 +57,7 @@ void strata_mm27_reset() {
     mm27_stats.host_working_set_limit=mm27_host_budget?host_limit:0;
     mm27_error.clear();mm27_next_memory_check={};
     if(mm27_cache)mm27_cache->reset_counters();
+    if(mm27_ram_cache)mm27_ram_cache->reset_counters();
     if(mm27_arena)mm27_arena->reset_counters();
     mm27_pipeline_account();
 }
@@ -63,7 +65,8 @@ strata_mm27_stats strata_mm27_snapshot() {mm27_pipeline_account();auto s=mm27_st
 void strata_mm27_release() {
     mm27_pipeline_dispose();mm27_pipeline_trace.reset();mm27_pipeline_readers=0;mm27_pipeline_lookahead=false;
     mm27_pipeline_d2d_batch=false;
-    mm27_cache.reset();mm27_arena.reset();mm27_cache_admit=false;mm27_tensors.clear();mm27_bound_model=nullptr;
+    mm27_ram_cache.reset();
+    mm27_cache.reset();mm27_arena.reset();mm27_cache_admit=false;mm27_group_experts=false;mm27_tensors.clear();mm27_bound_model=nullptr;
     if(mm27_staging)cudaFreeHost(mm27_staging);
     mm27_staging=nullptr;mm27_cancel=nullptr;mm27_observer=nullptr;mm27_owner=nullptr;mm27_mode=0;
     mm27_reader=0;mm27_host_budget.reset();
@@ -88,6 +91,12 @@ strata_mm27_memory_info strata_mm27_memory(uint64_t gpu_reserve,uint64_t ram_res
     }
     // Reclaim this process's mapped pages before GPU cache policy rejects RAM
     // pressure. Both caches get a chance to shrink before the hard 95% guard.
+    if(mm27_ram_cache) {
+        mm27_ram_cache->refresh();
+        if(!GlobalMemoryStatusEx(&ram) || !GetProcessMemoryInfo(GetCurrentProcess(),
+            reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&process),sizeof(process)))
+            throw std::runtime_error("cannot resample MiniMax RAM after view reclamation");
+    }
     try {mm27_cache_refresh();} catch(const std::exception &e) {
         ++mm27_stats.pressure_rejections;mm27_error=std::string("MiniMax cache memory admission: ")+e.what();
         throw std::runtime_error(mm27_error);
@@ -228,12 +237,18 @@ static bool mm27_copy_range(ggml_backend_t backend,ggml_tensor *dst,const ggml_t
                     if(!mm27_upload(backend,dst,*file,base+e*stride,at,delivered))return false;
                     mm27_stats.cache_guard_bytes+=delivered-needed;
                     if(mm27_cache_admit)if(void *slot=mm27_cache->admit(key,stored)) {
+                        if(mm27_pipeline_active && mm27_cache->grouped()) {
+                            mm27_plan_fill_pins.push_back(mm27_cache->protect({key}));
+                            mm27_stats.cache_group_plan_pins_peak=std::max<uint64_t>(mm27_stats.cache_group_plan_pins_peak,mm27_plan_fill_pins.size());
+                        }
                         // Admission becomes visible only after this synchronous
                         // fill. Exceptions invalidate every possibly partial slot.
                         if(mm27_test_limits.cache_fill_failure)throw std::runtime_error("injected MiniMax cache fill failure");
                         mm27_cache_copy(slot,static_cast<char *>(dst->data)+at,stored);
+                        mm27_cache->commit(key,stored);
+                        if(mm27_ram_cache)mm27_ram_cache->drop_gpu(file,base+e*stride,stored);
                         mm27_stats.cache_fill_bytes+=stored;
-                    }
+                    } else if(mm27_ram_cache)mm27_ram_cache->gpu_bypass(file,base+e*stride,stored);
                 }
             }
         }

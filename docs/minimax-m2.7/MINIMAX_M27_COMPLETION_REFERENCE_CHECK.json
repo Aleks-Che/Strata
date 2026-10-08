@@ -1,0 +1,59 @@
+{
+  "pass": true,
+  "scope": "numerical isolation of serial file/H2D vs cache+pipeline; not a natural-completion or independent-oracle gate",
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-completion-reference-01\\engine.exe",
+    "--gguf",
+    "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "--request",
+    "build-local\\minimax-m2-completion-reference-01\\request.json",
+    "--output",
+    "build-local\\minimax-m2-completion-reference-01\\generation.json",
+    "--logits",
+    "build-local\\minimax-m2-completion-reference-01\\generation.f32",
+    "--ctx",
+    "2048",
+    "--batch",
+    "16",
+    "--mode",
+    "2",
+    "--gpu-cache-mib",
+    "0",
+    "--ram-cache-mib",
+    "0",
+    "--pipeline-readers",
+    "0"
+  ],
+  "engine_sha256": "6da69ae31c6ed936b1bcbbee07b8beb038f1faf170f262b9a0717e523f474680",
+  "driver_sha256": "610a2e8fa222e11a60eb942507c5a9689ca6f30188b44caa08d864d0304ec8e6",
+  "reference": "build-local\\minimax-m2-completion-01\\generation.json",
+  "reference_sha256": "964f9442051bad6e3466a0006916c2ed30b0667f9d309397b0f2879c8b6b4878",
+  "request_index": 2,
+  "tokens_requested": 1024,
+  "exit_code": 0,
+  "comparison": {
+    "pass": true,
+    "finite": true,
+    "bit_exact": true,
+    "elements": 204865536,
+    "max_abs": 0.0,
+    "token_ids_equal": true
+  },
+  "checks": {
+    "configuration": true,
+    "gpu_only": true,
+    "budget95": true,
+    "bytes": true,
+    "serial_only": true
+  },
+  "diagnostic": {
+    "stop_reason": "length",
+    "reasoning_closed": false,
+    "repeated_phrase": "We can also show that the sum of numbers from 1 to 96 is 4656.",
+    "phrase_count": 14,
+    "generated_tokens": 1024,
+    "decode_tokens_per_second": 1.5425473070247717
+  },
+  "generation_report_sha256": "0b99540ee8c222f2d424389fda1cbaea641e7d9fc1597d1dd216e58ff4b1397a",
+  "generation_logits_sha256": "d2c2ecb082f41d72a79f6d94d44a74583cdf0550d906849d671fa8c898ec42db"
+}

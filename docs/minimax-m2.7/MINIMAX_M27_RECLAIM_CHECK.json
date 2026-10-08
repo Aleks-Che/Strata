@@ -1,0 +1,82 @@
+{
+  "pass": true,
+  "tests": [
+    {
+      "name": "legacy_scattered_eviction_reproduced",
+      "pass": true
+    },
+    {
+      "name": "remaining_full_payload_exact",
+      "pass": true
+    },
+    {
+      "name": "grouped_drops_one_block",
+      "pass": true
+    },
+    {
+      "name": "remaining_full_payload_exact",
+      "pass": true
+    },
+    {
+      "name": "sampled_budget_not_lowered_by_reclaim",
+      "pass": true
+    },
+    {
+      "name": "pressure_accounting",
+      "pass": true
+    },
+    {
+      "name": "pressure_recovery_refills_exact",
+      "pass": true
+    },
+    {
+      "name": "one_pin_preserves_whole_block",
+      "pass": true
+    },
+    {
+      "name": "all_pinned_fail_without_partial_eviction",
+      "pass": true
+    },
+    {
+      "name": "unpin_retries_pressure",
+      "pass": true
+    },
+    {
+      "name": "least_live_block_reclaimed_first",
+      "pass": true
+    },
+    {
+      "name": "admission_refresh_enforces_physical_budget",
+      "pass": true
+    },
+    {
+      "name": "zero_budget_returns_all_backing",
+      "pass": true
+    }
+  ],
+  "measurements": [
+    {
+      "policy": "legacy_entries",
+      "budget": 267386880,
+      "before_live": 268435456,
+      "after_live": 0,
+      "after_reserved": 0,
+      "evictions": 64,
+      "pressure_groups": 0,
+      "evicted_bytes": 268435456,
+      "released_bytes": 268435456
+    },
+    {
+      "policy": "whole_blocks",
+      "budget": 267386880,
+      "before_live": 268435456,
+      "after_live": 201326592,
+      "after_reserved": 201326592,
+      "evictions": 16,
+      "pressure_groups": 1,
+      "evicted_bytes": 67108864,
+      "released_bytes": 67108864
+    }
+  ],
+  "cases": 13
+}

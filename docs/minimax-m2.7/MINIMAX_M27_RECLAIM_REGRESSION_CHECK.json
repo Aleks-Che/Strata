@@ -1,0 +1,849 @@
+{
+  "pass": true,
+  "runs": [
+    {
+      "name": "arena",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\arena.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\arena.json"
+      ],
+      "engine_sha256": "f601aaf5924e1bbf38972f9b4aeef0e43e01ca3d63de25f6dc2e0744bd17fd45",
+      "exit_code": 0
+    },
+    {
+      "name": "step-cache",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\step-cache.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\step-cache.json"
+      ],
+      "engine_sha256": "ce04cec008733a1927d4420c3e719c052435148b74abd6995894f8e4973f0ee9",
+      "exit_code": 0
+    },
+    {
+      "name": "hy3-arena",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\hy3-arena.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\hy3-arena.json"
+      ],
+      "engine_sha256": "c7549289fad906ff341487d29d68700e3f0e2789d54e7be5c93b3ab6124ee8e6",
+      "exit_code": 0
+    },
+    {
+      "name": "runtime",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\runtime.exe",
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-reclaim-validation-01\\runtime"
+      ],
+      "engine_sha256": "a795560e07e2add1e354b8adc2a29b04cc18102f4e3e0f6f2e64ab1d7a5d6669",
+      "exit_code": 0
+    }
+  ],
+  "results": {
+    "arena": {
+      "pass": true,
+      "tests": [
+        {
+          "name": "24_Q4_slots_one_64MiB_slab",
+          "pass": true
+        },
+        {
+          "name": "unique_64KiB_aligned_slots",
+          "pass": true
+        },
+        {
+          "name": "misaligned_release_refused",
+          "pass": true
+        },
+        {
+          "name": "holes_count_as_backing",
+          "pass": true
+        },
+        {
+          "name": "double_release_refused",
+          "pass": true
+        },
+        {
+          "name": "reuse_all_bytes_exact",
+          "pass": true
+        },
+        {
+          "name": "two_size_classes_accounted",
+          "pass": true
+        },
+        {
+          "name": "hard_backing_cap_includes_holes",
+          "pass": true
+        },
+        {
+          "name": "last_slot_releases_its_slab",
+          "pass": true
+        },
+        {
+          "name": "all_backing_released",
+          "pass": true
+        },
+        {
+          "name": "VRAM_reserve_refuses_slab",
+          "pass": true
+        },
+        {
+          "name": "whole_slab_commit_reserve",
+          "pass": true
+        },
+        {
+          "name": "measured_cuda_released",
+          "pass": true
+        },
+        {
+          "name": "measured_arena_released",
+          "pass": true
+        }
+      ],
+      "cases": 14,
+      "measurements": [
+        {
+          "allocator": "cuda",
+          "matrices": 512,
+          "requested_bytes": 1535115264,
+          "arena_reserved": 0,
+          "NVML_before": 4754915328,
+          "NVML_during": 6902398976,
+          "NVML_delta": 2147483648
+        },
+        {
+          "allocator": "arena",
+          "matrices": 512,
+          "requested_bytes": 1535115264,
+          "arena_reserved": 1610612736,
+          "NVML_before": 4762386432,
+          "NVML_during": 6372999168,
+          "NVML_delta": 1610612736
+        }
+      ]
+    },
+    "step_cache": {
+      "status": "pass",
+      "scope": "real CUDA cache allocations with deterministic memory/allocator probes",
+      "case_count": 29,
+      "cases": [
+        {
+          "name": "cold_miss",
+          "pass": true
+        },
+        {
+          "name": "allocated_and_hit",
+          "pass": true
+        },
+        {
+          "name": "frequency_rejects_cold",
+          "pass": true
+        },
+        {
+          "name": "eviction_replaces_colder",
+          "pass": true
+        },
+        {
+          "name": "trim_releases_all",
+          "pass": true
+        },
+        {
+          "name": "external_pressure_trims",
+          "pass": true
+        },
+        {
+          "name": "ram_pressure_refused",
+          "pass": true
+        },
+        {
+          "name": "invalid_sample_closed",
+          "pass": true
+        },
+        {
+          "name": "unaccounted_residency_refused",
+          "pass": true
+        },
+        {
+          "name": "untrained_hits_preserve_frequency_and_lru",
+          "pass": true
+        },
+        {
+          "name": "untrained_lookup_still_counts_delivery_hits",
+          "pass": true
+        },
+        {
+          "name": "trained_hits_protect_hot_entry",
+          "pass": true
+        },
+        {
+          "name": "untrained_lookup_still_counts_delivery_hits",
+          "pass": true
+        },
+        {
+          "name": "allocation_oom_bypass",
+          "pass": true
+        },
+        {
+          "name": "generation_identity",
+          "pass": true
+        },
+        {
+          "name": "planned_hit_blocks_eviction",
+          "pass": true
+        },
+        {
+          "name": "pinned_bytes_remain_charged",
+          "pass": true
+        },
+        {
+          "name": "unpin_allows_trim",
+          "pass": true
+        },
+        {
+          "name": "reuse_equal_allocation_without_allocator",
+          "pass": true
+        },
+        {
+          "name": "reuse_removes_old_identity",
+          "pass": true
+        },
+        {
+          "name": "reuse_filled_bytes",
+          "pass": true
+        },
+        {
+          "name": "reuse_respects_plan_pins",
+          "pass": true
+        },
+        {
+          "name": "reuse_after_unpin",
+          "pass": true
+        },
+        {
+          "name": "duplicate_admission_preserves_resident",
+          "pass": true
+        },
+        {
+          "name": "reuse_pressure_releases_all",
+          "pass": true
+        },
+        {
+          "name": "reuse_different_size_allocates",
+          "pass": true
+        },
+        {
+          "name": "reuse_trim_has_no_hidden_pool",
+          "pass": true
+        },
+        {
+          "name": "direct_scan_131200_decisions_membership_parity",
+          "pass": true
+        },
+        {
+          "name": "direct_scan_first_zero_is_oldest_minimum",
+          "pass": true
+        }
+      ]
+    },
+    "hy3_arena": {
+      "status": "pass",
+      "cases": [
+        {
+          "name": "27_matrices_one_64MiB_block",
+          "pass": true
+        },
+        {
+          "name": "unique_aligned_slots",
+          "pass": true
+        },
+        {
+          "name": "misaligned_release_refused",
+          "pass": true
+        },
+        {
+          "name": "partial_release_keeps_live_block",
+          "pass": true
+        },
+        {
+          "name": "double_release_refused",
+          "pass": true
+        },
+        {
+          "name": "reuse_preserves_other_slots",
+          "pass": true
+        },
+        {
+          "name": "empty_block_returned",
+          "pass": true
+        },
+        {
+          "name": "mixed_classes_accounted",
+          "pass": true
+        },
+        {
+          "name": "empty_class_released_independently",
+          "pass": true
+        },
+        {
+          "name": "pressure_refuses_new_block",
+          "pass": true
+        },
+        {
+          "name": "plan_pin_preserves_arena_slot",
+          "pass": true
+        },
+        {
+          "name": "unpin_trim_returns_physical_block",
+          "pass": true
+        },
+        {
+          "name": "arena_holes_remain_available_at_reserve",
+          "pass": true
+        },
+        {
+          "name": "cache_pressure_frees_backing",
+          "pass": true
+        },
+        {
+          "name": "allocation_fallback_respects_pins",
+          "pass": true
+        },
+        {
+          "name": "allocation_fallback_reuses_colder_slot",
+          "pass": true
+        },
+        {
+          "name": "allocation_fallback_preserves_frequency",
+          "pass": true
+        },
+        {
+          "name": "fallback_release_complete",
+          "pass": true
+        }
+      ],
+      "case_count": 18
+    },
+    "runtime": {
+      "architecture": "minimax-m2",
+      "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena,mm27-bounded-mmap-readers,mm27-tensor-file-pipeline,mm27-router-matrix-lookahead",
+      "strict_f32": true,
+      "flash_attention": false,
+      "staging_limit": 16777216,
+      "tests": [
+        {
+          "name": "exported_EOS_PAD_only_no_BOS_FIM_fallback_stops",
+          "pass": true
+        },
+        {
+          "name": "RAM_reservation_over_budget_rejected",
+          "pass": true
+        },
+        {
+          "name": "VRAM_reservation_over_budget_rejected",
+          "pass": true
+        },
+        {
+          "name": "f32/truncated_payload_rejected_before_load",
+          "pass": true
+        },
+        {
+          "name": "f32/fixture_not_production",
+          "pass": true
+        },
+        {
+          "name": "f32/gpu_audit/0",
+          "pass": true
+        },
+        {
+          "name": "f32/batch_1/mode_0",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.5331974029541016e-07,
+          "nmse": 1.596247595596937e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1013,
+          "worst_index": 854,
+          "actual_worst": -0.19359062612056732,
+          "expected_worst": -0.19359037280082703
+        },
+        {
+          "name": "f32/batch_16/mode_0",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse": 5.383266849005206e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 54,
+          "worst_index": 1063,
+          "actual_worst": -0.25782912969589233,
+          "expected_worst": -0.25782930850982666
+        },
+        {
+          "name": "f32/mapping_release/0",
+          "pass": true
+        },
+        {
+          "name": "f32/resident_vs_1",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.36370572447776794,
+          "expected_worst": -0.36370572447776794
+        },
+        {
+          "name": "f32/gpu_audit/1",
+          "pass": true
+        },
+        {
+          "name": "f32/batch_1/mode_1",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.5331974029541016e-07,
+          "nmse": 1.596247595596937e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1013,
+          "worst_index": 854,
+          "actual_worst": -0.19359062612056732,
+          "expected_worst": -0.19359037280082703
+        },
+        {
+          "name": "f32/batch_16/mode_1",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse": 5.383266849005206e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 54,
+          "worst_index": 1063,
+          "actual_worst": -0.25782912969589233,
+          "expected_worst": -0.25782930850982666
+        },
+        {
+          "name": "f32/mapping_release/1",
+          "pass": true
+        },
+        {
+          "name": "f32/resident_vs_2",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.36370572447776794,
+          "expected_worst": -0.36370572447776794
+        },
+        {
+          "name": "f32/native_vs_pinned",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.36370572447776794,
+          "expected_worst": -0.36370572447776794
+        },
+        {
+          "name": "f32/gpu_audit/2",
+          "pass": true
+        },
+        {
+          "name": "f32/bounded_pinned_bytes",
+          "pass": true
+        },
+        {
+          "name": "f32/cancel_during_copy",
+          "pass": true
+        },
+        {
+          "name": "f32/cancel_then_fresh",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.18637055158615112,
+          "expected_worst": -0.18637055158615112
+        },
+        {
+          "name": "f32/batch_1/mode_2",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.5331974029541016e-07,
+          "nmse": 1.596247595596937e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1013,
+          "worst_index": 854,
+          "actual_worst": -0.19359062612056732,
+          "expected_worst": -0.19359037280082703
+        },
+        {
+          "name": "f32/batch_16/mode_2",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.7881393432617188e-07,
+          "nmse": 5.383266849005206e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 54,
+          "worst_index": 1063,
+          "actual_worst": -0.25782912969589233,
+          "expected_worst": -0.25782930850982666
+        },
+        {
+          "name": "f32/mapping_release/2",
+          "pass": true
+        },
+        {
+          "name": "f32/unload_reload",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.36370572447776794,
+          "expected_worst": -0.36370572447776794
+        },
+        {
+          "name": "f32/missing_file_source_rejected",
+          "pass": true
+        },
+        {
+          "name": "f32/read_error_reload_recovery",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.36370572447776794,
+          "expected_worst": -0.36370572447776794
+        },
+        {
+          "name": "mixed/truncated_payload_rejected_before_load",
+          "pass": true
+        },
+        {
+          "name": "mixed/fixture_not_production",
+          "pass": true
+        },
+        {
+          "name": "mixed/gpu_audit/0",
+          "pass": true
+        },
+        {
+          "name": "mixed/batch_1/mode_0",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.980232238769531e-07,
+          "nmse": 2.427544251778077e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1037,
+          "worst_index": 50,
+          "actual_worst": 0.2591685950756073,
+          "expected_worst": 0.2591682970523834
+        },
+        {
+          "name": "mixed/batch_16/mode_0",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.9278377294540405e-07,
+          "nmse": 9.611491884435808e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 62,
+          "worst_index": 1081,
+          "actual_worst": -0.010649226605892181,
+          "expected_worst": -0.010649419389665127
+        },
+        {
+          "name": "mixed/mapping_release/0",
+          "pass": true
+        },
+        {
+          "name": "mixed/resident_vs_1",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.3424193263053894,
+          "expected_worst": -0.3424193263053894
+        },
+        {
+          "name": "mixed/gpu_audit/1",
+          "pass": true
+        },
+        {
+          "name": "mixed/batch_1/mode_1",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.980232238769531e-07,
+          "nmse": 2.427544251778077e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1037,
+          "worst_index": 50,
+          "actual_worst": 0.2591685950756073,
+          "expected_worst": 0.2591682970523834
+        },
+        {
+          "name": "mixed/batch_16/mode_1",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.9278377294540405e-07,
+          "nmse": 9.611491884435808e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 62,
+          "worst_index": 1081,
+          "actual_worst": -0.010649226605892181,
+          "expected_worst": -0.010649419389665127
+        },
+        {
+          "name": "mixed/mapping_release/1",
+          "pass": true
+        },
+        {
+          "name": "mixed/resident_vs_2",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": false,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.3424193263053894,
+          "expected_worst": -0.3424193263053894
+        },
+        {
+          "name": "mixed/native_vs_pinned",
+          "pass": true,
+          "elements": 4160,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 4160,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.3424193263053894,
+          "expected_worst": -0.3424193263053894
+        },
+        {
+          "name": "mixed/gpu_audit/2",
+          "pass": true
+        },
+        {
+          "name": "mixed/bounded_pinned_bytes",
+          "pass": true
+        },
+        {
+          "name": "mixed/cancel_during_copy",
+          "pass": true
+        },
+        {
+          "name": "mixed/cancel_then_fresh",
+          "pass": true,
+          "elements": 576,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 576,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.1765427142381668,
+          "expected_worst": -0.1765427142381668
+        },
+        {
+          "name": "mixed/batch_1/mode_2",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 2.980232238769531e-07,
+          "nmse": 2.427544251778077e-13,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 0,
+          "different_values": 1037,
+          "worst_index": 50,
+          "actual_worst": 0.2591685950756073,
+          "expected_worst": 0.2591682970523834
+        },
+        {
+          "name": "mixed/batch_16/mode_2",
+          "pass": true,
+          "elements": 1088,
+          "max_abs": 1.9278377294540405e-07,
+          "nmse": 9.611491884435808e-15,
+          "bit_exact": false,
+          "exact_required": false,
+          "first_different": 1024,
+          "different_values": 62,
+          "worst_index": 1081,
+          "actual_worst": -0.010649226605892181,
+          "expected_worst": -0.010649419389665127
+        },
+        {
+          "name": "mixed/mapping_release/2",
+          "pass": true
+        },
+        {
+          "name": "mixed/unload_reload",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.3424193263053894,
+          "expected_worst": -0.3424193263053894
+        },
+        {
+          "name": "mixed/missing_file_source_rejected",
+          "pass": true
+        },
+        {
+          "name": "mixed/read_error_reload_recovery",
+          "pass": true,
+          "elements": 512,
+          "max_abs": 0.0,
+          "nmse": 0.0,
+          "bit_exact": true,
+          "exact_required": true,
+          "first_different": 512,
+          "different_values": 0,
+          "worst_index": 0,
+          "actual_worst": -0.3424193263053894,
+          "expected_worst": -0.3424193263053894
+        }
+      ],
+      "runs": [
+        {
+          "fixture": "f32",
+          "mode": 0,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 0,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "f32",
+          "mode": 1,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 339987456,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "f32",
+          "mode": 2,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 339987456,
+          "source_bytes": 339987456,
+          "staging_bytes": 16777216,
+          "byte_checked": 339987456,
+          "chunks": 567
+        },
+        {
+          "fixture": "mixed",
+          "mode": 0,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 0,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "mixed",
+          "mode": 1,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 50457600,
+          "source_bytes": 0,
+          "staging_bytes": 0,
+          "byte_checked": 0,
+          "chunks": 0
+        },
+        {
+          "fixture": "mixed",
+          "mode": 2,
+          "gpu_nodes": 1188,
+          "expert_nodes": 81,
+          "h2d_bytes": 50457600,
+          "source_bytes": 50457600,
+          "staging_bytes": 16777216,
+          "byte_checked": 50457600,
+          "chunks": 567
+        }
+      ],
+      "cases": 49,
+      "failures": 0,
+      "pass": true
+    }
+  },
+  "cpu": {
+    "command": "python -X utf8 -m unittest tools.test_minimax_m2_gguf tools.test_minimax_m2_tokenizer tools.test_mimo2_tokenizer tools.test_hy3_tokenizer tools.test_step35_tokenizer tools.test_glm5next_tokenizer",
+    "cases": 41,
+    "exit_code": 0,
+    "pass": true
+  }
+}

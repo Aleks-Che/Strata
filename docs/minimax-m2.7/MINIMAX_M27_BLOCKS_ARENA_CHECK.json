@@ -1,0 +1,143 @@
+{
+  "pass": true,
+  "tests": [
+    {
+      "name": "24_Q4_slots_one_64MiB_slab",
+      "pass": true
+    },
+    {
+      "name": "unique_64KiB_aligned_slots",
+      "pass": true
+    },
+    {
+      "name": "misaligned_release_refused",
+      "pass": true
+    },
+    {
+      "name": "holes_count_as_backing",
+      "pass": true
+    },
+    {
+      "name": "double_release_refused",
+      "pass": true
+    },
+    {
+      "name": "reuse_all_bytes_exact",
+      "pass": true
+    },
+    {
+      "name": "two_size_classes_accounted",
+      "pass": true
+    },
+    {
+      "name": "hard_backing_cap_includes_holes",
+      "pass": true
+    },
+    {
+      "name": "last_slot_releases_its_slab",
+      "pass": true
+    },
+    {
+      "name": "all_backing_released",
+      "pass": true
+    },
+    {
+      "name": "VRAM_reserve_refuses_slab",
+      "pass": true
+    },
+    {
+      "name": "whole_slab_commit_reserve",
+      "pass": true
+    },
+    {
+      "name": "measured_cuda_released",
+      "pass": true
+    },
+    {
+      "name": "measured_arena_released",
+      "pass": true
+    },
+    {
+      "name": "measured_arena_released",
+      "pass": true
+    },
+    {
+      "name": "measured_arena_released",
+      "pass": true
+    },
+    {
+      "name": "measured_arena_released",
+      "pass": true
+    },
+    {
+      "name": "matrix_larger_than_target_gets_whole_allocation",
+      "pass": true
+    },
+    {
+      "name": "oversized_matrix_released",
+      "pass": true
+    },
+    {
+      "name": "invalid_block_alignment_refused",
+      "pass": true
+    }
+  ],
+  "cases": 20,
+  "measurements": [
+    {
+      "allocator": "cuda",
+      "block_mib": 0,
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 0,
+      "NVML_before": 4622008320,
+      "NVML_during": 6769491968,
+      "arena_blocks": 0,
+      "NVML_delta": 2147483648
+    },
+    {
+      "allocator": "arena",
+      "block_mib": 8,
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 1610612736,
+      "NVML_before": 4617879552,
+      "NVML_during": 6228492288,
+      "arena_blocks": 192,
+      "NVML_delta": 1610612736
+    },
+    {
+      "allocator": "arena",
+      "block_mib": 16,
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 1610612736,
+      "NVML_before": 4617814016,
+      "NVML_during": 6228426752,
+      "arena_blocks": 96,
+      "NVML_delta": 1610612736
+    },
+    {
+      "allocator": "arena",
+      "block_mib": 32,
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 1610612736,
+      "NVML_before": 4617814016,
+      "NVML_during": 6228426752,
+      "arena_blocks": 48,
+      "NVML_delta": 1610612736
+    },
+    {
+      "allocator": "arena",
+      "block_mib": 64,
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 1610612736,
+      "NVML_before": 4617289728,
+      "NVML_during": 6227902464,
+      "arena_blocks": 24,
+      "NVML_delta": 1610612736
+    }
+  ]
+}

@@ -39,8 +39,17 @@ def configurations(path):
         raise ValueError('configs must be a list of 1..32 objects')
     names = set()
     for c in result:
-        if set(c) != {'name', 'cache_mib', 'readers', 'chunk_mib'}:
-            raise ValueError('config keys: name, cache_mib, readers, chunk_mib')
+        required = {'name', 'cache_mib', 'readers', 'chunk_mib'}
+        if not required <= set(c) or set(c) - required - {'arena_block_mib', 'arena_growth_reserve_mib', 'group_experts', 'ram_cache_mib'}:
+            raise ValueError('config keys: name, cache_mib, readers, chunk_mib; optional arena_block_mib, arena_growth_reserve_mib, group_experts, ram_cache_mib')
+        if type(c.get('arena_block_mib', 64)) is not int or c.get('arena_block_mib', 64) not in (8, 16, 32, 64):
+            raise ValueError('invalid arena block MiB')
+        if type(c.get('arena_growth_reserve_mib', 0)) is not int or not 0 <= c.get('arena_growth_reserve_mib', 0) <= 1024:
+            raise ValueError('invalid arena growth reserve MiB')
+        if type(c.get('ram_cache_mib', 0)) is not int or not 0 <= c.get('ram_cache_mib', 0) <= 131072:
+            raise ValueError('invalid RAM cache MiB')
+        if type(c.get('group_experts', False)) is not bool:
+            raise ValueError('group_experts must be boolean')
         name = c['name']
         if (not isinstance(name, str) or not 1 <= len(name) <= 64 or
                 any(ch not in 'abcdefghijklmnopqrstuvwxyz0123456789-' for ch in name) or name in names):
@@ -54,6 +63,10 @@ def configurations(path):
 
 def audit(data, config, tokens):
     checks = {'configuration': data['gpu_cache_mib'] == config['cache_mib'] and
+              data.get('arena_block_mib', 64) == config.get('arena_block_mib', 64) and
+              data.get('arena_growth_reserve_mib', 0) == config.get('arena_growth_reserve_mib', 0) and
+              data.get('ram_cache_mib', 0) == config.get('ram_cache_mib', 0) and
+              data.get('cache_group_experts', False) == config.get('group_experts', False) and
               data['gpu_cache_allocator'] == 'arena' and data['expert_reader'] == 'file' and
               data['pipeline_readers'] == config['readers'] and data['pipeline_chunk_mib'] == config['chunk_mib'] and
               data['pipeline_lookahead'] is True and data['pipeline_d2d_batch'] is True and
@@ -76,15 +89,25 @@ def audit(data, config, tokens):
             checks['bytes'] &= (s['source_bytes'] == s['file_bytes'] == s['h2d_bytes'] ==
                                 s['pipeline_h2d_bytes'] == s['pipeline_d2d_bytes'] and
                                 s['h2d_bytes'] + s['cache_hit_bytes'] == s['selected_bytes'] + s['cache_guard_bytes'] and
-                                s['mmap_bytes'] == s['host_working_set_limit'] == 0)
+                                s['mmap_bytes'] == 0 and bool(s['host_working_set_limit']) == bool(config.get('ram_cache_mib', 0)))
             checks['bounded_and_drained'] &= (
                 s['pipeline_unused_bytes'] == s['pipeline_queued_bytes'] == s['pipeline_reader_owned_bytes'] == 0 and
                 s['staging_bytes'] == s['pipeline_device_bytes'] == config['chunk_mib'] * 4 * (1 << 20) and
                 s['arena_live'] == s['cache_resident'] <= s['arena_reserved'] <= config['cache_mib'] * (1 << 20) and
-                s['cache_resident'] <= s['cache_limit'] and s['pipeline_pending_fills_peak'] <= 256 and
+                s['arena_reserved'] <= s['cache_limit'] and s['pipeline_pending_fills_peak'] <= 256 and
                 s['pipeline_plan_peak'] == 3 and s['pipeline_matrices'] == 3 * s['pipeline_plans'] and
                 s['pipeline_copy_batches'] == s['pipeline_copy_fences'] == s['pipeline_scratch_fences'] == s['pipeline_matrices'] and
                 s['pipeline_abort_fences'] == 0 and 0 < s['pipeline_read_peak'] <= config['readers'])
+            if config.get('ram_cache_mib', 0):
+                checks['bounded_and_drained'] &= (s['ram_cache_readers'] == 0 and
+                    s['ram_cache_bytes'] <= s['ram_cache_budget'] <= s['ram_cache_cap'] <= config['ram_cache_mib'] * (1 << 20) and
+                    s['ram_cache_entries'] <= 65536 and s.get('ram_cache_history_entries', 0) <= 65536)
+                checks['bytes'] &= s['ram_cache_mapped_bytes'] + s['ram_cache_file_bytes'] == s['source_bytes']
+            if config.get('group_experts', False):
+                checks['bounded_and_drained'] &= (s['cache_group_experts'] == 1 and
+                    s['cache_pending_matrices'] == s['cache_partial_expert_groups'] == 0 and
+                    s['cache_ready_matrices'] == 3*s['cache_expert_groups'] and
+                    s['cache_ready_bytes'] <= s['cache_resident'] and s['cache_group_plan_pins_peak'] <= 768)
     return {k: bool(v) for k, v in checks.items()}
 
 
@@ -149,6 +172,10 @@ def main():
     sources = args.out / 'sources'
     shutil.copytree(ROOT / 'backends/minimax_m2', sources)
     shutil.copyfile(Path(__file__), sources / Path(__file__).name)
+    for rel in ('backends/step35/expert_cache.hpp', 'backends/hy3/gpu_arena.hpp'):
+        dest = sources / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, dest)
     with args.model.open('rb') as f:
         header_hash = hashlib.sha256(f.read(g.header_end)).hexdigest()
     report = {'pass': False, 'model': str(args.model), 'model_header_sha256': header_hash,
@@ -156,7 +183,7 @@ def main():
               'driver_sha256': sha(Path(__file__)), 'precision_environment': PRECISION_ENV,
               'configurations': configs, 'tokens_requested': args.tokens, 'repeats': args.repeats,
               'scope': 'sequential, fresh process per workload, alternating order; OS cache/external load uncontrolled; sampled memory peaks',
-              'runs': [], 'comparisons': []}
+              'attempts': [], 'runs': [], 'comparisons': []}
     reference = args.reference_logits
     ref_data = json.loads(args.reference_report.read_text(encoding='utf-8')) if reference else None
     if reference:
@@ -172,9 +199,21 @@ def main():
                        '--ctx', '2048', '--batch', '16', '--gpu-cache-allocator', 'arena',
                        '--gpu-cache-mib', str(config['cache_mib']), '--pipeline-readers', str(config['readers']),
                        '--pipeline-chunk-mib', str(config['chunk_mib']), '--pipeline-lookahead', '1', '--pipeline-d2d-batch', '1']
+                if 'arena_block_mib' in config:
+                    cmd += ['--arena-block-mib', str(config['arena_block_mib'])]
+                if 'arena_growth_reserve_mib' in config:
+                    cmd += ['--arena-growth-reserve-mib', str(config['arena_growth_reserve_mib'])]
+                if 'ram_cache_mib' in config:
+                    cmd += ['--ram-cache-mib', str(config['ram_cache_mib'])]
+                if 'group_experts' in config:
+                    cmd += ['--cache-group-experts', str(int(config['group_experts']))]
                 print(name + ': running', flush=True)
+                attempt = {'name': name, 'command': cmd}
+                report['attempts'].append(attempt)
+                save(args.out / 'tuning-report.json', report)
                 with base.with_suffix('.stdout.log').open('w', encoding='utf-8') as out, base.with_suffix('.stderr.log').open('w', encoding='utf-8') as err:
                     run = subprocess.run(cmd, env=runtime_environment(args.cuda_root), stdout=out, stderr=err, timeout=1800)
+                attempt['exit_code'] = run.returncode
                 if run.returncode:
                     raise RuntimeError(f'{name}: exit {run.returncode}; retained stderr/executable for diagnosis')
                 data = json.loads(base.with_suffix('.json').read_text(encoding='utf-8'))
@@ -200,8 +239,12 @@ def main():
                     report['comparisons'].append(comparison)
                     if not exact or not same_ids:
                         raise ValueError(f'{name}: numerical parity failed; do not loosen tolerances')
+                    del other
                 if not all(gates.values()):
                     raise ValueError(f'{name}: failed gates {gates}')
+                # Long runs can produce hundreds of MiB of logits. Release the
+                # comparison arrays before starting another model process.
+                del logits
                 report['summary'] = summarize(report['runs'], configs)
                 save(args.out / 'tuning-report.json', report)
                 print(name + ': PASS; tok/s ' + ', '.join(f"{r['decode_tokens_per_second']:.3f}" for r in data['results']), flush=True)

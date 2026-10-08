@@ -6,11 +6,19 @@ struct strata_mm27_stats {
     uint64_t compute_calls=0,gpu_nodes=0,expert_nodes=0,rejected_cpu_nodes=0,rejected_full_copies=0;
     uint64_t ranges=0,chunks=0,source_bytes=0,h2d_bytes=0,staging_bytes=0;
     uint64_t file_bytes=0,mmap_bytes=0,host_working_set_limit=0,host_budget_updates=0;
+    uint64_t ram_cache_bytes=0,ram_cache_budget=0,ram_cache_cap=0,ram_cache_entries=0,ram_cache_readers=0,ram_cache_peak_bytes=0;
+    uint64_t ram_cache_hits=0,ram_cache_misses=0,ram_cache_mapped_bytes=0,ram_cache_file_bytes=0;
+    uint64_t ram_cache_admissions=0,ram_cache_evictions=0,ram_cache_gpu_drops=0,ram_cache_gpu_drop_bytes=0;
+    uint64_t ram_cache_prefill_bypasses=0,ram_cache_rejected=0;
+    uint64_t ram_cache_gpu_waits=0,ram_cache_history_entries=0;
     uint64_t memory_checks=0,pressure_rejections=0;
     uint64_t sampled_ram_used_peak=0,sampled_vram_used_peak=0,sampled_private_peak=0,sampled_working_set_peak=0;
     uint64_t cache_hits=0,cache_misses=0,cache_hit_bytes=0,cache_fill_bytes=0,cache_guard_bytes=0;
     uint64_t cache_evictions=0,cache_reuses=0,cache_oom=0,cache_bypasses=0,cache_resident=0,cache_limit=0;
     uint64_t selected_bytes=0;
+    uint64_t cache_group_experts=0,cache_expert_groups=0,cache_partial_expert_groups=0;
+    uint64_t cache_ready_matrices=0,cache_pending_matrices=0,cache_ready_bytes=0,cache_group_admissions=0,cache_group_plan_pins_peak=0;
+    uint64_t cache_pressure_trims=0,cache_pressure_groups=0,cache_pressure_evicted_bytes=0,cache_pressure_released_bytes=0;
     uint64_t arena_reserved=0,arena_live=0,arena_blocks=0,arena_allocations=0,arena_frees=0,arena_rejects=0;
     uint64_t pipeline_groups=0,pipeline_chunks=0,pipeline_h2d_bytes=0,pipeline_d2d_bytes=0,pipeline_unused_bytes=0;
     uint64_t pipeline_device_bytes=0,pipeline_queued_bytes=0,pipeline_reader_owned_bytes=0,pipeline_read_peak=0;
@@ -35,6 +43,9 @@ void strata_mm27_reader(int reader);
 // Configuration is lazy: allocation occurs after model/context admission.
 // Lookahead plans at most three matrices using already-observed router IDs.
 void strata_mm27_pipeline(int readers,int chunk_mib=8,bool lookahead=false,bool d2d_batch=false);
+// Optional bounded read-only file-view LRU, configured after the file pipeline.
+// GPU admissions drop overlapping views after copy completion. Zero disables.
+void strata_mm27_ram_cache_configure(uint64_t bytes);
 void strata_mm27_pipeline_trace(bool enabled);
 void strata_mm27_pipeline_trace_write(const char *path);
 void strata_mm27_cancel(const std::atomic<bool> *flag);
@@ -45,7 +56,7 @@ strata_mm27_stats strata_mm27_snapshot();
 const char *strata_mm27_last_error();
 // One live model per thread. Bind validates immutable tensor/mapping identities;
 // unbind invalidates all entries before the corresponding model is freed.
-void strata_mm27_cache_configure(uint64_t bytes,bool arena=false);
+void strata_mm27_cache_configure(uint64_t bytes,bool arena=false,uint32_t block_mib=64,uint32_t growth_reserve_mib=0,bool group_experts=false);
 void strata_mm27_cache_bind(const void *model,const ggml_tensor *const *tensors,size_t count);
 void strata_mm27_cache_unbind(const void *model);
 void strata_mm27_cache_clear();

@@ -1,0 +1,212 @@
+{
+  "pass": true,
+  "functional_checks": 488,
+  "full_model_runs": 6,
+  "full_model_request_comparisons": 18,
+  "full_model_generated_tokens_compared": 576,
+  "full_model_logits_compared": 115236864,
+  "baseline_manifest_verified": true,
+  "baseline_files_verified": 124,
+  "shared_sources_unchanged": {
+    "backends/common/device_memory.hpp": "76f22a1749957f2d82f3e5645aef10719d69bedc012054dcf27f85ae77687459",
+    "backends/common/expert_file.hpp": "9bf0c0eb9b58019fa51aee28e24fa924703225d22ce26b8a8a9b8ec640b9092e",
+    "backends/common/expert_frequency.hpp": "065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+    "backends/common/expert_pipeline.hpp": "6209c674fcf5e4137e7630d8cf386979951b4dd431d79839f1618c5fd1ea4802",
+    "backends/common/expert_slice.hpp": "5f389e0ed854a6bf85481aec824a3fd19b9af88b6be7b452cc98b21696bd3595",
+    "backends/common/host_staging_copy.hpp": "0e988578e9dade6a212fa4a921c0e32d1ee8398a8e6dcb70a9cfadf1a5a12d99",
+    "backends/common/README.md": "913f6c6249dcdf43f203f23afba43320010ac99255d4747b694aa53fce30b328",
+    "backends/common/test_expert_file.cpp": "bb521cbe64f7d70ed200db9e0cd209f38d186afd841691c18917fe781a302a1f",
+    "backends/common/vram_policy.hpp": "0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e",
+    "backends/hy3/build_manifest.json.in": "b4539579d4a27954acf8768bcc850af43c4c0d5abc6f9f2697e460f6b243b531",
+    "backends/hy3/cache_runtime.inc": "ba5e9c624364d0badaf43bb581d9689a94416b74527441cd10c56324e6a36115",
+    "backends/hy3/check_gpu_arena.cpp": "0258e52ee097a25e703c590b60e822400dbad3920dcdf64aa6cfc228635cc608",
+    "backends/hy3/check_graph.cpp": "d31cdf7083ebc0e683ab97e8e5126b570f5fd1c47eb7b8b747bb86077a86316a",
+    "backends/hy3/check_host_cache.cpp": "1f172c833799f5ba68f0d42d3ab0abf97f1c020bf4d6b2cba0840d7fd682e126",
+    "backends/hy3/check_kernels.cpp": "4b5f9cd6e3a0ea6d2dd1d8412b6f21013dc2de44b403ce1e146d5b361e55b1e9",
+    "backends/hy3/check_mtp.cpp": "9f8229794480c60d16f26c60f45390c2af237c6771744a521aed84cc60a6b357",
+    "backends/hy3/check_runtime.cpp": "dec94d0308ccad2ee0f9d655291a4e679bf4ff77b99a1711b3056d200f6b70eb",
+    "backends/hy3/check_scratch.cpp": "c5c6a3be817bd5cc0aef2bda8318f629ba088c02f9fde0efc34ae0b12e68f96d",
+    "backends/hy3/check_vram_alloc.cpp": "bf61117f9220b4bb4add01ec5f1ddf53cb10f8cd523c7ac73c1950c63acbe31e",
+    "backends/hy3/CMakeLists.txt": "2ce1d0d8e8d6fd7b9678bb8e65c2d533e2870aa9a81e63242441fdaf528e1be1",
+    "backends/hy3/contract.hpp": "37601142a1527e76546c0481127868866645de347e5d0de26ea047a3e0070050",
+    "backends/hy3/gpu_arena.hpp": "d02608df4511753b116e8ad4c04b8301888ba3c664fd53e1d7d35cfc7885bbbf",
+    "backends/hy3/gpu_only_audit.inc": "75158501d85720fac40c230dc182415dbc442baf021da62d108ad916e9efdf4c",
+    "backends/hy3/host_cache.hpp": "6ec67b06077964ee38110ea5877acd415fe0480c225bd915620589dbba864b84",
+    "backends/hy3/loader_oracle.cpp": "e5733c0b6bad7dc01d8c01a9d91a2cbd99c4139ba28ea3899b8dd9c63c9fcef4",
+    "backends/hy3/main.cpp": "9fc7ec7b60541ce29b7f38cfee26e057eded04cdd01613391fcfe1e654c79c06",
+    "backends/hy3/mtp.hpp": "5cf55aab2ff6e0856705c2b1b8a15d9c6b5052c89f5cab165f71f4ac291cdcae",
+    "backends/hy3/MtpLoadFlags.cmake": "4e6a15f8da4e4fe715f4a1a3a0fa7767a97282901ee2b66cc4b19aa5b4ad45c1",
+    "backends/hy3/pipeline_runtime.inc": "9b3d7cb85e6432a436d815904c0d5d59dd2f9680a329a89a3cff2174c527a28e",
+    "backends/hy3/pipeline_sched.inc": "3e950179c64fc85d076efbe91708fe6d4490b999c5c32b03542ac58e74f5755d",
+    "backends/hy3/protocol.hpp": "6af16cfea798b707503613ea1291e731c41309fc5557a38cb1b7e890ef5fb2c4",
+    "backends/hy3/README.md": "bf10e88fd2486fe391ba168ed53e44a0497ecf4387d21ca4e7b6d9f0cb5b2085",
+    "backends/hy3/RoutedStrides.cmake": "215da6441082029af775d6b36683e8befa764fc25998806b9d710a2ccb34d54e",
+    "backends/hy3/runtime.hpp": "c21f835ee11bc386d02af34fcf8a2f4edb7eebf5eb3eb8af1ed13e9e2ab499d0",
+    "backends/hy3/RuntimePatches.cmake": "5bd7b92e961b8d18ef9beef4c05e8832f718c74cb46a7747fc3f2ab555dbe9c7",
+    "backends/hy3/SharedScratchPatches.cmake": "db4d659ed11c20f306202dbed48ef3e4d9225d77fc25276518ac89e865723e25",
+    "backends/hy3/shared_scratch.h": "5cbf51224b8e0268aef5d32b77aa45b12fe4d6d56fe321a32d15274560ad5a71",
+    "backends/hy3/shared_scratch_alloc.inc": "c4112a7bbdbf49e4ecfd577da9b6b43fb9e4d30adff3ecd46cd01c7d2520bc7d",
+    "backends/hy3/shared_scratch_sched.inc": "73ce4d4f6f711feb82ba66e28f1bb29b82f50c3dc742915417ca55f1ba12499c",
+    "backends/hy3/StrictF32.cmake": "7fcc0ed094e6ba968863f8872443423786d504d662bb27307b08cd0b25220ee6",
+    "backends/hy3/sync_runtime.h": "03fdc429adaa26eb1d0490472711796310aa6436d1346e03a5578d796b383a04",
+    "backends/hy3/sync_runtime.inc": "85104a9d088117ebd662255b55a0b127cc3fa4a3ff9ff0b71f3430cbb3bb8e15",
+    "backends/hy3/sync_test.h": "dde655dac4639864002830b9a3601345a0d071bc445172bd384cb1d1b80a5914",
+    "backends/hy3/synthetic_hy3.hpp": "d6102e1393ea215bf3b5053bf39ae70cc88f4804b257ae86433d607c185a4dd2",
+    "backends/hy3/template_oracle.cpp": "628e3790ef3649bd62a90d278928a9cc628fc9b35e0f81d8164e57296b1a9284",
+    "backends/hy3/tokenizer_oracle.cpp": "de3424c19a3d9dc9cdefa21e876639112d05e144bb652fdacb018b9c32e57009",
+    "backends/hy3/tokenizer_protocol.hpp": "8b9e8503a8feaa39159b7099b70042d1be0f3ba0a6efaf51f6c811bcb1290d7e",
+    "backends/step35/cache_registry.hpp": "7f011e154f67198aa0734f084ce5ec31ae94a6ec0b9162fdb6031be9f072c864",
+    "backends/step35/check_cache.cpp": "bbf39923f7d4d67880625a0edcf7bc9bad1eb63a4d09889af1f32b898c84a0fb",
+    "backends/step35/check_graph.cpp": "07cca58bd5ba450243bf1acf644be234f7e25e7e7c49a401239fd2740e039851",
+    "backends/step35/check_host_copy.cpp": "46f9901cc9397d90f8fd78a643ef81f73fd4cdba49641c521726422329dd620e",
+    "backends/step35/check_kernels.cpp": "de7c51863292e59ae212660a0025153bbfe1d8ea97d585844dd198310e524026",
+    "backends/step35/check_mtp.cpp": "17dc1355ce81b262b989c680d83353d544e305d173cb3ef783b3ed1973063105",
+    "backends/step35/check_pipeline.cpp": "df277de22b1e2a647dc1564a8a8bd309ec4940c0e85649bc485ea5f2ab8a4551",
+    "backends/step35/check_runtime.cpp": "0abf84351c069c50637e7043e88e19c3bed8e18bc9038eed767d782ca93d8d0b",
+    "backends/step35/check_shards.cpp": "30570b51ba0765e53d6015d21e64719227c4d46500ec31d95abfc9c38f9b9fc1",
+    "backends/step35/CMakeLists.txt": "d69606befe1ae94148df8303b0bab3de9993ad9743db399c89971fe3bb7f474f",
+    "backends/step35/expert_cache.hpp": "bd2f71bb76d81d24cf04a62c5b980e6004ab396940b5009c31304510199d51f9",
+    "backends/step35/gpu_only_audit.inc": "b15506df0e111919fbbb0883591cb9f99d3d79e6fa7ebe344c29e23e9cc403fe",
+    "backends/step35/gpu_trace.hpp": "04e74fd7fb728cdac4f7dba88409027acd6a7348a88bf2954536d02162139196",
+    "backends/step35/host_copy.cpp": "9b13585e6aab8882b6c43eec1329c0658447d70e95fdf0848cca369f72801c4e",
+    "backends/step35/host_copy.hpp": "9d7710021838db48b47046933ad26b5899a1fdf66f3eca600894d8d35809d3d4",
+    "backends/step35/main.cpp": "03bd8825b2c4b3ed1b5bf2573a487b544c53922213fa20672fdb91704f92c635",
+    "backends/step35/MtpProbe.cmake": "b34cea03de4c19c3ac941f2dd2ed1f02a0998cf760b451c346721d4bb5ea0c01",
+    "backends/step35/pipeline_runtime.inc": "80379ee5c6899434cec074e658d7716e3824a98f36aafc2f287b69f30d4d1237",
+    "backends/step35/pipeline_sched.inc": "2c4614d95662bd8b439463c35b54fbfb9d3c9eb2414c728363f697425cd896dc",
+    "backends/step35/pressure_holder.cpp": "392208c2740b50a7cef312e4b5b95636af96b27511d36e1c2ed3d7618fdbb353",
+    "backends/step35/protocol.hpp": "3b32d2af3af898b57a0e47c0c2b70b697725285e5b99b8bcfcf1158e5dadbcfc",
+    "backends/step35/README.md": "19313dbf9a955d99683200b1caf10622ae387ee3ccdc7b86a2ce8820492631cd",
+    "backends/step35/RoutedStrides.cmake": "03e14140133b3ab4a8da15f932604c175c7cee12229eeb5d76176beaaa474385",
+    "backends/step35/runtime.hpp": "d21df0c89bc8fd7eecf2a32abc7a3fac473bb64fc6277471ff22a0691a3171ed",
+    "backends/step35/RuntimePatches.cmake": "727410aab9ef1150dd189ad207fe67449c8c4164e125da699afedf23f747d662",
+    "backends/step35/session_snapshot.hpp": "09fe0d7ee4b810cc961c6bd00ed569af171fffbedf934baf418669d8f56bc601",
+    "backends/step35/StrictF32.cmake": "674b2908a8541e168edc6fd03802c2525ebb657b28f2e6891a5e776fb099f03c",
+    "backends/step35/sync_runtime.h": "f46db5b5107c8fa0c3c08febc7a64b4797649e80997a4329cdb6cc1e955f35fd",
+    "backends/step35/sync_runtime.inc": "0e0b5729a0372a9d580975bc129509aa0feee0f54336b9654305b0a23221047f",
+    "backends/step35/synthetic_step.hpp": "6e9169ba7f59e29af86040cb27259e13f2fa39af2fb5b245007644fde5982726",
+    "backends/step35/template_oracle.cpp": "5c1038786b3f5dcfa92321e53616755d81130254fe8df9fdf3fc40a9da17a0b0",
+    "backends/step35/tokenizer_oracle.cpp": "6058c5cc39319fc925bbe01a075ba7ebee9dd5c085abc7b67b8d5edd52beaad6",
+    "backends/step35/tokenizer_protocol.hpp": "27e3b1f4c1decc5a973e98671f7a7a032ad11c2103975c8349584ae58b1cda9a"
+  },
+  "source_sha256": {
+    "backends/minimax_m2/build_manifest.json.in": "256c789e9dd38b6e4133397bf6428db11924605325b1cf877dc50f07eeed2cc9",
+    "backends/minimax_m2/cache_runtime.inc": "29797eb2ba770b1fd0598f6ead5ac569f18d4d27521d301b965906e69ca98dcb",
+    "backends/minimax_m2/check_arena.cpp": "2306e038b24a162b1adcdf39e63f7451fa355a9342ad9fe7f89e18e966a7fd01",
+    "backends/minimax_m2/check_cache.cpp": "0c0562ea8e18d45655b330fcf3089b0094b501d92490488cde31cff89b533725",
+    "backends/minimax_m2/check_dflash.cpp": "55cb3e7881b3e1bd52596f2e79d754eb891d223d8606afaf13e0634686c0669a",
+    "backends/minimax_m2/check_graph.cpp": "c6a0265c6ddc27721c2a812325508e22ee004b5243a214dbe90e1cfc7307c424",
+    "backends/minimax_m2/check_group_cache.cpp": "4cb5db7d0093050261860dc3ea164708017734ef4ceba2a9719aaf56442950f0",
+    "backends/minimax_m2/check_kernels.cpp": "1afac45b1bfef7b7a0c4f7f5ac84b4b581f06f3f0eeebd61bc170288bf31e410",
+    "backends/minimax_m2/check_lifecycle.cpp": "d5cd3cc847b55607a4db2b955ea37d8f130614d75c54b509c84084c4243178b4",
+    "backends/minimax_m2/check_reclaim.cpp": "5d21e2af30080fc68cd6e8d7ec7b3dea473c43c2b85ffdea13fd036a05d155da",
+    "backends/minimax_m2/check_reload.cpp": "a45c5211d89799279d2cc48440d28cef517a4da655db6f6b1225d7ce6ce515f4",
+    "backends/minimax_m2/check_runtime.cpp": "84949d82fd38684733c1455aef5bb52eefd20e8edec6e25af84e9c6f9de950ea",
+    "backends/minimax_m2/CMakeLists.txt": "30ca3feaff2c63fb36bf3fa544887a1ec7c8c6d3a44e9d967013f9ce8c18f8f3",
+    "backends/minimax_m2/contract.hpp": "591745114ae34812daccfecc5f83ce36412faf5546b1086074235ba31d8fe08e",
+    "backends/minimax_m2/DFlash.cmake": "3f48d322b250236415825ec76fe38e0b768a2e0172c4dc11e5974be84ca84337",
+    "backends/minimax_m2/dflash_contract.hpp": "5f1b28789a65a0af55dc59c4724659d2be69b82bc2b6ee44ffbc05d37b7ccd61",
+    "backends/minimax_m2/dflash_decode.hpp": "affdaa3a5981e3ca856b3489ed625bbce0248829bf6832888d1b0962497def2f",
+    "backends/minimax_m2/dflash_loader_oracle.cpp": "05ae9690d7d5752811f3fb9ce06ab773930438bb4f911752b91dbe010494ff38",
+    "backends/minimax_m2/gpu_arena.hpp": "0ad8e50245b9657c359d984eca19fef7a5a9654a41595325e99f896e0b63030b",
+    "backends/minimax_m2/gpu_only_audit.inc": "9f483d171fde41c84fb7dc5d61542d6ffdefd0397ef3a04df799bd392eea5443",
+    "backends/minimax_m2/group_cache.hpp": "4b6a0978eefea415134d3fea9bc03367dcab78064d562a1bda723c199c2d1469",
+    "backends/minimax_m2/loader_oracle.cpp": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+    "backends/minimax_m2/main.cpp": "90a2ffba9e9dd0f17965dfdf30fbf1259f46b40ebbd2cc6fa5797157c0ece61a",
+    "backends/minimax_m2/minimax_tokenwise.hpp": "f69f76ab7ab59c2aa429aa4738613b2c201da977701efddc3917d58d32f55200",
+    "backends/minimax_m2/pipeline_runtime.inc": "62e3dda56e21fea740bdaf6989ada04b7b6c4df3e243bf879d5f93ee9cd0fa04",
+    "backends/minimax_m2/pipeline_sched.inc": "8512c68d492a4f9c1277936b4ada352d8152431052a539ee83f93db791482a94",
+    "backends/minimax_m2/pipeline_state.inc": "12abaf7046767f5e5471ef2a92a916ba091b225212a644b6b60291c8c463f3e5",
+    "backends/minimax_m2/pipeline_trace.hpp": "792343a13ca82c30b6043b73e1103c864bd0d948ff92cd85a942edfa71414ad7",
+    "backends/minimax_m2/QuantF32.cmake": "7aaa9ae7fa1efedd5804e0955b8652621507949e75e1c387308234073e429d84",
+    "backends/minimax_m2/RoutedStrides.cmake": "df9032cecf6bd1ded169ac1e882cf177b900dbfe6f11ea66b2a06b5b38c137ce",
+    "backends/minimax_m2/runtime.hpp": "5b507e1f1ac44e102f62f7769db06163078b8ff17b25cdd6b461bfbc9b988a9c",
+    "backends/minimax_m2/RuntimePatches.cmake": "29656d70e178299aa35e77cb9361575702a2c84ca396e2043e3f24e6a37af4cd",
+    "backends/minimax_m2/speculative_bench.cpp": "6723ca20a5b6ae955339bb94c9b87a1539cdaac7469ed4e0b8643c53954b8b06",
+    "backends/minimax_m2/StrictF32.cmake": "93249e7c543a22b01591dc14418e95aa4e1a4a5beb5311a907413a4262e7c11d",
+    "backends/minimax_m2/sync_runtime.h": "67bc88e7ef24414bce725e14a5890c781f3f1b91c12e40a7f639460ae567a7dc",
+    "backends/minimax_m2/sync_runtime.inc": "4b2000e4542b6398760ca952fee44d2c1455b76abd7a92c62b49f7b9cc170ee9",
+    "backends/minimax_m2/sync_test.h": "40ffd42119acdb884c768f81780b042c72c62e7d578fe0a5ea9cd4b0d311a612",
+    "backends/minimax_m2/synthetic_minimax_m2.hpp": "de866ed75cba59f804b9fd5e74596b0a420d309a5ac5323e07e94c8f3189bc13",
+    "backends/minimax_m2/template_oracle.cpp": "98bd356fda9b659076c6ce276d21ed1ae68bc7d4f0a0fdb8d838a866ca1c0337",
+    "backends/minimax_m2/tokenizer_oracle.cpp": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+    "backends/minimax_m2/Tokenwise.cmake": "8b4412879df6dd5fc6cb1dbf9b79febf994b6056c95d1772cac5577d3ffc4b2e",
+    "tools/tune_minimax_m2_pipeline.py": "8bebc2c03dbb8d0291839f32e2340749bbc603c8d1fe026e773fe9c8916baa80",
+    "tools/check_minimax_m2_lifecycle.py": "7ab30bf32a9cb649e6a23dbd1898fcb48c7e29f1e3b80ee5d5c038393cc034d9"
+  },
+  "executables": {
+    "bench": {
+      "path": "build-local/minimax-m2-group-evidence-01/strata-minimax-m2-bench.exe",
+      "sha256": "b3e92f8387e1ede7292be50f0c8a8537dfea10435e71524a5f5147b1847de317"
+    },
+    "cache-check": {
+      "path": "build-local/minimax-m2-group-evidence-01/strata-minimax-m2-cache-check.exe",
+      "sha256": "ece62db40b2e8308e2fc1052bc1a0c0b6ed8e079b719d47025be2d3dc363e061"
+    },
+    "group-cache-check": {
+      "path": "build-local/minimax-m2-group-evidence-01/strata-minimax-m2-group-cache-check.exe",
+      "sha256": "be266602bd3a3a14cd22f95c1ff7280748d80782107ea8c74e2cfa0e52a13cd6"
+    },
+    "lifecycle-check": {
+      "path": "build-local/minimax-m2-group-evidence-01/strata-minimax-m2-lifecycle-check.exe",
+      "sha256": "8d446baba33cd8ffe9148a8a02dc6b545fbb74b5fc77d872232a38e035462b39"
+    }
+  },
+  "dependency_archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "measurements": [
+    {
+      "configuration": "matrix-18",
+      "aggregate_decode_tok_s": [
+        3.969352636827299,
+        3.911543283461899,
+        3.9034486591150186
+      ],
+      "median_aggregate_decode_tok_s": 3.911543283461899,
+      "workload_seconds": [
+        85.4308332,
+        86.9701561,
+        86.9348827
+      ]
+    },
+    {
+      "configuration": "group-18",
+      "aggregate_decode_tok_s": [
+        3.9305553537447833,
+        3.9297370121114237,
+        3.867842895158762
+      ],
+      "median_aggregate_decode_tok_s": 3.9297370121114237,
+      "workload_seconds": [
+        86.12916070000001,
+        86.1544247,
+        87.3947456
+      ]
+    }
+  ],
+  "performance_scope": "Three alternating pairs, same executable/settings/corpus; reference from retained pre-change executable. Forward-only decode and complete request time; sampled global memory; OS cache and external activity uncontrolled.",
+  "default_group_experts": false,
+  "early_attempts_retained": [
+    {
+      "path": "build-local/minimax-m2-group-fixture-01",
+      "reason": "Two-pending-fill expectation did not apply to a 2 MiB cap containing only one 1.6875 MiB F32 triplet."
+    },
+    {
+      "path": "build-local/minimax-m2-group-fixture-02",
+      "reason": "Late admission at a subsequent matrix left an incomplete group; fixed once-per-plan admission and frequency training."
+    },
+    {
+      "path": "build-local/minimax-m2-group-fixture-03",
+      "reason": "Incremental backend did not rebuild included group header; explicit object dependencies added. Stale executable retained in this directory."
+    }
+  ],
+  "artifact_sha256": {
+    "MINIMAX_M27_GROUP_UNIT_CHECK.json": "9c9134fdb6ddd92867d57f4f520a1be3ade90290ffa8ceccf1057e4545dfcba3",
+    "MINIMAX_M27_GROUP_FIXTURE_CHECK.json": "c93c031041281e51212c19faaab80315bb41e37e74cbab3badf2bfbaf9de1314",
+    "MINIMAX_M27_GROUP_MATRIX_REGRESSION_CHECK.json": "052924f006699fb38d0ec96523a5c06ed1a9d91f312ee18f565e606f021d8aa3",
+    "MINIMAX_M27_GROUP_SYNC_FIXTURE_CHECK.json": "e7a74d8fd86557eb7edb5ef40d54f95f6cddb59ac677582042a4ae4ce82bd91c",
+    "MINIMAX_M27_GROUP_LIFECYCLE_CHECK.json": "1a189d7531a62b317fe277c17a153afe2d08a0db4c3e67cd7dd76099119ad3b2",
+    "MINIMAX_M27_GROUP_CONFIRM_CHECK.json": "352d53ba8633d54067607542b05d58175ad4127c9f9a715b8b8c7e06f3e50ae2",
+    "MINIMAX_M27_GROUP_REFERENCE_MANIFEST.json": "e194596ee51db8205c5ffed489108e67c9805cfb60288204550a886146654ff3",
+    "MINIMAX_M27_GROUP_BUILD_MANIFEST.json": "4cb2ce6350e3a5bb32ac32fc7b7579c7038c7e6283c1962eae5ed0a26b24edf5"
+  }
+}

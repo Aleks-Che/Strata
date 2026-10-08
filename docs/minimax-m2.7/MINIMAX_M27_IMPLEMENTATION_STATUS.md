@@ -4,14 +4,51 @@
 План: [MINIMAX_M27_IMPLEMENTATION_PLAN.md](MINIMAX_M27_IMPLEMENTATION_PLAN.md).
 
 Файл хранит проверенный прогресс и точку продолжения.
-**MM27-11: реализовано объединение D2D-ожиданий в пределах тензора.**
-Опция `--pipeline-d2d-batch 1` дополняет router lookahead. Новые cache fills
-защищены от eviction/reuse до завершения копий; отмена и ошибки сначала
-завершают операции, затем освобождают записи. Три пары A/B дали **+6,61–14,24% decode**
-относительно MM27-10. Все logits совпали побитно; 4920 fixture checks,
-давление памяти, перезагрузки и контексты 2K/4K прошли.
+**Обновление весов:** target перенесён в `H:\models\MiniMax-M2.7`;
+найдены DFlash Q3/Q4/Q5, ranges и полные draft SHA-256 проверены.
+[Инспекция и этапы подключения DFlash](MINIMAX_M27_DFLASH.md).
+**P5.DF-03:** реализован offline greedy DFlash driver и проведены
+[измерения полезной скорости](MINIMAX_M27_DFLASH_BENCHMARK.md).
+Q3/Q4/Q5 depths1/2/4/7 прошли full-logit corpus parity с opt-in tokenwise
+verification. Исходный batched path менял routing на близких scores;
+исправление и неудачные артефакты сохранены. Serving/defaults остаются off,
+live EOS/cancel/pressure/recovery ещё TODO; native MTP weights отсутствуют.
+Медианы трёх64-token повторов: off/cap18 **3.550**, Q4/depth1 **3.675**,
+Q4/depth2 **3.497 токена/с**. Номинальные+3.54% не подтверждают устойчивого
+выигрыша на фоне разброса off; все logits побитно совпали. Default off сохранён.
+Исторические отчёты и команды ниже содержат пути прежних запусков.
+
+**MM27-15: реализован и проверен запас для роста GPU arena.**
+Новый `--arena-growth-reserve-mib` устраняет повторные allocations/frees
+в управляемом тесте колебаний бюджета. На полной модели выигрыш мал;
+устойчивое преимущество32 МиБ над64 не установлено. Defaults64/reserve0 сохранены.
+**MM27-16: реализованы и проверены группы gate/up/down.**
+Один слот на эксперта, совместная замена, readiness после завершения copy,
+plan pins и admission один раз за router plan. **488 checks PASS**;
+шесть full-model запусков побитно совпали со старым EXE по всем токенам/logits.
+Три пары: aggregate decode **3,912→3,930 токена/с (+0,47%)**, полное время
+**86,935→86,154 с**. Устойчивого выигрыша нет, `--cache-group-experts 0` сохранён.
+[Реализация, измерения и артефакты](MINIMAX_M27_GROUP_CACHE.md).
+**MM27-17: реализован ограниченный RAM LRU и partition с GPU-кешем.**
+Read-only GGUF views удаляются после GPU fill; отложенное admission уменьшает
+лишние отображения. **816 checks PASS**,21 ответ/1344 IDs/268886016 logits
+совпали с сохранёнными эталонами побитно. Три короткие пары: RAM64 **3,485**
+против off **3,941 токена/с**; workload89,556 против85,944 с. RAM cache default0.
+Long256 достиг55,859 ГиБ views, global RAM69,88%; natural EOS не достигнут.
+[Реализация RAM-кеша, отрицательный speed result и артефакты](MINIMAX_M27_RAM_CACHE.md).
+**MM27-18: bounded output budget, английский EOS и live JSONL recovery проверены.**
+Предел256 заменён свободным местом в context. Английский ответ и повтор
+естественно завершились на414 tokens;17 JSONL boundary/EOS/cancel/recovery
+scenarios PASS. Добавлен отдельный reasoning parser:13 parser/tokenizer tests
+и18 real-output replay checks PASS. **Полный completion gate FAIL:** русский
+список1..96 повторяется в reasoning и не даёт final за1536 tokens.
+Serial ReadFile/H2D с cache/pipeline off повторил первые1024 IDs и204865536
+logits побитно, включая14 повторов фразы: pipeline/cache не объясняют этот цикл.
+Sampler и defaults не менялись; parser в API не зарегистрирован.
+[Изменения, результаты и границы MM27-18](MINIMAX_M27_COMPLETION.md).
+Экспериментальный набор **18 ГиБ /2 readers /chunk4 МиБ** сохранён.
 Проверенные флаги: `--gpu-cache-mib 18432 --gpu-cache-allocator arena --pipeline-readers 2 --pipeline-chunk-mib 4 --pipeline-lookahead 1 --pipeline-d2d-batch 1`.
-Defaults: cache 0, allocator `cuda`, reader `file`, pipeline 0, lookahead 0, D2D batch 0.
+Defaults: GPU cache0, RAM cache0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0.
 Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профиль ещё не готовы.
 **OPEN:** причина старого MM27-06 tiny native-after-cache reload расхождения
 не установлена. Новые PASS не закрывают его причину.
@@ -22,21 +59,21 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 |---|---|
 | PREP-01 | DONE: инспекция и два документа |
 | Ревизия Strata при подготовке | `e111f63f89aa77d69aed46b2150f7e61aaa5b05d`, рабочее дерево уже содержит изменения |
-| Основной GGUF | `H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf` |
+| Основной GGUF | `H:\models\MiniMax-M2.7\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf` |
 | Файл | 138 342 384 352 байта / 128,841 ГиБ, один GGUF |
 | Архитектура | `minimax-m2`; 62 MoE-блока, full attention |
 | Кванты | Q4_K375, Q6_K61, F32 373; BF16 tensors нет |
 | Header/ranges | PASS постоянного inspector/contract, все809 tensors |
 | Candidate dependency | Unsloth `86ebfef2`; отдельные CPU/CUDA builds, source/patch hashes сохранены |
-| MTP | Нет local weights/NextN metadata; в candidate нет MiniMax MTP graph/loader |
-| Tokenizer/template | PASS: 1316 tokenizer cases и103 template checks; API TODO |
+| MTP / DFlash | Native MTP weights отсутствуют; DFlash offline greedy/corpus parity PASS, Q3/Q4/Q5 depth screen и повторные timings измерены; serving off |
+| Tokenizer/template | PASS: 1316 tokenizer cases и103 template checks; отдельный reasoning parser проверен на chunks/UTF-8; tools/API TODO |
 | CUDA kernels / tiny graph | PASS:83 kernel cases в обоих режимах;217 graph cases с F32 активациями |
 | Fast quant graph | 208/217 PASS;9 logit FAIL, greedy fixture совпал; runtime default не утверждён |
-| Engine/cache/pipeline/sessions | Optional packed GPU cache, bounded mmap readers и tensor file pipeline с router lookahead и D2D batch; API/session reuse TODO |
+| Engine/cache/pipeline/sessions | Optional GPU cache/groups и RAM view LRU с GPU partition; file pipeline с lookahead/D2D batch; RAM64 short speed хуже off; API/session reuse TODO |
 | Reload validation | MM27-11: 55 stress и 18 tiny lifecycle checks PASS; старый native discrepancy остаётся OPEN |
-| Скорость, токенов/с | D2D batch: 3,31 / 4,20 / 3,98; три пары A/B, подробности в MM27-11 |
+| Скорость, токенов/с | P5.DF-03, медиана workload64: off/cap18 3.550; DFlash Q4/depth1 3.675, depth2 3.497; три повтора, устойчивый speedup не подтверждён |
 | Рекомендуемые defaults | Для correctness: strict F32, FA/graphs/MTP off, context512/batch8; быстрый профиль не выбран |
-| Следующая задача | **MM27-12: подобрать cache/readers/chunks и проверить длинные ответы; при numerical FAIL — трасса первого расхождения** |
+| Следующая задача | MM27-18b: русский greedy repetition и проверка sampling; затем P2 history/tool parser/API; DFlash live lifecycle остаётся отдельно |
 
 В PREP-01 созданы только план и статус в `docs/minimax-m2.7`.
 Код, действующие профили и GGUF не изменялись. Существующая работа
@@ -74,7 +111,7 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 - Архив `build-local/llama-glm-86ebfef2.tar.gz` — 37 493 950 байт,
   SHA-256 `f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99`.
   Candidate SHA — `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`.
-- Windows RAM **125,555 ГиБ**, RTX5090 VRAM **32 607 МиБ**, driver581.80;
+- Windows RAM **125,555 ГиБ**, RTX 5090 VRAM **32 607 МиБ**, driver 581.80;
   95%-лимиты **119,277 ГиБ / 30 976,65 МиБ** глобально.
   Снимок до модельных тестов: available RAM≈95,62 ГиБ, GPU used4721 МиБ.
   Это внешняя нагрузка, не память MiniMax; перед тестом измерить заново.
@@ -101,10 +138,14 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 - Причина двух tiny long-context native-after-cache reload расхождений MM27-06.
   Поздние PASS с диагностическим replay не доказывают устранение причины.
   Full-model cache-on pressure/cancel/unload и context2K/4K прошли в MM27-06;
-  cache-off — MM27-04. Расширенная CUDA kernel timeline, continuous memory peaks/physical SSD traffic, длинные ответы
-  и многошаговые сессии остаются отдельными проверками.
-- Наличие пригодных native MTP weights, совместимость с heretic target,
-  реализация graph/hidden/KV contract, acceptance и ускорение.
+  cache-off — MM27-04. MM27-18: английский EOS/полный повтор/live signal recovery PASS,
+  русский greedy repetition остаётся OPEN. Расширенная CUDA kernel timeline,
+  continuous memory peaks/physical SSD traffic и многошаговые сессии ещё не проверены.
+- Native MTP weights по-прежнему не найдены. DFlash Q3/Q4/Q5 прошли loader,
+  head/MASK/feature checks, полный offline greedy цикл и корпусное сравнение
+  с serial target; acceptance и скорость измерены. Открыты numerical parity
+  с NVIDIA reference, live GPU EOS/cancel/pressure/recovery, длинный контекст,
+  sessions и устойчивый полезный выигрыш для serving.
 
 ## Таблица этапов
 
@@ -112,29 +153,720 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 |---|---|---|
 | PREP-01 | DONE | Исследование и документация сохранены |
 | P0 — contract/oracles | DONE для F32 activation baseline; fast-quant logit issue открыт | Inspector, полный contract, изолированная сборка и CUDA fixtures |
-| P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload | Остались расширенные quality/long-generation/SSD measurements |
-| P2 — tokenizer/template/API | PARTIAL: offline tokenizer/template PASS; API TODO | Oracle fixtures, tools/reasoning, оба API и web chat |
-| P3 — cache/pipeline | PARTIAL: synchronous packed GPU cache, full-model A/B/pressure PASS; tiny reload issue OPEN; bounded mmap, router lookahead, D2D batch и CUDA event overlap проверены | Bounded memory, bytes/logits parity, timeline и A/B |
+| P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload; MM27-18 English EOS PASS, Russian completion FAIL | Остались greedy repetition, quality/SSD measurements |
+| P2 — tokenizer/template/API | PARTIAL: offline tokenizer/template и отдельный reasoning parser PASS; tools/API TODO | History/tools, оба API и web chat |
+| P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, expert groups и RAM view LRU/partition проверены; RAM64 short speed хуже off; tiny reload OPEN | Нужны полезный RAM speedup, законченные длинные ответы, residency/SSD measurements |
 | P4 — sessions/context | TODO | Fresh/restore/shift/cancel parity |
-| P5 — MTP | WAITING_WEIGHTS_AND_BACKEND, дополнительный этап | Совместимые weights, native graph/loader, correctness и speedup |
+| P5 — MTP / DFlash | Native MTP ждёт weights/backend; DFlash OFFLINE_GREEDY_AND_CORPUS_PASS, timings измерены | Live GPU EOS/cancel/pressure/recovery, context/sessions и полезный speedup |
 | P6 — profile/regressions | TODO | Измеренные defaults и отдельный рабочий профиль |
 
 Отсутствие P5 не блокирует P0–P4/P6. `DONE` относится только к указанной
 части; чтение header и найденный upstream loader не означают working inference.
 
-## Точка продолжения: MM27-12
+## Точка продолжения: MM27-18b, P2 и оставшиеся DFlash lifecycle gates
 
-1. P3.5: сравнить размеры GPU cache, chunks4/8/16 и readers1/2 с новым D2D batch.
-   Учитывать фактическую residency после global clamp; измерять prefill/TTFT,
-   decode и полное время запроса, включая более длинные ответы.
-2. MM27-11 сократил host waits до одного на выбранный тензор. Compute fences,
-   plan completion и ring reuse events сохранены; defaults пока не утверждены.
-3. Старый MM27-06 discrepancy остаётся OPEN. При повторении сохранить EXE,
-   inputs/logits и трассировать первый расходящийся node без ослабления tolerances.
-4. P3.4 и P2/P4/P6: управляемый RAM LRU/GPU-resident partition, API/tools/reasoning,
-   long-answer quality, snapshots/prefix/shift и рабочий профиль ещё предстоят.
+1. P5.DF-03a выполнен для offline greedy и короткого корпуса. DFlash оставлен
+   off; перед serving нужны live GPU EOS/cancel/pressure/recovery, длинный
+   контекст и session restore. Depth1/2/4/7 и кванты уже измерены — повторять
+   sweep после изменения реализации, а не вместо закрытия этих gates.
+2. MM27-16 завершён в проверенном scope: группа `(generation, layer, expert)`,
+   плотная упаковка, совместная admission/replacement, readiness и group pins.
+   Density/bytes/logits/cancel/pressure и три A/B относительно64/reserve0 PASS.
+   Speedup не подтверждён; grouping остаётся optional/off. Повторять эти
+   timings после изменения реализации или корпуса, а не вместо новой работы.
+3. MM27-17 реализовал RAM view LRU/partition и отложенное admission.816 checks
+   и long256 parity PASS; три короткие пары показали замедление. RAM0 сохранён.
+   Не включать эксперимент по одному удачному timing; full RAM-cap LRU,
+   фактическая residency/SSD traffic и speedup долгих сессий остаются проверками.
+4. MM27-18 проверил свободный context budget, английский EOS на414 tokens,
+   полный повтор и реальную адресную отмену после257 tokens с восстановлением.
+   Русский1..96 зациклился в reasoning: complete-corpus gate FAIL. MM27-18b:
+   проверка sampling/качества и независимого reference, затем P2.3–P2.6
+   history/tool parser/API. Reasoning parser готов только как отдельный модуль.
+   RAM cache и grouping сохранять выключенными; API/tools/session ещё TODO.
+   Cache/pipeline off уже воспроизвёл1024 IDs/logits побитно; повторять этот
+   контроль без изменения реализации или корпуса не требуется.
+5. Старый MM27-06 discrepancy OPEN: при повторении сохранить EXE/logits и
+   трассировать первый расходящийся node. Native MTP требует отсутствующих local weights.
 
 ## Подтверждённый журнал
+
+### MM27-18 — 2026-10-08 — bounded output, английский EOS, JSONL отмена и reasoning parser
+
+В `main.cpp` max_tokens ограничен свободным context budget вместо256,
+default8 сохранён. Добавлены stop_token_id, явный token-boundary cancellation
+и Windows SIGBREAK для адресной отмены созданной process group. Старый raw
+text/token stream по-прежнему содержит EOS. Native математика и stop IDs не менялись.
+
+На полном target, strict F32 ctx2048/batch16,18/2/4, budget1536:
+английский запрос и повтор завершились на414 tokens, decode4,170/4,248 токена/с,
+request112,252/107,592 с. Все414 IDs и82826496 logits повторились побитно.
+Первые256 каждого из трёх запросов совпали с MM27-12 reference:768 IDs и153649152 logits.
+Global sampled RAM24,89%, VRAM84,14%. Это correctness run, не speed A/B.
+
+Русский запрос со списком1..96 дал1536 tokens без закрытия reasoning и final,
+33 раза повторив одну фразу. **Полный natural-completion gate FAIL сохранён.**
+17 live JSONL scenarios PASS:13 ошибочных запросов, default8, точный context
+budget1996 с EOS414, реальный CTRL_BREAK после257 tokens и полный ответ после
+отмены без перезапуска. Streaming IDs и raw text после восстановления совпали
+с полным английским reference; pipe не экспортирует logits.
+
+Отдельный `MiniMaxReasoningParser` сохраняет chunks/UTF-8/whitespace и partial
+reasoning; tools не исполняет и в API не зарегистрирован.13 unit methods и18
+проверок replay реальных output bytes PASS. API, history/tool correlation,
+multilingual completion и рабочий sampling profile остаются открытыми.
+Контрольный serial ReadFile/H2D без GPU/RAM cache и pipeline повторил1024
+IDs и204865536 logits русского ответа побитно;14 повторов той же фразы,
+reasoning не закрыт, stop length. Это numerical diagnostic PASS, не completion
+PASS и не независимый model/framework oracle. Полный неудачный gate сохранён
+в [validation report](MINIMAX_M27_COMPLETION_VALIDATION_CHECK.json).
+[Подробности и воспроизведение](MINIMAX_M27_COMPLETION.md).
+
+### MM27-17 — 2026-10-08 — RAM view LRU, GPU partition и отложенное admission
+
+Добавлены `host_cache.hpp`, `check_host_cache.cpp`, `--ram-cache-mib` в bench
+и checkers, telemetry и tuning support. File pipeline читает из ограниченных
+read-only GGUF views. GPU fill удаляет пересекающиеся RAM views после fence;
+активные readers удерживают адрес до конца memcpy. LRU учитывает alignment,
+ограничен physical headroom, commit reserve,65536 entries и process target94%.
+Global95% и source/lifecycle guards сохранены; shared backend файлы не менялись.
+
+Первый eager prototype замедлил decode; cap84 вместо64 не помог. В final
+варианте RAM admission ждёт предыдущего GPU refusal. Число созданий/удалений
+на первом запросе уменьшилось19410/13137→3216/1755. Проверки повторены:
+35 unit +228 matrix pipeline +120 grouped +180 sync +216 off regression
++18 fixture lifecycle +19 full pressure = **816 PASS**. Full pressure snapshot
+89,92% RAM/94,10% VRAM; cache backing15,875→9,5625 ГиБ, logits bit-exact.
+
+Три final off/RAM64 пары на корпусе52/52/343 input,32 output tokens:
+median aggregate forward decode **3,941→3,485 токена/с (−11,57%)**,
+workload **85,944→89,556 с (+4,20%)**. Default RAM0 сохранён. Это ordinary
+forward timing, не useful throughput DFlash. Context2048/batch16, GPU cap18,
+arena64/reserve0, file2/chunk4/lookahead/D2D, strict F32, FA/graphs/MTP off.
+
+Дополнительный RAM64 long256 workload прошёл: все768 IDs/153649152 logits
+совпали с сохранённым MM27-12 reference; peak views55,859 ГиБ, global RAM69,88%.
+Лимит64 не достигнут; все ответы закончились по length. Скорость3,635/3,689/4,808
+токена/с не является A/B с текущим off на длинном корпусе. Final total:
+**21 ответ /1344 IDs /268886016 logits** побитно совпали с эталонами.
+
+[Полный отчёт и артефакты](MINIMAX_M27_RAM_CACHE.md). RAM/GPU partition
+относится к собственным views, не всему системному file cache. Утверждённого
+быстрого RAM-профиля, natural EOS, API и session reuse по-прежнему нет;
+MM27-06 reload discrepancy OPEN.
+
+### MM27-16 — 2026-10-08 — Группы gate/up/down, readiness и full-model A/B
+
+Добавлен MiniMax-only `group_cache.hpp` и флаг `--cache-group-experts 0|1`.
+Три матрицы одного эксперта размещены в одном слоте; замена/eviction/pins
+действуют на целую тройку. Готовность компонента публикуется после CUDA fence;
+новые fills защищены до конца router plan. Admission и frequency training
+выполняются один раз за plan, чтобы отказ на gate не приводил к частичной
+группе при позднем admission на down. GGUF и shared Step/Hy3/common не менялись.
+В CMake исправлены зависимости generated backend от included headers/`.inc`.
+
+31 unit,114 grouped pipeline,216 matrix regression,90 synchronous D2D,
+18 fixture lifecycle и19 full-target pressure/lifecycle checks — **488 PASS**.
+Контекст4K проверен на fixture; full target pressure использовал context512.
+При реальном давлении измерено89,95% RAM/94,07% VRAM, physical cache уменьшился
+с15,875 до9,3125 ГиБ с побитно точными logits. Production-stride GPU unit
+вместил16 Q4 или14 mixed Q4/Q6 троек в128 МиБ (готовые bytes94,94/95,76%).
+
+Три чередующиеся пары matrix/group на полной модели: cap18,arena64/reserve0,
+file2/chunk4/lookahead/D2D batch,context2048/batch16,F32 activations/KV,
+FA/graphs/MTP/DFlash off. Prompts52/52/343, по32 output tokens.
+Все18 ответов/576 IDs/115236864 logits совпали со старым EXE побитно.
+Median decode первого/повторного/нового запроса:
+**3,460/4,664/3,860 → 3,460/4,699/3,817 токена/с**.
+Агрегат3,912→3,930 (+0,47%), workload86,935→86,154 с; диапазоны перекрываются.
+Это forward decode harness, напрямую не сопоставимый с useful DFlash timing.
+Default grouping0 и экспериментальный18/2/4 сохранены.
+
+Подробности, commands, hashes, raw artifact paths и сохранённые ранние FAIL:
+[MINIMAX_M27_GROUP_CACHE.md](MINIMAX_M27_GROUP_CACHE.md).
+Прежнее MM27-06 reload расхождение остаётся OPEN. P3.4, API, sessions,
+рабочий профиль и DFlash live lifecycle не закрыты этим этапом.
+
+### P5.DF-03 — 2026-10-08 — Offline greedy DFlash, router tie и полезная скорость
+
+Strata HEAD `ea56544abb2a52c8eeace467265cc1639ea172b0`, дерево dirty;
+закреплённая dependency `86ebfef2`, CUDA13.0.48/MSVC19.44.35222.0.
+Добавлены `dflash_decode.hpp`, `speculative_bench.cpp`, `minimax_tokenwise.hpp`,
+`Tokenwise.cmake` и `tools/bench_minimax_m2_dflash.py`; обновлены CMake/manifest.
+Общие cache/pipeline implementations и веса не менялись на этом этапе.
+Patch применяется только к generated SHA-checked CUDA dispatch.
+
+Полный offline greedy цикл: borrowed anchor/MASK, non-causal draft block,
+batched target verification, prefix acceptance, correction/bonus, rollback
+обеих KV histories и только committed feature injection. GPU/drain/95% guards
+сохранены. Три реальных chat prompts имеют48/58/59 input tokens, template
+открывает `<think>`; ответы32/64 токена заканчиваются по limit и ещё могут
+содержать reasoning. Context512, batch8, F32 KV, FA/graphs off, strict targetF32,
+pipeline2/chunk4/lookahead/D2D batch, arena64/reserve0; Q3_K/Q5_K draft arithmetic
+остаётся штатной для dependency.
+
+Первый Q4/depth2 прошёл greedy IDs, но провалил full-logit gate: max_abs1.566925.
+Трасса нашла изменение восьмого MoE expert76→160 в позиции84/слое30:
+batch округлил biased score76 на один ULP ниже равного serial score160.
+Окончательный opt-in tokenwise mode3 считает ordinary/attention и routed
+matmuls по токенам при target verification, сохраняя пакетную доставку experts.
+Разделения только весовых matmul оказалось недостаточно. Mode0 по умолчанию
+сохраняет прежний путь; tolerances max_abs≤5e-4/NMSE≤1e-7 не менялись.
+Это отдельный установленный numerical issue, а не закрытие MM27-06 reload FAIL.
+
+Измерены Q3/Q4/Q5 depths1/2/4/7 при cap18, затем cap24 для off/Q4-depth1/2.
+На коротком screen лучший Q4/depth1 дал3.775 токена/с, off/cap18 —3.684/3.699
+до/после серии. После возврата памяти draft off/cap24 дал3.867,
+а Q4/depth1/cap24 —3.661. Поэтому одного screen недостаточно.
+Три64-token повтора off/cap24 и Q4-depth1/2 чередовали порядок;
+дополнительные три off/cap18 выполнены после основной серии.
+
+| Режим | Три агрегата полезных токенов/с | Медиана | Медиана трёх запросов, с |
+|---|---|---:|---:|
+| off/cap18 | 3.801 / 3.550 / 3.118 | 3.550 | 91.482 |
+| off/cap24 | 3.533 / 3.971 / 3.364 | 3.533 | 95.433 |
+| Q4/depth1/cap18 | 3.675 / 3.686 / 3.607 | 3.675 | 87.191 |
+| Q4/depth2/cap18 | 3.548 / 3.051 / 3.497 | 3.497 | 89.967 |
+
+Acceptance Q4/depth1 —82.52%, depth2 —75.68%. Номинальный выигрыш depth1
+против off/cap18 по медиане3.54%; он мал относительно разброса off.
+Дополнительный off/cap18 не чередовался с on, внешняя нагрузка/Windows cache
+не контролировались. Устойчивый speedup не доказан; defaults и18/2/4 сохранены.
+Depth1 использовал около2.4% времени generation на draft compute; target
+verification и доставка experts занимают основное время. H2D decode2.013 ГиБ
+на полезный токен против1.801 у off/cap24. Это host phase timers, не CUDA profile.
+
+Итоговые29 запусков/87 request comparisons:3936 output IDs и787451904 logits
+побитно совпали. Все sampled global peaks ниже95%: VRAM≤94.212%, RAM≤39.345%.
+Cap24 реально дал до21.5625 ГиБ arena, а не24 ГиБ. Процессные private/working-set
+peaks benchmark отдельно не экспортировал; глобальные RAM нельзя приписать ему.
+После замеров1404 host acceptance cases и49 GPU runtime fixtures PASS.
+Старый обычный EXE `c13e1583…` и новый `d6c669ec…` независимо совпали с serial
+режимом нового driver:96 output IDs и19206144 logits каждый, побитно.
+Сборки/проверки exit0. P5.DF-02 JSON и исходные failed runs сохранены.
+
+Команды, полные числа, build/source hashes и ссылки на четыре suite reports,
+router trace и validation:
+[MINIMAX_M27_DFLASH_BENCHMARK.md](MINIMAX_M27_DFLASH_BENCHMARK.md).
+Артефакты: `build-local/minimax-m2-dflash-speed-screen-02`,
+`minimax-m2-dflash-memory-screen-01`, `minimax-m2-dflash-speed-confirm-01`,
+`minimax-m2-dflash-off18-confirm-01`, `minimax-m2-dflash-speed-validation-01`.
+Live GPU EOS/cancel/pressure/recovery, long context, sessions и serving остаются
+отдельными gates. Host EOS self-test не заменяет их.
+
+### P5.DF-02 — 2026-10-08 — DFlash loader, borrowed head и GPU probe
+
+Основание: `ea56544abb2a52c8eeace467265cc1639ea172b0`, dirty MM27-12…15
+сохранены. До правок сохранены backend/EXE/manifest/build logs в
+`build-local/minimax-m2-dflash-baseline-01`, исходный bench SHA-256
+`9d075e2f914e53014e44dd9033f3264e26c7e75303ddcd92ae27db909dcc1888`.
+Target header и полные draft hashes повторно совпали с P5.DF-01.
+
+Изменено: C++ header admission всех58 draft tensors, tokenizer prefix/merges,
+feature layers и ranges; no-allocation loader; generated `dflash.cpp` с
+компактизацией каждой строки logits200064→200055 после shared projection.
+Веса embedding/head остаются у target. Добавлен отдельный GPU probe и runner
+с сохранением EXE/source/logits/stderr. Архив и extracted dependency не менялись.
+Обычные bench/API defaults прежние; speculative serving не включён.
+
+Сборки: CUDA13.0.48, MSVC19.44.35222.0, Ninja Release, arch120/effective120a;
+dependency `86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9`.
+Новый bench SHA-256 `c13e15830aa96734e6bef994aff3e2f544bfaaf310744e9a5c56492205fd579b`;
+probe `aac1296badce971286c0857c626692485d707d9719ac23d33346f3dc05213e92`.
+[CUDA manifest](MINIMAX_M27_DFLASH_BUILD_MANIFEST.json),
+[CPU manifest](MINIMAX_M27_DFLASH_CPU_BUILD_MANIFEST.json).
+
+Проверки, все exit0:
+
+- CPU build/CTest4 version checks PASS; отдельный CPU loader3/3 и negative
+  checks3/3 PASS. CUDA build loader3/3 и те же negative3/3 PASS.
+  Weight allocation=0 в oracle. Неверный layer/tokenizer и truncated payload
+  отклоняются до weight loading.
+- RTX5090, driver581.80, RAM125.555 ГиБ: Q3/Q4/Q5 по30 GPU checks, всего90 PASS.
+  Depths1/2/4/7, all output rows/full-head prefix, anchor/MASK, feature capture,
+  noise rollback, committed-prefix injection и fresh replay.
+  MASK/head/capture/replay побитны. Target batch-vs-serial greedy совпал,
+  max_abs≤3.052e-5, NMSE≤8.864e-13; прежние tolerances5e-4/1e-7 сохранены.
+- Global sampled peaks: VRAM92.835…93.694%, RAM26.341…26.438%; guard95%.
+  Context512/batch8, F32 KV/target activations, FA/graphs off,
+  cache18 ГиБ/arena64/reserve0, readers2/chunk4/lookahead1/D2D batch1.
+  Q3_K/Q5_K draft kernels используют обычную quant арифметику dependency.
+- Runtime fixture49/49 PASS. Генерация без DFlash: три запроса по24 токена,
+  context2048/batch16, тот же pipeline18/2/4; все14 404 608 float32 logits и
+  72 token IDs побитно равны `minimax-m2-reclaim-ab-01/01-legacy`.
+  Один regression run дал3.349/4.637/4.114 токена/с; это не A/B и не speedup DFlash.
+
+Ограничение: probe использует первые8 токенов технической строки, без chat
+template. Единственный verification block принял0/7; tested committed prefix
+содержит anchor. Это не corpus acceptance. Положительные prefixes/все reject
+positions, EOS/limit/cancel/induced pressure, длинный context и полный loop TODO.
+Numerical equivalence draft с NVIDIA reference и provenance локальных квантов
+не доказаны. Старый MM27-06 native reload discrepancy остаётся OPEN.
+
+Команды:
+
+```powershell
+.\build-local\build-minimax-m2-dflash.bat
+.\build-local\build-minimax-m2-dflash-cpu.bat
+$modelDir = 'H:\models\MiniMax-M2.7'
+python -X utf8 tools/check_minimax_m2_dflash.py --model "$modelDir\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q3_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q4_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q5_K_M.gguf" --gpu-draft "$modelDir\MiniMax-M2.7-DFlash-Q4_K_M.gguf" --gpu-draft "$modelDir\MiniMax-M2.7-DFlash-Q3_K_M.gguf" --gpu-draft "$modelDir\MiniMax-M2.7-DFlash-Q5_K_M.gguf" --out build-local/minimax-m2-dflash-probe-03
+python -X utf8 tools/check_minimax_m2_dflash.py --model "$modelDir\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q3_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q4_K_M.gguf" --draft "$modelDir\MiniMax-M2.7-DFlash-Q5_K_M.gguf" --build build-local/minimax-m2-oracles --out build-local/minimax-m2-dflash-cpu-01
+python -X utf8 tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-runtime-check.exe -- build-local/minimax-m2-dflash-fixtures-01
+python -X utf8 tools/tune_minimax_m2_pipeline.py --model "$modelDir\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --configs build-local/minimax-m2-dflash-regression-config.json --repeats 1 --tokens 24 --reference-logits build-local/minimax-m2-reclaim-ab-01/01-legacy.f32 --reference-report build-local/minimax-m2-reclaim-ab-01/01-legacy.json --out build-local/minimax-m2-dflash-regression-01
+```
+
+Выходные каталоги уже существуют; для повторного запуска нужны новые имена.
+Полные build logs: `build-local/minimax-m2-dflash-{configure,build}.log` и
+`minimax-m2-dflash-cpu-{configure,build,ctest}.log`.
+Результаты: [GPU/loader](MINIMAX_M27_DFLASH_PROBE_CHECK.json),
+[CPU loader](MINIMAX_M27_DFLASH_CPU_CHECK.json),
+[runtime fixture](MINIMAX_M27_DFLASH_RUNTIME_CHECK.json),
+[обычная генерация](MINIMAX_M27_DFLASH_REGRESSION_CHECK.json).
+Все EXE/source/logits сохранены в соответствующих каталогах `build-local`.
+Следующий шаг: **P5.DF-03**, полный greedy driver и output parity на chat corpus.
+
+### P5.DF-01 — 2026-10-08 — Перенос target и инспекция трёх DFlash
+
+Target найден по новому пути в `H:\models\MiniMax-M2.7`; прежний путь отсутствует.
+Размер и header hash совпали с MM27-01, основной loader contract/ranges PASS.
+Добавлен `tools/inspect_minimax_m2_drafts.py`, три DFlash проверены без GPU:
+GGUF/ranges, metadata, общая часть tokenizer и полные draft SHA-256, exit0.
+[Отчёт](MINIMAX_M27_DFLASH_INSPECTION.json), [детали и продолжение](MINIMAX_M27_DFLASH.md).
+Проанализированы DeepSeek DSpark и generic DFlash в закреплённой dependency.
+Обнаружена необходимость адаптации head/logit width200064/200055.
+Engine, его defaults и исходные GGUF не менялись; DFlash runtime/acceptance/speed TODO.
+Исторические JSON/manifests с прежними путями сохранены без редактирования.
+
+### MM27-15 — 2026-10-08 — Запас для роста GPU arena
+
+Реализован `--arena-growth-reserve-mib N` (0..1024, default0) в MiniMax
+bench/cache/lifecycle и optional `arena_growth_reserve_mib` в tuner JSON.
+Запас вычитается из global free VRAM только при создании нового блока.
+Свободные слоты существующих блоков можно заполнять и переиспользовать;
+порог сокращения кэша, hard backing cap, host commit и global95 guards прежние.
+Запас не вычитается повторно из cache cap. Allocator `cuda` его не использует.
+Вычитание насыщаемое: свободная память меньше запаса не вызывает underflow.
+Shared Hy3/Step headers в этом этапе не менялись; семантической группировки нет.
+
+Основание: `ea56544abb2a52c8eeace467265cc1639ea172b0`, dirty MM27-12/13/14 сохранены.
+До правок сохранены engine/source snapshot и build logs в
+`build-local/minimax-m2-growth-baseline`. Новая сборка SHA-256
+`9d075e2f914e53014e44dd9033f3264e26c7e75303ddcd92ae27db909dcc1888`. [Manifest](MINIMAX_M27_GROWTH_BUILD_MANIFEST.json)
+содержит source/artifact hashes и toolchain/dependency. Commit не создавался.
+Тот же локальный GGUF/header/template, RTX5090/32607 МиБ/driver581.80,
+RAM125,555 ГиБ, CUDA13.0.48/MSVC19.44.35222.0/Ninja Release120a.
+
+**Управляемое воспроизведение:** блок8 МиБ, матрицы4 МиБ, двадцать колебаний
+бюджета255↔256 МиБ. Без запаса —20 освобождений и20 новых allocations;
+с запасом32 МиБ —0/0, retained224 МиБ. Все surviving bytes совпали полностью.
+Дополнительные проверки подтвердили заполнение слотов внутри резерва,
+рост обратно до полного cap256 при возвращении global headroom и сокращение
+до128 МиБ при сильном давлении. [25 arena](MINIMAX_M27_GROWTH_ARENA_CHECK.json)
+и [25 reclaim checks](MINIMAX_M27_GROWTH_RECLAIM_CHECK.json) — PASS.
+Это воспроизведение колебаний бюджета, не объяснение всех driver/NVML колебаний.
+
+**Полная модель:** file reader,2 readers,chunk8,lookahead1,D2D batch1,
+ctx2048/batch16, strict F32 activations/KV, FA/graphs/MTP off, greedy.
+Корпус52/52/343 prompt tokens, по24 output tokens. Новый процесс и пустой
+GPU cache для каждого workload; OS file cache и внешняя нагрузка не фиксированы.
+Сначала [четыре screening runs](MINIMAX_M27_GROWTH_SCREEN_CHECK.json) при cap20:
+64/reserve0,32/0,32/32,8/32. Все дошли до20 ГиБ backing без pressure trims,
+пик общей VRAM89,65%. При достаточном запасе памяти новый флаг не влиял на рост.
+Фон отличался от MM27-14, где cap20 уже ограничивался физической памятью.
+
+Для проверки у лимита запрошен cap24 ГиБ: действующий guard ограничивал
+фактический backing21,125–21,500 ГиБ. Три повторения каждого варианта,
+порядок A/B/C, C/B/A, A/B/C. Медианы [confirmation](MINIMAX_M27_GROWTH_CONFIRM_CHECK.json):
+
+| Блок, МиБ | Запас роста, МиБ | Decode первого / повтора / новой темы, ток/с | Workload, с |
+|---:|---:|---:|---:|
+| 64 | 0 | 3.270 / 4.605 / 4.130 | 80.241 |
+| 32 | 0 | 3.279 / 4.588 / 4.114 | 80.881 |
+| 32 | 32 | 3.305 / 4.665 / 4.140 | 79.476 |
+
+Для32 МиБ запас улучшил медиану decode повтора на1.69%; относительно64
+медиана выше на1.32%. Это небольшое различие: диапазон повтора64 составил
+4.466–4.684 ток/с, а32/reserve32 —4.537–4.672. В первой тройке64 был быстрее
+32/reserve32. Изменялись также sampled budgets и фактическая residency.
+Устойчивое преимущество над64 МиБ не установлено; default **64 МиБ/reserve0**
+и экспериментальные **18 ГиБ /2 readers /chunk4** сохранены.
+Cap24 в этом тесте не выбран новым рекомендуемым cap.
+
+Число pressure groups за весь workload (prefill+decode) по повторам:
+64/0 —0/5/1,32/0 —2/2/1,32/32 —1/0/0. В этой серии не повторились сотни
+освобождений MM27-14; сильный эффект гистерезиса доказан управляемым replay.
+При примерно одинаковом backing у32 было меньше useful live cache:
+в первом decode первого прохода20,487 ГиБ против20,763 у64 (выравненные slots).
+Гистерезис не меняет упаковку size classes и не устраняет эту разницу.
+
+Все13 workloads screen+confirm совпали с сохранённым reference побитно:
+**187259904 пар float32 logits**, одинаковые72 token IDs на workload.
+Memory95, GPU-only, copy accounting, drain и `arena_reserved <= cache_limit`
+проверены tuner; этот physical-budget gate теперь включён в постоянный audit.
+Пик обычных замеров: RAM26,745%, VRAM94,289%. Сохранены EXE, sources, requests,
+JSON/stdout/stderr и полные logits каждого запуска.
+
+**Другие проверки:** [1152 cache/pipeline checks](MINIMAX_M27_GROWTH_FIXTURE_CHECK.json)
+(sync8/reserve32; pipeline8/32,32/32,64/0) — PASS. Worker/copy faults, cancel,
+pins, OOM bypass и recovery проверены. [37 lifecycle checks](MINIMAX_M27_GROWTH_LIFECYCLE_CHECK.json)
+(fixture18 + full_pressure19) — PASS при cap24/block32/reserve32.
+Реальная нагрузка: read-only model mapping85,375 ГиБ и отдельный GPU holder12 ГиБ;
+пики RAM90.019%, VRAM94.201%. Cache backing сократился16,031→10,688 ГиБ
+под внешним давлением; logits recovery/unload/reload побитно совпали.
+[41 CPU regression и четыре invalid-CLI checks](MINIMAX_M27_GROWTH_REGRESSION_CHECK.json) — PASS.
+Все build/test commands завершились exit0; invalid CLI ожидаемо дал exit2.
+Отдельные2K/4K и shared Hy3 GPU checks повторно не запускались: allocator Hy3
+в этом этапе не менялся, прежние результаты остаются историческими.
+MM27-06 tiny native-after-cache discrepancy остаётся **OPEN**; новые PASS его не объясняют.
+
+**Воспроизведение:** из корня репозитория, новые output paths для каждого запуска.
+
+```powershell
+& .\build-local\build-minimax-m2-runtime.bat
+python -X utf8 tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-arena-check.exe -- build-local/minimax-m2-growth-arena-01.json
+python -X utf8 tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-reclaim-check.exe -- build-local/minimax-m2-growth-reclaim-01.json
+python -X utf8 build-local/check-minimax-growth-fixtures.py
+$modelPath = 'H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf'
+python -X utf8 tools/tune_minimax_m2_pipeline.py --model $modelPath --configs build-local/minimax-m2-growth-screen-configs.json --out build-local/minimax-m2-growth-screen-01 --reference-logits build-local/minimax-m2-reclaim-ab-01/01-legacy.f32 --reference-report build-local/minimax-m2-reclaim-ab-01/01-legacy.json
+python -X utf8 tools/tune_minimax_m2_pipeline.py --model $modelPath --configs build-local/minimax-m2-growth-confirm-configs.json --out build-local/minimax-m2-growth-confirm-01 --repeats 3 --reference-logits build-local/minimax-m2-reclaim-ab-01/01-legacy.f32 --reference-report build-local/minimax-m2-reclaim-ab-01/01-legacy.json
+python -X utf8 tools/check_minimax_m2_lifecycle.py --model $modelPath --out build-local/minimax-m2-growth-lifecycle-01 --cases fixture full_pressure --gpu-cache-mib 24576 --gpu-cache-allocator arena --arena-block-mib 32 --arena-growth-reserve-mib 32 --pipeline-readers 2 --pipeline-chunk-mib 8 --pipeline-lookahead 1 --pipeline-d2d-batch 1
+```
+
+Build logs сохранены как `build-local/minimax-m2-growth-runtime-{configure,build}.log`.
+Рекомендуемый CLI не меняется. Новый флаг доступен для последующих экспериментов.
+Следующий шаг MM27-16: плотная упаковка gate/up/down одного эксперта,
+совместная admission/replacement и group pins, затем correctness/pressure/A/B.
+Законченные ответы/EOS, API/sessions и MTP остаются отдельными незавершёнными задачами.
+
+### MM27-14 — 2026-10-08 — Размеры блоков 8/16/32/64 МиБ и дизайн группировки
+
+По предложению пользователя проверено уменьшение64 МиБ. Добавлен CLI
+`--arena-block-mib 8|16|32|64` в bench/cache/lifecycle, соответствующий аргумент
+runtime и optional `arena_block_mib` в JSON конфигурации tuner.
+Default **64 МиБ сохранён**. Это размер физической аллокации, независимый от
+`--pipeline-chunk-mib`; выбранные матрицы копируются прежними отдельными slices.
+Таргет может быть уменьшен меньшим cache cap или увеличен для oversized matrix,
+округление allocator —2 МиБ. Guard глобальной RAM/VRAM95% и host commit сохранён.
+Shared Hy3 allocator получил параметр с прежним default64; его политика прежняя.
+
+Основание: `ea56544abb2a52c8eeace467265cc1639ea172b0`, dirty MM27-12/13 сохранены.
+До правок сохранены engine/source snapshot в `build-local/minimax-m2-blocks-baseline`.
+Новая сборка SHA-256 `dea0606f852f80346da02540f09b7d64381dd06c97058bfd45a4d9380a4ddd0a`;
+source/artifact hashes и compiler/dependency — [manifest](MINIMAX_M27_BLOCKS_BUILD_MANIFEST.json).
+Тот же GGUF/header/template, RTX5090/32607 МиБ/driver581.80, RAM125,555 ГиБ,
+CUDA13.0.48/MSVC19.44.35222.0/Ninja Release120a. Commit не создавался.
+
+**Размеры и освобождение.** На512 матрицах384×Q4 slot2,5625 МиБ +128×Q6 slot3,75 МиБ
+все варианты arena заняли1536 МиБ backing при1464 МиБ charged live; наблюдаемый
+прирост global NVML также1536 МиБ. Число CUDA-блоков:192/96/48/24 для8/16/32/64.
+Отдельные cudaMalloc заняли2048 МиБ по NVML. Это один allocator-run на этом ПК;
+NVML отражает и внешнюю активность, не только payload.
+[20 arena checks](MINIMAX_M27_BLOCKS_ARENA_CHECK.json) прошли, включая oversized
+10 МиБ при target8, alignment, reuse и освобождение всех allocations.
+
+При снижении бюджета256→255 МиБ,64 матрицах по4 МиБ и перемежённом LRU
+сохранилось **248/240/224/192 МиБ** при блоках8/16/32/64 соответственно.
+[17 reclaim checks](MINIMAX_M27_BLOCKS_RECLAIM_CHECK.json) прошли; байты оставшихся
+матриц проверены полностью. Значит меньший блок действительно сокращает
+минимальную потерю кэша при единичном освобождении.
+
+**Предварительный полный прогон, по одному на вариант:** cache20 ГиБ, arena,
+file reader,2 readers, chunk8, lookahead1, D2D batch1, ctx2048/batch16, strict F32
+activations/KV, FA/graphs/MTP off, greedy. Запросы52/52/343 prompt tokens,
+по24 output tokens, новый процесс/пустой GPU cache для каждого workload.
+OS file cache и внешняя нагрузка не фиксированы. Это отбор, не рейтинг defaults.
+
+| Блок, МиБ | Decode первого / повтора / новой темы, ток/с | Workload, с |
+|---:|---:|---:|
+| 64 | 3.382 / 4.678 / 4.202 | 79.168 |
+| 8 | 3.357 / 3.815 / 3.434 | 80.310 |
+| 16 | 3.465 / 4.650 / 4.132 | 77.480 |
+| 32 | 3.446 / 4.645 / 4.146 | 77.466 |
+
+[Screen report](MINIMAX_M27_BLOCKS_SCREEN_CHECK.json). У8 МиБ decode-фазы вызвали
+84/384/341 освобождений, у64 —0/0/0. Полезный кэш8 МиБ был18,16–18,28 ГиБ;
+при64 —18,40 ГиБ. Уменьшение гранулярности сопровождалось частыми повторными
+аллокациями/вытеснениями возле физического лимита и дополнительным H2D.
+16 и32 МиБ дали почти одинаковое время;32 выбран для повторов из-за меньшего
+числа аллокаций и pressure events в этом проходе.
+
+**Подтверждение64↔32, три пары A/B,B/A,A/B, те же условия:**
+
+| Запрос | 64 МиБ, ток/с | 32 МиБ, ток/с | Изменение |
+|---|---:|---:|---:|
+| Первый | 3.409 | 3.103 | -8.97% |
+| Повторный | 4.638 | 4.255 | -8.25% |
+| Новая тема | 4.208 | 3.912 | -7.04% |
+
+Median workload **78.251→79.423 с**.
+[Confirmation report](MINIMAX_M27_BLOCKS_CONFIRM_CHECK.json). В отдельных decode-фазах
+32 МиБ было до334 освобождений, поэтому один хороший screening-run не подтвердился.
+Вывод относится к cache20 у границы VRAM; меньшие блоки при cap18 здесь не сравнивались.
+Все10 прогонов screen+confirm прошли token/logit parity с историческим MM27-13
+reference:144046080 пар float32 logits, одинаковые72 token IDs в каждом прогоне.
+Все memory/copy/drain gates PASS; отдельно проверено `arena_reserved <= cache_limit`.
+64 остаётся default, экспериментальные18 ГиБ /2 readers /chunk4 сохранены.
+
+**Другие проверки:** [1872 cache/pipeline checks](MINIMAX_M27_BLOCKS_FIXTURE_CHECK.json)
+для sync8/64 и pipeline8/16/32/64 с lookahead/batching — PASS; все bytes/logits exact,
+worker/copy faults, cancel, pins, OOM bypass, recovery/unload проверены.
+[37 lifecycle checks](MINIMAX_M27_BLOCKS_LIFECYCLE_CHECK.json) при block32 включают
+fixture и полную модель с реальным давлением на память. [Hy3 arena и CPU регрессии](MINIMAX_M27_BLOCKS_REGRESSION_CHECK.json).
+2K/4K повторно не прогонялись: отдельная проверка MM27-13 остаётся исторической.
+
+**Группировка — следующий эксперимент, пока не реализована.** Уже освобождается
+целый физический блок. Семантическая группировка нужна, чтобы в нём находились
+связанные по использованию матрицы. Первая естественная единица —
+`(generation, layer, expert)` со всеми `gate/up/down`:
+
+| Слои GGUF | Payload трёх матриц | Три выровненных слота | Расчёт размера отдельного блока |
+|---|---:|---:|---:|
+| 32 слоя: Q4/Q4/Q4 | 7,59375 МиБ | 7,6875 МиБ | 8 МиБ |
+| 30 слоёв: Q4/Q4/Q6 | 8,75390625 МиБ | 8,875 МиБ | 10 МиБ |
+
+Это [арифметика локального GGUF](MINIMAX_M27_BLOCKS_GROUPING_ESTIMATE.json),
+не измерение скорости/VRAM такого allocator. Смежные ID экспертов сами по себе
+не гарантируют совместный выбор router. Фиксированный16 МиБ блок для одного
+смешанного expert bundle тратил бы много места; необходима плотная упаковка.
+
+Нужны ключ группы и offsets матриц, совместная admission/replacement, явная
+готовность каждой матрицы до cache hit и group pins для незавершённых copies.
+Текущий `matching_reuse` заменяет одну матрицу: без изменения этого пути группы
+перемешаются снова. Проверки: full bytes/logits, partial fills/cancel/pressure,
+модельная плотность кэша и три A/B пары. Предварительно проверить запас между
+порогами роста и сокращения, чтобы мелкие блоки не выделялись сразу после сброса.
+Частые pressure events измерены; точная причина изменения внешнего free budget
+не изолирована и требует отдельного контролируемого replay.
+
+Команды:
+
+```powershell
+& .\build-local\build-minimax-m2-runtime.bat
+python tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-arena-check.exe -- build-local/minimax-m2-blocks-arena-01.json
+python tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-reclaim-check.exe -- build-local/minimax-m2-blocks-reclaim-01.json
+python build-local/check-minimax-blocks-fixtures.py
+python tools/tune_minimax_m2_pipeline.py --model "H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --configs build-local/minimax-m2-blocks-screen-configs.json --out build-local/minimax-m2-blocks-screen-01 --reference-logits build-local/minimax-m2-reclaim-ab-01/01-legacy.f32 --reference-report build-local/minimax-m2-reclaim-ab-01/01-legacy.json
+python tools/tune_minimax_m2_pipeline.py --model "H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --configs build-local/minimax-m2-blocks-confirm-configs.json --out build-local/minimax-m2-blocks-confirm-01 --repeats 3 --reference-logits build-local/minimax-m2-reclaim-ab-01/01-legacy.f32 --reference-report build-local/minimax-m2-reclaim-ab-01/01-legacy.json
+python tools/check_minimax_m2_lifecycle.py --model "H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --out build-local/minimax-m2-blocks-lifecycle-01 --cases fixture full_pressure --gpu-cache-mib 20480 --gpu-cache-allocator arena --arena-block-mib 32 --pipeline-readers 2 --pipeline-chunk-mib 8 --pipeline-lookahead 1 --pipeline-d2d-batch 1
+```
+
+Для повторения нужны новые output paths. Сохранены EXE, исходники, команды,
+логи и raw logits. Math/precision не менялись, причина старого MM27-06 discrepancy
+остаётся OPEN. API, длинные завершённые ответы и MTP — отдельные незакрытые задачи.
+
+### MM27-13 — 2026-10-08 — Освобождение целых блоков GPU arena
+
+Основание: `ea56544abb2a52c8eeace467265cc1639ea172b0`, dirty tree с предыдущими
+MM27-12 docs/tools. Старая сборка и исходники сохранены до правок в
+`build-local/minimax-m2-reclaim-baseline`. Commit не создавался.
+Dependency `86ebfef2`, CUDA13.0.48/MSVC19.44.35222.0, Ninja Release120a,
+RTX5090/32607 МиБ/driver581.80, RAM125,555 ГиБ, тот же локальный Q4_K_M GGUF.
+Header/template hashes и все настройки точности совпадают с MM27-12.
+[Build manifest](MINIMAX_M27_RECLAIM_BUILD_MANIFEST.json) содержит source/artifact hashes.
+
+**Изменено.** `step35::ExpertCache` получил opt-in callback физической группы.
+Его включает только MiniMax arena; Step/Hy3 сохраняют прежнюю policy.
+`hy3::GpuArena::allocation_group()` только читает принадлежность живого slot.
+При превышении физического бюджета выбираются целые блоки: сначала меньше
+полезных байтов, затем наиболее давно использованный блок. Любой plan/fill pin
+защищает весь блок; невозможность уложиться в бюджет вызывает ошибку и drain.
+Нормальная частотная замена отдельных экспертов не изменилась. Политика работает
+и в явном `refresh()`, и во внутреннем refresh при `admit()`; sampled budget
+больше не уменьшается повторными logical trim. Добавлены четыре pressure-счётчика
+в JSON: число вызовов, блоков, вытесненные live bytes и освобождённые backing bytes.
+
+**Контролируемое воспроизведение:** четыре CUDA slab по64 МиБ, 64 матрицы по4 МиБ,
+LRU перемежает блоки. Снижение бюджета256→255 МиБ заставило прежний цикл
+вытеснить **256 МиБ /64 матрицы**, новый — **64 МиБ /16 матриц**, сохранив192 МиБ.
+Все сохранённые байты проверены. Закреплённый блок, все блоки с pins, recovery,
+частично заполненный блок, refresh внутри admission и нулевой бюджет проверены:
+[13 checks PASS](MINIMAX_M27_RECLAIM_CHECK.json). Это измерение эффективности
+освобождения памяти, а не показатель tokens/s.
+Первый вариант теста ошибочно ожидал60 МиБ остатка у старого цикла; измерено0.
+Исправлено ожидаемое поведение старого алгоритма, без изменения runtime/math
+или numerical tolerances; исходный FAIL сохранён и указан в manifest.
+
+**Проверки, все exit0:**
+
+- [4920 cache/pipeline checks,25 конфигураций](MINIMAX_M27_RECLAIM_PIPELINE_CHECK.json), включая pending fills, pinned pressure, worker/copy faults и cancel.
+- [47 lifecycle checks](MINIMAX_M27_RECLAIM_LIFECYCLE_CHECK.json): fixture, полная модель под реальным давлением,2K/4K, cancel/recovery/unload, побитные logits.
+- [55 reload checks](MINIMAX_M27_RECLAIM_RELOAD_CHECK.json): девять lifetimes, десять одинаковых native outputs, исторические fixture/continuation hashes.
+- [Регрессии](MINIMAX_M27_RECLAIM_REGRESSION_CHECK.json): MiniMax arena14, runtime49, shared Step cache29 (включая131200 решений fast-scan parity), Hy3 arena18, CPU41.
+- Под реальным давлением RAM **89.967%**, VRAM **93.975%**; cache live **15.272→7.506 ГиБ**, backing **15.875→7.688 ГиБ**. Держатель давления выделил12 ГиБ GPU и read-only mmap pages до90% RAM. Это отдельный correctness run.
+
+Контексты2K/4K используют repeated prefix и33 разных последних токена; это
+численный stress, не широкая quality-проверка.
+
+**Full-model A/B:** один и тот же cap20 ГиБ, arena, reader=file, readers2,
+chunk8 МиБ, lookahead1, D2D batch1, ctx2048/batch16, strict F32 activations/KV,
+FA/graphs/MTP off, greedy. Три пары A/B,B/A,A/B; новый процесс и пустой GPU cache
+для каждого workload. Три запроса:52/52/343 prompt tokens и24 output tokens
+каждый; OS cache и внешняя нагрузка не контролируются. Загрузка модели не входит
+в request latency. Медианы по трём запускам:
+
+| Запрос | Старая сборка, ток/с | Новая, ток/с | Изменение | TTFT, с: старая → новая |
+|---|---:|---:|---:|---:|
+| Первый запрос | 3.392 | 3.421 | +0.86% | 11.886 → 11.805 |
+| Повтор запроса | 4.382 | 4.663 | +6.41% | 7.953 → 7.880 |
+| Новая тема | 4.148 | 4.177 | +0.70% | 42.352 → 40.828 |
+
+Median полного workload: **80.513→77.432 с**.
+Это сокращение времени на **3,83%** в этом корпусе. Между отдельными прогонами
+decode повтора менялся в пределах4,195–4,682 ток/с у старой сборки и
+4,651–4,670 у новой. Ускорение первого запроса и новой темы меньше1%;
+универсальный прирост по этим измерениям не заявляется.
+
+В старых прогонах02 и03 на decode повтора счётчик
+`cache_evictions - cache_reuses` составил3454 и4238 при одном `arena_frees`.
+Размер кэша к концу фазы восстановился до18,34/18,40 ГиБ, скрывая промежуточную
+потерю резидентности. В каждой из четырёх pressure-фаз новой сборки освобождён
+один64 МиБ блок с вытеснением24 матриц /61,5 МиБ live. Внешнее давление в
+разных процессах не идентично, поэтому controlled replay остаётся отдельным
+доказательством механизма. Пики обычного A/B: RAM24,21% /VRAM94,20%; реальное
+давление до89,97% /93,97% проверено отдельным lifecycle-тестом выше.
+[Полный A/B report](MINIMAX_M27_RECLAIM_AB_CHECK.json) содержит individual timings,
+cache residency, hit bytes, H2D, memory peaks, pressure counters и команды.
+Все6 прогонов имеют одинаковые72 token IDs и SHA-256 logits
+`35d2d4995390c2ac58739e343d3f05e85f412eeba2d6e917108888c96d97023e`;
+5 сравнений / **72,023,040** float32 logits побитно совпали.
+Новая сборка также прошла отдельный gate `arena_reserved <= cache_limit`.
+
+**Вывод:** чрезмерное вытеснение воспроизведено и исправлено. Влияние на скорость
+зависит от давления на VRAM; кэш без превышения бюджета использует прежний путь.
+Эти пары сравнивают версии алгоритма при20/2/8, не выбирают оптимальный cap.
+Экспериментальный18/2/4 и generic defaults cache0/allocator=cuda/pipeline0
+сохранены. Более высокий cap пока не объявлен общим default.
+
+Команды (GPU workloads выполнялись последовательно):
+
+```powershell
+& .\build-local\build-minimax-m2-runtime.bat
+& .\build-local\build-minimax-m2-reclaim-shared.bat
+python tools/run_minimax_m2.py --engine build-local/minimax-m2-cuda/bin/strata-minimax-m2-reclaim-check.exe -- build-local/minimax-m2-reclaim-check-02.json
+python tools/check_minimax_m2_pipeline.py --out build-local/minimax-m2-reclaim-pipeline-01 --lookahead --d2d-batch
+python build-local/check-minimax-m2-reclaim-validation.py
+python tools/check_minimax_m2_reload.py --out build-local/minimax-m2-reclaim-reload-01 --check-mm27-06-baseline --pipeline-readers 2 --pipeline-chunk-mib 8 --pipeline-lookahead 1 --pipeline-d2d-batch 1
+python tools/check_minimax_m2_lifecycle.py --model "H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --out build-local/minimax-m2-reclaim-lifecycle-01 --gpu-cache-mib 20480 --gpu-cache-allocator arena --pipeline-readers 2 --pipeline-chunk-mib 8 --pipeline-lookahead 1 --pipeline-d2d-batch 1
+python tools/check_minimax_m2_reclaim.py --model "H:\models\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf" --baseline-dir build-local/minimax-m2-reclaim-baseline --out build-local/minimax-m2-reclaim-ab-01
+```
+
+Пути отчётов уже существуют; для повторения нужны новые output paths.
+Сохранены old/new EXE, исходники, raw logits, stdout/stderr, commands и hashes.
+Численные kernels не менялись. Старый MM27-06 tiny native-after-cache
+**остаётся OPEN**: новые PASS не устанавливают причину прежнего расхождения.
+Следующий шаг — MM27-14: generation budget выше256 в рамках допустимого
+context, законченные reasoning/final ответы и natural EOS; затем API/session.
+
+### MM27-12 — 2026-10-08 — Подбор кэша и конвейера без изменения kernels
+
+**Результат:** прежние 18 ГиБ / 2 readers / chunk4 сохраняются как
+экспериментальный вариант. Единственный проход отбирал кандидата, но повторный
+A/B не подтвердил полезный выигрыш полного запроса от 20 ГиБ / chunk8.
+Ни параметры по умолчанию, ни математический код, ни общие helpers не менялись.
+Добавлен `tools/tune_minimax_m2_pipeline.py`: конфигурации из JSON, чередование
+порядка, strict F32, сохранённые EXE/исходники/logits/команды, проверки 95%,
+bytes/drain и побитного совпадения. Лимит cache и его фактическое заполнение
+пишутся отдельно. Кандидат использует 32 + 32 МиБ колец, baseline 16 + 16 МиБ.
+
+**Условия:** локальный MiniMax-M2.7 Q4_K_M, 128,841 ГиБ, RTX 5090 32607 МиБ,
+RAM 125,555 ГиБ, Windows, driver 581.80, та же сборка MM27-11
+`6e8e465dd2f653a2c282d22dc4dda41afc71f4f371b206f1659ff8fd40710f6a`.
+Strict F32 activations/KV, FA/graphs/MTP off, greedy, ctx2048/batch16,
+arena, file pipeline, router lookahead и D2D batch. Процессы запускаются
+последовательно; каждый начинает с пустым GPU cache. OS file cache и внешняя
+нагрузка не фиксировались. Счётчик ReadFile не является физическим SSD traffic.
+
+**Предварительный перебор, по одному проходу.** Входы 52/52/343 токена,
+выходы по 24 токена. Контроль 18 ГиБ запущен до/после перебора кэша;
+контроль 2 readers/chunk4 — до/после перебора конвейера. Это не изолированный
+рейтинг: фактические бюджеты VRAM различались, а контрольные замеры колебались.
+Cap 20 и 24 в первом переборе дали одинаковые 18,83 ГиБ live при 19,45 ГиБ budget.
+
+| Конфигурация | Первый / повтор / новая тема, ток/с | Всё, с | Бюджет кэша в конце decode, ГиБ |
+|---|---|---:|---|
+| `c18-r2-s4-start` | 3,41 / 4,62 / 4,12 | 78,79 | 18,00 / 18,00 / 18,00 |
+| `c12-r2-s4` | 3,23 / 4,13 / 3,80 | 82,41 | 12,00 / 12,00 / 12,00 |
+| `c24-r2-s4` | 3,48 / 4,73 / 4,26 | 75,74 | 19,45 / 19,45 / 19,45 |
+| `c16-r2-s4` | 3,38 / 4,48 / 3,99 | 78,81 | 16,00 / 16,00 / 16,00 |
+| `c20-r2-s4` | 3,49 / 4,73 / 4,27 | 75,85 | 19,46 / 19,46 / 19,46 |
+| `c18-r2-s4-end` | 3,45 / 4,61 / 3,68 | 77,95 | 18,00 / 18,00 / 18,00 |
+
+| Конфигурация | Первый / повтор / новая тема, ток/с | Всё, с | Бюджет кэша в конце decode, ГиБ |
+|---|---|---:|---|
+| `c20-r2-s4-start` | 3,06 / 4,26 / 4,08 | 82,91 | 18,82 / 18,86 / 18,87 |
+| `c20-r1-s16` | 2,65 / 3,88 / 3,40 | 114,74 | 18,82 / 18,83 / 19,08 |
+| `c20-r2-s8` | 3,46 / 4,67 / 4,18 | 77,37 | 19,03 / 19,12 / 19,12 |
+| `c20-r1-s4` | 2,66 / 3,95 / 3,43 | 106,67 | 19,10 / 19,13 / 19,13 |
+| `c20-r2-s16` | 3,47 / 4,31 / 4,06 | 78,74 | 19,09 / 19,00 / 18,98 |
+| `c20-r1-s8` | 2,72 / 3,73 / 3,31 | 105,95 | 19,05 / 18,98 / 19,00 |
+| `c20-r2-s4-end` | 3,36 / 4,55 / 4,17 | 83,00 | 19,02 / 19,02 / 19,05 |
+
+Один reader проиграл при всех трёх размерах чанка. Для повторной проверки
+выбран кандидат 20 ГиБ / 2 readers / chunk8 с наименьшим временем предварительного
+прохода. Такой выбор ещё не означает оптимальный профиль.
+
+**Подтверждение: три пары, A/B, B/A, A/B.** Здесь одновременно меняются cap
+и chunk, поэтому эффект нельзя приписывать одному из них.
+
+| Запрос | 18 ГиБ / 2 / 4 МиБ | 20 ГиБ / 2 / 8 МиБ | Изменение decode |
+|---|---:|---:|---:|
+| Первый короткий | 3,41 | 3,44 | +0,89% |
+| Повтор | 4,61 | 4,67 | +1,41% |
+| Новая тема | 4,13 | 4,16 | +0,74% |
+
+Медиана суммарного времени: **77,70 → 81,02 с**,
+то есть **+4,27% времени**.
+Во второй паре повтор кандидата замедлился до 4,05 против 4,62 ток/с.
+Live cache кандидата составил 13,59 / 16,01 / 18,41 ГиБ по трём запросам;
+физический reserved в первом/втором оставался 18,94 ГиБ. У baseline live cache
+во всех повторах 17,43 ГиБ. Рост cap не дал устойчивого преимущества.
+
+Счётчики показывают освобождение 9 slab и 13 387 evictions в первом запросе
+второй пары кандидата; OOM/reject здесь может означать отказ arena budget,
+а не аппаратное исчерпание VRAM. По коду `mm27_cache_refresh` общий trim
+продолжается до освобождения физических slab; отдельные holes ещё не уменьшают
+reserved. **Рабочая гипотеза:** при небольшом изменении бюджета освобождается
+избыточный объём полезного кэша. Точной трассы каждого trim здесь нет;
+причину и исправление нужно проверить контролируемым replay в MM27-13.
+
+**Более длинная генерация: одна пара с max_tokens=256.** Это проверка
+точности и устойчивости; единичные скорости не подтверждают новый speedup.
+
+| Запрос | Выходных токенов | Stop | Baseline / candidate, ток/с |
+|---|---:|---|---|
+| Первый короткий | 256 | length | 3,88 / 4,17 |
+| Повтор | 256 | length | 4,21 / 4,29 |
+| Новая тема | 256 | length | 5,13 / 5,19 |
+
+Все logits и IDs пары совпали. Выходы с `length` ограничены лимитом и не
+считаются завершёнными ответами. [Необработанные примеры](MINIMAX_M27_LONG_GENERATION_SAMPLES.md)
+сохранены для просмотра. Во всех трёх запросах 256 токенов израсходованы на
+reasoning; закрывающий `</think>` и конечный ответ не получены.
+Это runtime/token-limit наблюдение, не подтверждение качества готовых ответов.
+Широкий quality benchmark не выполнен.
+
+**Проверки:** 21 запуск модели; **427 336 704 пары logits**
+и **2136 пар token IDs** совпали побитно.
+Все 19 коротких прогонов сохранили исторический SHA logits
+`35d2d4995390c2ac58739e343d3f05e85f412eeba2d6e917108888c96d97023e`.
+Все memory/byte/drain gates PASS. На кандидате дополнительно прошли
+**24 lifecycle checks**: real pressure, cancel/recovery/unload и ctx4096
+с повторяемым префиксом и 33 различающимися токенами; native/file logits точные.
+Реальная нагрузка достигла **89,95% RAM / 93,98% VRAM**.
+Это выборочные измерения глобальной памяти, а не непрерывные peaks.
+Полную матрицу 4920 fixtures MM27-11 заново не запускали: численный engine,
+все C++ исходники и shared helpers имеют прежние хэши.
+
+Raw logs, inputs, EXE и logits: `build-local/minimax-m2-tune-*`.
+Архивы: [cache](MINIMAX_M27_TUNING_CACHE_CHECK.json),
+[transport](MINIMAX_M27_TUNING_TRANSPORT_CHECK.json),
+[confirmation](MINIMAX_M27_TUNING_CONFIRM_CHECK.json),
+[long generation](MINIMAX_M27_TUNING_LONG_CHECK.json),
+[lifecycle](MINIMAX_M27_TUNING_LIFECYCLE_CHECK.json),
+[telemetry](MINIMAX_M27_TUNING_TELEMETRY_CHECK.json),
+[manifest](MINIMAX_M27_TUNING_BUILD_MANIFEST.json).
+P3.5 выполнен частично: prefill admission/frequency decay не менялись.
+Старый MM27-06 native-after-cache discrepancy остаётся OPEN.
 
 ### MM27-11 — 2026-10-08 — Одно ожидание доставки на тензор
 

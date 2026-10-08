@@ -1,5 +1,6 @@
 // Experimental synchronous baseline. JSONL pipe accepts already-rendered prompts or token IDs.
 #include "runtime.hpp"
+#include "sampling.hpp"
 #include "nlohmann/json.hpp"
 #include <chrono>
 #include <csignal>
@@ -18,6 +19,14 @@ static json stats() {
         {"ranges",s.ranges},{"chunks",s.chunks},{"source_bytes",s.source_bytes},{"h2d_bytes",s.h2d_bytes},
         {"file_bytes",s.file_bytes},{"mmap_bytes",s.mmap_bytes},{"host_working_set_limit",s.host_working_set_limit},
         {"host_budget_updates",s.host_budget_updates},
+        {"ram_cache_bytes",s.ram_cache_bytes},{"ram_cache_budget",s.ram_cache_budget},{"ram_cache_cap",s.ram_cache_cap},
+        {"ram_cache_entries",s.ram_cache_entries},{"ram_cache_readers",s.ram_cache_readers},{"ram_cache_peak_bytes",s.ram_cache_peak_bytes},
+        {"ram_cache_hits",s.ram_cache_hits},{"ram_cache_misses",s.ram_cache_misses},
+        {"ram_cache_mapped_bytes",s.ram_cache_mapped_bytes},{"ram_cache_file_bytes",s.ram_cache_file_bytes},
+        {"ram_cache_admissions",s.ram_cache_admissions},{"ram_cache_evictions",s.ram_cache_evictions},
+        {"ram_cache_gpu_drops",s.ram_cache_gpu_drops},{"ram_cache_gpu_drop_bytes",s.ram_cache_gpu_drop_bytes},
+        {"ram_cache_prefill_bypasses",s.ram_cache_prefill_bypasses},{"ram_cache_rejected",s.ram_cache_rejected},
+        {"ram_cache_gpu_waits",s.ram_cache_gpu_waits},{"ram_cache_history_entries",s.ram_cache_history_entries},
         {"pipeline_plans",s.pipeline_plans},{"pipeline_matrices",s.pipeline_matrices},
         {"pipeline_plan_peak",s.pipeline_plan_peak},{"pipeline_lookahead_plans",s.pipeline_lookahead_plans},
         {"pipeline_copy_batches",s.pipeline_copy_batches},{"pipeline_copy_fences",s.pipeline_copy_fences},{"pipeline_scratch_fences",s.pipeline_scratch_fences},{"pipeline_copy_submissions",s.pipeline_copy_submissions},{"pipeline_pending_fills_peak",s.pipeline_pending_fills_peak},{"pipeline_abort_fences",s.pipeline_abort_fences},
@@ -32,7 +41,11 @@ static json stats() {
         {"selected_bytes",s.selected_bytes},{"cache_hits",s.cache_hits},{"cache_misses",s.cache_misses},
         {"cache_hit_bytes",s.cache_hit_bytes},{"cache_fill_bytes",s.cache_fill_bytes},{"cache_guard_bytes",s.cache_guard_bytes},
         {"cache_evictions",s.cache_evictions},{"cache_reuses",s.cache_reuses},{"cache_oom",s.cache_oom},
-        {"cache_bypasses",s.cache_bypasses},{"cache_resident",s.cache_resident},{"cache_limit",s.cache_limit},
+        {"cache_pressure_trims",s.cache_pressure_trims},{"cache_pressure_groups",s.cache_pressure_groups},
+        {"cache_pressure_evicted_bytes",s.cache_pressure_evicted_bytes},{"cache_pressure_released_bytes",s.cache_pressure_released_bytes},
+        {"cache_bypasses",s.cache_bypasses},{"cache_group_experts",s.cache_group_experts},{"cache_expert_groups",s.cache_expert_groups},{"cache_partial_expert_groups",s.cache_partial_expert_groups},
+        {"cache_ready_matrices",s.cache_ready_matrices},{"cache_pending_matrices",s.cache_pending_matrices},{"cache_ready_bytes",s.cache_ready_bytes},
+        {"cache_group_admissions",s.cache_group_admissions},{"cache_group_plan_pins_peak",s.cache_group_plan_pins_peak},{"cache_resident",s.cache_resident},{"cache_limit",s.cache_limit},
         {"arena_reserved",s.arena_reserved},{"arena_live",s.arena_live},{"arena_blocks",s.arena_blocks},
         {"arena_allocations",s.arena_allocations},{"arena_frees",s.arena_frees},{"arena_rejects",s.arena_rejects},
         {"staging_bytes",s.staging_bytes},{"source_ms",s.source_ms},{"h2d_ms",s.h2d_ms},{"compute_ms",s.compute_ms}};
@@ -59,10 +72,12 @@ static json request(llama_model *model,llama_context *ctx,const json &r,std::ost
         require(llama_tokenize(vocab,prompt.data(),int(prompt.size()),tokens.data(),int(tokens.size()),false,true)==-n,"tokenization failed");
     }
     require(!r.contains("max_tokens") || (r.at("max_tokens").is_number_integer() &&
-        r.at("max_tokens")>=1 && r.at("max_tokens")<=256),"invalid max_tokens");
+        r.at("max_tokens")>=1 && r.at("max_tokens")<=llama_n_ctx(ctx)),"invalid max_tokens");
     const int count=r.value("max_tokens",8);
-    require(count>=1 && count<=256 && !tokens.empty() && tokens.size()+size_t(count)<=llama_n_ctx(ctx),"invalid request/context size");
+    require(count>=1 && !tokens.empty() && tokens.size()+size_t(count)<=llama_n_ctx(ctx),"invalid request/context size");
     for(auto t:tokens)require(t>=0 && t<nv,"token outside vocabulary");
+    const auto sampling=SamplingConfig::parse(r.value("sampling",json::object()),nv);
+    RequestSampler sampler(sampling); // Fresh seed/state for every request, including after cancellation.
     clear(ctx);cancelled.store(false);strata_mm27_reset();strata_mm27_cache_decode(false);
     json samples=json::array();samples.push_back(memory());
     const auto start=Clock::now();
@@ -70,12 +85,13 @@ static json request(llama_model *model,llama_context *ctx,const json &r,std::ost
         decode(ctx,tokens,i,int(std::min<size_t>(llama_n_batch(ctx),tokens.size()-i)),int(i));samples.push_back(memory());
     }
     const double prefill_ms=elapsed(start);const auto prefill=stats();strata_mm27_reset();
-    json generated=json::array();std::string text;double decode_ms=0,ttft_ms=0;bool eos=false;
+    json generated=json::array();std::string text;double decode_ms=0,ttft_ms=0,sampling_ms=0;bool eos=false;
     for(int i=0;i<count;++i) {
+        require(!cancelled.load(),"MiniMax request cancelled");
         const float *l=llama_get_logits_ith(ctx,-1);require(l,"missing logits");
         require(std::all_of(l,l+nv,[](float x){return std::isfinite(x);}),"non-finite logits");
         if(logits) {logits->write(reinterpret_cast<const char *>(l),nv*sizeof(float));require(bool(*logits),"cannot write logits");}
-        const llama_token token=llama_token(std::max_element(l,l+nv)-l);generated.push_back(token);
+        const auto draw=Clock::now();const llama_token token=sampler.sample(l,nv);sampling_ms+=elapsed(draw);generated.push_back(token);
         std::vector<char> piece(256);int n=llama_token_to_piece(vocab,token,piece.data(),int(piece.size()),0,true);
         if(n<0) {piece.resize(-n);n=llama_token_to_piece(vocab,token,piece.data(),int(piece.size()),0,true);}
         require(n>=0,"cannot decode token piece");text.append(piece.data(),size_t(n));
@@ -89,7 +105,9 @@ static json request(llama_model *model,llama_context *ctx,const json &r,std::ost
     }
     const double request_ms=elapsed(start);
     return {{"event","result"},{"prompt_tokens",tokens.size()},{"generated_tokens",generated.size()},{"token_ids",generated},
-        {"text",text},{"stop_reason",eos?"eos":"length"},{"prefill_ms",prefill_ms},{"ttft_ms",ttft_ms},
+        {"text",text},{"stop_reason",eos?"eos":"length"},{"max_tokens",count},
+        {"stop_token_id",eos?json(generated.back()):json(nullptr)},{"prefill_ms",prefill_ms},{"ttft_ms",ttft_ms},
+        {"sampling",sampling.json()},{"sampling_algorithm",sampling.algorithm()},{"sampling_ms",sampling_ms},
         {"decode_forward_tokens",generated.size()-1},{"decode_ms",decode_ms},
         {"decode_tokens_per_second",decode_ms>0?1000.*(generated.size()-1)/decode_ms:0.},
         {"request_ms",request_ms},{"prefill",prefill},{"decode",stats()},{"memory_samples",samples}};
@@ -97,8 +115,9 @@ static json request(llama_model *model,llama_context *ctx,const json &r,std::ost
 int main(int argc,char **argv) {
     try {
         std::string path,input,output,logit_path;int size=512,batch=8,mode=2;bool pipe=false;
-        uint64_t cache_mib=0;
+        uint64_t cache_mib=0,ram_cache_mib=0;
         std::string cache_allocator="cuda";
+        uint32_t arena_block_mib=64,arena_growth_reserve_mib=0;bool group_experts=false;
         std::string reader="file";
         int pipeline_readers=0,pipeline_chunk=8;bool pipeline_lookahead=false,pipeline_d2d_batch=false;
         std::string pipeline_trace;
@@ -117,6 +136,18 @@ int main(int argc,char **argv) {
             }
             else if(arg=="--gpu-cache-allocator") {
                 require(value=="cuda" || value=="arena","invalid cache allocator");cache_allocator=value;
+            }
+            else if(arg=="--ram-cache-mib") {
+                require(!value.empty() && value.find_first_not_of("0123456789")==std::string::npos,"invalid RAM cache MiB");
+                ram_cache_mib=std::stoull(value);require(ram_cache_mib<=131072,"RAM cache MiB too large");
+            }
+            else if(arg=="--cache-group-experts") {require(value=="0" || value=="1","invalid group flag");group_experts=value=="1";}
+            else if(arg=="--arena-growth-reserve-mib") {
+                require(!value.empty() && value.find_first_not_of("0123456789")==std::string::npos,"invalid arena growth reserve MiB");
+                const auto reserve=std::stoull(value);require(reserve<=1024,"arena growth reserve MiB too large");arena_growth_reserve_mib=uint32_t(reserve);
+            }
+            else if(arg=="--arena-block-mib") {
+                require(value=="8" || value=="16" || value=="32" || value=="64","invalid arena block MiB");arena_block_mib=uint32_t(std::stoul(value));
             }
             else if(arg=="--expert-reader") {
                 require(value=="file" || value=="mmap" || (value=="mmap-direct" || value=="mmap-decode"),"invalid expert reader");reader=value;
@@ -141,17 +172,25 @@ int main(int argc,char **argv) {
         environment();ggml_backend_load_all();strata_mm27_mode(mode);
         struct Release {~Release(){strata_mm27_release();}} release;
         strata_mm27_reader(reader=="file"?0:reader=="mmap"?1:reader=="mmap-direct"?2:3);
-        strata_mm27_cache_configure(cache_mib<<20,cache_allocator=="arena");
+        strata_mm27_cache_configure(cache_mib<<20,cache_allocator=="arena",arena_block_mib,arena_growth_reserve_mib,group_experts);
         strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch);
+        strata_mm27_ram_cache_configure(ram_cache_mib<<20);
         if(!pipeline_trace.empty())strata_mm27_pipeline_trace(true);
-        signal(SIGINT,interrupt);strata_mm27_cancel(&cancelled);
+        signal(SIGINT,interrupt);
+#ifdef _WIN32
+        // A supervisor can address CTRL_BREAK to this process group without
+        // interrupting the console that launched it.
+        signal(SIGBREAK,interrupt);
+#endif
+        strata_mm27_cancel(&cancelled);
         const auto before=memory();const auto start=Clock::now();
         auto model=load(path);auto ctx=context(model.get(),size,batch);const double load_ms=elapsed(start);
         json header={{"architecture","minimax-m2"},{"source_revision",STRATA_MM27_SOURCE_SHA},{"patches",STRATA_MM27_PATCH_SET},
             {"model",path},{"mode",mode},{"context",size},{"batch",batch},{"kv","F32"},{"flash_attention",false},
-            {"strict_f32",true},{"graphs",false},{"cache",cache_mib>0},{"gpu_cache_mib",cache_mib},
+            {"strict_f32",true},{"graphs",false},{"cache",cache_mib>0},{"gpu_cache_mib",cache_mib},{"ram_cache_mib",ram_cache_mib},
             {"gpu_cache_allocator",cache_allocator},
-            {"expert_reader",reader},{"host_working_set_target_percent",reader=="file"?0:94},
+            {"cache_group_experts",group_experts},{"arena_block_mib",arena_block_mib},{"arena_growth_reserve_mib",arena_growth_reserve_mib},
+            {"expert_reader",reader},{"host_working_set_target_percent",reader=="file" && !ram_cache_mib?0:94},
             {"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},
             {"pipeline_trace",pipeline_trace},
             {"cache_policy","decode admission after first serial step; prefill hits only; global 95% minus 256 MiB"},

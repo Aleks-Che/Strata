@@ -37,12 +37,23 @@ int main(int argc,char **argv) {
     try {
         require(argc>=2,"usage: cache-check NEW_DIRECTORY [--pipeline-readers N --pipeline-chunk-mib N]");const std::filesystem::path dir=argv[1];
         int pipeline_readers=0,pipeline_chunk=8;bool pipeline_lookahead=false,pipeline_d2d_batch=false;
+        uint64_t ram_cache_mib=0;uint32_t arena_block_mib=64,arena_growth_reserve_mib=0;bool group_experts=false;
         for(int i=2;i<argc;++i) {
             const std::string arg=argv[i];require(i+1<argc,"missing pipeline argument");const std::string v=argv[++i];
             if(arg=="--pipeline-readers") {require(v=="0" || v=="1" || v=="2","invalid readers");pipeline_readers=std::stoi(v);}
             else if(arg=="--pipeline-chunk-mib") {require(v=="4" || v=="8" || v=="16","invalid chunk");pipeline_chunk=std::stoi(v);}
             else if(arg=="--pipeline-lookahead") {require(v=="0" || v=="1","invalid chunk");pipeline_lookahead=v=="1";}
             else if(arg=="--pipeline-d2d-batch") {require(v=="0" || v=="1","invalid chunk");pipeline_d2d_batch=v=="1";}
+            else if(arg=="--ram-cache-mib") {
+                require(!v.empty() && v.find_first_not_of("0123456789")==std::string::npos,"invalid RAM cache MiB");
+                ram_cache_mib=std::stoull(v);require(ram_cache_mib<=131072,"RAM cache MiB too large");
+            }
+            else if(arg=="--cache-group-experts") {require(v=="0" || v=="1","invalid group flag");group_experts=v=="1";}
+            else if(arg=="--arena-growth-reserve-mib") {
+                require(!v.empty() && v.find_first_not_of("0123456789")==std::string::npos,"invalid arena growth reserve MiB");
+                const auto reserve=std::stoull(v);require(reserve<=1024,"arena growth reserve MiB too large");arena_growth_reserve_mib=uint32_t(reserve);
+            }
+            else if(arg=="--arena-block-mib") {require(v=="8" || v=="16" || v=="32" || v=="64","invalid arena block");arena_block_mib=uint32_t(std::stoul(v));}
             else throw std::runtime_error("unknown cache argument: "+arg);
         }
         require(!std::filesystem::exists(dir),"output directory exists");std::filesystem::create_directories(dir);
@@ -50,7 +61,7 @@ int main(int argc,char **argv) {
         auto check=[&](const std::string &name,bool ok){tests.push_back({{"name",name},{"pass",ok}});};
         SIZE_T old_min=0,old_max=0;DWORD old_flags=0;
         require(GetProcessWorkingSetSizeEx(GetCurrentProcess(),&old_min,&old_max,&old_flags)!=0,"read original working set");
-        for(int reader:(pipeline_readers?std::vector<int>{0}:std::vector<int>{0,1,2,3}))for(bool arena:{false,true})for(bool mixed:{false,true}) {
+        for(int reader:(pipeline_readers?std::vector<int>{0}:std::vector<int>{0,1,2,3}))for(bool arena:(group_experts?std::vector<bool>{true}:std::vector<bool>{false,true}))for(bool mixed:{false,true}) {
             const std::string label=std::to_string(reader)+"/"+(arena?"arena/":"cuda/")+(mixed?"mixed/":"f32/");
             const auto path=(dir/(std::to_string(reader)+"-"+(arena?"arena-":"cuda-")+(mixed?"mixed.gguf":"f32.gguf"))).string();
             write_synthetic_minimax_m2(path,mixed);strata_mm27_mode(2);
@@ -58,6 +69,7 @@ int main(int argc,char **argv) {
             const auto reference=run(ctx.get()),topic=run(ctx.get(),3);
             strata_mm27_reader(reader);
             strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch);
+            strata_mm27_ram_cache_configure(ram_cache_mib<<20);
             if(pipeline_d2d_batch) {
                 strata_mm27_reset();
                 check(label+"batch_uncached_exact",equal(run(ctx.get()),reference));
@@ -67,13 +79,16 @@ int main(int argc,char **argv) {
             }
             Observer observer;strata_mm27_observe(Observer::check,&observer);
             for(uint64_t cap:{2ull<<20,256ull<<20}) {
-                strata_mm27_cache_configure(cap,arena);strata_mm27_cache_decode(true);strata_mm27_reset();
+                strata_mm27_cache_configure(cap,arena,arena_block_mib,arena_growth_reserve_mib,group_experts);strata_mm27_cache_decode(true);strata_mm27_reset();
                 check(label+"cold_exact/"+std::to_string(cap),equal(run(ctx.get()),reference));
                 const auto cold=strata_mm27_snapshot();
                 if(pipeline_d2d_batch)check(label+"batch_fences_and_fill_pins/"+std::to_string(cap),
                     cold.pipeline_copy_batches==cold.pipeline_matrices && cold.pipeline_copy_fences==cold.pipeline_copy_batches &&
                     cold.pipeline_scratch_fences==cold.pipeline_copy_batches && cold.pipeline_copy_fences<cold.pipeline_copy_submissions &&
-                    cold.pipeline_pending_fills_peak>=2 && !cold.pipeline_abort_fences);
+                    // One F32 fixture triplet charges 1.6875 MiB: a 2 MiB
+                    // cache can hold only one pending group, versus several
+                    // independent matrices in the original cache.
+                    cold.pipeline_pending_fills_peak>=((group_experts && !mixed && cap==(2ull<<20))?1:2) && !cold.pipeline_abort_fences);
                 if(pipeline_lookahead)check(label+"lookahead_plan_bound/"+std::to_string(cap),
                     cold.pipeline_lookahead_plans>0 && cold.pipeline_plan_peak==3 &&
                     cold.pipeline_matrices==3*cold.pipeline_plans);
@@ -83,10 +98,19 @@ int main(int argc,char **argv) {
                     cold.staging_bytes==(uint64_t(pipeline_chunk)<<22) && cold.pipeline_device_bytes==cold.staging_bytes);
                 check(label+"reader_accounting/"+std::to_string(cap),cold.file_bytes+cold.mmap_bytes==cold.source_bytes &&
                     (reader?cold.mmap_bytes>0 && !cold.file_bytes && cold.host_working_set_limit>0:
-                        cold.file_bytes>0 && !cold.mmap_bytes && !cold.host_working_set_limit));
+                        cold.file_bytes>0 && !cold.mmap_bytes && bool(cold.host_working_set_limit)==bool(ram_cache_mib)));
                 strata_mm27_reset();observer.bytes=0;
                 check(label+"warm_exact/"+std::to_string(cap),equal(run(ctx.get()),reference));
                 const auto warm=strata_mm27_snapshot();
+                if(group_experts)check(label+"complete_group_readiness/"+std::to_string(cap),
+                    warm.cache_group_experts && !warm.cache_partial_expert_groups && !warm.cache_pending_matrices &&
+                    warm.cache_ready_matrices==3*warm.cache_expert_groups && warm.cache_ready_bytes<=warm.cache_resident &&
+                    cold.cache_group_admissions>0 && cold.cache_group_plan_pins_peak>0 && cold.cache_group_plan_pins_peak<=768);
+                if(ram_cache_mib)check(label+"ram_partition_and_accounting/"+std::to_string(cap),
+                    !warm.ram_cache_readers && warm.ram_cache_bytes<=warm.ram_cache_budget &&
+                    warm.ram_cache_budget<=warm.ram_cache_cap && warm.ram_cache_cap<=(ram_cache_mib<<20) &&
+                    warm.ram_cache_mapped_bytes+warm.ram_cache_file_bytes==warm.source_bytes &&
+                    (cold.ram_cache_gpu_drops>0 || cold.ram_cache_gpu_waits>0) && cold.ram_cache_history_entries<=65536);
                 check(label+"bounded/"+std::to_string(cap),warm.cache_resident<=cap && warm.cache_resident<=warm.cache_limit &&
                     warm.arena_reserved<=cap && (!arena || warm.arena_live==warm.cache_resident));
                 check(label+"byte_accounting/"+std::to_string(cap),observer.bytes==warm.selected_bytes &&
@@ -99,9 +123,11 @@ int main(int argc,char **argv) {
                     check(label+"batch_without_observer_exact/"+std::to_string(cap),equal(run(ctx.get()),reference));
                     strata_mm27_observe(Observer::check,&observer);
                 }
-                runs.push_back({{"fixture",label},{"cap",cap},{"resident",warm.cache_resident},{"hits",warm.cache_hits},
+                runs.push_back({{"fixture",label},{"cap",cap},{"ram_bytes",warm.ram_cache_bytes},{"ram_hits",warm.ram_cache_hits},{"ram_gpu_drops",cold.ram_cache_gpu_drops},{"resident",warm.cache_resident},{"hits",warm.cache_hits},
                     {"misses",warm.cache_misses},{"h2d_bytes",warm.h2d_bytes},{"hit_bytes",warm.cache_hit_bytes},
-                    {"cold_evictions",cold.cache_evictions},{"cold_reuses",cold.cache_reuses},{"arena_reserved",warm.arena_reserved}});
+                    {"cold_evictions",cold.cache_evictions},{"cold_reuses",cold.cache_reuses},{"arena_reserved",warm.arena_reserved},
+                    {"groups",warm.cache_expert_groups},{"partial_groups",warm.cache_partial_expert_groups},
+                    {"ready_bytes",warm.cache_ready_bytes},{"plan_pins_peak",cold.cache_group_plan_pins_peak}});
             }
             strata_mm27_cache_decode(false);strata_mm27_reset();
             check(label+"prefill_hits_exact",equal(run(ctx.get()),reference));
@@ -149,6 +175,12 @@ int main(int argc,char **argv) {
             strata_mm27_cache_decode(true);strata_mm27_reset();
             check(label+"OOM_bypass_exact",equal(run(ctx.get()),reference));
             check(label+"OOM_no_residency",strata_mm27_snapshot().cache_oom>0 && strata_mm27_snapshot().cache_resident==0);
+            if(ram_cache_mib) {
+                strata_mm27_reset();
+                const bool same=equal(run(ctx.get()),reference);const auto s=strata_mm27_snapshot();
+                check(label+"RAM_serves_GPU_admission_bypass",same && s.ram_cache_hits>0 && s.ram_cache_mapped_bytes>0 &&
+                    !s.ram_cache_readers && s.ram_cache_mapped_bytes+s.ram_cache_file_bytes==s.source_bytes);
+            }
             limits={};limits.cache_fill_failure=true;strata_mm27_test_memory_limits(limits);
             failed=false;try {run(ctx.get());}catch(const std::exception &){failed=true;}
             check(label+"partial_fill_invalidated",failed && strata_mm27_snapshot().cache_resident==0);
@@ -190,7 +222,7 @@ int main(int argc,char **argv) {
             ggml_set_name(weight,saved.c_str());strata_mm27_cache_decode(true);
             check(label+"identity_recovery",equal(run(ctx.get()),reference));
             strata_mm27_observe(nullptr,nullptr);ctx.reset();model.reset();
-            check(label+"unload_no_entries",strata_mm27_snapshot().cache_resident==0 && !strata_mm27_snapshot().arena_reserved);
+            check(label+"unload_no_entries",strata_mm27_snapshot().cache_resident==0 && !strata_mm27_snapshot().arena_reserved && !strata_mm27_snapshot().ram_cache_bytes && !strata_mm27_snapshot().ram_cache_readers);
             {
                 auto &r=strata_expert_file::registry();std::lock_guard<std::mutex> lock(r.mutex);
                 check(label+"unload_no_mapping",r.files.empty());
@@ -205,7 +237,7 @@ int main(int argc,char **argv) {
                 old_min==restored_min && old_max==restored_max && old_flags==restored_flags && !strata_mm27_snapshot().host_working_set_limit);
         }
         size_t failures=0;for(const auto &t:tests)if(!t.at("pass").get<bool>())++failures;
-        json report={{"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},
+        json report={{"ram_cache_mib",ram_cache_mib},{"cache_group_experts",group_experts},{"arena_block_mib",arena_block_mib},{"arena_growth_reserve_mib",arena_growth_reserve_mib},{"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},
             {"tests",tests},{"runs",runs},{"cases",tests.size()},{"failures",failures},{"pass",!failures}};
         std::ofstream(dir/"cache-report.json")<<report.dump(2)<<'\n';std::cout<<report.dump(2)<<'\n';return failures?1:0;
     }catch(const std::exception &e){std::cerr<<e.what()<<'\n';strata_mm27_release();return 2;}

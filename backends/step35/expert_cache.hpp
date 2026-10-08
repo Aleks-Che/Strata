@@ -73,10 +73,12 @@ public:
     using Allocate=std::function<cudaError_t(void **,size_t)>;
     using Release=std::function<cudaError_t(void *)>;
     using Backing=std::function<size_t()>;
+    using BackingGroup=std::function<uintptr_t(const void *)>;
     struct Counters {
         uint64_t hits=0,misses=0,evictions=0,bypasses=0,oom=0,rejected=0,samples=0;
         uint64_t allocations=0,reuses=0;
         uint64_t victim_candidates=0;
+        uint64_t pressure_trims=0,pressure_groups=0,pressure_evicted_bytes=0,pressure_released_bytes=0;
         double get_ms=0,admit_ms=0,refresh_ms=0,probe_ms=0,protect_ms=0,trim_ms=0;
         double victim_ms=0,allocate_ms=0,free_ms=0;
     };
@@ -98,6 +100,7 @@ private:
     Allocate allocate;
     Release release;
     Backing backing;
+    BackingGroup backing_group;
     MemorySample sample{};
     Counters counts{};
     int device=-1;
@@ -109,6 +112,40 @@ private:
         { CpuTimer timer(profile?&counts.free_ms:nullptr); cuda_check(release(it->second.data)); }
         resident-=it->second.allocated;
         order.erase(it->second.order); entries.erase(it); ++counts.evictions;
+    }
+    void trim_backing() {
+        if(backing()<=limit)return;
+        CpuTimer timer(profile?&counts.trim_ms:nullptr);
+        ++counts.pressure_trims;
+        struct Group {size_t bytes=0,newest=0;bool pinned=false;std::vector<MatrixKey> keys;};
+        std::map<uintptr_t,Group> groups;
+        size_t age=0;
+        // Only build this index under physical pressure. Inspect every pin
+        // before releasing anything: one pending user protects its whole slab.
+        for(const auto &item:order) {
+            const auto id=backing_group(item.entry->data);
+            if(!id)throw std::runtime_error("Step cache invalid backing group");
+            auto &g=groups[id];g.bytes+=item.entry->allocated;g.newest=age++;
+            g.pinned|=item.entry->pins!=0;g.keys.push_back(item.key);
+        }
+        std::vector<Group *> victims;victims.reserve(groups.size());
+        for(auto &pair:groups)if(!pair.second.pinned)victims.push_back(&pair.second);
+        // Sacrifice the least live payload first. Equal-sized groups prefer
+        // the one whose most recent access is oldest. Normal replacement and
+        // frequency training are unchanged; this only returns physical blocks.
+        std::sort(victims.begin(),victims.end(),[](const Group *a,const Group *b) {
+            return std::tie(a->bytes,a->newest)<std::tie(b->bytes,b->newest);
+        });
+        for(const auto *g:victims) {
+            const auto before=backing();if(before<=limit)break;
+            for(const auto &key:g->keys)erase(entries.find(key));
+            const auto after=backing();
+            if(after>=before)throw std::runtime_error("Step cache backing group did not release memory");
+            ++counts.pressure_groups;counts.pressure_evicted_bytes+=g->bytes;
+            counts.pressure_released_bytes+=before-after;
+        }
+        if(backing()>limit)
+            throw std::runtime_error("Step pinned cache cannot shrink under memory pressure; drain plan first");
     }
     void *matching_reuse(const MatrixKey &key,size_t charged) {
         auto victim=entries.end();unsigned score=0;size_t scanned=0;
@@ -185,7 +222,8 @@ public:
         // as external memory and repeatedly shrink useful residency.
         const size_t cached_before=allocated;
         limit=size_t(std::min<uint64_t>(cap,policy.byte_limit(sample.gpu_free,sample.gpu_total,cached_before)));
-        trim(limit); growth=0;
+        if(backing_group)trim_backing();else trim(limit);
+        growth=0;
         if (sample.ram_free < sample.ram_total/20 + (64<<20)) {
             trim(0);
             throw std::runtime_error("Step RAM budget95 admission refused");
@@ -308,6 +346,14 @@ public:
     void set_reuse_allocations(bool enabled) {check_device();reuse_allocations=enabled;}
     void set_match_size(bool enabled) {check_device();match_size=enabled;}
     void set_backing_bytes(Backing reader) {check_device();backing=std::move(reader);}
+    // Opt-in for allocators whose release returns backing only after all slots
+    // in a group are gone. The allocator must be exclusively owned by this cache.
+    // Applies to BOTH explicit refresh and the refresh inside admit().
+    void set_backing_groups(BackingGroup reader) {
+        check_device();
+        if(reader && !backing)throw std::runtime_error("Step backing groups require byte accounting");
+        backing_group=std::move(reader);
+    }
     void set_profile(bool enabled) {check_device();profile=enabled;}
     void set_fast_scan(bool enabled) {check_device();fast_scan=enabled;}
 };

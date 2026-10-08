@@ -9,7 +9,7 @@ public:
     struct Memory {size_t free,total,commit_free;};
     using Probe=std::function<Memory()>;
 private:
-    size_t cap;
+    size_t cap,growth_reserve;
     Probe probe;
     hy3::GpuArena pool;
     hy3::GpuArena::Memory available() const {
@@ -19,15 +19,21 @@ private:
         const size_t room=cap-std::min(cap,used);
         const size_t commit=m.commit_free-std::min(m.commit_free,size_t(1)<<30);
         const size_t reserve=m.total/20+(256<<20); // same reserve as the slot allocator
-        return {std::min({m.free,reserve+std::min(room,m.total),reserve+std::min(commit,m.total)}),m.total};
+        // Only new slabs call this probe. Keep a band below the cache's shrink
+        // threshold; existing slots can still be filled/reused inside the band.
+        // The extra reserve applies to global VRAM, not the configured cache cap.
+        const size_t free=m.free-std::min(m.free,growth_reserve);
+        return {std::min({free,reserve+std::min(room,m.total),reserve+std::min(commit,m.total)}),m.total};
     }
 public:
-    GpuArena(size_t bytes,Probe reader):cap(bytes),probe(std::move(reader)),pool(bytes,[this]{return available();}) {}
+    GpuArena(size_t bytes,Probe reader,size_t block_bytes=64u<<20,size_t growth_reserve_bytes=0)
+        :cap(bytes),growth_reserve(growth_reserve_bytes),probe(std::move(reader)),pool(bytes,[this]{return available();},block_bytes) {}
     GpuArena(const GpuArena&)=delete;
     GpuArena&operator=(const GpuArena&)=delete;
     cudaError_t allocate(void **p,size_t n) {return pool.allocate(p,n);}
     cudaError_t release(void *p) {return pool.release(p);}
     auto snapshot() const {return pool.snapshot();}
+    uintptr_t allocation_group(const void *p) const {return pool.allocation_group(p);}
     void reset_counters() {pool.reset_counters();}
 };
 } // namespace minimax_m2

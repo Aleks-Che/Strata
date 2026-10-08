@@ -14,7 +14,8 @@ static bool mm27_pipeline_complete() {
     try {
         if(mm27_plan_next!=mm27_plan.size())throw std::runtime_error("incomplete MiniMax matrix plan");
         mm27_pipeline_queue->finish();step35::cuda_check(cudaStreamSynchronize(mm27_pipeline_stream));
-        mm27_pipeline_active=false;mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
+        mm27_pipeline_active=false;mm27_plan_fill_pins.clear();mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
+        if(mm27_cache)mm27_cache->end_plan();
         mm27_pipeline_account();if(mm27_pipeline_trace)mm27_pipeline_trace->end(false);
         return true;
     }catch(const std::exception &e) {return mm27_pipeline_error(e);}
@@ -58,6 +59,7 @@ static bool mm27_pipeline_begin(ggml_backend_t backend,std::vector<mm27_plan_ten
             }
         }
         if(entries)mm27_plan_pins=mm27_cache->protect(keys);
+        if(entries)mm27_cache->begin_plan();
         *mm27_pipeline_job={mm27_cancel,mm27_test_limits.pipeline_read_failure,mm27_test_limits.pipeline_copy_failure};
         if(mm27_pipeline_trace)mm27_pipeline_trace->begin();
         mm27_plan=std::move(plan);mm27_plan_next=0;
@@ -75,6 +77,7 @@ static bool mm27_pipeline_begin(ggml_backend_t backend,std::vector<mm27_plan_ten
 static void mm27_pipeline_copy_batch(ggml_backend_t backend,ggml_tensor *dst,const ggml_tensor *src,const mm27_ranges &ranges) {
     struct Pending {
         std::vector<std::unique_ptr<step35::ExpertCache::PlanPins>> fills;
+        std::vector<std::pair<step35::MatrixKey,size_t>> commits;
         bool complete=false;
         ~Pending() {
             // The destructor body precedes pin destruction, including during
@@ -129,16 +132,25 @@ static void mm27_pipeline_copy_batch(ggml_backend_t backend,ggml_tensor *dst,con
                 mm27_stats.cache_guard_bytes+=delivered-needed;
                 if(mm27_cache_admit)if(void *slot=mm27_cache->admit(key,stored)) {
                     pending.fills.push_back(mm27_cache->protect({key}));
+                    if(mm27_cache->grouped()) {
+                        mm27_plan_fill_pins.push_back(mm27_cache->protect({key}));
+                        mm27_stats.cache_group_plan_pins_peak=std::max<uint64_t>(mm27_stats.cache_group_plan_pins_peak,mm27_plan_fill_pins.size());
+                    }
+                    if(mm27_cache->grouped() || mm27_ram_cache)pending.commits.push_back({key,stored});
                     mm27_stats.pipeline_pending_fills_peak=std::max<uint64_t>(mm27_stats.pipeline_pending_fills_peak,pending.fills.size());
                     if(mm27_test_limits.cache_fill_failure)throw std::runtime_error("injected MiniMax cache fill failure");
                     mm27_cache_copy(slot,dest,stored,true);mm27_stats.cache_fill_bytes+=stored;
-                }
+                } else if(mm27_ram_cache)mm27_ram_cache->gpu_bypass(file,base+at,stored);
             }
             submitted();
         }
     }
     check_live();++mm27_stats.pipeline_copy_fences;
     step35::cuda_check(cudaStreamSynchronize(mm27_pipeline_stream));pending.complete=true;
+    for(const auto &item:pending.commits) {
+        mm27_cache->commit(item.first,item.second);
+        if(mm27_ram_cache)mm27_ram_cache->drop_gpu(file,base+size_t(item.first.expert)*stride,item.second);
+    }
     pending.fills.clear();++mm27_stats.pipeline_copy_batches;
     // Diagnostics receive completed bytes. They can cancel or inject pressure;
     // future-hit plan pins remain live until the outer drain on every exit.

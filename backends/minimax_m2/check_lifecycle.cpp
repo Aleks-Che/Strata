@@ -22,6 +22,14 @@ static json stats() {
         {"rejected_cpu_nodes",s.rejected_cpu_nodes},{"rejected_full_copies",s.rejected_full_copies},
         {"file_bytes",s.file_bytes},{"mmap_bytes",s.mmap_bytes},{"host_working_set_limit",s.host_working_set_limit},
         {"host_budget_updates",s.host_budget_updates},
+        {"ram_cache_bytes",s.ram_cache_bytes},{"ram_cache_budget",s.ram_cache_budget},{"ram_cache_cap",s.ram_cache_cap},
+        {"ram_cache_entries",s.ram_cache_entries},{"ram_cache_readers",s.ram_cache_readers},{"ram_cache_peak_bytes",s.ram_cache_peak_bytes},
+        {"ram_cache_hits",s.ram_cache_hits},{"ram_cache_misses",s.ram_cache_misses},
+        {"ram_cache_mapped_bytes",s.ram_cache_mapped_bytes},{"ram_cache_file_bytes",s.ram_cache_file_bytes},
+        {"ram_cache_admissions",s.ram_cache_admissions},{"ram_cache_evictions",s.ram_cache_evictions},
+        {"ram_cache_gpu_drops",s.ram_cache_gpu_drops},{"ram_cache_gpu_drop_bytes",s.ram_cache_gpu_drop_bytes},
+        {"ram_cache_prefill_bypasses",s.ram_cache_prefill_bypasses},{"ram_cache_rejected",s.ram_cache_rejected},
+        {"ram_cache_gpu_waits",s.ram_cache_gpu_waits},{"ram_cache_history_entries",s.ram_cache_history_entries},
         {"pipeline_plans",s.pipeline_plans},{"pipeline_matrices",s.pipeline_matrices},
         {"pipeline_plan_peak",s.pipeline_plan_peak},{"pipeline_lookahead_plans",s.pipeline_lookahead_plans},
         {"pipeline_copy_batches",s.pipeline_copy_batches},{"pipeline_copy_fences",s.pipeline_copy_fences},{"pipeline_scratch_fences",s.pipeline_scratch_fences},{"pipeline_copy_submissions",s.pipeline_copy_submissions},{"pipeline_pending_fills_peak",s.pipeline_pending_fills_peak},{"pipeline_abort_fences",s.pipeline_abort_fences},
@@ -35,7 +43,11 @@ static json stats() {
         {"sampled_ram_used_peak",s.sampled_ram_used_peak},{"sampled_vram_used_peak",s.sampled_vram_used_peak},
         {"sampled_private_peak",s.sampled_private_peak},{"sampled_working_set_peak",s.sampled_working_set_peak},
         {"selected_bytes",s.selected_bytes},{"cache_hit_bytes",s.cache_hit_bytes},{"cache_fill_bytes",s.cache_fill_bytes},
-        {"cache_resident",s.cache_resident},{"cache_evictions",s.cache_evictions},{"cache_oom",s.cache_oom},
+        {"cache_group_experts",s.cache_group_experts},{"cache_expert_groups",s.cache_expert_groups},{"cache_partial_expert_groups",s.cache_partial_expert_groups},
+        {"cache_ready_matrices",s.cache_ready_matrices},{"cache_pending_matrices",s.cache_pending_matrices},{"cache_ready_bytes",s.cache_ready_bytes},
+        {"cache_group_admissions",s.cache_group_admissions},{"cache_group_plan_pins_peak",s.cache_group_plan_pins_peak},{"cache_resident",s.cache_resident},{"cache_evictions",s.cache_evictions},{"cache_oom",s.cache_oom},
+        {"cache_pressure_trims",s.cache_pressure_trims},{"cache_pressure_groups",s.cache_pressure_groups},
+        {"cache_pressure_evicted_bytes",s.cache_pressure_evicted_bytes},{"cache_pressure_released_bytes",s.cache_pressure_released_bytes},
         {"arena_reserved",s.arena_reserved},{"arena_live",s.arena_live},{"arena_blocks",s.arena_blocks}};
 }
 static json compare(const std::string &name,const Floats &a,const Floats &b,bool exact=true) {
@@ -134,7 +146,8 @@ int main(int argc,char **argv) {
     std::filesystem::path directory;bool created=false;
     try {
         std::string path;bool fixture=false,long_only=false,pressure=false;int size=512,count=31,batch=8,steps=8;
-        uint64_t cache_mib=0;std::string allocator="cuda",reader="file";
+        uint64_t cache_mib=0,ram_cache_mib=0;std::string allocator="cuda",reader="file";
+        uint32_t arena_block_mib=64,arena_growth_reserve_mib=0;bool group_experts=false;
         int pipeline_readers=0,pipeline_chunk=8;bool pipeline_lookahead=false,pipeline_d2d_batch=false;
         for(int i=1;i<argc;++i) {
             std::string arg=argv[i];
@@ -147,6 +160,16 @@ int main(int argc,char **argv) {
             else if(arg=="--batch")batch=std::stoi(value);else if(arg=="--steps")steps=std::stoi(value);
             else if(arg=="--gpu-cache-mib") {require(value.find_first_not_of("0123456789")==std::string::npos,"invalid cache cap");cache_mib=std::stoull(value);require(cache_mib<=131072,"cache cap too large");}
             else if(arg=="--gpu-cache-allocator") {require(value=="cuda" || value=="arena","invalid allocator");allocator=value;}
+            else if(arg=="--ram-cache-mib") {
+                require(!value.empty() && value.find_first_not_of("0123456789")==std::string::npos,"invalid RAM cache MiB");
+                ram_cache_mib=std::stoull(value);require(ram_cache_mib<=131072,"RAM cache MiB too large");
+            }
+            else if(arg=="--cache-group-experts") {require(value=="0" || value=="1","invalid group flag");group_experts=value=="1";}
+            else if(arg=="--arena-growth-reserve-mib") {
+                require(!value.empty() && value.find_first_not_of("0123456789")==std::string::npos,"invalid arena growth reserve MiB");
+                const auto reserve=std::stoull(value);require(reserve<=1024,"arena growth reserve MiB too large");arena_growth_reserve_mib=uint32_t(reserve);
+            }
+            else if(arg=="--arena-block-mib") {require(value=="8" || value=="16" || value=="32" || value=="64","invalid arena block");arena_block_mib=uint32_t(std::stoul(value));}
             else if(arg=="--expert-reader") {require(value=="file" || value=="mmap" || (value=="mmap-direct" || value=="mmap-decode"),"invalid reader");reader=value;}
             else if(arg=="--pipeline-readers") {require(value=="0" || value=="1" || value=="2","invalid pipeline readers");pipeline_readers=std::stoi(value);}
             else if(arg=="--pipeline-chunk-mib") {require(value=="4" || value=="8" || value=="16","invalid pipeline chunk");pipeline_chunk=std::stoi(value);}
@@ -163,16 +186,18 @@ int main(int argc,char **argv) {
         if(fixture) {path=(directory/"fixture.gguf").string();write_synthetic_minimax_m2(path,true);}
         const auto contract=inspect(path,fixture);const int token=fixture?11:758;
         report["configuration"]={{"model",path},{"fixture",fixture},{"context",size},{"batch",batch},{"prompt_tokens",count},
-            {"gpu_cache_mib",cache_mib},{"gpu_cache_allocator",allocator},
+            {"gpu_cache_mib",cache_mib},{"ram_cache_mib",ram_cache_mib},{"gpu_cache_allocator",allocator},
+            {"cache_group_experts",group_experts},{"arena_block_mib",arena_block_mib},{"arena_growth_reserve_mib",arena_growth_reserve_mib},
             {"expert_reader",reader},
             {"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},
             {"continuation_steps",steps},{"input_pattern","repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality"},{"token_id",token}};
         Run file,reference;
         for(int mode:{2,1}) {
             std::cerr<<"Lifecycle: context "<<size<<", tokens "<<count<<", mode "<<mode<<'\n';
-            strata_mm27_mode(mode);strata_mm27_cache_configure(mode==2?cache_mib<<20:0,allocator=="arena");
+            strata_mm27_mode(mode);strata_mm27_cache_configure(mode==2?cache_mib<<20:0,allocator=="arena",arena_block_mib,arena_growth_reserve_mib,mode==2 && group_experts);
             strata_mm27_reader(mode==1 || reader=="file"?0:reader=="mmap"?1:reader=="mmap-direct"?2:3);
             strata_mm27_pipeline(mode==2?pipeline_readers:0,pipeline_chunk,mode==2 && pipeline_lookahead,mode==2 && pipeline_d2d_batch);
+            strata_mm27_ram_cache_configure(mode==2?ram_cache_mib<<20:0);
             auto model=load(path,false,fixture);auto ctx=context(model.get(),size,batch);
             auto run=evaluate(ctx.get(),contract.vocab,count,steps,token);
             run.report["mode"]=mode;report["runs"].push_back(run.report);
@@ -181,7 +206,9 @@ int main(int argc,char **argv) {
             const auto s=strata_mm27_snapshot();
             tests.push_back({{"name","gpu_and_budget_audit/mode"+std::to_string(mode)},
                 {"pass",s.gpu_nodes && s.expert_nodes && !s.rejected_cpu_nodes && !s.rejected_full_copies && !s.pressure_rejections &&
-                    s.memory_checks>2 && (mode==1 || s.source_bytes==s.h2d_bytes)}});
+                    s.memory_checks>2 && (mode==1 || s.source_bytes==s.h2d_bytes) && (!ram_cache_mib || mode==1 ||
+                    (!s.ram_cache_readers && s.ram_cache_bytes<=s.ram_cache_budget && s.ram_cache_budget<=s.ram_cache_cap &&
+                     s.ram_cache_cap<=(ram_cache_mib<<20) && s.ram_cache_mapped_bytes+s.ram_cache_file_bytes==s.source_bytes))}});
             if(mode==2)file=std::move(run);else reference=std::move(run);
             if(mode==1 && cache_mib && fixture) {
                 strata_mm27_mode(2);
@@ -206,7 +233,7 @@ int main(int argc,char **argv) {
                     // A pipeline may hold future GPU hits when an injected
                     // VRAM cap arrives. The arena rejects this case before the
                     // final 95% guard; drain then releases these residency pins.
-                    const bool pinned_vram=fault==3 && error.find("MiniMax pinned cache cannot shrink under memory pressure; drain plan first")!=std::string::npos;
+                    const bool pinned_vram=fault==3 && error.find("pinned cache cannot shrink under memory pressure; drain plan first")!=std::string::npos;
                     const bool reason=fault<2?error.find("cancelled")!=std::string::npos:pinned_vram ||
                         error.find("95")!=std::string::npos && (fault==2?
                             error.find("RAM")!=std::string::npos && error.find("VRAM")==std::string::npos:error.find("VRAM")!=std::string::npos);
@@ -235,11 +262,11 @@ int main(int argc,char **argv) {
                 clear(ctx.get());ctx.reset();model.reset();strata_mm27_release();
                 {
                     auto &r=strata_expert_file::registry();std::lock_guard<std::mutex> lock(r.mutex);
-                    tests.push_back({{"name","full_unload_mapping_release"},{"pass",r.files.empty() && !strata_mm27_snapshot().staging_bytes && !strata_mm27_snapshot().arena_reserved}});
+                    tests.push_back({{"name","full_unload_mapping_release"},{"pass",r.files.empty() && !strata_mm27_snapshot().ram_cache_bytes && !strata_mm27_snapshot().ram_cache_readers && !strata_mm27_snapshot().staging_bytes && !strata_mm27_snapshot().arena_reserved}});
                 }
-                strata_mm27_mode(2);strata_mm27_cache_configure(cache_mib<<20,allocator=="arena");
+                strata_mm27_mode(2);strata_mm27_cache_configure(cache_mib<<20,allocator=="arena",arena_block_mib,arena_growth_reserve_mib,group_experts);
                 strata_mm27_reader(reader=="file"?0:reader=="mmap"?1:reader=="mmap-direct"?2:3);
-                strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch);model=load(path,false,fixture);ctx=context(model.get(),size,batch);
+                strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch);strata_mm27_ram_cache_configure(ram_cache_mib<<20);model=load(path,false,fixture);ctx=context(model.get(),size,batch);
                 tests.push_back(compare("full_unload_reload",evaluate(ctx.get(),contract.vocab,17,3,token).logits,fresh.logits));
             }
             ctx.reset();model.reset();strata_mm27_release();

@@ -57,10 +57,25 @@ int main(int argc,char **argv) {
             check(commit?"whole_slab_commit_reserve":"VRAM_reserve_refuses_slab",
                 arena.allocate(&p,q4)==cudaErrorMemoryAllocation && !p && !arena.snapshot().reserved);
         }
+        {
+            auto m=sample();m.free=m.total/20+(256u<<20)+(16u<<20);
+            minimax_m2::GpuArena arena(128u<<20,[&]{return m;},8u<<20,8u<<20);
+            void *p[4]={};cuda_check(arena.allocate(&p[0],q4));m.free-=8u<<20;
+            cuda_check(arena.allocate(&p[1],q4));cuda_check(arena.allocate(&p[2],q4));
+            check("growth_band_allows_existing_slots",arena.snapshot().allocations==1 && arena.snapshot().live==3*q4);
+            check("growth_band_refuses_new_slab",arena.allocate(&p[3],q4)==cudaErrorMemoryAllocation && !p[3]);
+            cuda_check(arena.release(p[1]));cuda_check(arena.allocate(&p[1],q4));
+            check("growth_band_reuses_holes",arena.snapshot().allocations==1 && arena.snapshot().live==3*q4);
+            m.free=0;
+            check("growth_band_subtraction_saturates",arena.allocate(&p[3],q4)==cudaErrorMemoryAllocation && !p[3]);
+            for(unsigned i=0;i<3;++i)cuda_check(arena.release(p[i]));
+            check("growth_band_releases_all_backing",!arena.snapshot().reserved);
+        }
         // Identical touched matrices, sequential allocators, same GPU. Global
         // NVML deltas include external activity; do not equate them to payload.
-        for(bool arena:{false,true}) {
-            minimax_m2::GpuArena pool(size_t(2)<<30,sample);std::vector<void *> p;size_t live=0;
+        for(size_t block:{0u,8u,16u,32u,64u}) {
+            const bool arena=block!=0;
+            minimax_m2::GpuArena pool(size_t(2)<<30,sample,(block?block:64)<<20);std::vector<void *> p;size_t live=0;
             settle();const auto before=used();
             for(int i=0;i<512;++i) {
                 const size_t n=i<384?q4:q6;void *ptr=nullptr;
@@ -68,12 +83,22 @@ int main(int argc,char **argv) {
                 cuda_check(cudaMemset(ptr,17,n));
             }
             settle();const auto during=used();
-            measurements.push_back({{"allocator",arena?"arena":"cuda"},{"matrices",p.size()},{"requested_bytes",live},
+            measurements.push_back({{"allocator",arena?"arena":"cuda"},{"block_mib",block},{"matrices",p.size()},{"requested_bytes",live},
                 {"arena_reserved",pool.snapshot().reserved},{"NVML_before",before},{"NVML_during",during},
+                {"arena_blocks",pool.snapshot().blocks},
                 {"NVML_delta",int64_t(during)-int64_t(before)}});
             for(auto ptr:p)cuda_check(arena?pool.release(ptr):cudaFree(ptr));settle();
             check(arena?"measured_arena_released":"measured_cuda_released",!pool.snapshot().reserved);
         }
+        {
+            minimax_m2::GpuArena arena(128u<<20,sample,8u<<20);void *p=nullptr;
+            cuda_check(arena.allocate(&p,10u<<20));
+            check("matrix_larger_than_target_gets_whole_allocation",arena.snapshot().reserved==(10u<<20) && arena.snapshot().live==(10u<<20));
+            cuda_check(arena.release(p));check("oversized_matrix_released",!arena.snapshot().reserved);
+        }
+        bool invalid=false;
+        try{minimax_m2::GpuArena arena(128u<<20,sample,3u<<20);}catch(const std::runtime_error &){invalid=true;}
+        check("invalid_block_alignment_refused",invalid);
         report["pass"]=true;
     }catch(const std::exception &e){report["pass"]=false;report["error"]=e.what();std::cerr<<e.what()<<'\n';}
     report["tests"]=tests;report["cases"]=tests.size();report["measurements"]=measurements;
