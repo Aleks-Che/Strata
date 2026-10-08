@@ -1,0 +1,277 @@
+{
+  "tests": [
+    {
+      "name": "f32/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "f32/cold_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/warm_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/bounded/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/byte_accounting/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/eviction_or_all_hits/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/new_topic_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "f32/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "f32/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "f32/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "f32/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "f32/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "f32/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "f32/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "f32/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "f32/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "f32/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "f32/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "f32/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "f32/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "f32/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "f32/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "f32/new_context_reclaims_workspace",
+      "pass": true
+    },
+    {
+      "name": "mixed/cold_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/warm_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/bounded/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/byte_accounting/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/eviction_or_all_hits/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/new_topic_exact/2097152",
+      "pass": true
+    },
+    {
+      "name": "mixed/cold_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/warm_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/bounded/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/byte_accounting/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/eviction_or_all_hits/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/new_topic_exact/134217728",
+      "pass": true
+    },
+    {
+      "name": "mixed/prefill_hits_exact",
+      "pass": true
+    },
+    {
+      "name": "mixed/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mixed/cancel_cache_hit",
+      "pass": true
+    },
+    {
+      "name": "mixed/cancel_recovery",
+      "pass": true
+    },
+    {
+      "name": "mixed/live_pressure_eviction",
+      "pass": true
+    },
+    {
+      "name": "mixed/RAM_pressure_clears_cache",
+      "pass": true
+    },
+    {
+      "name": "mixed/OOM_bypass_exact",
+      "pass": true
+    },
+    {
+      "name": "mixed/OOM_no_residency",
+      "pass": true
+    },
+    {
+      "name": "mixed/partial_fill_invalidated",
+      "pass": true
+    },
+    {
+      "name": "mixed/fill_failure_recovery",
+      "pass": true
+    },
+    {
+      "name": "mixed/metadata_identity_rejected",
+      "pass": true
+    },
+    {
+      "name": "mixed/identity_recovery",
+      "pass": true
+    },
+    {
+      "name": "mixed/unload_no_entries",
+      "pass": true
+    },
+    {
+      "name": "mixed/unload_no_mapping",
+      "pass": true
+    },
+    {
+      "name": "mixed/reload_exact",
+      "pass": true
+    },
+    {
+      "name": "mixed/new_context_reclaims_workspace",
+      "pass": true
+    }
+  ],
+  "runs": [
+    {
+      "fixture": "f32/",
+      "cap": 2097152,
+      "resident": 1703936,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 302247936,
+      "hit_bytes": 0,
+      "cold_evictions": 573,
+      "cold_reuses": 572
+    },
+    {
+      "fixture": "f32/",
+      "cap": 134217728,
+      "resident": 41877504,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 302211072,
+      "cold_evictions": 0,
+      "cold_reuses": 0
+    },
+    {
+      "fixture": "mixed/",
+      "cap": 2097152,
+      "resident": 2097152,
+      "hits": 0,
+      "misses": 576,
+      "h2d_bytes": 44888064,
+      "hit_bytes": 0,
+      "cold_evictions": 560,
+      "cold_reuses": 560
+    },
+    {
+      "fixture": "mixed/",
+      "cap": 134217728,
+      "resident": 9437184,
+      "hits": 576,
+      "misses": 0,
+      "h2d_bytes": 0,
+      "hit_bytes": 44851200,
+      "cold_evictions": 0,
+      "cold_reuses": 0
+    }
+  ],
+  "cases": 56,
+  "failures": 0,
+  "pass": true
+}

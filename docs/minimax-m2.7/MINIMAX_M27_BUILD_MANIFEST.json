@@ -1,0 +1,41 @@
+{
+  "scope": "isolated CPU admission oracles; no full-model inference",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+  "loader_sha256": "6574a8618655d8164588627c1a4d2fc4fa8953b65fd783b8c1849f1c5c93638e",
+  "patches": "none",
+  "oracle_source_sha256": {
+    "loader": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+    "tokenizer": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+    "template": "98bd356fda9b659076c6ce276d21ed1ae68bc7d4f0a0fdb8d838a866ca1c0337"
+  },
+  "compiler": "MSVC",
+  "compiler_version": "19.44.35222.0",
+  "generator": "Ninja",
+  "build_type": "Release",
+  "cxx_flags": "/DWIN32 /D_WINDOWS /EHsc",
+  "release_flags": "/O2 /Ob2 /DNDEBUG",
+  "cuda": false,
+  "shared_libraries": false,
+  "dynamic_backends": false,
+  "recorded_date": "2026-10-07",
+  "strata_base_commit": "295cac22846e6aa2cea7343cd4b6c13ab32258a3",
+  "working_tree_changes": "MM27-01 implementation, uncommitted",
+  "binaries": {
+    "loader": {
+      "sha256": "d4018e846fbc282b2a43e7ff95250c7da0e7d33e2fa01d007fe65e97803f52f1"
+    },
+    "tokenizer": {
+      "sha256": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e"
+    },
+    "template": {
+      "sha256": "f6d359ab1ae5269fa16c6dd7756c5c1c2ef68c2914da204ac7b306f15dd68d29"
+    }
+  },
+  "reports": {
+    "MINIMAX_M27_INSPECTION.json": "3850419171893b61e155d99641a8d23a4d3c287abb5ec97aa76c8c5cb5af5216",
+    "MINIMAX_M27_LOADER_CHECK.json": "339dfd2d7a9ad43d8ce06644f44a7ad79d2897d0ae73a400b295333e8687ad25",
+    "MINIMAX_M27_TEMPLATE_CHECK.json": "7d7c82796e774d0d2b5936799b391a1dd47f58aa5e8c722101442d0fd2771382",
+    "MINIMAX_M27_TOKENIZER_CHECK.json": "f1a834c3e40a45565b457ff8a851e70a18b9caa705e91487ccca1e5b9b31b89d"
+  }
+}

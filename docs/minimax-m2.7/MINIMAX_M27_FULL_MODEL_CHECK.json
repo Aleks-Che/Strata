@@ -1,0 +1,2414 @@
+{
+  "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "engine_sha256": "73e9d1afec73fc77fb7b69f0adb92427be95f69bf74828b29696a19cbe3212f9",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "cases": [
+    {
+      "name": "english",
+      "pass": true,
+      "elements": 1600512,
+      "bit_exact": true,
+      "token_ids_equal": true,
+      "gpu_only": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "runs": [
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 2,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 2035.2658,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 91268263936,
+            "vram_total": 34190917632,
+            "vram_available": 28607410176,
+            "process_private": 274112512,
+            "process_working_set": 189243392
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 88562008064,
+            "vram_total": 34190917632,
+            "vram_available": 24224043008,
+            "process_private": 5239517184,
+            "process_working_set": 2960998400
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 46,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              3376,
+              355,
+              32
+            ],
+            "text": "The user asks: \"What is ",
+            "stop_reason": "length",
+            "prefill_ms": 25123.0811,
+            "ttft_ms": 25123.7385,
+            "decode_forward_tokens": 7,
+            "decode_ms": 4917.0232,
+            "decode_tokens_per_second": 1.423625578988523,
+            "request_ms": 30045.0488,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 36402,
+              "chunks": 36405,
+              "source_bytes": 123727423488,
+              "h2d_bytes": 123727423488,
+              "staging_bytes": 16777216,
+              "source_ms": 17599.353199999903,
+              "h2d_ms": 5327.675999999875,
+              "compute_ms": 2055.5898000000016
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10134,
+              "chunks": 10134,
+              "source_bytes": 29695119360,
+              "h2d_bytes": 29695119360,
+              "staging_bytes": 16777216,
+              "source_ms": 2916.0027999999947,
+              "h2d_ms": 1225.9978000000012,
+              "compute_ms": 734.4919999999998
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 88562003968,
+                "vram_total": 34190917632,
+                "vram_available": 24224043008,
+                "process_private": 5239517184,
+                "process_working_set": 2961014784
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 85954117632,
+                "vram_total": 34190917632,
+                "vram_available": 21735903232,
+                "process_private": 7995572224,
+                "process_working_set": 3182362624
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 85054119936,
+                "vram_total": 34190917632,
+                "vram_available": 21739884544,
+                "process_private": 7995650048,
+                "process_working_set": 3182436352
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 84576129024,
+                "vram_total": 34190917632,
+                "vram_available": 21765771264,
+                "process_private": 7995650048,
+                "process_working_set": 3182440448
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 93181521920,
+                "vram_total": 34190917632,
+                "vram_available": 21775863808,
+                "process_private": 7995650048,
+                "process_working_set": 3182440448
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92860579840,
+                "vram_total": 34190917632,
+                "vram_available": 21733003264,
+                "process_private": 7995650048,
+                "process_working_set": 3182440448
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92600606720,
+                "vram_total": 34190917632,
+                "vram_available": 21742833664,
+                "process_private": 7995670528,
+                "process_working_set": 3182460928
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92466950144,
+                "vram_total": 34190917632,
+                "vram_available": 21742899200,
+                "process_private": 7995686912,
+                "process_working_set": 3182518272
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92387889152,
+                "vram_total": 34190917632,
+                "vram_available": 21742964736,
+                "process_private": 7995686912,
+                "process_working_set": 3182518272
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92261425152,
+                "vram_total": 34190917632,
+                "vram_available": 21742964736,
+                "process_private": 7995686912,
+                "process_working_set": 3182518272
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92152463360,
+                "vram_total": 34190917632,
+                "vram_available": 21747486720,
+                "process_private": 7995658240,
+                "process_working_set": 3182501888
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92060930048,
+                "vram_total": 34190917632,
+                "vram_available": 21747683328,
+                "process_private": 7995658240,
+                "process_working_set": 3182501888
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92043083776,
+                "vram_total": 34190917632,
+                "vram_available": 21749059584,
+                "process_private": 7995813888,
+                "process_working_set": 3182645248
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 91992981504,
+                "vram_total": 34190917632,
+                "vram_available": 21749059584,
+                "process_private": 7995813888,
+                "process_working_set": 3182649344
+              }
+            ]
+          }
+        },
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 1,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1312.1125,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 95056969728,
+            "vram_total": 34190917632,
+            "vram_available": 28641013760,
+            "process_private": 273956864,
+            "process_working_set": 189247488
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 97234145280,
+            "vram_total": 34190917632,
+            "vram_available": 24255680512,
+            "process_private": 5239705600,
+            "process_working_set": 2959089664
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 46,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              3376,
+              355,
+              32
+            ],
+            "text": "The user asks: \"What is ",
+            "stop_reason": "length",
+            "prefill_ms": 24153.0092,
+            "ttft_ms": 24153.6754,
+            "decode_forward_tokens": 7,
+            "decode_ms": 3897.3532000000005,
+            "decode_tokens_per_second": 1.7960907417885552,
+            "request_ms": 28055.2044,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 36402,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 123727423488,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 1967.2346999999995
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10134,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 29695119360,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 784.7702999999997
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97234128896,
+                "vram_total": 34190917632,
+                "vram_available": 24255680512,
+                "process_private": 5239705600,
+                "process_working_set": 2959106048
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 72426565632,
+                "vram_total": 34190917632,
+                "vram_available": 21775732736,
+                "process_private": 7980417024,
+                "process_working_set": 27737485312
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 58616807424,
+                "vram_total": 34190917632,
+                "vram_available": 21775732736,
+                "process_private": 7980417024,
+                "process_working_set": 41554116608
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 49675116544,
+                "vram_total": 34190917632,
+                "vram_available": 21709869056,
+                "process_private": 7980576768,
+                "process_working_set": 50107654144
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 42656727040,
+                "vram_total": 34190917632,
+                "vram_available": 21728022528,
+                "process_private": 7980576768,
+                "process_working_set": 57386000384
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 35522306048,
+                "vram_total": 34190917632,
+                "vram_available": 21732741120,
+                "process_private": 7980576768,
+                "process_working_set": 64520740864
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32145469440,
+                "vram_total": 34190917632,
+                "vram_available": 21735493632,
+                "process_private": 7980597248,
+                "process_working_set": 67903160320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 31317426176,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 68731699200
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 30406164480,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 69639626752
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 29529473024,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 70519435264
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 28928958464,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 71122530304
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 28342484992,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 71664222208
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 27841757184,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 72166178816
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 27583524864,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7980597248,
+                "process_working_set": 72457637888
+              }
+            ]
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "report_sha256": "cb17546b0eec53b083eec96ac9d42a704680628f40bfaa778fc1292ff5651dec",
+          "logits_sha256": "dbd2ed1fb105a98ca626971aa61782252564d706ef5f5966942e1191206cc848"
+        },
+        {
+          "report_sha256": "83b11c2e34e758a62cd2fd11fe4382447e5fdec656eabddcd0a5424b3e5712ff",
+          "logits_sha256": "dbd2ed1fb105a98ca626971aa61782252564d706ef5f5966942e1191206cc848"
+        }
+      ]
+    },
+    {
+      "name": "russian",
+      "pass": true,
+      "elements": 1600512,
+      "bit_exact": true,
+      "token_ids_equal": true,
+      "gpu_only": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "runs": [
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 2,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1210.5092,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 100045119488,
+            "vram_total": 34190917632,
+            "vram_available": 28628561920,
+            "process_private": 274137088,
+            "process_working_set": 189280256
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 97256202240,
+            "vram_total": 34190917632,
+            "vram_available": 24241590272,
+            "process_private": 5238657024,
+            "process_working_set": 2959036416
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 46,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              29415,
+              2153,
+              14216
+            ],
+            "text": "The user asks: \"Назови",
+            "stop_reason": "length",
+            "prefill_ms": 22108.3025,
+            "ttft_ms": 22109.1261,
+            "decode_forward_tokens": 7,
+            "decode_ms": 5290.6839,
+            "decode_tokens_per_second": 1.3230803677384695,
+            "request_ms": 27403.9063,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 36669,
+              "chunks": 36670,
+              "source_bytes": 124511322624,
+              "h2d_bytes": 124511322624,
+              "staging_bytes": 16777216,
+              "source_ms": 15051.760899999997,
+              "h2d_ms": 5090.66969999995,
+              "compute_ms": 1891.1478999999977
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10128,
+              "chunks": 10128,
+              "source_bytes": 29695130112,
+              "h2d_bytes": 29695130112,
+              "staging_bytes": 16777216,
+              "source_ms": 3257.89710000001,
+              "h2d_ms": 1254.668500000003,
+              "compute_ms": 737.103399999999
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97251938304,
+                "vram_total": 34190917632,
+                "vram_available": 24241590272,
+                "process_private": 5240889344,
+                "process_working_set": 2961285120
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 94671802368,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7998808064,
+                "process_working_set": 3184099328
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 93817450496,
+                "vram_total": 34190917632,
+                "vram_available": 21741785088,
+                "process_private": 7998885888,
+                "process_working_set": 3184173056
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 93286952960,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7998885888,
+                "process_working_set": 3184177152
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 93400367104,
+                "vram_total": 34190917632,
+                "vram_available": 21735428096,
+                "process_private": 7998885888,
+                "process_working_set": 3184177152
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92957638656,
+                "vram_total": 34190917632,
+                "vram_available": 21726646272,
+                "process_private": 7998885888,
+                "process_working_set": 3184177152
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92635549696,
+                "vram_total": 34190917632,
+                "vram_available": 21735362560,
+                "process_private": 7998906368,
+                "process_working_set": 3184193536
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92480184320,
+                "vram_total": 34190917632,
+                "vram_available": 21735362560,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92377862144,
+                "vram_total": 34190917632,
+                "vram_available": 21733986304,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92291223552,
+                "vram_total": 34190917632,
+                "vram_available": 21733986304,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92252815360,
+                "vram_total": 34190917632,
+                "vram_available": 21733986304,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92226707456,
+                "vram_total": 34190917632,
+                "vram_available": 21734051840,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92158251008,
+                "vram_total": 34190917632,
+                "vram_available": 21735362560,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 92128546816,
+                "vram_total": 34190917632,
+                "vram_available": 21735362560,
+                "process_private": 7998922752,
+                "process_working_set": 3184250880
+              }
+            ]
+          }
+        },
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 1,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1277.6316,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 95104516096,
+            "vram_total": 34190917632,
+            "vram_available": 28627054592,
+            "process_private": 274128896,
+            "process_working_set": 189272064
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 97374748672,
+            "vram_total": 34190917632,
+            "vram_available": 24241459200,
+            "process_private": 5239107584,
+            "process_working_set": 2958925824
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 46,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              29415,
+              2153,
+              14216
+            ],
+            "text": "The user asks: \"Назови",
+            "stop_reason": "length",
+            "prefill_ms": 24621.6584,
+            "ttft_ms": 24622.5231,
+            "decode_forward_tokens": 7,
+            "decode_ms": 3780.4216,
+            "decode_tokens_per_second": 1.8516453297166644,
+            "request_ms": 28407.1079,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 36669,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 124511322624,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 2136.635800000005
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10128,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 29695130112,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 768.0248
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97373724672,
+                "vram_total": 34190917632,
+                "vram_available": 24241459200,
+                "process_private": 5241344000,
+                "process_working_set": 2961174528
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 72723906560,
+                "vram_total": 34190917632,
+                "vram_available": 21700595712,
+                "process_private": 7981838336,
+                "process_working_set": 27739697152
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 58763767808,
+                "vram_total": 34190917632,
+                "vram_available": 21708460032,
+                "process_private": 7981916160,
+                "process_working_set": 41556393984
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 50173652992,
+                "vram_total": 34190917632,
+                "vram_available": 21740015616,
+                "process_private": 7981916160,
+                "process_working_set": 50109784064
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 43169169408,
+                "vram_total": 34190917632,
+                "vram_available": 21745979392,
+                "process_private": 7981916160,
+                "process_working_set": 57644040192
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 35827834880,
+                "vram_total": 34190917632,
+                "vram_available": 21755547648,
+                "process_private": 7981916160,
+                "process_working_set": 66681212928
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 33283010560,
+                "vram_total": 34190917632,
+                "vram_available": 21766426624,
+                "process_private": 7981916160,
+                "process_working_set": 69874941952
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32667627520,
+                "vram_total": 34190917632,
+                "vram_available": 21766426624,
+                "process_private": 7981916160,
+                "process_working_set": 70635483136
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32018579456,
+                "vram_total": 34190917632,
+                "vram_available": 21744865280,
+                "process_private": 7981916160,
+                "process_working_set": 71452123136
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 31510294528,
+                "vram_total": 34190917632,
+                "vram_available": 21726318592,
+                "process_private": 7982067712,
+                "process_working_set": 72161206272
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 31091228672,
+                "vram_total": 34190917632,
+                "vram_available": 21726318592,
+                "process_private": 7982067712,
+                "process_working_set": 72747737088
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 30662238208,
+                "vram_total": 34190917632,
+                "vram_available": 21726253056,
+                "process_private": 7982067712,
+                "process_working_set": 73297502208
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 30397267968,
+                "vram_total": 34190917632,
+                "vram_available": 21726253056,
+                "process_private": 7982067712,
+                "process_working_set": 73753387008
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 30279589888,
+                "vram_total": 34190917632,
+                "vram_available": 21726253056,
+                "process_private": 7982067712,
+                "process_working_set": 74097500160
+              }
+            ]
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "report_sha256": "a07ffb171e625c67318893720171ac04b34d48c2ce12b9dae27595dee499c0d9",
+          "logits_sha256": "b45541d94af5921d50fa1f80293535608b338cd1df8539899e0439ebaca9524d"
+        },
+        {
+          "report_sha256": "e2a3e60197798d95749b76054f3e87776e4275c63fea5254f51ab3ab21d32390",
+          "logits_sha256": "b45541d94af5921d50fa1f80293535608b338cd1df8539899e0439ebaca9524d"
+        }
+      ]
+    },
+    {
+      "name": "chinese",
+      "pass": true,
+      "elements": 1600512,
+      "bit_exact": true,
+      "token_ids_equal": true,
+      "gpu_only": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "runs": [
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 2,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1170.8038,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 105312571392,
+            "vram_total": 34190917632,
+            "vram_available": 28617945088,
+            "process_private": 274141184,
+            "process_working_set": 189280256
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102502006784,
+            "vram_total": 34190917632,
+            "vram_available": 24231104512,
+            "process_private": 5241241600,
+            "process_working_set": 2961113088
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 44,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              465,
+              1508,
+              465
+            ],
+            "text": "The user asks: \"一加一",
+            "stop_reason": "length",
+            "prefill_ms": 19249.8728,
+            "ttft_ms": 19250.6594,
+            "decode_forward_tokens": 7,
+            "decode_ms": 4927.7503,
+            "decode_tokens_per_second": 1.4205265230261364,
+            "request_ms": 24182.4101,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 35484,
+              "chunks": 35487,
+              "source_bytes": 120448453632,
+              "h2d_bytes": 120448453632,
+              "staging_bytes": 16777216,
+              "source_ms": 12686.671499999957,
+              "h2d_ms": 4736.628199999868,
+              "compute_ms": 1757.3247000000001
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10164,
+              "chunks": 10164,
+              "source_bytes": 29695139328,
+              "h2d_bytes": 29695139328,
+              "staging_bytes": 16777216,
+              "source_ms": 2970.2012000000004,
+              "h2d_ms": 1211.0311999999972,
+              "compute_ms": 706.8695999999997
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102497742848,
+                "vram_total": 34190917632,
+                "vram_available": 24231104512,
+                "process_private": 5243478016,
+                "process_working_set": 2963361792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 99827826688,
+                "vram_total": 34190917632,
+                "vram_available": 21726253056,
+                "process_private": 7999492096,
+                "process_working_set": 3184758784
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 99009941504,
+                "vram_total": 34190917632,
+                "vram_available": 21730512896,
+                "process_private": 7999569920,
+                "process_working_set": 3184832512
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98424033280,
+                "vram_total": 34190917632,
+                "vram_available": 21756137472,
+                "process_private": 7999721472,
+                "process_working_set": 3184984064
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98277134336,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999721472,
+                "process_working_set": 3184984064
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97980932096,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999721472,
+                "process_working_set": 3184984064
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97724387328,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999733760,
+                "process_working_set": 3184992256
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97561698304,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97438154752,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97319333888,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97225867264,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97184231424,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97157341184,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97060769792,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7999750144,
+                "process_working_set": 3185057792
+              }
+            ]
+          }
+        },
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 1,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1149.8514,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 100051927040,
+            "vram_total": 34190917632,
+            "vram_available": 28658249728,
+            "process_private": 274120704,
+            "process_working_set": 189296640
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102366437376,
+            "vram_total": 34190917632,
+            "vram_available": 24272654336,
+            "process_private": 5239541760,
+            "process_working_set": 2959106048
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 44,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              465,
+              1508,
+              465
+            ],
+            "text": "The user asks: \"一加一",
+            "stop_reason": "length",
+            "prefill_ms": 22816.9122,
+            "ttft_ms": 22817.5947,
+            "decode_forward_tokens": 7,
+            "decode_ms": 3824.0034000000005,
+            "decode_tokens_per_second": 1.8305423054801675,
+            "request_ms": 26645.7622,
+            "prefill": {
+              "compute_calls": 6,
+              "gpu_nodes": 15660,
+              "expert_nodes": 1116,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 35484,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 120448453632,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 1875.8910999999994
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10164,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 29695139328,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 751.8128000000006
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102362660864,
+                "vram_total": 34190917632,
+                "vram_available": 24272654336,
+                "process_private": 5241778176,
+                "process_working_set": 2961354752
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 77584977920,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981846528,
+                "process_working_set": 27739811840
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 63730163712,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981924352,
+                "process_working_set": 41556512768
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 55156895744,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981924352,
+                "process_working_set": 50109902848
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 47522512896,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981924352,
+                "process_working_set": 57713643520
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 39535038464,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981924352,
+                "process_working_set": 65733083136
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 37427843072,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981944832,
+                "process_working_set": 67802632192
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 36659142656,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981961216,
+                "process_working_set": 68556300288
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 35675443200,
+                "vram_total": 34190917632,
+                "vram_available": 21766557696,
+                "process_private": 7981961216,
+                "process_working_set": 69532610560
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 34710933504,
+                "vram_total": 34190917632,
+                "vram_available": 21707968512,
+                "process_private": 7981961216,
+                "process_working_set": 70456459264
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 34110541824,
+                "vram_total": 34190917632,
+                "vram_available": 21706330112,
+                "process_private": 7981961216,
+                "process_working_set": 71030222848
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 33652772864,
+                "vram_total": 34190917632,
+                "vram_available": 21706330112,
+                "process_private": 7981961216,
+                "process_working_set": 71508238336
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 33045704704,
+                "vram_total": 34190917632,
+                "vram_available": 21706330112,
+                "process_private": 7981961216,
+                "process_working_set": 72142274560
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32504647680,
+                "vram_total": 34190917632,
+                "vram_available": 21706330112,
+                "process_private": 7981961216,
+                "process_working_set": 72695865344
+              }
+            ]
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "report_sha256": "37243b2e8af6ff8542eb5ca398bf16c5cd101d7b67f295ea95abdbc03b52c657",
+          "logits_sha256": "50d7116a979f3480e2739007bd3c2ef6cf1d9a16a85cb7844961d1ae6913716f"
+        },
+        {
+          "report_sha256": "f85c87253897b9c122d47578f44b707bd3600d3ca64fbb2c5296583074aa5d0e",
+          "logits_sha256": "50d7116a979f3480e2739007bd3c2ef6cf1d9a16a85cb7844961d1ae6913716f"
+        }
+      ]
+    },
+    {
+      "name": "code",
+      "pass": true,
+      "elements": 1600512,
+      "bit_exact": true,
+      "token_ids_equal": true,
+      "gpu_only": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "runs": [
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 2,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1156.9398,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 105209421824,
+            "vram_total": 34190917632,
+            "vram_available": 28598022144,
+            "process_private": 274137088,
+            "process_working_set": 189239296
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102441664512,
+            "vram_total": 34190917632,
+            "vram_available": 24222126080,
+            "process_private": 5239504896,
+            "process_working_set": 2960318464
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 49,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              34217,
+              546,
+              18296
+            ],
+            "text": "The user asks: \"Complete this Python",
+            "stop_reason": "length",
+            "prefill_ms": 22422.1353,
+            "ttft_ms": 22422.7739,
+            "decode_forward_tokens": 7,
+            "decode_ms": 5084.7617,
+            "decode_tokens_per_second": 1.3766623517479688,
+            "request_ms": 27511.573,
+            "prefill": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 39624,
+              "chunks": 39626,
+              "source_bytes": 134916337152,
+              "h2d_bytes": 134916337152,
+              "staging_bytes": 16777216,
+              "source_ms": 14963.452800000021,
+              "h2d_ms": 5411.347699999911,
+              "compute_ms": 1963.5412
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10116,
+              "chunks": 10116,
+              "source_bytes": 29695116288,
+              "h2d_bytes": 29695116288,
+              "staging_bytes": 16777216,
+              "source_ms": 3102.841500000012,
+              "h2d_ms": 1241.430400000005,
+              "compute_ms": 699.7038999999993
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102441648128,
+                "vram_total": 34190917632,
+                "vram_available": 24222126080,
+                "process_private": 5239504896,
+                "process_working_set": 2960334848
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 99780833280,
+                "vram_total": 34190917632,
+                "vram_available": 21714325504,
+                "process_private": 7996313600,
+                "process_working_set": 3182125056
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98887430144,
+                "vram_total": 34190917632,
+                "vram_available": 21704888320,
+                "process_private": 7996391424,
+                "process_working_set": 3182198784
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98359177216,
+                "vram_total": 34190917632,
+                "vram_available": 21681983488,
+                "process_private": 7996391424,
+                "process_working_set": 3182202880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98251988992,
+                "vram_total": 34190917632,
+                "vram_available": 21702037504,
+                "process_private": 7996391424,
+                "process_working_set": 3182202880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98040135680,
+                "vram_total": 34190917632,
+                "vram_available": 21683097600,
+                "process_private": 7996391424,
+                "process_working_set": 3182202880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97904689152,
+                "vram_total": 34190917632,
+                "vram_available": 21685719040,
+                "process_private": 7996391424,
+                "process_working_set": 3182202880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97632677888,
+                "vram_total": 34190917632,
+                "vram_available": 21686046720,
+                "process_private": 7996407808,
+                "process_working_set": 3182256128
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97452584960,
+                "vram_total": 34190917632,
+                "vram_available": 21690339328,
+                "process_private": 7996407808,
+                "process_working_set": 3182264320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97302470656,
+                "vram_total": 34190917632,
+                "vram_available": 21690339328,
+                "process_private": 7996407808,
+                "process_working_set": 3182264320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97123688448,
+                "vram_total": 34190917632,
+                "vram_available": 21690339328,
+                "process_private": 7996407808,
+                "process_working_set": 3182264320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97048662016,
+                "vram_total": 34190917632,
+                "vram_available": 21696827392,
+                "process_private": 7996407808,
+                "process_working_set": 3182264320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96963145728,
+                "vram_total": 34190917632,
+                "vram_available": 21697089536,
+                "process_private": 7996407808,
+                "process_working_set": 3182264320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96886874112,
+                "vram_total": 34190917632,
+                "vram_available": 21697089536,
+                "process_private": 7996559360,
+                "process_working_set": 3182395392
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96886878208,
+                "vram_total": 34190917632,
+                "vram_available": 21697220608,
+                "process_private": 7996559360,
+                "process_working_set": 3182395392
+              }
+            ]
+          }
+        },
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 1,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1202.0095,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 99878940672,
+            "vram_total": 34190917632,
+            "vram_available": 28589174784,
+            "process_private": 274165760,
+            "process_working_set": 189292544
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102093869056,
+            "vram_total": 34190917632,
+            "vram_available": 24203907072,
+            "process_private": 5238747136,
+            "process_working_set": 2958991360
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 49,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              34217,
+              546,
+              18296
+            ],
+            "text": "The user asks: \"Complete this Python",
+            "stop_reason": "length",
+            "prefill_ms": 25405.1163,
+            "ttft_ms": 25405.8107,
+            "decode_forward_tokens": 7,
+            "decode_ms": 3725.3686,
+            "decode_tokens_per_second": 1.8790086972870284,
+            "request_ms": 29135.2875,
+            "prefill": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 39624,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 134916337152,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 2126.6108000000027
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10116,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 29695116288,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 731.6431999999988
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102093148160,
+                "vram_total": 34190917632,
+                "vram_available": 24203907072,
+                "process_private": 5238747136,
+                "process_working_set": 2959007744
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 77179342848,
+                "vram_total": 34190917632,
+                "vram_available": 21698859008,
+                "process_private": 7979847680,
+                "process_working_set": 27737407488
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 63309336576,
+                "vram_total": 34190917632,
+                "vram_available": 21699252224,
+                "process_private": 7979925504,
+                "process_working_set": 41554108416
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 54774284288,
+                "vram_total": 34190917632,
+                "vram_available": 21727498240,
+                "process_private": 7980064768,
+                "process_working_set": 50107645952
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 47213383680,
+                "vram_total": 34190917632,
+                "vram_available": 21727956992,
+                "process_private": 7980064768,
+                "process_working_set": 57630887936
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 38428266496,
+                "vram_total": 34190917632,
+                "vram_available": 21717340160,
+                "process_private": 7980064768,
+                "process_working_set": 66436550656
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 33124024320,
+                "vram_total": 34190917632,
+                "vram_available": 21717733376,
+                "process_private": 7980064768,
+                "process_working_set": 71783698432
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32618414080,
+                "vram_total": 34190917632,
+                "vram_available": 21717733376,
+                "process_private": 7980081152,
+                "process_working_set": 72333611008
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 31923646464,
+                "vram_total": 34190917632,
+                "vram_available": 21717733376,
+                "process_private": 7980081152,
+                "process_working_set": 73057234944
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 31044481024,
+                "vram_total": 34190917632,
+                "vram_available": 21717733376,
+                "process_private": 7980081152,
+                "process_working_set": 73960493056
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 30230671360,
+                "vram_total": 34190917632,
+                "vram_available": 21717798912,
+                "process_private": 7980081152,
+                "process_working_set": 74750291968
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 29792669696,
+                "vram_total": 34190917632,
+                "vram_available": 21717798912,
+                "process_private": 7980081152,
+                "process_working_set": 75176341504
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 29242515456,
+                "vram_total": 34190917632,
+                "vram_available": 21717929984,
+                "process_private": 7980081152,
+                "process_working_set": 75768770560
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 28589101056,
+                "vram_total": 34190917632,
+                "vram_available": 21717929984,
+                "process_private": 7980081152,
+                "process_working_set": 76421238784
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 28031238144,
+                "vram_total": 34190917632,
+                "vram_available": 21717798912,
+                "process_private": 7980081152,
+                "process_working_set": 76927344640
+              }
+            ]
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "report_sha256": "862a2672138bc05e3c9181acbd4d05940c5c55d73d18ed7de3fc58a127b6a884",
+          "logits_sha256": "085d242f451a778b16e17185274d38f047fd321bd4e45475f78b72115273cb12"
+        },
+        {
+          "report_sha256": "7ade9a411b603ac95a2e8a194817cf0c7cd7de2d39207b0a87d46cde5189a8cf",
+          "logits_sha256": "085d242f451a778b16e17185274d38f047fd321bd4e45475f78b72115273cb12"
+        }
+      ]
+    },
+    {
+      "name": "long",
+      "pass": true,
+      "elements": 1600512,
+      "bit_exact": true,
+      "token_ids_equal": true,
+      "gpu_only": true,
+      "max_abs": 0.0,
+      "nmse": 0.0,
+      "runs": [
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 2,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1243.5346,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 104900042752,
+            "vram_total": 34190917632,
+            "vram_available": 28609490944,
+            "process_private": 273940480,
+            "process_working_set": 189231104
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102080368640,
+            "vram_total": 34190917632,
+            "vram_available": 24223895552,
+            "process_private": 5239701504,
+            "process_working_set": 2961035264
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 190,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              6488,
+              546,
+              1881
+            ],
+            "text": "The user asks: \"Read this list",
+            "stop_reason": "length",
+            "prefill_ms": 72681.4903,
+            "ttft_ms": 72682.3116,
+            "decode_forward_tokens": 7,
+            "decode_ms": 4988.117800000001,
+            "decode_tokens_per_second": 1.403334941287874,
+            "request_ms": 77674.672,
+            "prefill": {
+              "compute_calls": 24,
+              "gpu_nodes": 62640,
+              "expert_nodes": 4464,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 133101,
+              "chunks": 133114,
+              "source_bytes": 439545822720,
+              "h2d_bytes": 439545822720,
+              "staging_bytes": 16777216,
+              "source_ms": 47906.18070000009,
+              "h2d_ms": 17829.053900000516,
+              "compute_ms": 6672.964700000002
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10122,
+              "chunks": 10122,
+              "source_bytes": 29695114752,
+              "h2d_bytes": 29695114752,
+              "staging_bytes": 16777216,
+              "source_ms": 3005.2237999999843,
+              "h2d_ms": 1233.5959000000062,
+              "compute_ms": 709.7392999999998
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102080294912,
+                "vram_total": 34190917632,
+                "vram_available": 24223895552,
+                "process_private": 5239701504,
+                "process_working_set": 2961051648
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 99440001024,
+                "vram_total": 34190917632,
+                "vram_available": 21724352512,
+                "process_private": 7995744256,
+                "process_working_set": 3182198784
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98569359360,
+                "vram_total": 34190917632,
+                "vram_available": 21748142080,
+                "process_private": 7995826176,
+                "process_working_set": 3182297088
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 98004189184,
+                "vram_total": 34190917632,
+                "vram_available": 21727956992,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97812455424,
+                "vram_total": 34190917632,
+                "vram_available": 21727956992,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97639047168,
+                "vram_total": 34190917632,
+                "vram_available": 21722255360,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97333653504,
+                "vram_total": 34190917632,
+                "vram_available": 21727825920,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97149837312,
+                "vram_total": 34190917632,
+                "vram_available": 21702037504,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97171968000,
+                "vram_total": 34190917632,
+                "vram_available": 21705461760,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97136242688,
+                "vram_total": 34190917632,
+                "vram_available": 21709918208,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97288069120,
+                "vram_total": 34190917632,
+                "vram_available": 21718503424,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97179013120,
+                "vram_total": 34190917632,
+                "vram_available": 21704232960,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97234948096,
+                "vram_total": 34190917632,
+                "vram_available": 21725401088,
+                "process_private": 7995826176,
+                "process_working_set": 3182301184
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97204625408,
+                "vram_total": 34190917632,
+                "vram_available": 21726187520,
+                "process_private": 7995904000,
+                "process_working_set": 3182374912
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97351344128,
+                "vram_total": 34190917632,
+                "vram_available": 21729660928,
+                "process_private": 7995904000,
+                "process_working_set": 3182374912
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97284300800,
+                "vram_total": 34190917632,
+                "vram_available": 21732413440,
+                "process_private": 7995904000,
+                "process_working_set": 3182374912
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97397825536,
+                "vram_total": 34190917632,
+                "vram_available": 21727760384,
+                "process_private": 7995904000,
+                "process_working_set": 3182374912
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97227997184,
+                "vram_total": 34190917632,
+                "vram_available": 21727760384,
+                "process_private": 7995904000,
+                "process_working_set": 3182374912
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97204187136,
+                "vram_total": 34190917632,
+                "vram_available": 21727760384,
+                "process_private": 7996043264,
+                "process_working_set": 3182493696
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97347481600,
+                "vram_total": 34190917632,
+                "vram_available": 21734510592,
+                "process_private": 7996043264,
+                "process_working_set": 3182493696
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97269108736,
+                "vram_total": 34190917632,
+                "vram_available": 21766492160,
+                "process_private": 7995940864,
+                "process_working_set": 3182432256
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97270050816,
+                "vram_total": 34190917632,
+                "vram_available": 21776519168,
+                "process_private": 7995940864,
+                "process_working_set": 3182432256
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97112342528,
+                "vram_total": 34190917632,
+                "vram_available": 21776519168,
+                "process_private": 7995940864,
+                "process_working_set": 3182432256
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97258053632,
+                "vram_total": 34190917632,
+                "vram_available": 21737918464,
+                "process_private": 7995940864,
+                "process_working_set": 3182436352
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97233997824,
+                "vram_total": 34190917632,
+                "vram_available": 21737852928,
+                "process_private": 7995973632,
+                "process_working_set": 3182469120
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97104105472,
+                "vram_total": 34190917632,
+                "vram_available": 21737852928,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97054289920,
+                "vram_total": 34190917632,
+                "vram_available": 21737852928,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 97009610752,
+                "vram_total": 34190917632,
+                "vram_available": 21737852928,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96927735808,
+                "vram_total": 34190917632,
+                "vram_available": 21737852928,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96859922432,
+                "vram_total": 34190917632,
+                "vram_available": 21742112768,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96790159360,
+                "vram_total": 34190917632,
+                "vram_available": 21733265408,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 96799768576,
+                "vram_total": 34190917632,
+                "vram_available": 21735362560,
+                "process_private": 7995990016,
+                "process_working_set": 3182526464
+              }
+            ]
+          }
+        },
+        {
+          "architecture": "minimax-m2",
+          "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+          "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap",
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "mode": 1,
+          "context": 512,
+          "batch": 8,
+          "kv": "F32",
+          "flash_attention": false,
+          "strict_f32": true,
+          "graphs": false,
+          "cache": false,
+          "mtp": false,
+          "load_ms": 1196.0721,
+          "memory_before": {
+            "ram_total": 134813700096,
+            "ram_available": 99806638080,
+            "vram_total": 34190917632,
+            "vram_available": 28627382272,
+            "process_private": 273944576,
+            "process_working_set": 189272064
+          },
+          "memory_loaded": {
+            "ram_total": 134813700096,
+            "ram_available": 102439989248,
+            "vram_total": 34190917632,
+            "vram_available": 24259153920,
+            "process_private": 5240315904,
+            "process_working_set": 2960707584
+          },
+          "result": {
+            "event": "result",
+            "prompt_tokens": 190,
+            "generated_tokens": 8,
+            "token_ids": [
+              758,
+              3100,
+              20886,
+              58,
+              494,
+              6488,
+              546,
+              1881
+            ],
+            "text": "The user asks: \"Read this list",
+            "stop_reason": "length",
+            "prefill_ms": 58136.9273,
+            "ttft_ms": 58137.5508,
+            "decode_forward_tokens": 7,
+            "decode_ms": 3455.4062000000004,
+            "decode_tokens_per_second": 2.025811031999653,
+            "request_ms": 61597.1096,
+            "prefill": {
+              "compute_calls": 24,
+              "gpu_nodes": 62640,
+              "expert_nodes": 4464,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 133101,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 439545822720,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 6974.407900000002
+            },
+            "decode": {
+              "compute_calls": 7,
+              "gpu_nodes": 18270,
+              "expert_nodes": 1302,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "ranges": 10122,
+              "chunks": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 29695114752,
+              "staging_bytes": 0,
+              "source_ms": 0.0,
+              "h2d_ms": 0.0,
+              "compute_ms": 764.8446000000001
+            },
+            "memory_samples": [
+              {
+                "ram_total": 134813700096,
+                "ram_available": 102439972864,
+                "vram_total": 34190917632,
+                "vram_available": 24259153920,
+                "process_private": 5240315904,
+                "process_working_set": 2960732160
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 77467070464,
+                "vram_total": 34190917632,
+                "vram_available": 21731627008,
+                "process_private": 7979823104,
+                "process_working_set": 27737546752
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 63709339648,
+                "vram_total": 34190917632,
+                "vram_available": 21727694848,
+                "process_private": 7979900928,
+                "process_working_set": 41554272256
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 55059533824,
+                "vram_total": 34190917632,
+                "vram_available": 21727367168,
+                "process_private": 7979900928,
+                "process_working_set": 50107662336
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 47456612352,
+                "vram_total": 34190917632,
+                "vram_available": 21733920768,
+                "process_private": 7979900928,
+                "process_working_set": 57651851264
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 38707085312,
+                "vram_total": 34190917632,
+                "vram_available": 21764395008,
+                "process_private": 7979900928,
+                "process_working_set": 66314977280
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 32804872192,
+                "vram_total": 34190917632,
+                "vram_available": 21776453632,
+                "process_private": 7979900928,
+                "process_working_set": 72201895936
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 29780848640,
+                "vram_total": 34190917632,
+                "vram_available": 21776453632,
+                "process_private": 7979900928,
+                "process_working_set": 75225542656
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 27531386880,
+                "vram_total": 34190917632,
+                "vram_available": 21701382144,
+                "process_private": 7979900928,
+                "process_working_set": 77422563328
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 25808805888,
+                "vram_total": 34190917632,
+                "vram_available": 21701382144,
+                "process_private": 7979900928,
+                "process_working_set": 79164755968
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 24071221248,
+                "vram_total": 34190917632,
+                "vram_available": 21705707520,
+                "process_private": 7979900928,
+                "process_working_set": 80875761664
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 22714761216,
+                "vram_total": 34190917632,
+                "vram_available": 21705183232,
+                "process_private": 7979900928,
+                "process_working_set": 82186362880
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 21554810880,
+                "vram_total": 34190917632,
+                "vram_available": 21677330432,
+                "process_private": 7979900928,
+                "process_working_set": 83328962560
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 20631203840,
+                "vram_total": 34190917632,
+                "vram_available": 21677723648,
+                "process_private": 7979978752,
+                "process_working_set": 84267450368
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 19624103936,
+                "vram_total": 34190917632,
+                "vram_available": 21693386752,
+                "process_private": 7979978752,
+                "process_working_set": 85236789248
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 18618384384,
+                "vram_total": 34190917632,
+                "vram_available": 21700071424,
+                "process_private": 7979978752,
+                "process_working_set": 86278135808
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 17654099968,
+                "vram_total": 34190917632,
+                "vram_available": 21704790016,
+                "process_private": 7979978752,
+                "process_working_set": 87300874240
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 17009004544,
+                "vram_total": 34190917632,
+                "vram_available": 21705576448,
+                "process_private": 7979978752,
+                "process_working_set": 87989927936
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 16326066176,
+                "vram_total": 34190917632,
+                "vram_available": 21706067968,
+                "process_private": 7979978752,
+                "process_working_set": 88739520512
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 15499890688,
+                "vram_total": 34190917632,
+                "vram_available": 21710786560,
+                "process_private": 7979978752,
+                "process_working_set": 89573076992
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 14927736832,
+                "vram_total": 34190917632,
+                "vram_available": 21724549120,
+                "process_private": 7979978752,
+                "process_working_set": 90200997888
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 14345613312,
+                "vram_total": 34190917632,
+                "vram_available": 21726253056,
+                "process_private": 7979978752,
+                "process_working_set": 90836643840
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 13792890880,
+                "vram_total": 34190917632,
+                "vram_available": 21754236928,
+                "process_private": 7979978752,
+                "process_working_set": 91382517760
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 13082378240,
+                "vram_total": 34190917632,
+                "vram_available": 21778288640,
+                "process_private": 7979978752,
+                "process_working_set": 92201144320
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 14158086144,
+                "vram_total": 34190917632,
+                "vram_available": 21756792832,
+                "process_private": 7979978752,
+                "process_working_set": 93807824896
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 13765320704,
+                "vram_total": 34190917632,
+                "vram_available": 21756792832,
+                "process_private": 7979995136,
+                "process_working_set": 94165897216
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 13211770880,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 94709788672
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 12837494784,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 95098335232
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 12583149568,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 95328972800
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 12311863296,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 95608057856
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 12131819520,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 95817236480
+              },
+              {
+                "ram_total": 134813700096,
+                "ram_available": 11925651456,
+                "vram_total": 34190917632,
+                "vram_available": 21755187200,
+                "process_private": 7979892736,
+                "process_working_set": 96001974272
+              }
+            ]
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "report_sha256": "4bd1ce5db3f7f57a07375df5fcb810bcb7a7c98b550125694330e31ea03c646c",
+          "logits_sha256": "8dc04e03d996a56c03dfaa00cad5f6ffaa3591813bab0cd60cdd7344263c4eed"
+        },
+        {
+          "report_sha256": "c4565e05dcaec2c84e22a074b44e8ca89eb65871acdfd46c0e641f87ed7f97be",
+          "logits_sha256": "8dc04e03d996a56c03dfaa00cad5f6ffaa3591813bab0cd60cdd7344263c4eed"
+        }
+      ]
+    }
+  ],
+  "scope": "strict F32, FA off; sequential correctness comparisons, not controlled speed A/B",
+  "pass": true
+}

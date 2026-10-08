@@ -1,0 +1,654 @@
+{
+  "checks": [
+    {
+      "name": "three_AB_pairs_six_runs",
+      "pass": true
+    },
+    {
+      "name": "all_logits_match_each_other_and_MM27_05",
+      "pass": true
+    },
+    {
+      "name": "cuda/0/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/0/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/1/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/1/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/2/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/2/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/3/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/3/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/4/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/4/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/5/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/5/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/6/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/6/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/7/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/7/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/8/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "cuda/8/counts",
+      "pass": true
+    },
+    {
+      "name": "cuda/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/0/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/0/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/1/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/1/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/2/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/2/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/3/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/3/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/4/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/4/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/5/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/5/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/6/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/6/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/7/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/7/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/8/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/8/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/9/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/9/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/10/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/10/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/11/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/11/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/12/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/12/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/13/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/13/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/14/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/14/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/15/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/15/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/16/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/16/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "cuda/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "cuda/17/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "cuda/17/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/0/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/0/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/1/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/1/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/2/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/2/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/3/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/3/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/4/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/4/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/5/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/5/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/6/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/6/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/7/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/7/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/8/prefill_no_admission",
+      "pass": true
+    },
+    {
+      "name": "arena/8/counts",
+      "pass": true
+    },
+    {
+      "name": "arena/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/0/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/0/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/1/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/1/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/2/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/2/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/3/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/3/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/4/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/4/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/5/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/5/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/6/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/6/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/7/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/7/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/8/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/8/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/9/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/9/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/10/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/10/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/11/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/11/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/12/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/12/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/13/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/13/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/14/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/14/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/15/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/15/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/16/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/16/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "arena/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "arena/17/backing_cap",
+      "pass": true
+    },
+    {
+      "name": "arena/17/byte_accounting",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/complete",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "real_pressure_inference/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/complete",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/complete",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    }
+  ],
+  "cases": 156,
+  "summary": [
+    {
+      "allocator": "cuda",
+      "cache_resident_peak_gib": 12.81988525390625,
+      "arena_backing_peak_gib": 0.0,
+      "vram_peak_gib": 30.011051177978516,
+      "vram_peak_percent": 94.24760452126844,
+      "ram_peak_gib": 36.20485305786133,
+      "private_peak_gib": 27.21466064453125,
+      "admission_oom_count": 0,
+      "intentional_slab_budget_denials": 0
+    },
+    {
+      "allocator": "arena",
+      "cache_resident_peak_gib": 17.43310546875,
+      "arena_backing_peak_gib": 18.0,
+      "vram_peak_gib": 29.724185943603516,
+      "vram_peak_percent": 93.3467243421658,
+      "ram_peak_gib": 35.578819274902344,
+      "private_peak_gib": 26.217578887939453,
+      "admission_oom_count": 123744,
+      "intentional_slab_budget_denials": 123744
+    }
+  ],
+  "pass": true
+}

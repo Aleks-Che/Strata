@@ -1,0 +1,1211 @@
+{
+  "pass": true,
+  "cases": 249,
+  "checks": [
+    {
+      "name": "lookahead/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/0/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/0/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/0/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/1/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/1/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/1/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/2/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/2/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/2/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/3/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/3/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/3/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/4/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/4/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/4/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/5/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/5/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/5/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/6/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/6/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/6/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/7/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/7/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/7/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/8/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/8/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/8/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/9/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/9/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/9/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/10/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/10/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/10/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/11/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/11/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/11/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/12/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/12/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/12/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/13/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/13/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/13/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/14/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/14/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/14/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/15/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/15/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/15/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/16/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/16/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/16/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "batched/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "batched/17/bounded",
+      "pass": true
+    },
+    {
+      "name": "batched/17/drained",
+      "pass": true
+    },
+    {
+      "name": "batched/17/plans",
+      "pass": true
+    },
+    {
+      "name": "batched/0/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/0/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/1/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/1/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/2/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/2/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/3/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/3/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/4/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/4/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/5/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/5/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/6/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/6/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/7/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/7/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/8/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/8/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/9/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/9/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/10/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/10/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/11/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/11/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/12/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/12/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/13/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/13/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/14/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/14/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/15/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/15/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/16/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/16/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "batched/17/batch_fences",
+      "pass": true
+    },
+    {
+      "name": "batched/17/fill_pins",
+      "pass": true
+    },
+    {
+      "name": "fixture/cancel_prefill/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/cancel_decode/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/RAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/VRAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/after_pressure_or_fault_release/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/full_unload_reload/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/diagnostic_same_context_file_vs_native/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/same_context_vs_initial_file/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "fixture/0/drain",
+      "pass": true
+    },
+    {
+      "name": "fixture/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_prefill/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_decode/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/RAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/VRAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_pressure/logits/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/after_pressure_or_fault_release/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/full_unload_reload/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/drain",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/drain",
+      "pass": true
+    },
+    {
+      "name": "context2048/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context2048/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    }
+  ],
+  "memory": [
+    {
+      "variant": "lookahead",
+      "ram_peak_gib": 29.63223648071289,
+      "vram_peak_gib": 28.848018646240234,
+      "ram_peak_percent": 23.600992796238845,
+      "vram_peak_percent": 90.59518230364645,
+      "median_workload_seconds": 85.4732596
+    },
+    {
+      "variant": "batched",
+      "ram_peak_gib": 29.584239959716797,
+      "vram_peak_gib": 29.225887298583984,
+      "ram_peak_percent": 23.562765322352064,
+      "vram_peak_percent": 91.78185234382188,
+      "median_workload_seconds": 80.2363508
+    }
+  ],
+  "timings": [
+    {
+      "name": "short_empty_cache",
+      "lookahead": {
+        "prefill_ms": 12019.3319,
+        "ttft_ms": 12020.2858,
+        "request_ms": 20363.8075,
+        "decode_tokens_per_second": 2.9011055621370705,
+        "decode_copy_fences": [
+          45360,
+          45360,
+          45360
+        ],
+        "decode_submissions": [
+          45360,
+          45360,
+          45360
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          2.761031687100202,
+          2.936707642761211
+        ]
+      },
+      "batched": {
+        "prefill_ms": 11158.8266,
+        "ttft_ms": 11159.5438,
+        "request_ms": 18111.5341,
+        "decode_tokens_per_second": 3.314293772342573,
+        "decode_copy_fences": [
+          4278,
+          4278,
+          4278
+        ],
+        "decode_submissions": [
+          45360,
+          45360,
+          45360
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          3.2178736484003787,
+          3.3650568459052983
+        ]
+      }
+    },
+    {
+      "name": "short_repeated",
+      "lookahead": {
+        "prefill_ms": 8602.9296,
+        "ttft_ms": 8603.4831,
+        "request_ms": 14455.7979,
+        "decode_tokens_per_second": 3.939070323229151,
+        "decode_copy_fences": [
+          39382,
+          39382,
+          39382
+        ],
+        "decode_submissions": [
+          39382,
+          39382,
+          39382
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          3.592941981032297,
+          3.9812029751772156
+        ]
+      },
+      "batched": {
+        "prefill_ms": 8259.6665,
+        "ttft_ms": 8260.233,
+        "request_ms": 13849.9057,
+        "decode_tokens_per_second": 4.199582262074675,
+        "decode_copy_fences": [
+          4278,
+          4278,
+          4278
+        ],
+        "decode_submissions": [
+          39382,
+          39382,
+          39382
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          4.069652275638964,
+          4.434290219744915
+        ]
+      }
+    },
+    {
+      "name": "longer_new_topic",
+      "lookahead": {
+        "prefill_ms": 43532.8493,
+        "ttft_ms": 43533.4288,
+        "request_ms": 49888.6907,
+        "decode_tokens_per_second": 3.6068118436660965,
+        "decode_copy_fences": [
+          37181,
+          37181,
+          37181
+        ],
+        "decode_submissions": [
+          37181,
+          37181,
+          37181
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          3.5033773166615627,
+          3.6266707638585407
+        ]
+      },
+      "batched": {
+        "prefill_ms": 42455.9189,
+        "ttft_ms": 42456.485,
+        "request_ms": 48345.2346,
+        "decode_tokens_per_second": 3.9818332148911075,
+        "decode_copy_fences": [
+          4278,
+          4278,
+          4278
+        ],
+        "decode_submissions": [
+          37181,
+          37181,
+          37181
+        ],
+        "decode_cache_limit_gib": [
+          18.0,
+          18.0,
+          18.0
+        ],
+        "decode_cache_resident_gib": [
+          17.43310546875,
+          17.43310546875,
+          17.43310546875
+        ],
+        "decode_range_tok_s": [
+          3.6874650221898015,
+          3.9889735060010802
+        ]
+      }
+    }
+  ]
+}

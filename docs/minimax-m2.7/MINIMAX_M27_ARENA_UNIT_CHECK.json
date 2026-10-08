@@ -1,0 +1,82 @@
+{
+  "pass": true,
+  "tests": [
+    {
+      "name": "24_Q4_slots_one_64MiB_slab",
+      "pass": true
+    },
+    {
+      "name": "unique_64KiB_aligned_slots",
+      "pass": true
+    },
+    {
+      "name": "misaligned_release_refused",
+      "pass": true
+    },
+    {
+      "name": "holes_count_as_backing",
+      "pass": true
+    },
+    {
+      "name": "double_release_refused",
+      "pass": true
+    },
+    {
+      "name": "reuse_all_bytes_exact",
+      "pass": true
+    },
+    {
+      "name": "two_size_classes_accounted",
+      "pass": true
+    },
+    {
+      "name": "hard_backing_cap_includes_holes",
+      "pass": true
+    },
+    {
+      "name": "last_slot_releases_its_slab",
+      "pass": true
+    },
+    {
+      "name": "all_backing_released",
+      "pass": true
+    },
+    {
+      "name": "VRAM_reserve_refuses_slab",
+      "pass": true
+    },
+    {
+      "name": "whole_slab_commit_reserve",
+      "pass": true
+    },
+    {
+      "name": "measured_cuda_released",
+      "pass": true
+    },
+    {
+      "name": "measured_arena_released",
+      "pass": true
+    }
+  ],
+  "cases": 14,
+  "measurements": [
+    {
+      "allocator": "cuda",
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 0,
+      "NVML_before": 5333651456,
+      "NVML_during": 7481135104,
+      "NVML_delta": 2147483648
+    },
+    {
+      "allocator": "arena",
+      "matrices": 512,
+      "requested_bytes": 1535115264,
+      "arena_reserved": 1610612736,
+      "NVML_before": 5333651456,
+      "NVML_during": 6944264192,
+      "NVML_delta": 1610612736
+    }
+  ]
+}

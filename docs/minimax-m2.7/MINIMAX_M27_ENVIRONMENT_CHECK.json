@@ -1,0 +1,5 @@
+{
+  "exit_code": 2,
+  "message": "set NVIDIA_TF32_OVERRIDE=0 before process start (use tools/run_minimax_m2.py)",
+  "pass": true
+}

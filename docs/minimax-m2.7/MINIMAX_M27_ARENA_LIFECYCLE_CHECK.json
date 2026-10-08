@@ -1,0 +1,858 @@
+{
+  "engine_sha256": "cfc084b93890e41774a34bd062db476940a995930476e2dfb2f0807b51a2162c",
+  "cases": [
+    {
+      "name": "full_pressure",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-arena-lifecycle-full-01\\full_pressure",
+        "--ctx",
+        "512",
+        "--tokens",
+        "31",
+        "--batch",
+        "8",
+        "--pressure",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "cache_admitted_with_bounded_backing",
+            "pass": true
+          },
+          {
+            "name": "cancel_prefill",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 2610,
+              "expert_nodes": 186,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1640477184,
+              "h2d_bytes": 1640477184,
+              "staging_bytes": 16777216,
+              "memory_checks": 12,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 35250700288,
+              "sampled_vram_used_peak": 27674611712,
+              "sampled_private_peak": 24012443648,
+              "sampled_working_set_peak": 3193397248,
+              "selected_bytes": 2123735552,
+              "cache_hit_bytes": 483258368,
+              "cache_fill_bytes": 0,
+              "cache_resident": 15432941568,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 15971909632,
+              "arena_live": 15432941568,
+              "arena_blocks": 238
+            }
+          },
+          {
+            "name": "cancel_prefill/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "cancel_decode",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 10440,
+              "expert_nodes": 744,
+              "compute_calls": 4,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 9567220224,
+              "h2d_bytes": 9567220224,
+              "staging_bytes": 16777216,
+              "memory_checks": 71,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 35217158144,
+              "sampled_vram_used_peak": 27674611712,
+              "sampled_private_peak": 24013250560,
+              "sampled_working_set_peak": 3193929728,
+              "selected_bytes": 14850220544,
+              "cache_hit_bytes": 5283000320,
+              "cache_fill_bytes": 0,
+              "cache_resident": 15432941568,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 15971909632,
+              "arena_live": 15432941568,
+              "arena_blocks": 238
+            }
+          },
+          {
+            "name": "cancel_decode/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "RAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step RAM budget95 admission refused",
+            "stats": {
+              "gpu_nodes": 2610,
+              "expert_nodes": 186,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1640477184,
+              "h2d_bytes": 1640477184,
+              "staging_bytes": 16777216,
+              "memory_checks": 12,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 35177394176,
+              "sampled_vram_used_peak": 27674611712,
+              "sampled_private_peak": 24013250560,
+              "sampled_working_set_peak": 3193929728,
+              "selected_bytes": 2123735552,
+              "cache_hit_bytes": 483258368,
+              "cache_fill_bytes": 0,
+              "cache_resident": 0,
+              "cache_evictions": 5346,
+              "cache_oom": 0,
+              "arena_reserved": 0,
+              "arena_live": 0,
+              "arena_blocks": 0
+            }
+          },
+          {
+            "name": "RAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "VRAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax global VRAM 95% limit",
+            "stats": {
+              "gpu_nodes": 10440,
+              "expert_nodes": 744,
+              "compute_calls": 4,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 11860402688,
+              "h2d_bytes": 11860402688,
+              "staging_bytes": 16777216,
+              "memory_checks": 85,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 35206803456,
+              "sampled_vram_used_peak": 16198995968,
+              "sampled_private_peak": 12515188736,
+              "sampled_working_set_peak": 3193982976,
+              "selected_bytes": 14850220544,
+              "cache_hit_bytes": 2989817856,
+              "cache_fill_bytes": 0,
+              "cache_resident": 2279407616,
+              "cache_evictions": 699,
+              "cache_oom": 0,
+              "arena_reserved": 2483027968,
+              "arena_live": 2279407616,
+              "arena_blocks": 37
+            }
+          },
+          {
+            "name": "VRAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "real_GPU_pressure_reclaims_warm_cache",
+            "pass": true,
+            "before_resident": 16398090240,
+            "during_resident": 2338521088,
+            "before_backing": 17045651456,
+            "during_backing": 7516192768
+          },
+          {
+            "name": "real_pressure/logits",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "real_pressure/at_least_85_percent_both",
+            "pass": true,
+            "touched_mapped_bytes": 89657442304,
+            "held_gpu_bytes": 12884901888,
+            "before": {
+              "ram_total": 134813700096,
+              "ram_available": 98811125760,
+              "vram_total": 34190917632,
+              "vram_available": 5442564096,
+              "private_bytes": 25089101824,
+              "working_set": 3194150912
+            },
+            "during": {
+              "ram_total": 134813700096,
+              "ram_available": 13578530816,
+              "vram_total": 34190917632,
+              "vram_available": 2090987520,
+              "private_bytes": 28722049024,
+              "working_set": 92851822592
+            }
+          },
+          {
+            "name": "after_pressure_or_fault_release",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "full_unload_mapping_release",
+            "pass": true
+          },
+          {
+            "name": "full_unload_reload",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 31,
+            "continuation_steps": 8,
+            "generated": [
+              32,
+              32,
+              17343,
+              32,
+              48,
+              46,
+              48,
+              46
+            ],
+            "prefill_ms": 2984.6874,
+            "decode_ms": 4355.6636,
+            "decode_tokens_per_second": 1.6071029911492707,
+            "stats": {
+              "gpu_nodes": 28710,
+              "expert_nodes": 2046,
+              "compute_calls": 11,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 35298551808,
+              "h2d_bytes": 35298551808,
+              "staging_bytes": 16777216,
+              "memory_checks": 311,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 35156127744,
+              "sampled_vram_used_peak": 26470846464,
+              "sampled_private_peak": 22798811136,
+              "sampled_working_set_peak": 3189252096,
+              "selected_bytes": 46663785984,
+              "cache_hit_bytes": 11365301760,
+              "cache_fill_bytes": 14087738880,
+              "cache_resident": 14270005248,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 14763950080,
+              "arena_live": 14270005248,
+              "arena_blocks": 220
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 99668283392,
+              "vram_total": 34190917632,
+              "vram_available": 7720071168,
+              "private_bytes": 22798831616,
+              "working_set": 3190124544
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 31,
+            "continuation_steps": 8,
+            "generated": [
+              32,
+              32,
+              17343,
+              32,
+              48,
+              46,
+              48,
+              46
+            ],
+            "prefill_ms": 2568.9529,
+            "decode_ms": 5776.079299999999,
+            "decode_tokens_per_second": 1.2118947189662026,
+            "stats": {
+              "gpu_nodes": 28710,
+              "expert_nodes": 2046,
+              "compute_calls": 11,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 46663785984,
+              "staging_bytes": 0,
+              "memory_checks": 328,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 51792896000,
+              "sampled_vram_used_peak": 11703029760,
+              "sampled_private_peak": 8028504064,
+              "sampled_working_set_peak": 22738931712,
+              "selected_bytes": 0,
+              "cache_hit_bytes": 0,
+              "cache_fill_bytes": 0,
+              "cache_resident": 0,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 0,
+              "arena_live": 0,
+              "arena_blocks": 0
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 83020791808,
+              "vram_total": 34190917632,
+              "vram_available": 22492082176,
+              "private_bytes": 8001118208,
+              "working_set": 22739718144
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 512,
+          "batch": 8,
+          "prompt_tokens": 31,
+          "gpu_cache_mib": 18432,
+          "gpu_cache_allocator": "arena",
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "pressure_warmup": {
+          "prompt_tokens": 17,
+          "continuation_steps": 8,
+          "generated": [
+            32,
+            92458,
+            32,
+            3408,
+            823,
+            32,
+            8446,
+            823
+          ],
+          "prefill_ms": 1642.1579,
+          "decode_ms": 3596.9348999999997,
+          "decode_tokens_per_second": 1.946101387600871,
+          "stats": {
+            "gpu_nodes": 26100,
+            "expert_nodes": 1860,
+            "compute_calls": 10,
+            "rejected_cpu_nodes": 0,
+            "rejected_full_copies": 0,
+            "source_bytes": 25646601216,
+            "h2d_bytes": 25646601216,
+            "staging_bytes": 16777216,
+            "memory_checks": 227,
+            "pressure_rejections": 0,
+            "sampled_ram_used_peak": 36003700736,
+            "sampled_vram_used_peak": 28748353536,
+            "sampled_private_peak": 25097228288,
+            "sampled_working_set_peak": 3199766528,
+            "selected_bytes": 42421636608,
+            "cache_hit_bytes": 16775087616,
+            "cache_fill_bytes": 11946402816,
+            "cache_resident": 16398090240,
+            "cache_evictions": 0,
+            "cache_oom": 0,
+            "arena_reserved": 17045651456,
+            "arena_live": 16398090240,
+            "arena_blocks": 254
+          },
+          "memory_after": {
+            "ram_total": 134813700096,
+            "ram_available": 98810523648,
+            "vram_total": 34190917632,
+            "vram_available": 5442564096,
+            "private_bytes": 25097228288,
+            "working_set": 3200618496
+          }
+        },
+        "pressure_run": {
+          "prompt_tokens": 17,
+          "continuation_steps": 3,
+          "generated": [
+            32,
+            92458,
+            32
+          ],
+          "prefill_ms": 2048.5468,
+          "decode_ms": 1224.6891,
+          "decode_tokens_per_second": 1.6330675270972852,
+          "stats": {
+            "gpu_nodes": 13050,
+            "expert_nodes": 930,
+            "compute_calls": 5,
+            "rejected_cpu_nodes": 0,
+            "rejected_full_copies": 0,
+            "source_bytes": 20770156544,
+            "h2d_bytes": 20770156544,
+            "staging_bytes": 16777216,
+            "memory_checks": 140,
+            "pressure_rejections": 0,
+            "sampled_ram_used_peak": 121258364928,
+            "sampled_vram_used_peak": 32099930112,
+            "sampled_private_peak": 28724453376,
+            "sampled_working_set_peak": 92854222848,
+            "selected_bytes": 21210811392,
+            "cache_hit_bytes": 440677888,
+            "cache_fill_bytes": 4147281408,
+            "cache_resident": 6539444224,
+            "cache_evictions": 0,
+            "cache_oom": 0,
+            "arena_reserved": 7516192768,
+            "arena_live": 6539444224,
+            "arena_blocks": 112
+          },
+          "memory_after": {
+            "ram_total": 134813700096,
+            "ram_available": 13552717824,
+            "vram_total": 34190917632,
+            "vram_available": 2090987520,
+            "private_bytes": 28725260288,
+            "working_set": 92855025664
+          }
+        },
+        "failures": 0,
+        "cases": 19,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "9aeb75fe9304983d1d50b35f5566a8d7e57cddcf9bdcad0564794ffcab6710f1",
+        "mode2.f32": "9aeb75fe9304983d1d50b35f5566a8d7e57cddcf9bdcad0564794ffcab6710f1"
+      }
+    },
+    {
+      "name": "context2048",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-arena-lifecycle-full-01\\context2048",
+        "--ctx",
+        "2048",
+        "--tokens",
+        "2031",
+        "--batch",
+        "16",
+        "--long-only",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "cache_admitted_with_bounded_backing",
+            "pass": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 2031,
+            "continuation_steps": 8,
+            "generated": [
+              934,
+              783,
+              758,
+              4175,
+              4175,
+              4175,
+              4175,
+              4175
+            ],
+            "prefill_ms": 98738.7892,
+            "decode_ms": 3843.0437,
+            "decode_tokens_per_second": 1.8214729122127857,
+            "stats": {
+              "gpu_nodes": 349740,
+              "expert_nodes": 24924,
+              "compute_calls": 134,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 606709820928,
+              "h2d_bytes": 606709820928,
+              "staging_bytes": 16777216,
+              "memory_checks": 4316,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 36571664384,
+              "sampled_vram_used_peak": 27123322880,
+              "sampled_private_peak": 23447027712,
+              "sampled_working_set_peak": 3189915648,
+              "selected_bytes": 618205346304,
+              "cache_hit_bytes": 11495602176,
+              "cache_fill_bytes": 13957444608,
+              "cache_resident": 14137819136,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 14629732352,
+              "arena_live": 14137819136,
+              "arena_blocks": 218
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 98290782208,
+              "vram_total": 34190917632,
+              "vram_available": 7067594752,
+              "private_bytes": 23447027712,
+              "working_set": 3190714368
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 2031,
+            "continuation_steps": 8,
+            "generated": [
+              934,
+              783,
+              758,
+              4175,
+              4175,
+              4175,
+              4175,
+              4175
+            ],
+            "prefill_ms": 69115.3545,
+            "decode_ms": 3589.2374,
+            "decode_tokens_per_second": 1.9502750082789173,
+            "stats": {
+              "gpu_nodes": 349740,
+              "expert_nodes": 24924,
+              "compute_calls": 134,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 618205346304,
+              "staging_bytes": 0,
+              "memory_checks": 2894,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 79346118656,
+              "sampled_vram_used_peak": 12501979136,
+              "sampled_private_peak": 8833392640,
+              "sampled_working_set_peak": 50028908544,
+              "selected_bytes": 0,
+              "cache_hit_bytes": 0,
+              "cache_fill_bytes": 0,
+              "cache_resident": 0,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 0,
+              "arena_live": 0,
+              "arena_blocks": 0
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 55467581440,
+              "vram_total": 34190917632,
+              "vram_available": 21710893056,
+              "private_bytes": 8785330176,
+              "working_set": 50029694976
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 2048,
+          "batch": 16,
+          "prompt_tokens": 2031,
+          "gpu_cache_mib": 18432,
+          "gpu_cache_allocator": "arena",
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "failures": 0,
+        "cases": 5,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "d71883f4e529324295abd5706608f69fbf3182ce1ab8effc1b0c90533333b0db",
+        "mode2.f32": "d71883f4e529324295abd5706608f69fbf3182ce1ab8effc1b0c90533333b0db"
+      }
+    },
+    {
+      "name": "context4096",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-arena-lifecycle-full-01\\context4096",
+        "--ctx",
+        "4096",
+        "--tokens",
+        "4079",
+        "--batch",
+        "16",
+        "--long-only",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "cache_admitted_with_bounded_backing",
+            "pass": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              764,
+              771,
+              368,
+              771,
+              22192,
+              44,
+              306,
+              2505
+            ],
+            "prefill_ms": 188726.4209,
+            "decode_ms": 4190.6457,
+            "decode_tokens_per_second": 1.670386976403183,
+            "stats": {
+              "gpu_nodes": 683820,
+              "expert_nodes": 48732,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1137537334272,
+              "h2d_bytes": 1137537334272,
+              "staging_bytes": 16777216,
+              "memory_checks": 8144,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 36082102272,
+              "sampled_vram_used_peak": 28891877376,
+              "sampled_private_peak": 25230503936,
+              "sampled_working_set_peak": 3190546432,
+              "selected_bytes": 1148347175424,
+              "cache_hit_bytes": 10809908736,
+              "cache_fill_bytes": 14643121152,
+              "cache_resident": 14832566272,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 15367929856,
+              "arena_live": 14832566272,
+              "arena_blocks": 229
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 98732969984,
+              "vram_total": 34190917632,
+              "vram_available": 5299040256,
+              "private_bytes": 25230581760,
+              "working_set": 3191410688
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              764,
+              771,
+              368,
+              771,
+              22192,
+              44,
+              306,
+              2505
+            ],
+            "prefill_ms": 120480.2327,
+            "decode_ms": 3955.6769000000004,
+            "decode_tokens_per_second": 1.7696086351238645,
+            "stats": {
+              "gpu_nodes": 683820,
+              "expert_nodes": 48732,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 1148347175424,
+              "staging_bytes": 0,
+              "memory_checks": 5167,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 71369461760,
+              "sampled_vram_used_peak": 13610323968,
+              "sampled_private_peak": 9872850944,
+              "sampled_working_set_peak": 42250792960,
+              "selected_bytes": 0,
+              "cache_hit_bytes": 0,
+              "cache_fill_bytes": 0,
+              "cache_resident": 0,
+              "cache_evictions": 0,
+              "cache_oom": 0,
+              "arena_reserved": 0,
+              "arena_live": 0,
+              "arena_blocks": 0
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 63445286912,
+              "vram_total": 34190917632,
+              "vram_available": 20663365632,
+              "private_bytes": 9832402944,
+              "working_set": 42251579392
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 4096,
+          "batch": 16,
+          "prompt_tokens": 4079,
+          "gpu_cache_mib": 18432,
+          "gpu_cache_allocator": "arena",
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "failures": 0,
+        "cases": 5,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "18b6c2da16e9639ab659b43da4e9c0ce15e3feaef1776fa2abade3f207c616f7",
+        "mode2.f32": "18b6c2da16e9639ab659b43da4e9c0ce15e3feaef1776fa2abade3f207c616f7"
+      }
+    }
+  ],
+  "pass": true
+}

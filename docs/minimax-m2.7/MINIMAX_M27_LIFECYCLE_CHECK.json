@@ -1,0 +1,963 @@
+{
+  "engine_sha256": "a3c9930cab9e6eef7e463c13af5bbd9755a65a113cce88efd8793aef8e213987",
+  "cases": [
+    {
+      "name": "fixture",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-lifecycle-suite-01\\fixture",
+        "--fixture",
+        "--ctx",
+        "4096",
+        "--tokens",
+        "4079",
+        "--batch",
+        "16"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "cancel_prefill",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 132,
+              "expert_nodes": 9,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1852928,
+              "h2d_bytes": 1852928,
+              "staging_bytes": 16777216,
+              "memory_checks": 2,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 27755311104,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1347002368,
+              "sampled_working_set_peak": 520585216
+            }
+          },
+          {
+            "name": "cancel_prefill/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "cancel_decode",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 396,
+              "expert_nodes": 27,
+              "compute_calls": 3,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 13065728,
+              "h2d_bytes": 13065728,
+              "staging_bytes": 16777216,
+              "memory_checks": 6,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 27755311104,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1347002368,
+              "sampled_working_set_peak": 520704000
+            }
+          },
+          {
+            "name": "cancel_decode/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "RAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax global RAM 95% limit",
+            "stats": {
+              "gpu_nodes": 132,
+              "expert_nodes": 9,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1852928,
+              "h2d_bytes": 1852928,
+              "staging_bytes": 16777216,
+              "memory_checks": 3,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 27744985088,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1347002368,
+              "sampled_working_set_peak": 520704000
+            }
+          },
+          {
+            "name": "RAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "VRAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax global VRAM 95% limit",
+            "stats": {
+              "gpu_nodes": 396,
+              "expert_nodes": 27,
+              "compute_calls": 3,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 13065728,
+              "h2d_bytes": 13065728,
+              "staging_bytes": 16777216,
+              "memory_checks": 7,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 27737645056,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1347002368,
+              "sampled_working_set_peak": 520724480
+            }
+          },
+          {
+            "name": "VRAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "after_pressure_or_fault_release",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "full_unload_mapping_release",
+            "pass": true
+          },
+          {
+            "name": "full_unload_reload",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 192,
+            "exact_required": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              28,
+              28,
+              28,
+              28,
+              28,
+              28,
+              28,
+              28
+            ],
+            "prefill_ms": 1539.6398,
+            "decode_ms": 39.3691,
+            "decode_tokens_per_second": 177.80442021788662,
+            "stats": {
+              "gpu_nodes": 34584,
+              "expert_nodes": 2358,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1468876800,
+              "h2d_bytes": 1468876800,
+              "staging_bytes": 16777216,
+              "memory_checks": 587,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 27776954368,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1347002368,
+              "sampled_working_set_peak": 520572928
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 107058388992,
+              "vram_total": 34190917632,
+              "vram_available": 27725832192,
+              "private_bytes": 1347002368,
+              "working_set": 520572928
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              28,
+              28,
+              28,
+              28,
+              28,
+              28,
+              28,
+              28
+            ],
+            "prefill_ms": 1182.0414,
+            "decode_ms": 32.5968,
+            "decode_tokens_per_second": 214.74500564472586,
+            "stats": {
+              "gpu_nodes": 34584,
+              "expert_nodes": 2358,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 1468876800,
+              "staging_bytes": 0,
+              "memory_checks": 572,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 27724234752,
+              "sampled_vram_used_peak": 6465085440,
+              "sampled_private_peak": 1490165760,
+              "sampled_working_set_peak": 510095360
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 107097567232,
+              "vram_total": 34190917632,
+              "vram_available": 27725832192,
+              "private_bytes": 1490165760,
+              "working_set": 510074880
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "build-local\\minimax-m2-lifecycle-suite-01\\fixture\\fixture.gguf",
+          "fixture": true,
+          "context": 4096,
+          "batch": 16,
+          "prompt_tokens": 4079,
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 11
+        },
+        "failures": 0,
+        "cases": 15,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+        "mode2.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589"
+      }
+    },
+    {
+      "name": "full_pressure",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-lifecycle-suite-01\\full_pressure",
+        "--ctx",
+        "512",
+        "--tokens",
+        "31",
+        "--batch",
+        "8",
+        "--pressure",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "cancel_prefill",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 2610,
+              "expert_nodes": 186,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 2123735552,
+              "h2d_bytes": 2123735552,
+              "staging_bytes": 16777216,
+              "memory_checks": 16,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 33297313792,
+              "sampled_vram_used_peak": 12662956032,
+              "sampled_private_peak": 8006852608,
+              "sampled_working_set_peak": 3191476224
+            }
+          },
+          {
+            "name": "cancel_prefill/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "cancel_decode",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+            "stats": {
+              "gpu_nodes": 10440,
+              "expert_nodes": 744,
+              "compute_calls": 4,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 14850220544,
+              "h2d_bytes": 14850220544,
+              "staging_bytes": 16777216,
+              "memory_checks": 108,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 33337683968,
+              "sampled_vram_used_peak": 12663021568,
+              "sampled_private_peak": 8006852608,
+              "sampled_working_set_peak": 3191599104
+            }
+          },
+          {
+            "name": "cancel_decode/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "RAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax global RAM 95% limit",
+            "stats": {
+              "gpu_nodes": 2610,
+              "expert_nodes": 186,
+              "compute_calls": 1,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 2123735552,
+              "h2d_bytes": 2123735552,
+              "staging_bytes": 16777216,
+              "memory_checks": 17,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 33300402176,
+              "sampled_vram_used_peak": 12655616000,
+              "sampled_private_peak": 8007655424,
+              "sampled_working_set_peak": 3192381440
+            }
+          },
+          {
+            "name": "RAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "VRAM_pressure_injected",
+            "pass": true,
+            "error": "MiniMax decode failed: -3 MiniMax global VRAM 95% limit",
+            "stats": {
+              "gpu_nodes": 10440,
+              "expert_nodes": 744,
+              "compute_calls": 4,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 14850220544,
+              "h2d_bytes": 14850220544,
+              "staging_bytes": 16777216,
+              "memory_checks": 111,
+              "pressure_rejections": 1,
+              "sampled_ram_used_peak": 33270726656,
+              "sampled_vram_used_peak": 12655616000,
+              "sampled_private_peak": 8007684096,
+              "sampled_working_set_peak": 3192418304
+            }
+          },
+          {
+            "name": "VRAM_pressure_injected/fresh_recovery",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "real_pressure/logits",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "real_pressure/at_least_85_percent_both",
+            "pass": true,
+            "touched_mapped_bytes": 91804925952,
+            "held_gpu_bytes": 17985175552,
+            "before": {
+              "ram_total": 134813700096,
+              "ram_available": 101653499904,
+              "vram_total": 34190917632,
+              "vram_available": 21535432704,
+              "private_bytes": 8007684096,
+              "working_set": 3192418304
+            },
+            "during": {
+              "ram_total": 134813700096,
+              "ram_available": 13718171648,
+              "vram_total": 34190917632,
+              "vram_available": 3546259456,
+              "private_bytes": 26299002880,
+              "working_set": 94997577728
+            }
+          },
+          {
+            "name": "after_pressure_or_fault_release",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "full_unload_mapping_release",
+            "pass": true
+          },
+          {
+            "name": "full_unload_reload",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 600192,
+            "exact_required": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 31,
+            "continuation_steps": 8,
+            "generated": [
+              32,
+              32,
+              17343,
+              32,
+              48,
+              46,
+              48,
+              46
+            ],
+            "prefill_ms": 3919.2816,
+            "decode_ms": 8813.615099999999,
+            "decode_tokens_per_second": 0.7942257428509671,
+            "stats": {
+              "gpu_nodes": 28710,
+              "expert_nodes": 2046,
+              "compute_calls": 11,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 46663785984,
+              "h2d_bytes": 46663785984,
+              "staging_bytes": 16777216,
+              "memory_checks": 521,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 33158209536,
+              "sampled_vram_used_peak": 12674359296,
+              "sampled_private_peak": 8004440064,
+              "sampled_working_set_peak": 3188219904
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 101661057024,
+              "vram_total": 34190917632,
+              "vram_available": 21535498240,
+              "private_bytes": 8004440064,
+              "working_set": 3189059584
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 31,
+            "continuation_steps": 8,
+            "generated": [
+              32,
+              32,
+              17343,
+              32,
+              48,
+              46,
+              48,
+              46
+            ],
+            "prefill_ms": 2821.4735,
+            "decode_ms": 6440.6408,
+            "decode_tokens_per_second": 1.0868483769503183,
+            "stats": {
+              "gpu_nodes": 28710,
+              "expert_nodes": 2046,
+              "compute_calls": 11,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 46663785984,
+              "staging_bytes": 0,
+              "memory_checks": 356,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 49763274752,
+              "sampled_vram_used_peak": 12659482624,
+              "sampled_private_peak": 8028655616,
+              "sampled_working_set_peak": 22738415616
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 85050425344,
+              "vram_total": 34190917632,
+              "vram_available": 21531435008,
+              "private_bytes": 8005201920,
+              "working_set": 22739267584
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 512,
+          "batch": 8,
+          "prompt_tokens": 31,
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "pressure_run": {
+          "prompt_tokens": 17,
+          "continuation_steps": 3,
+          "generated": [
+            32,
+            92458,
+            32
+          ],
+          "prefill_ms": 2104.2124,
+          "decode_ms": 1337.6777,
+          "decode_tokens_per_second": 1.495128460315964,
+          "stats": {
+            "gpu_nodes": 13050,
+            "expert_nodes": 930,
+            "compute_calls": 5,
+            "rejected_cpu_nodes": 0,
+            "rejected_full_copies": 0,
+            "source_bytes": 21210811392,
+            "h2d_bytes": 21210811392,
+            "staging_bytes": 16777216,
+            "memory_checks": 146,
+            "pressure_rejections": 0,
+            "sampled_ram_used_peak": 121115013120,
+            "sampled_vram_used_peak": 30644658176,
+            "sampled_private_peak": 26300608512,
+            "sampled_working_set_peak": 94999175168
+          },
+          "memory_after": {
+            "ram_total": 134813700096,
+            "ram_available": 13769101312,
+            "vram_total": 34190917632,
+            "vram_available": 3546259456,
+            "private_bytes": 26301415424,
+            "working_set": 94999977984
+          }
+        },
+        "failures": 0,
+        "cases": 17,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "9aeb75fe9304983d1d50b35f5566a8d7e57cddcf9bdcad0564794ffcab6710f1",
+        "mode2.f32": "9aeb75fe9304983d1d50b35f5566a8d7e57cddcf9bdcad0564794ffcab6710f1"
+      }
+    },
+    {
+      "name": "context2048",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-lifecycle-suite-01\\context2048",
+        "--ctx",
+        "2048",
+        "--tokens",
+        "2031",
+        "--batch",
+        "16",
+        "--long-only",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 2031,
+            "continuation_steps": 8,
+            "generated": [
+              934,
+              783,
+              758,
+              4175,
+              4175,
+              4175,
+              4175,
+              4175
+            ],
+            "prefill_ms": 105054.9009,
+            "decode_ms": 5448.809799999999,
+            "decode_tokens_per_second": 1.2846842259019577,
+            "stats": {
+              "gpu_nodes": 349740,
+              "expert_nodes": 24924,
+              "compute_calls": 134,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 618205346304,
+              "h2d_bytes": 618205346304,
+              "staging_bytes": 16777216,
+              "memory_checks": 4627,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 34160480256,
+              "sampled_vram_used_peak": 13455810560,
+              "sampled_private_peak": 8786931712,
+              "sampled_working_set_peak": 3188858880
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 100653219840,
+              "vram_total": 34190917632,
+              "vram_available": 20745920512,
+              "private_bytes": 8786931712,
+              "working_set": 3189645312
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 2031,
+            "continuation_steps": 8,
+            "generated": [
+              934,
+              783,
+              758,
+              4175,
+              4175,
+              4175,
+              4175,
+              4175
+            ],
+            "prefill_ms": 75301.7583,
+            "decode_ms": 3882.641,
+            "decode_tokens_per_second": 1.802896533570835,
+            "stats": {
+              "gpu_nodes": 349740,
+              "expert_nodes": 24924,
+              "compute_calls": 134,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 618205346304,
+              "staging_bytes": 0,
+              "memory_checks": 3118,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 76878295040,
+              "sampled_vram_used_peak": 13462036480,
+              "sampled_private_peak": 8832225280,
+              "sampled_working_set_peak": 50028339200
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 57935405056,
+              "vram_total": 34190917632,
+              "vram_available": 20746313728,
+              "private_bytes": 8788361216,
+              "working_set": 50029125632
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 2048,
+          "batch": 16,
+          "prompt_tokens": 2031,
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "failures": 0,
+        "cases": 4,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "d71883f4e529324295abd5706608f69fbf3182ce1ab8effc1b0c90533333b0db",
+        "mode2.f32": "d71883f4e529324295abd5706608f69fbf3182ce1ab8effc1b0c90533333b0db"
+      }
+    },
+    {
+      "name": "context4096",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+        "--out",
+        "build-local\\minimax-m2-lifecycle-suite-01\\context4096",
+        "--ctx",
+        "4096",
+        "--tokens",
+        "4079",
+        "--batch",
+        "16",
+        "--long-only",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf"
+      ],
+      "exit_code": 0,
+      "result": {
+        "architecture": "minimax-m2",
+        "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+        "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard",
+        "strict_f32": true,
+        "flash_attention": false,
+        "tests": [
+          {
+            "name": "gpu_and_budget_audit/mode2",
+            "pass": true
+          },
+          {
+            "name": "gpu_and_budget_audit/mode1",
+            "pass": true
+          },
+          {
+            "name": "file_vs_native/long_context",
+            "pass": true,
+            "bit_exact": true,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "elements": 1600512,
+            "exact_required": true
+          },
+          {
+            "name": "file_vs_native/continuation_ids",
+            "pass": true
+          }
+        ],
+        "runs": [
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              764,
+              771,
+              368,
+              771,
+              22192,
+              44,
+              306,
+              2505
+            ],
+            "prefill_ms": 197578.4323,
+            "decode_ms": 5516.0744,
+            "decode_tokens_per_second": 1.269018416430351,
+            "stats": {
+              "gpu_nodes": 683820,
+              "expert_nodes": 48732,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 1148347175424,
+              "h2d_bytes": 1148347175424,
+              "staging_bytes": 16777216,
+              "memory_checks": 8541,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 33764339712,
+              "sampled_vram_used_peak": 14503403520,
+              "sampled_private_peak": 9831772160,
+              "sampled_working_set_peak": 3189329920
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 101053952000,
+              "vram_total": 34190917632,
+              "vram_available": 19703898112,
+              "private_bytes": 9831772160,
+              "working_set": 3190116352
+            },
+            "mode": 2
+          },
+          {
+            "prompt_tokens": 4079,
+            "continuation_steps": 8,
+            "generated": [
+              764,
+              771,
+              368,
+              771,
+              22192,
+              44,
+              306,
+              2505
+            ],
+            "prefill_ms": 135514.8069,
+            "decode_ms": 4499.6546,
+            "decode_tokens_per_second": 1.555674962251547,
+            "stats": {
+              "gpu_nodes": 683820,
+              "expert_nodes": 48732,
+              "compute_calls": 262,
+              "rejected_cpu_nodes": 0,
+              "rejected_full_copies": 0,
+              "source_bytes": 0,
+              "h2d_bytes": 1148347175424,
+              "staging_bytes": 0,
+              "memory_checks": 5711,
+              "pressure_rejections": 0,
+              "sampled_ram_used_peak": 69320208384,
+              "sampled_vram_used_peak": 14503403520,
+              "sampled_private_peak": 9872797696,
+              "sampled_working_set_peak": 42250280960
+            },
+            "memory_after": {
+              "ram_total": 134813700096,
+              "ram_available": 65493475328,
+              "vram_total": 34190917632,
+              "vram_available": 19704029184,
+              "private_bytes": 9831567360,
+              "working_set": 42251067392
+            },
+            "mode": 1
+          }
+        ],
+        "configuration": {
+          "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+          "fixture": false,
+          "context": 4096,
+          "batch": 16,
+          "prompt_tokens": 4079,
+          "continuation_steps": 8,
+          "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+          "token_id": 758
+        },
+        "failures": 0,
+        "cases": 4,
+        "pass": true
+      },
+      "pass": true,
+      "logits_sha256": {
+        "mode1.f32": "18b6c2da16e9639ab659b43da4e9c0ce15e3feaef1776fa2abade3f207c616f7",
+        "mode2.f32": "18b6c2da16e9639ab659b43da4e9c0ce15e3feaef1776fa2abade3f207c616f7"
+      }
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,743 @@
+{
+  "checks": [
+    {
+      "name": "three_alternating_pairs",
+      "pass": true
+    },
+    {
+      "name": "all_logits_match_MM27_06",
+      "pass": true
+    },
+    {
+      "name": "file/0/counts",
+      "pass": true
+    },
+    {
+      "name": "file/0/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/1/counts",
+      "pass": true
+    },
+    {
+      "name": "file/1/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/2/counts",
+      "pass": true
+    },
+    {
+      "name": "file/2/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/3/counts",
+      "pass": true
+    },
+    {
+      "name": "file/3/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/4/counts",
+      "pass": true
+    },
+    {
+      "name": "file/4/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/5/counts",
+      "pass": true
+    },
+    {
+      "name": "file/5/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/6/counts",
+      "pass": true
+    },
+    {
+      "name": "file/6/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/7/counts",
+      "pass": true
+    },
+    {
+      "name": "file/7/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/8/counts",
+      "pass": true
+    },
+    {
+      "name": "file/8/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "file/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/0/backing",
+      "pass": true
+    },
+    {
+      "name": "file/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/1/backing",
+      "pass": true
+    },
+    {
+      "name": "file/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/2/backing",
+      "pass": true
+    },
+    {
+      "name": "file/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/3/backing",
+      "pass": true
+    },
+    {
+      "name": "file/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/4/backing",
+      "pass": true
+    },
+    {
+      "name": "file/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/5/backing",
+      "pass": true
+    },
+    {
+      "name": "file/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/6/backing",
+      "pass": true
+    },
+    {
+      "name": "file/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/7/backing",
+      "pass": true
+    },
+    {
+      "name": "file/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/8/backing",
+      "pass": true
+    },
+    {
+      "name": "file/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/9/backing",
+      "pass": true
+    },
+    {
+      "name": "file/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/10/backing",
+      "pass": true
+    },
+    {
+      "name": "file/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/11/backing",
+      "pass": true
+    },
+    {
+      "name": "file/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/12/backing",
+      "pass": true
+    },
+    {
+      "name": "file/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/13/backing",
+      "pass": true
+    },
+    {
+      "name": "file/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/14/backing",
+      "pass": true
+    },
+    {
+      "name": "file/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/15/backing",
+      "pass": true
+    },
+    {
+      "name": "file/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/16/backing",
+      "pass": true
+    },
+    {
+      "name": "file/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "file/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "file/17/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/0/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/0/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/1/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/1/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/2/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/2/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/3/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/3/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/4/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/4/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/5/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/5/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/6/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/6/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/7/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/7/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/8/counts",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/8/prefill_no_fill",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/0/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/1/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/2/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/3/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/4/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/5/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/6/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/7/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/8/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/9/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/10/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/11/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/12/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/13/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/14/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/15/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/16/backing",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "mmap-decode/17/backing",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    }
+  ],
+  "cases": 153,
+  "pass": true,
+  "memory": [
+    {
+      "reader": "file",
+      "ram_peak_gib": 35.44718933105469,
+      "ram_peak_percent": 28.232390106418638,
+      "vram_peak_gib": 29.689746856689453,
+      "vram_peak_percent": 93.23857080151501,
+      "private_peak_gib": 26.216827392578125,
+      "working_set_peak_gib": 2.970317840576172,
+      "cache_resident_peak_gib": 17.43310546875,
+      "host_limit_gib_range": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "reader": "mmap-decode",
+      "ram_peak_gib": 84.49716186523438,
+      "ram_peak_percent": 67.2988996217692,
+      "vram_peak_gib": 29.667957305908203,
+      "vram_peak_percent": 93.17014224322998,
+      "private_peak_gib": 26.216838836669922,
+      "working_set_peak_gib": 57.37663650512695,
+      "cache_resident_peak_gib": 17.43310546875,
+      "host_limit_gib_range": [
+        87.33708922564983,
+        92.10237853229046
+      ]
+    }
+  ],
+  "timings": [
+    {
+      "name": "short_empty_cache",
+      "file": {
+        "prefill_ms": 21567.4459,
+        "ttft_ms": 21568.2045,
+        "request_ms": 32896.5836,
+        "decode_tokens_per_second": 2.045070199568709,
+        "decode_range_tok_s": [
+          1.9601718978711575,
+          2.203918329149338
+        ],
+        "source_ms": 6162.688200000021,
+        "h2d_ms": 2472.332699999987
+      },
+      "mmap-decode": {
+        "prefill_ms": 21380.5388,
+        "ttft_ms": 21381.1524,
+        "request_ms": 42673.367,
+        "decode_tokens_per_second": 1.0461839449009305,
+        "decode_range_tok_s": [
+          1.0304706728113722,
+          1.5640612348742189
+        ],
+        "source_ms": 17508.24350000002,
+        "h2d_ms": 1723.2244000000073
+      }
+    },
+    {
+      "name": "short_repeated",
+      "file": {
+        "prefill_ms": 14057.0262,
+        "ttft_ms": 14057.5607,
+        "request_ms": 22169.2794,
+        "decode_tokens_per_second": 2.7841257189157322,
+        "decode_range_tok_s": [
+          2.5723741378156824,
+          2.841095257044697
+        ],
+        "source_ms": 3990.8803999999977,
+        "h2d_ms": 1709.995899999997
+      },
+      "mmap-decode": {
+        "prefill_ms": 13194.1529,
+        "ttft_ms": 13194.775,
+        "request_ms": 18724.6526,
+        "decode_tokens_per_second": 4.1683866547615125,
+        "decode_range_tok_s": [
+          3.955707087801563,
+          4.3428084602440435
+        ],
+        "source_ms": 2181.8183999999956,
+        "h2d_ms": 1074.168200000003
+      }
+    },
+    {
+      "name": "longer_new_topic",
+      "file": {
+        "prefill_ms": 72967.6186,
+        "ttft_ms": 72968.175,
+        "request_ms": 82579.0269,
+        "decode_tokens_per_second": 2.430834154691056,
+        "decode_range_tok_s": [
+          2.396179805957151,
+          2.4833951025677807
+        ],
+        "source_ms": 4917.212000000009,
+        "h2d_ms": 1957.1509999999778
+      },
+      "mmap-decode": {
+        "prefill_ms": 70260.3093,
+        "ttft_ms": 70260.8392,
+        "request_ms": 82321.6245,
+        "decode_tokens_per_second": 1.9090026573316994,
+        "decode_range_tok_s": [
+          1.8907907540134836,
+          1.9772688360389195
+        ],
+        "source_ms": 8266.660999999931,
+        "h2d_ms": 1302.0853000000106
+      }
+    }
+  ],
+  "workload": [
+    {
+      "reader": "file",
+      "median_load_ms": 1284.6035,
+      "median_three_requests_ms": 136825.4434
+    },
+    {
+      "reader": "mmap-decode",
+      "median_load_ms": 1213.5356,
+      "median_three_requests_ms": 143209.2425
+    }
+  ]
+}

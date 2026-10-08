@@ -1,0 +1,947 @@
+{
+  "pass": true,
+  "cases": 213,
+  "checks": [
+    {
+      "name": "tensor/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/0/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/0/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/0/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/1/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/1/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/1/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/2/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/2/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/2/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/3/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/3/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/3/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/4/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/4/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/4/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/5/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/5/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/5/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/6/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/6/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/6/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/7/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/7/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/7/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/8/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/8/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/8/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/9/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/9/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/9/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/10/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/10/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/10/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/11/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/11/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/11/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/12/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/12/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/12/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/13/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/13/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/13/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/14/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/14/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/14/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/15/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/15/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/15/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/16/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/16/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/16/plans",
+      "pass": true
+    },
+    {
+      "name": "tensor/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "tensor/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "tensor/17/bounded",
+      "pass": true
+    },
+    {
+      "name": "tensor/17/drained",
+      "pass": true
+    },
+    {
+      "name": "tensor/17/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/0/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/1/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/2/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/3/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/4/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/5/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/6/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/7/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/8/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/9/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/10/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/11/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/12/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/13/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/14/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/15/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/16/plans",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/bounded",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/drained",
+      "pass": true
+    },
+    {
+      "name": "lookahead/17/plans",
+      "pass": true
+    },
+    {
+      "name": "fixture/cancel_prefill/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/cancel_decode/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/RAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/VRAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/after_pressure_or_fault_release/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/full_unload_reload/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/diagnostic_same_context_file_vs_native/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/same_context_vs_initial_file/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "fixture/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "fixture/0/drain",
+      "pass": true
+    },
+    {
+      "name": "fixture/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_prefill/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_decode/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/RAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/VRAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_pressure/logits/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/after_pressure_or_fault_release/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/full_unload_reload/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/drain",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/drain",
+      "pass": true
+    },
+    {
+      "name": "context2048/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context2048/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    }
+  ],
+  "memory": [
+    {
+      "variant": "tensor",
+      "ram_peak_gib": 34.57593536376953,
+      "vram_peak_gib": 29.99685287475586,
+      "ram_peak_percent": 27.538468180580363,
+      "vram_peak_percent": 94.2030157443187,
+      "median_workload_seconds": 94.34945230000001
+    },
+    {
+      "variant": "lookahead",
+      "ram_peak_gib": 34.38556671142578,
+      "vram_peak_gib": 29.99810791015625,
+      "ram_peak_percent": 27.386846510190452,
+      "vram_peak_percent": 94.20695709510228,
+      "median_workload_seconds": 91.6863763
+    }
+  ],
+  "timings": [
+    {
+      "name": "short_empty_cache",
+      "tensor": {
+        "prefill_ms": 12810.9407,
+        "ttft_ms": 12811.7445,
+        "request_ms": 22197.9653,
+        "decode_tokens_per_second": 2.3346046541399432,
+        "decode_range_tok_s": [
+          2.252925019080071,
+          2.4538189931884653
+        ]
+      },
+      "lookahead": {
+        "prefill_ms": 13431.0411,
+        "ttft_ms": 13431.8683,
+        "request_ms": 21607.9637,
+        "decode_tokens_per_second": 2.817727780887215,
+        "decode_range_tok_s": [
+          2.7498928348828167,
+          2.8649329836122095
+        ]
+      }
+    },
+    {
+      "name": "short_repeated",
+      "tensor": {
+        "prefill_ms": 8873.7999,
+        "ttft_ms": 8874.3598,
+        "request_ms": 16120.4095,
+        "decode_tokens_per_second": 3.1443951505059955,
+        "decode_range_tok_s": [
+          2.9796002060536053,
+          3.1887091966532424
+        ]
+      },
+      "lookahead": {
+        "prefill_ms": 8919.743,
+        "ttft_ms": 8920.3329,
+        "request_ms": 14998.6372,
+        "decode_tokens_per_second": 3.702225675057391,
+        "decode_range_tok_s": [
+          3.5051659135233515,
+          3.7922526191604917
+        ]
+      }
+    },
+    {
+      "name": "longer_new_topic",
+      "tensor": {
+        "prefill_ms": 48104.2151,
+        "ttft_ms": 48104.8142,
+        "request_ms": 56942.4881,
+        "decode_tokens_per_second": 2.6064038890265757,
+        "decode_range_tok_s": [
+          2.409116675688808,
+          2.838354571794475
+        ]
+      },
+      "lookahead": {
+        "prefill_ms": 47139.091,
+        "ttft_ms": 47139.6902,
+        "request_ms": 54123.6997,
+        "decode_tokens_per_second": 3.4258259163581624,
+        "decode_range_tok_s": [
+          3.2994604980412254,
+          3.625390939303169
+        ]
+      }
+    }
+  ]
+}

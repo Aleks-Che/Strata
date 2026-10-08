@@ -1,0 +1,773 @@
+{
+  "pass": true,
+  "cases": 168,
+  "checks": [
+    {
+      "name": "three_alternating_pairs",
+      "pass": true
+    },
+    {
+      "name": "historical_full_logits",
+      "pass": true
+    },
+    {
+      "name": "sync/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/0/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/1/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/2/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/3/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/4/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/5/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/6/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/7/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/8/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/9/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/10/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/11/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/12/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/13/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/14/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/15/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/16/backing",
+      "pass": true
+    },
+    {
+      "name": "sync/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "sync/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "sync/17/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/0/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/0/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/0/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/0/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/1/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/1/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/1/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/1/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/2/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/2/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/2/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/2/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/3/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/3/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/3/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/3/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/3/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/4/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/4/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/4/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/4/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/4/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/5/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/5/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/5/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/5/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/5/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/6/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/6/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/6/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/6/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/6/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/7/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/7/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/7/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/7/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/7/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/8/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/8/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/8/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/8/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/8/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/9/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/9/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/9/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/9/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/9/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/10/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/10/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/10/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/10/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/10/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/11/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/11/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/11/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/11/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/11/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/12/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/12/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/12/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/12/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/12/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/13/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/13/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/13/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/13/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/13/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/14/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/14/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/14/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/14/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/14/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/15/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/15/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/15/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/15/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/15/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/16/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/16/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/16/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/16/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/16/ring",
+      "pass": true
+    },
+    {
+      "name": "pipeline/17/budget95",
+      "pass": true
+    },
+    {
+      "name": "pipeline/17/bytes",
+      "pass": true
+    },
+    {
+      "name": "pipeline/17/backing",
+      "pass": true
+    },
+    {
+      "name": "pipeline/17/drain",
+      "pass": true
+    },
+    {
+      "name": "pipeline/17/ring",
+      "pass": true
+    },
+    {
+      "name": "full_lifecycle_29",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/0/drain",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/budget95",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/2/drain",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_prefill/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/cancel_decode/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/RAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/VRAM_pressure_injected/fresh_recovery/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/real_pressure/logits/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/after_pressure_or_fault_release/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/full_unload_reload/bits",
+      "pass": true
+    },
+    {
+      "name": "full_pressure/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context2048/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context2048/file_vs_native/long_context/bits",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/0/drain",
+      "pass": true
+    },
+    {
+      "name": "context4096/1/budget95",
+      "pass": true
+    },
+    {
+      "name": "context4096/file_vs_native/long_context/bits",
+      "pass": true
+    }
+  ],
+  "memory": [
+    {
+      "variant": "sync",
+      "ram_peak_gib": 30.88998794555664,
+      "vram_peak_gib": 29.139251708984375,
+      "ram_peak_percent": 24.602745845846055,
+      "vram_peak_percent": 91.50977934185912,
+      "private_peak_gib": 26.217185974121094,
+      "working_set_peak_gib": 2.97003173828125,
+      "median_workload_seconds": 141.4170062,
+      "load_ms_median": 1153.6912
+    },
+    {
+      "variant": "pipeline",
+      "ram_peak_gib": 31.902816772460938,
+      "vram_peak_gib": 29.151397705078125,
+      "ram_peak_percent": 25.4094269704095,
+      "vram_peak_percent": 91.54792299199558,
+      "private_peak_gib": 26.233142852783203,
+      "working_set_peak_gib": 2.9702796936035156,
+      "median_workload_seconds": 93.0373113,
+      "load_ms_median": 1248.66
+    }
+  ],
+  "timings": [
+    {
+      "name": "short_empty_cache",
+      "sync": {
+        "prefill_ms": 20776.7939,
+        "ttft_ms": 20777.6144,
+        "request_ms": 33382.0011,
+        "decode_tokens_per_second": 1.8194927879063536,
+        "decode_range_tok_s": [
+          1.8113670115918983,
+          1.8353036927690767
+        ]
+      },
+      "pipeline": {
+        "prefill_ms": 12851.0669,
+        "ttft_ms": 12851.8891,
+        "request_ms": 22346.897,
+        "decode_tokens_per_second": 2.405341724336565,
+        "decode_range_tok_s": [
+          2.387937939901645,
+          2.4256892983724287
+        ]
+      }
+    },
+    {
+      "name": "short_repeated",
+      "sync": {
+        "prefill_ms": 14442.4349,
+        "ttft_ms": 14443.006,
+        "request_ms": 23324.0704,
+        "decode_tokens_per_second": 2.5853043946948704,
+        "decode_range_tok_s": [
+          2.5775506544737317,
+          2.5936532673050863
+        ]
+      },
+      "pipeline": {
+        "prefill_ms": 8906.7979,
+        "ttft_ms": 8907.3719,
+        "request_ms": 16182.3407,
+        "decode_tokens_per_second": 3.1767535890444103,
+        "decode_range_tok_s": [
+          3.167236039312394,
+          3.1833747891775444
+        ]
+      }
+    },
+    {
+      "name": "longer_new_topic",
+      "sync": {
+        "prefill_ms": 74502.4035,
+        "ttft_ms": 74502.9988,
+        "request_ms": 84710.9347,
+        "decode_tokens_per_second": 2.2445788565492673,
+        "decode_range_tok_s": [
+          2.235579670353863,
+          2.256011254788948
+        ]
+      },
+      "pipeline": {
+        "prefill_ms": 46280.346,
+        "ttft_ms": 46280.9771,
+        "request_ms": 54508.0736,
+        "decode_tokens_per_second": 2.848192844549511,
+        "decode_range_tok_s": [
+          2.8001337002969424,
+          2.882521399118237
+        ]
+      }
+    }
+  ]
+}

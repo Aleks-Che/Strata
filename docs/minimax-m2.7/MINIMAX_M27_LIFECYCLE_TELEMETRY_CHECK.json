@@ -1,0 +1,88 @@
+{
+  "pass": true,
+  "scope": "Post-run checks of saved telemetry and raw logits, not additional inference runs",
+  "checks": [
+    {
+      "case": "fixture",
+      "name": "ram_stops_at_cancel_boundary",
+      "pass": true,
+      "h2d_bytes": 1852928,
+      "compute_calls": 1
+    },
+    {
+      "case": "fixture",
+      "name": "vram_stops_at_cancel_boundary",
+      "pass": true,
+      "h2d_bytes": 13065728,
+      "compute_calls": 3
+    },
+    {
+      "case": "fixture",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 2
+    },
+    {
+      "case": "fixture",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 1
+    },
+    {
+      "case": "full_pressure",
+      "name": "ram_stops_at_cancel_boundary",
+      "pass": true,
+      "h2d_bytes": 2123735552,
+      "compute_calls": 1
+    },
+    {
+      "case": "full_pressure",
+      "name": "vram_stops_at_cancel_boundary",
+      "pass": true,
+      "h2d_bytes": 14850220544,
+      "compute_calls": 4
+    },
+    {
+      "case": "full_pressure",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 2
+    },
+    {
+      "case": "full_pressure",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 1
+    },
+    {
+      "case": "full_pressure",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": "real_pressure"
+    },
+    {
+      "case": "context2048",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 2
+    },
+    {
+      "case": "context2048",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 1
+    },
+    {
+      "case": "context4096",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 2
+    },
+    {
+      "case": "context4096",
+      "name": "sampled_global_budget",
+      "pass": true,
+      "mode": 1
+    }
+  ]
+}

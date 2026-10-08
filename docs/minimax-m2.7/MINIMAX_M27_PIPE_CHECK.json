@@ -1,0 +1,253 @@
+{
+  "model": "H:\\models\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "engine_sha256": "73e9d1afec73fc77fb7b69f0adb92427be95f69bf74828b29696a19cbe3212f9",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "cases": [],
+  "scope": "strict F32, FA off; sequential correctness comparisons, not controlled speed A/B",
+  "pipe": {
+    "pass": true,
+    "exit_code": 0,
+    "event_order": [
+      "ready",
+      "token",
+      "token",
+      "result",
+      "error",
+      "token",
+      "token",
+      "result"
+    ],
+    "results": [
+      {
+        "event": "result",
+        "prompt_tokens": 46,
+        "generated_tokens": 2,
+        "token_ids": [
+          758,
+          3100
+        ],
+        "text": "The user",
+        "stop_reason": "length",
+        "prefill_ms": 20146.4343,
+        "ttft_ms": 20146.8319,
+        "decode_forward_tokens": 1,
+        "decode_ms": 719.1476,
+        "decode_tokens_per_second": 1.39053512797651,
+        "request_ms": 20866.4359,
+        "prefill": {
+          "compute_calls": 6,
+          "gpu_nodes": 15660,
+          "expert_nodes": 1116,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "ranges": 36402,
+          "chunks": 36405,
+          "source_bytes": 123727423488,
+          "h2d_bytes": 123727423488,
+          "staging_bytes": 16777216,
+          "source_ms": 13209.356300000081,
+          "h2d_ms": 5017.542199999926,
+          "compute_ms": 1846.0703999999996
+        },
+        "decode": {
+          "compute_calls": 1,
+          "gpu_nodes": 2610,
+          "expert_nodes": 186,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "ranges": 1446,
+          "chunks": 1446,
+          "source_bytes": 4242161664,
+          "h2d_bytes": 4242161664,
+          "staging_bytes": 16777216,
+          "source_ms": 430.2052999999997,
+          "h2d_ms": 179.27930000000003,
+          "compute_ms": 103.60920000000006
+        },
+        "memory_samples": [
+          {
+            "ram_total": 134813700096,
+            "ram_available": 105064013824,
+            "vram_total": 34190917632,
+            "vram_available": 24260890624,
+            "process_private": 5241241600,
+            "process_working_set": 2961035264
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 102411190272,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997329408,
+            "process_working_set": 3182317568
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 101636796416,
+            "vram_total": 34190917632,
+            "vram_available": 21761970176,
+            "process_private": 7997407232,
+            "process_working_set": 3182391296
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 101081767936,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997407232,
+            "process_working_set": 3182395392
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 101155848192,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997407232,
+            "process_working_set": 3182395392
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100799598592,
+            "vram_total": 34190917632,
+            "vram_available": 21755482112,
+            "process_private": 7997579264,
+            "process_working_set": 3182546944
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100560674816,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997599744,
+            "process_working_set": 3182567424
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100392259584,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997616128,
+            "process_working_set": 3182620672
+          }
+        ]
+      },
+      {
+        "event": "result",
+        "prompt_tokens": 46,
+        "generated_tokens": 2,
+        "token_ids": [
+          758,
+          3100
+        ],
+        "text": "The user",
+        "stop_reason": "length",
+        "prefill_ms": 19323.2545,
+        "ttft_ms": 19323.6478,
+        "decode_forward_tokens": 1,
+        "decode_ms": 693.8366,
+        "decode_tokens_per_second": 1.4412615304525591,
+        "request_ms": 20017.9444,
+        "prefill": {
+          "compute_calls": 6,
+          "gpu_nodes": 15660,
+          "expert_nodes": 1116,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "ranges": 36402,
+          "chunks": 36405,
+          "source_bytes": 123727423488,
+          "h2d_bytes": 123727423488,
+          "staging_bytes": 16777216,
+          "source_ms": 12486.743299999993,
+          "h2d_ms": 5022.158399999894,
+          "compute_ms": 1745.1380000000004
+        },
+        "decode": {
+          "compute_calls": 1,
+          "gpu_nodes": 2610,
+          "expert_nodes": 186,
+          "rejected_cpu_nodes": 0,
+          "rejected_full_copies": 0,
+          "ranges": 1446,
+          "chunks": 1446,
+          "source_bytes": 4242161664,
+          "h2d_bytes": 4242161664,
+          "staging_bytes": 16777216,
+          "source_ms": 413.8417999999995,
+          "h2d_ms": 177.42170000000016,
+          "compute_ms": 96.8657
+        },
+        "memory_samples": [
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100392259584,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997616128,
+            "process_working_set": 3182747648
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100842844160,
+            "vram_total": 34190917632,
+            "vram_available": 21754859520,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100781826048,
+            "vram_total": 34190917632,
+            "vram_available": 21762560000,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100606689280,
+            "vram_total": 34190917632,
+            "vram_available": 21777174528,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100787351552,
+            "vram_total": 34190917632,
+            "vram_available": 21777174528,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100589760512,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100449697792,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          },
+          {
+            "ram_total": 134813700096,
+            "ram_available": 100308414464,
+            "vram_total": 34190917632,
+            "vram_available": 21754793984,
+            "process_private": 7997632512,
+            "process_working_set": 3182764032
+          }
+        ]
+      }
+    ],
+    "output_sha256": "de4d74039012a9f7b7679b9662277c6e4a87ccd6b716eca34bba1e0626c91c18",
+    "scope": "valid -> invalid token -> fresh identical request; one loaded process"
+  },
+  "pass": true
+}

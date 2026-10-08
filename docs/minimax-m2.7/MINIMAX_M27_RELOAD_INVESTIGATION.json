@@ -1,0 +1,1147 @@
+{
+  "date": "2026-10-08",
+  "timezone": "Asia/Yekaterinburg",
+  "status": "OPEN",
+  "conclusion": "Historical native-after-cache mismatch was not reproduced. Neither removing replay instrumentation nor allocation-history stress reproduced it. Numerical-mode fingerprints do not match it. No engine fix or tolerance change is claimed.",
+  "limitation": "The original failing executable was not retained; reconstructed uninstrumented source is not proof of reproducing its binary. New drivers retain executable and backend sources.",
+  "historical_failures": "MINIMAX_M27_ARENA_RELOAD_DIAGNOSTIC.json",
+  "reproductions": [
+    {
+      "directory": "build-local/minimax-m2-reload-repro-01",
+      "suite": {
+        "engine_sha256": "cfc084b93890e41774a34bd062db476940a995930476e2dfb2f0807b51a2162c",
+        "cases": [
+          {
+            "name": "fixture",
+            "command": [
+              "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+              "--out",
+              "build-local\\minimax-m2-reload-repro-01\\fixture",
+              "--fixture",
+              "--ctx",
+              "4096",
+              "--tokens",
+              "4079",
+              "--batch",
+              "16",
+              "--gpu-cache-mib",
+              "256",
+              "--gpu-cache-allocator",
+              "arena"
+            ],
+            "exit_code": 0,
+            "result": {
+              "architecture": "minimax-m2",
+              "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+              "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+              "strict_f32": true,
+              "flash_attention": false,
+              "tests": [
+                {
+                  "name": "gpu_and_budget_audit/mode2",
+                  "pass": true
+                },
+                {
+                  "name": "cache_admitted_with_bounded_backing",
+                  "pass": true
+                },
+                {
+                  "name": "cancel_prefill",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29836275712,
+                    "sampled_vram_used_peak": 5784862720,
+                    "sampled_private_peak": 1414180864,
+                    "sampled_working_set_peak": 520712192,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  }
+                },
+                {
+                  "name": "cancel_prefill/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "cancel_decode",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29836353536,
+                    "sampled_vram_used_peak": 5784862720,
+                    "sampled_private_peak": 1414180864,
+                    "sampled_working_set_peak": 520843264,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  }
+                },
+                {
+                  "name": "cancel_decode/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "RAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step RAM budget95 admission refused",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29836492800,
+                    "sampled_vram_used_peak": 5784862720,
+                    "sampled_private_peak": 1414180864,
+                    "sampled_working_set_peak": 520843264,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "RAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "VRAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step fixed/external VRAM exceeds budget95",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29836525568,
+                    "sampled_vram_used_peak": 5784862720,
+                    "sampled_private_peak": 1481420800,
+                    "sampled_working_set_peak": 520876032,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "VRAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "after_pressure_or_fault_release",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "full_unload_mapping_release",
+                  "pass": true
+                },
+                {
+                  "name": "full_unload_reload",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "gpu_and_budget_audit/mode1",
+                  "pass": true
+                },
+                {
+                  "name": "diagnostic_same_context_file_vs_native",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 512,
+                  "exact_required": true
+                },
+                {
+                  "name": "file_vs_native/long_context",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 512,
+                  "exact_required": true
+                },
+                {
+                  "name": "file_vs_native/continuation_ids",
+                  "pass": true
+                }
+              ],
+              "runs": [
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1514.8309,
+                  "decode_ms": 33.1553,
+                  "decode_tokens_per_second": 211.1276326861769,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 1440849408,
+                    "h2d_bytes": 1440849408,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 586,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29841321984,
+                    "sampled_vram_used_peak": 5784862720,
+                    "sampled_private_peak": 1414180864,
+                    "sampled_working_set_peak": 520699904,
+                    "selected_bytes": 1468876800,
+                    "cache_hit_bytes": 28032000,
+                    "cache_fill_bytes": 5611008,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 104977424384,
+                    "vram_total": 34190917632,
+                    "vram_available": 28406054912,
+                    "private_bytes": 1414180864,
+                    "working_set": 520704000
+                  },
+                  "mode": 2
+                },
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1177.0326,
+                  "decode_ms": 32.5061,
+                  "decode_tokens_per_second": 215.34419693534443,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 1468876800,
+                    "staging_bytes": 0,
+                    "memory_checks": 572,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29831401472,
+                    "sampled_vram_used_peak": 5717753856,
+                    "sampled_private_peak": 1458593792,
+                    "sampled_working_set_peak": 510255104,
+                    "selected_bytes": 0,
+                    "cache_hit_bytes": 0,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 104989540352,
+                    "vram_total": 34190917632,
+                    "vram_available": 28481159168,
+                    "private_bytes": 1458593792,
+                    "working_set": 510234624
+                  },
+                  "mode": 1
+                }
+              ],
+              "configuration": {
+                "model": "build-local\\minimax-m2-reload-repro-01\\fixture\\fixture.gguf",
+                "fixture": true,
+                "context": 4096,
+                "batch": 16,
+                "prompt_tokens": 4079,
+                "gpu_cache_mib": 256,
+                "gpu_cache_allocator": "arena",
+                "continuation_steps": 8,
+                "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+                "token_id": 11
+              },
+              "diagnostic_file_vs_initial": {
+                "name": "same_context_vs_initial_file",
+                "pass": true,
+                "bit_exact": true,
+                "max_abs": 0.0,
+                "nmse": 0.0,
+                "elements": 512,
+                "exact_required": true
+              },
+              "failures": 0,
+              "cases": 17,
+              "pass": true
+            },
+            "pass": true,
+            "logits_sha256": {
+              "mode1.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+              "mode2.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589"
+            }
+          }
+        ],
+        "pass": true
+      }
+    },
+    {
+      "directory": "build-local/minimax-m2-reload-uninstrumented-arena-01",
+      "suite": {
+        "engine_sha256": "18b658dab6a7d00f68cc1b099a50ec48f963189ce72a96e9666cee2735e5557a",
+        "cases": [
+          {
+            "name": "fixture",
+            "command": [
+              "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+              "--out",
+              "build-local\\minimax-m2-reload-uninstrumented-arena-01\\fixture",
+              "--fixture",
+              "--ctx",
+              "4096",
+              "--tokens",
+              "4079",
+              "--batch",
+              "16",
+              "--gpu-cache-mib",
+              "256",
+              "--gpu-cache-allocator",
+              "arena"
+            ],
+            "exit_code": 0,
+            "result": {
+              "architecture": "minimax-m2",
+              "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+              "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+              "strict_f32": true,
+              "flash_attention": false,
+              "tests": [
+                {
+                  "name": "gpu_and_budget_audit/mode2",
+                  "pass": true
+                },
+                {
+                  "name": "cache_admitted_with_bounded_backing",
+                  "pass": true
+                },
+                {
+                  "name": "cancel_prefill",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29804044288,
+                    "sampled_vram_used_peak": 5716004864,
+                    "sampled_private_peak": 1415135232,
+                    "sampled_working_set_peak": 520728576,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  }
+                },
+                {
+                  "name": "cancel_prefill/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "cancel_decode",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29804044288,
+                    "sampled_vram_used_peak": 5716004864,
+                    "sampled_private_peak": 1415135232,
+                    "sampled_working_set_peak": 520859648,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  }
+                },
+                {
+                  "name": "cancel_decode/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "RAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step RAM budget95 admission refused",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29804044288,
+                    "sampled_vram_used_peak": 5716004864,
+                    "sampled_private_peak": 1415135232,
+                    "sampled_working_set_peak": 520859648,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "RAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "VRAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step fixed/external VRAM exceeds budget95",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29804052480,
+                    "sampled_vram_used_peak": 5716004864,
+                    "sampled_private_peak": 1482375168,
+                    "sampled_working_set_peak": 520892416,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "VRAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "after_pressure_or_fault_release",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "full_unload_mapping_release",
+                  "pass": true
+                },
+                {
+                  "name": "full_unload_reload",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "gpu_and_budget_audit/mode1",
+                  "pass": true
+                },
+                {
+                  "name": "file_vs_native/long_context",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 512,
+                  "exact_required": true
+                },
+                {
+                  "name": "file_vs_native/continuation_ids",
+                  "pass": true
+                }
+              ],
+              "runs": [
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1346.5946,
+                  "decode_ms": 28.406499999999994,
+                  "decode_tokens_per_second": 246.42247372960418,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 1440849408,
+                    "h2d_bytes": 1440849408,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 579,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29809262592,
+                    "sampled_vram_used_peak": 5716004864,
+                    "sampled_private_peak": 1415135232,
+                    "sampled_working_set_peak": 520716288,
+                    "selected_bytes": 1468876800,
+                    "cache_hit_bytes": 28032000,
+                    "cache_fill_bytes": 5611008,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 67108864,
+                    "arena_live": 9437184,
+                    "arena_blocks": 1
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 105009623040,
+                    "vram_total": 34190917632,
+                    "vram_available": 28474912768,
+                    "private_bytes": 1415135232,
+                    "working_set": 520720384
+                  },
+                  "mode": 2
+                },
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1048.0224,
+                  "decode_ms": 28.6317,
+                  "decode_tokens_per_second": 244.4842604525753,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 1468876800,
+                    "staging_bytes": 0,
+                    "memory_checks": 567,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29788811264,
+                    "sampled_vram_used_peak": 5648896000,
+                    "sampled_private_peak": 1459818496,
+                    "sampled_working_set_peak": 510554112,
+                    "selected_bytes": 0,
+                    "cache_hit_bytes": 0,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 105032859648,
+                    "vram_total": 34190917632,
+                    "vram_available": 28542021632,
+                    "private_bytes": 1459818496,
+                    "working_set": 510537728
+                  },
+                  "mode": 1
+                }
+              ],
+              "configuration": {
+                "model": "build-local\\minimax-m2-reload-uninstrumented-arena-01\\fixture\\fixture.gguf",
+                "fixture": true,
+                "context": 4096,
+                "batch": 16,
+                "prompt_tokens": 4079,
+                "gpu_cache_mib": 256,
+                "gpu_cache_allocator": "arena",
+                "continuation_steps": 8,
+                "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+                "token_id": 11
+              },
+              "failures": 0,
+              "cases": 16,
+              "pass": true
+            },
+            "pass": true,
+            "logits_sha256": {
+              "mode1.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+              "mode2.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589"
+            }
+          }
+        ],
+        "pass": true
+      }
+    },
+    {
+      "directory": "build-local/minimax-m2-reload-uninstrumented-cuda-01",
+      "suite": {
+        "engine_sha256": "18b658dab6a7d00f68cc1b099a50ec48f963189ce72a96e9666cee2735e5557a",
+        "cases": [
+          {
+            "name": "fixture",
+            "command": [
+              "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-lifecycle-check.exe",
+              "--out",
+              "build-local\\minimax-m2-reload-uninstrumented-cuda-01\\fixture",
+              "--fixture",
+              "--ctx",
+              "4096",
+              "--tokens",
+              "4079",
+              "--batch",
+              "16",
+              "--gpu-cache-mib",
+              "256",
+              "--gpu-cache-allocator",
+              "cuda"
+            ],
+            "exit_code": 0,
+            "result": {
+              "architecture": "minimax-m2",
+              "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+              "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena",
+              "strict_f32": true,
+              "flash_attention": false,
+              "tests": [
+                {
+                  "name": "gpu_and_budget_audit/mode2",
+                  "pass": true
+                },
+                {
+                  "name": "cache_admitted_with_bounded_backing",
+                  "pass": true
+                },
+                {
+                  "name": "cancel_prefill",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29559287808,
+                    "sampled_vram_used_peak": 5657219072,
+                    "sampled_private_peak": 1355943936,
+                    "sampled_working_set_peak": 520826880,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "cancel_prefill/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "cancel_decode",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax request cancelled",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29557772288,
+                    "sampled_vram_used_peak": 5657219072,
+                    "sampled_private_peak": 1355943936,
+                    "sampled_working_set_peak": 520957952,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "cancel_decode/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "RAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step RAM budget95 admission refused",
+                  "stats": {
+                    "gpu_nodes": 132,
+                    "expert_nodes": 9,
+                    "compute_calls": 1,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 2,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29556084736,
+                    "sampled_vram_used_peak": 5657219072,
+                    "sampled_private_peak": 1355943936,
+                    "sampled_working_set_peak": 520957952,
+                    "selected_bytes": 1852928,
+                    "cache_hit_bytes": 1852928,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "RAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "VRAM_pressure_injected",
+                  "pass": true,
+                  "error": "MiniMax decode failed: -3 MiniMax cache memory admission: Step fixed/external VRAM exceeds budget95",
+                  "stats": {
+                    "gpu_nodes": 396,
+                    "expert_nodes": 27,
+                    "compute_calls": 3,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 0,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 6,
+                    "pressure_rejections": 1,
+                    "sampled_ram_used_peak": 29559312384,
+                    "sampled_vram_used_peak": 5657219072,
+                    "sampled_private_peak": 1355943936,
+                    "sampled_working_set_peak": 520994816,
+                    "selected_bytes": 13065728,
+                    "cache_hit_bytes": 13065728,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 72,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  }
+                },
+                {
+                  "name": "VRAM_pressure_injected/fresh_recovery",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "after_pressure_or_fault_release",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "full_unload_mapping_release",
+                  "pass": true
+                },
+                {
+                  "name": "full_unload_reload",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 192,
+                  "exact_required": true
+                },
+                {
+                  "name": "gpu_and_budget_audit/mode1",
+                  "pass": true
+                },
+                {
+                  "name": "file_vs_native/long_context",
+                  "pass": true,
+                  "bit_exact": true,
+                  "max_abs": 0.0,
+                  "nmse": 0.0,
+                  "elements": 512,
+                  "exact_required": true
+                },
+                {
+                  "name": "file_vs_native/continuation_ids",
+                  "pass": true
+                }
+              ],
+              "runs": [
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1346.7958,
+                  "decode_ms": 27.081400000000002,
+                  "decode_tokens_per_second": 258.4799899562061,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 1440849408,
+                    "h2d_bytes": 1440849408,
+                    "staging_bytes": 16777216,
+                    "memory_checks": 579,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29571366912,
+                    "sampled_vram_used_peak": 5657219072,
+                    "sampled_private_peak": 1355943936,
+                    "sampled_working_set_peak": 520806400,
+                    "selected_bytes": 1468876800,
+                    "cache_hit_bytes": 28032000,
+                    "cache_fill_bytes": 5611008,
+                    "cache_resident": 9437184,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 105254416384,
+                    "vram_total": 34190917632,
+                    "vram_available": 28533698560,
+                    "private_bytes": 1355943936,
+                    "working_set": 520810496
+                  },
+                  "mode": 2
+                },
+                {
+                  "prompt_tokens": 4079,
+                  "continuation_steps": 8,
+                  "generated": [
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28,
+                    28
+                  ],
+                  "prefill_ms": 1059.6862,
+                  "decode_ms": 28.763399999999994,
+                  "decode_tokens_per_second": 243.36483169583573,
+                  "stats": {
+                    "gpu_nodes": 34584,
+                    "expert_nodes": 2358,
+                    "compute_calls": 262,
+                    "rejected_cpu_nodes": 0,
+                    "rejected_full_copies": 0,
+                    "source_bytes": 0,
+                    "h2d_bytes": 1468876800,
+                    "staging_bytes": 0,
+                    "memory_checks": 568,
+                    "pressure_rejections": 0,
+                    "sampled_ram_used_peak": 29553963008,
+                    "sampled_vram_used_peak": 5648830464,
+                    "sampled_private_peak": 1473626112,
+                    "sampled_working_set_peak": 510091264,
+                    "selected_bytes": 0,
+                    "cache_hit_bytes": 0,
+                    "cache_fill_bytes": 0,
+                    "cache_resident": 0,
+                    "cache_evictions": 0,
+                    "cache_oom": 0,
+                    "arena_reserved": 0,
+                    "arena_live": 0,
+                    "arena_blocks": 0
+                  },
+                  "memory_after": {
+                    "ram_total": 134813700096,
+                    "ram_available": 105273966592,
+                    "vram_total": 34190917632,
+                    "vram_available": 28542087168,
+                    "private_bytes": 1473626112,
+                    "working_set": 510074880
+                  },
+                  "mode": 1
+                }
+              ],
+              "configuration": {
+                "model": "build-local\\minimax-m2-reload-uninstrumented-cuda-01\\fixture\\fixture.gguf",
+                "fixture": true,
+                "context": 4096,
+                "batch": 16,
+                "prompt_tokens": 4079,
+                "gpu_cache_mib": 256,
+                "gpu_cache_allocator": "cuda",
+                "continuation_steps": 8,
+                "input_pattern": "repeated token; for length >64, final 33 tokens vary; numerical stress, not natural-language quality",
+                "token_id": 11
+              },
+              "failures": 0,
+              "cases": 16,
+              "pass": true
+            },
+            "pass": true,
+            "logits_sha256": {
+              "mode1.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+              "mode2.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589"
+            }
+          }
+        ],
+        "pass": true
+      }
+    }
+  ],
+  "precision_fingerprints": [
+    {
+      "mode": "fingerprint-bf16",
+      "sha256": "8ff2eb6306fa87a42aca41e651fd641c2b34433e6aeb67887cef0d7906988bc6",
+      "matches_historical_failure": false,
+      "max_abs_vs_historical_failure": 0.003970593214035034
+    },
+    {
+      "mode": "fingerprint-explicit_tf32",
+      "sha256": "f46cb5fc801cc03a6fdda486c4b0fd4ab07d755191bfd2652bc6623138e76d29",
+      "matches_historical_failure": false,
+      "max_abs_vs_historical_failure": 0.0004892051219940186
+    },
+    {
+      "mode": "fingerprint-f16",
+      "sha256": "4d529c6c190b450a29a35aa4986af1a52942658f063b6e2c6bae4d0a22ef9bee",
+      "matches_historical_failure": false,
+      "max_abs_vs_historical_failure": 0.0020428746938705444
+    }
+  ],
+  "runtime_benchmark_binary_unchanged": true,
+  "benchmark_sha256": "42856cfe85bcba6b4251e2d6b23121828dc35c7544e688b5bb2b28de604695e4",
+  "confirmed_test_fix": "same_context_vs_initial_file is now a mandatory test, not an informational JSON field",
+  "next": "Keep explicit opt-in/defaults. Retain failures for tracing; pursue bounded RAM/read-path experiments with reload/correctness gates."
+}

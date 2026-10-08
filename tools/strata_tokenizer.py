@@ -99,6 +99,18 @@ JOYAI_PATTERNS = (
     r'''[!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~][A-Za-z]+|[^\r\n\p{L}\p{P}\p{S}]?[\p{L}\p{M}]+| ?[\p{P}\p{S}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+''',
 )
 
+# Active LLAMA_VOCAB_PRE_TYPE_MINIMAX_M2 expression in pinned 86ebfef2.
+# Preserve the dependency's ASCII case distinctions and combining-mark behavior;
+# its commented tokenizer.json expression is different. No capturing groups:
+# findall must return complete pieces, not the lookahead groups.
+MINIMAX_M2_PATTERN = (
+    r"[^\r\n\p{L}\p{N}]?(?:(?=\p{L})[^a-z])*(?:(?=\p{L})[^A-Z])+"
+    r"(?:'[sS]|'[tT]|'[rR][eE]|'[vV][eE]|'[mM]|'[lL][lL]|'[dD])?"
+    r"|[^\r\n\p{L}\p{N}]?(?:(?=\p{L})[^a-z])+(?:(?=\p{L})[^A-Z])*"
+    r"(?:'[sS]|'[tT]|'[rR][eE]|'[vV][eE]|'[mM]|'[lL][lL]|'[dD])?"
+    r"|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n/]*|\s*[\r\n]+|\s+(?!\S)|\s+"
+)
+
 
 class Tokenizer:
     def __init__(self, tokens: list[str], merges: list[str], token_types: list[int] | None = None,
@@ -122,13 +134,13 @@ class Tokenizer:
             if parts[0] not in self.ids or parts[1] not in self.ids:
                 raise ValueError("merge %d names a token outside the vocabulary: %r" % (i, m))
             self.ranks[(parts[0], parts[1])] = i
-        if pre not in ("qwen35", "qwen2", "joyai-llm", "glm4", "deepseek-v3", "hunyuan-dense"):
+        if pre not in ("qwen35", "qwen2", "joyai-llm", "glm4", "deepseek-v3", "hunyuan-dense", "minimax-m2"):
             raise ValueError(f"unsupported pre-tokenizer: {pre}")
         # Match the pinned GLM candidate: a complete pre-tokenized vocabulary
         # piece wins even when greedy merges cannot reach it. Other profiles
         # retain their merge rules; this is not a longest-substring lookup.
         self.ignore_merges = pre == "glm4"
-        self._re = regex.compile(GLM4_PATTERN if pre == "glm4" else QWEN2_PATTERN if pre == "qwen2" else QWEN35_PATTERN)
+        self._re = regex.compile(MINIMAX_M2_PATTERN if pre == "minimax-m2" else GLM4_PATTERN if pre == "glm4" else QWEN2_PATTERN if pre == "qwen2" else QWEN35_PATTERN)
         self._splits = [regex.compile(p) for p in JOYAI_PATTERNS] if pre in ("joyai-llm", "deepseek-v3", "hunyuan-dense") else None
 
         # The literals matched directly instead of being run through BPE.  GGUF token types: 3 = CONTROL,

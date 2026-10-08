@@ -1,0 +1,593 @@
+{
+  "pass": true,
+  "precision_environment": {
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32",
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "LLAMA_GRAPH_REUSE_DISABLE": "1",
+    "GGML_OP_OFFLOAD_MIN_BATCH": "1",
+    "STRATA_MM27_QUANT_F32": "1"
+  },
+  "checks": [
+    {
+      "name": "all_55_cases",
+      "pass": true
+    },
+    {
+      "name": "ten_native_outputs_equal",
+      "pass": true
+    },
+    {
+      "name": "historical_fixture_identity",
+      "pass": true
+    },
+    {
+      "name": "historical_continuation_bits",
+      "pass": true
+    }
+  ],
+  "engine_sha256": "ec23606f4a3a6725659f19e02e7b82e883a0db9ce9386b223151959a47875070",
+  "source_sha256": {
+    "backends/minimax_m2/build_manifest.json.in": "1bdb787175fb6e87e1ed68ec5673c190054a1bdad15e20de10c34e5c8a3e1330",
+    "backends/minimax_m2/cache_runtime.inc": "39b0807483b22804925b326f0a48cec19981e521c6d8fff707e47df06ec54042",
+    "backends/minimax_m2/check_arena.cpp": "3e692a3aa7c234174f3067a5109f2e8bbad2469ef105b31b61b9179ff6505082",
+    "backends/minimax_m2/check_cache.cpp": "ee9084d534d98457aefec6cfe11501d1ae9c2b155901651f225bcfe3152e5c73",
+    "backends/minimax_m2/check_graph.cpp": "c6a0265c6ddc27721c2a812325508e22ee004b5243a214dbe90e1cfc7307c424",
+    "backends/minimax_m2/check_kernels.cpp": "1afac45b1bfef7b7a0c4f7f5ac84b4b581f06f3f0eeebd61bc170288bf31e410",
+    "backends/minimax_m2/check_lifecycle.cpp": "8ad2846834b1a692936da24f3f09f2c24c0a048b0f4c51f62dbca2c8cfe1b507",
+    "backends/minimax_m2/check_reload.cpp": "a45c5211d89799279d2cc48440d28cef517a4da655db6f6b1225d7ce6ce515f4",
+    "backends/minimax_m2/check_runtime.cpp": "84949d82fd38684733c1455aef5bb52eefd20e8edec6e25af84e9c6f9de950ea",
+    "backends/minimax_m2/CMakeLists.txt": "b1c843c220f27769eb03c04b109d19d4b748d9e71237a23dc236f5fc09366e1b",
+    "backends/minimax_m2/contract.hpp": "591745114ae34812daccfecc5f83ce36412faf5546b1086074235ba31d8fe08e",
+    "backends/minimax_m2/gpu_arena.hpp": "73ac8b51b80622b6f553ec8313a1a9ee808ed71e3b055325332d0b9559d031e3",
+    "backends/minimax_m2/gpu_only_audit.inc": "9f483d171fde41c84fb7dc5d61542d6ffdefd0397ef3a04df799bd392eea5443",
+    "backends/minimax_m2/loader_oracle.cpp": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+    "backends/minimax_m2/main.cpp": "d4397cde5c4996be15afa08659b0ba74688bbeccea70f49780ad97c4d3b602fe",
+    "backends/minimax_m2/pipeline_runtime.inc": "e95dbd1e526596343c16831416e34928b949b7b7b6df3d6deb5aa5dc56b87dd0",
+    "backends/minimax_m2/pipeline_sched.inc": "8512c68d492a4f9c1277936b4ada352d8152431052a539ee83f93db791482a94",
+    "backends/minimax_m2/pipeline_state.inc": "fe6627ae70ab818710f9c748e39135b8dd4b1989bdaa3be68d40238255b1184c",
+    "backends/minimax_m2/pipeline_trace.hpp": "792343a13ca82c30b6043b73e1103c864bd0d948ff92cd85a942edfa71414ad7",
+    "backends/minimax_m2/QuantF32.cmake": "a64ecca0e8955cfcfb131ef08eb6fcd336e33b15e97301fef39d6b22d087e5be",
+    "backends/minimax_m2/README.md": "6f961c51b90f6303abb112e5fccd42002642956a5b4da72b2ccfd746eafbd537",
+    "backends/minimax_m2/RoutedStrides.cmake": "df9032cecf6bd1ded169ac1e882cf177b900dbfe6f11ea66b2a06b5b38c137ce",
+    "backends/minimax_m2/runtime.hpp": "5b507e1f1ac44e102f62f7769db06163078b8ff17b25cdd6b461bfbc9b988a9c",
+    "backends/minimax_m2/RuntimePatches.cmake": "318d9004dfc3c840ef5e658c3bf912e7af6bb0806cfb63b0fbca16ddde87bb1d",
+    "backends/minimax_m2/StrictF32.cmake": "93249e7c543a22b01591dc14418e95aa4e1a4a5beb5311a907413a4262e7c11d",
+    "backends/minimax_m2/sync_runtime.h": "fc2b828437f493eca3531c3d78d2baf116ac641c42eb201986f1c809f5ef9652",
+    "backends/minimax_m2/sync_runtime.inc": "8814d390b8dcec4c1884e2a5e9b78445258784379352f8af9ca49504dd33b55b",
+    "backends/minimax_m2/sync_test.h": "40ffd42119acdb884c768f81780b042c72c62e7d578fe0a5ea9cd4b0d311a612",
+    "backends/minimax_m2/synthetic_minimax_m2.hpp": "de866ed75cba59f804b9fd5e74596b0a420d309a5ac5323e07e94c8f3189bc13",
+    "backends/minimax_m2/template_oracle.cpp": "98bd356fda9b659076c6ce276d21ed1ae68bc7d4f0a0fdb8d838a866ca1c0337",
+    "backends/minimax_m2/tokenizer_oracle.cpp": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+    "backends/step35/expert_cache.hpp": "ba64807922ba75e7a237994f7cdde1defb989295e3fd597545b4330f7e31dc04",
+    "backends/hy3/gpu_arena.hpp": "be2c5226c5ad139f4a2a24ae0b3f4aa66a8636c4a7f71814e1c305ec2318ffd5",
+    "backends/common/expert_file.hpp": "9bf0c0eb9b58019fa51aee28e24fa924703225d22ce26b8a8a9b8ec640b9092e",
+    "backends/common/device_memory.hpp": "76f22a1749957f2d82f3e5645aef10719d69bedc012054dcf27f85ae77687459",
+    "backends/common/vram_policy.hpp": "0d0afb8dc505e4d6f3327f720a50dcbddcb19c29fa659ce558d93b4c6ceb487e",
+    "backends/common/expert_frequency.hpp": "065b87731210b15cdc99b42f65bef88fd579ad75b405e2f5099ccab3f0dd5915",
+    "tools/check_minimax_m2_reload.py": "7378f673de3ba005e5dda1ce44f4fc3be68dbf895148b9421a1224c6ad223536",
+    "tools/run_minimax_m2.py": "28c8ba8bf0f313b514f364f9dd20d472a3e9f52fc2c1b610368b707f6f4dd1d0"
+  },
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-d2d-reload-01\\engine.exe",
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-d2d-reload-01\\stress",
+    "--expert-reader",
+    "file",
+    "--pipeline-readers",
+    "2",
+    "--pipeline-chunk-mib",
+    "4",
+    "--pipeline-lookahead",
+    "1",
+    "--pipeline-d2d-batch",
+    "1"
+  ],
+  "exit_code": 0,
+  "result": {
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena,mm27-bounded-mmap-readers,mm27-tensor-file-pipeline,mm27-router-matrix-lookahead",
+    "scope": "synthetic long-context reload stress; every prefill batch and decode step",
+    "tests": [
+      {
+        "name": "resident_vs_fresh_native",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": false,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "0/off/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "0/off/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "0/off/released",
+        "pass": true
+      },
+      {
+        "name": "0/off/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "0/off/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "0/off/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "1/cuda/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "1/cuda/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "1/cuda/released",
+        "pass": true
+      },
+      {
+        "name": "1/cuda/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "1/cuda/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "1/cuda/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "2/arena/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "2/arena/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "2/arena/released",
+        "pass": true
+      },
+      {
+        "name": "2/arena/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "2/arena/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "2/arena/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "3/off/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "3/off/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "3/off/released",
+        "pass": true
+      },
+      {
+        "name": "3/off/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "3/off/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "3/off/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "4/cuda/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "4/cuda/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "4/cuda/released",
+        "pass": true
+      },
+      {
+        "name": "4/cuda/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "4/cuda/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "4/cuda/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "5/arena/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "5/arena/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "5/arena/released",
+        "pass": true
+      },
+      {
+        "name": "5/arena/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "5/arena/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "5/arena/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "6/off/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "6/off/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "6/off/released",
+        "pass": true
+      },
+      {
+        "name": "6/off/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "6/off/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "6/off/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "7/cuda/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "7/cuda/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "7/cuda/released",
+        "pass": true
+      },
+      {
+        "name": "7/cuda/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "7/cuda/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "7/cuda/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "8/arena/file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "8/arena/cache_audit",
+        "pass": true
+      },
+      {
+        "name": "8/arena/released",
+        "pass": true
+      },
+      {
+        "name": "8/arena/native_after_cache",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "8/arena/same_context_file",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      },
+      {
+        "name": "8/arena/replay_vs_initial",
+        "pass": true,
+        "bit_exact": true,
+        "exact_required": true,
+        "max_abs": 0.0,
+        "nmse": 0.0,
+        "elements": 16768,
+        "first_different": 16768,
+        "greedy_ids_match": true
+      }
+    ],
+    "reader": 0,
+    "pipeline_readers": 2,
+    "pipeline_chunk_mib": 4,
+    "pipeline_lookahead": true,
+    "pipeline_d2d_batch": true,
+    "cases": 55,
+    "failures": 0,
+    "pass": true
+  },
+  "logits_sha256": {
+    "fresh-native.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-0.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-1.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-2.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-3.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-4.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-5.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-6.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-7.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589",
+    "native-8.f32": "662a8b04a40790b72cff94d4106f368fcfea7c77ec5a6816bc46380153648589"
+  },
+  "fixture_sha256": "0fe45556a1d92c4c8783716ae1118e2278a84fc0693b98d85f45edf03e4981e9"
+}
