@@ -47,8 +47,54 @@ MM27-17 реализовал optional RAM LRU read-only views, удаляемы�
 1344 generated tokens PASS. Три пары: RAM64 decode3,485 против3,941 токена/с
 off; default RAM0 сохранён. Long256 проверил55,859 ГиБ views без numerical FAIL.
 [Измерения RAM/GPU partition](MINIMAX_M27_RAM_CACHE.md).
-MM27-21 проверил API adapters через scripted HTTP; native Engine bridge и
-рабочий startup profile ещё TODO. Target94%/hard guard95% проверен.
+MM27-21 проверил API adapters через scripted HTTP; MM27-22 подключил native
+Engine и isolated experimental server с live EOS/cancel/tool-cycle checks.
+MM27-23 проверил четыре live multi-call/error цикла обоих API и обычный web chat.
+Исправлены порядок полей tool definitions и session header неподдерживающему
+движку. [Результаты и ограниченный corpus](MINIMAX_M27_LIVE_TOOLS_WEB.md).
+MM27-24 проверил HTTP4K/pressure/recovery:17 scenarios и33 CPU methods PASS,
+точные4080/8 IDs между API, ранние overflow400, два disconnect и точный recovery
+в том же CUDA PID. Пики RAM87,025%/VRAM94,479%, cache trim128МиБ;
+[команды и границы](MINIMAX_M27_HTTP_CONTEXT.md).
+MM27-25 реализовал optional resident prefix reuse:16 full-model scenarios,
+128 IDs /25 608 192 logits побитно,21 live HTTP/lifecycle scenarios,
+14 430 C++ checks и29 Python methods PASS. Повтор512 в одном измерении:
+prefill51,236→1,579с. [Контракт и границы](MINIMAX_M27_PREFIX_CACHE.md).
+MM27-26 проверил reuse2032/4080 при context4096/batch16, EOS414, sampling128
+и один output:113 436 288 logits побитно совпали.11 live pressure scenarios
+PASS, RAM86,604%/VRAM94,425%, trim128МиБ и recovery в том же процессе;
+[полный scope и измерения](MINIMAX_M27_PREFIX_CONTEXT.md).
+MM27-27 реализовал bounded RAM snapshot/restore:27 full-logit comparisons,
+188 IDs /37 612 032 logits побитно,14 live HTTP/lifecycle scenarios PASS.
+LRU/byte/count caps, cancel/error/restart и anonymous/return проверены;
+[контракт и ограничения](MINIMAX_M27_SESSION_ARCHIVE.md). Default cap0.
+MM27-28 проверил archive2K/4K/EOS/sampling:1150 IDs /230 073 600 logits
+с прежним reference и567 IDs /113 436 288 logits fresh/restore побитно.
+19 live scenarios /662 IDs PASS, RAM94,191%/VRAM94,430%, отказ admission4K
+с сохранением запрашиваемого2K, trim128МиБ и cancel/recovery;
+[scope и измерения](MINIMAX_M27_SESSION_CONTEXT.md).
+MM27-29 добавил пакетные host KV copies с scratch16МиБ:1200 CPU cases,
+12 CUDA checks,192 IDs /38 412 288 logits побитно и10 HTTP scenarios PASS.
+Три тёплых переключения: полное время2K7,941→5,277с,4K8,024→3,608с;
+[измерения и ограничения](MINIMAX_M27_STATE_BULK.md). Новый EXE98e85e80.
+MM27-30 повторил полный offline corpus на bulk EXE:1150 IDs /230 073 600
+logits побитно.19 live scenarios /662 полных IDs, real RAM94,197%/VRAM94,403%,
+protected restore после отказа admission, trim64МиБ и обе отмены/recovery PASS.
+MM27-31 проверил GPU batch1/8 при context1024, prompts до513:50 session
+сценариев /568 IDs /113 636 352 logits побитно совпали с fresh при том же batch.
+MM27-32 добавил native cache decay knob и проверил65536/131072/262144 в трёх
+процессах на вариант. Медианы4,120/4,171/4,183 токена/с; новая тема медленнее
+на2,79/6,87%, default65536 сохранён.4608 IDs/921894912 logits побитно,
+216 cache regression checks и285 итоговых gates PASS;
+[результаты](MINIMAX_M27_CACHE_DECAY.md).
+MM27-33 добавил CUDA matrix events и async split compute: три пары дали
+**4,086→4,266 токена/с (+4,40%)** при одинаковых cache decisions;4608 IDs /
+921894912 logits побитно.1256 fixtures и357 evidence gates PASS.
+Native default0/server98e85e80… сохранены до long-context/live pressure/cancel
+на новом EXE; [реализация и границы](MINIMAX_M27_COPY_EVENTS.md).
+Следующий кандидат P3 — reuse router IDs в strict F32 CUDA path; пока без замера.
+Следующий шаг P4 — GPU batch1/8 prefix/archive на2K/4K с fresh при том же batch,
+затем shift. Общий installer/утверждённый профиль ещё TODO.
 Размеры ниже рассчитаны по тензорам. **MTP-тензоров в локальном файле нет**;
 первый рабочий профиль будет без speculation, MTP — отдельный этап P5.
 После переноса в `H:\models\MiniMax-M2.7` найдены DFlash Q3/Q4/Q5;
@@ -294,8 +340,20 @@ schema types/validation, raw strings, stop/truncation/UTF-8 и bounded buffer.
 MM27-21: API adapters и scripted tool cycle проверены через real loopback
 JSON/SSE OpenAI/Anthropic.191 tests,16 cycles,32 completion replays и272 report
 checks PASS;32 API prompts /14284 IDs совпали с native oracle.
-[Контракт и ограничения](MINIMAX_M27_API.md). Native Engine JSONL bridge,
-startup profile, live model tool cycle и web chat ещё не подключены.
+[Контракт и ограничения](MINIMAX_M27_API.md).
+MM27-22: resident Engine, isolated server,31 CPU methods,11 live GPU scenarios
+и6 standalone startup checks PASS. OpenAI toolcall/result/answer вызван самой
+моделью; Anthropic live проверен на SSE prefix. Повторная Windows отмена
+исправлена и проверена в одном PID. [Запуск и границы](MINIMAX_M27_NATIVE_API.md).
+MM27-23:4 live cycles /8 requests JSON/SSE обоих API PASS, включая два calls,
+кириллицу, integer arguments, обратный порядок results и tool error. Все prompt
+и generated IDs совпали между API.213 различных CPU методов PASS.
+Web chat проверен на истории, reasoning и повторном Stop; server-side MCP,
+произвольный tools corpus и no-thinking остаются вне проверенного scope.
+[Результаты MM27-23](MINIMAX_M27_LIVE_TOOLS_WEB.md).
+MM27-24 добавил real HTTP boundary4096 (4080/8 +slack8), реальные RAM/VRAM
+pressure и повторный disconnect/recovery обоих API.17 scenarios PASS;
+[evidence и ограниченный scope](MINIMAX_M27_HTTP_CONTEXT.md).
 
 - **P2.1:** GPT-2 BPE с pre-tokenizer `minimax-m2`, vocab200064/merges199744.
   BOS200034=`]~!b[`, EOS/PAD200020=`[e~[`, UNK200021=`]!d~[`.
@@ -346,6 +404,14 @@ admission/replacement/pins трёх матриц эксперта. Density/bytes
 и три пары A/B прошли; устойчивого ускорения не получено, grouping default off.
 MM27-17 реализовал P3.4 RAM LRU/partition в пределах собственных mapped views;
 short A/B дал замедление, полезный speedup и policy длинных сессий открыты.
+MM27-32 проверил более длинную frequency history: меньше fills/evictions,
+но H2D почти прежний, новая тема медленнее. Native knob оставлен для экспериментов,
+default65536 сохранён; server admission EXE прежний. MM27-33 реализовал
+CUDA matrix events, pending fill retirement и async split API; три пары
+short A/B дали+4,40%, full logits и1256 fixtures PASS. Перед serving ещё
+проверить новый mode2 на long context/real pressure/cancel и prefix/archive.
+Strict F32 operator по-прежнему повторно читает router IDs на CPU; reuse
+данных scheduler — отдельный кандидат без измеренного выигрыша.
 Под нагрузкой RAM лучше
 проверять file-backed pages: доступный commit на этом ПК меньше свободной
 физической RAM, а большие GPU allocations тоже увеличивают process commit.
@@ -364,6 +430,9 @@ short A/B дал замедление, полезный speedup и policy дли
   MM27-09 реализовал bounded current-tensor file pipeline, event lifetime,
   pressure/fault/reload и H2D/delivery trace. MM27-10 добавил lookahead до трёх
   матриц и пересечение H2D/compute CUDA event intervals; кольца не увеличены.
+  MM27-33 добавил matrix events/async splits с public graph drain: short
+  full-logit A/B+4,40%, fixture pins/cancel/pressure/reload PASS. Новый mode2
+  остаётся opt-in до full-model long context/live pressure/cancel проверки.
 - **P3.3:** reusable allocations, batch ranges, early refill, host-copy методы
   и grouping gate/up/down включать по одному. Bytes/logits parity с P1,
   включая последний chunk и смену selected experts.
@@ -396,8 +465,38 @@ short A/B дал замедление, полезный speedup и policy дли
 
 ### P4. Сессии, KV и длинный контекст
 
+MM27-24 подтвердил HTTP4K fresh boundary/cancel/pressure в одном resident
+процессе. MM27-25 добавил optional prefix reuse для одного явного session ID:
+целые prefill-пакеты, проверка реально вычисленных KV positions, свежий последний
+пакет, invalidation при ID switch/anonymous/native error/cancel/restart.
+16–513 prompt tokens при context2048/batch16 совпали с fresh по всем IDs/logits;
+оба HTTP API и cached usage прошли live checks. Default off, архивов нет.
+MM27-26 расширил corpus до2032/4080 при context4096/batch16, проверил один
+EOS414, sampling128 и single-output accounting:113 436 288 logits побитно.
+11 live RAM/VRAM pressure scenarios /72 HTTP IDs прошли, включая repeated4K,
+cache trim, HTTP disconnect и fresh/reuse recovery. Pressure-stage logits
+не экспортировались; точный scope: [MM27-26](MINIMAX_M27_PREFIX_CONTEXT.md).
+MM27-27 добавил bounded snapshot/restore нескольких сессий, привязанный к одному
+неизменному model/context/F32 KV.33/52/512 prompts, LRU, cap rejection,
+shortening/branch, anonymous, cancel/error/restart прошли full-logit/HTTP checks.
+MM27-28 проверил archive2K/4K/EOS/sampling, real RAM94,191%/VRAM94,430%,
+отказ от snapshot4K при сохранности запрашиваемого2K, eviction/trim/cancel/recovery.
+Full logits проверены offline; pressure-stage проверяет token IDs обоих API.
+MM27-30 повторил этот corpus и19 pressure scenarios на bulk EXE98e85e80:
+RAM94,197%/VRAM94,403%, protected restore/admission/cancel/recovery PASS.
+Независимый observer RAM/commit/VRAM и artifact finalization проверены.
+MM27-31 проверил GPU batch1/8 до513 tokens при context1024: branch/shorten/extend,
+RAM restore, single-output и sampling64 —50 cases с full-logit fresh parity.
+Shift, GPU batch1/8 на2K/4K и уменьшение расходов snapshot copies остаются
+отдельными пунктами; default prefix cache off, session archive0.
+
 - Full-attention KV snapshot/restore, prefix reuse, truncation/shift,
   session isolation, отмена и retry. Сверять восстановленный ответ с fresh prefill.
+- MM27-29: пакетный перенос transposed V с scratch16МиБ выполнен;
+  snapshot format и чужие/неиспользованные KV cells сохранены. State bytes
+  проверены на CUDA fixture, полные logits на2K/4K и три тёплых A/B PASS.
+  Real pressure/admission/cancel на новом EXE прошли MM27-30. Малые snapshots
+  при плотности ниже25% остаются на legacy copies и требуют отдельного A/B.
 - Context2K/4K/8K, затем16K/32K при бюджете. F32 KV для oracle,
   F16/Q8 — отдельный quality/performance A/B и проверка FA compatibility.
 - Учитывать снижение expert cache при росте KV. KV offload в RAM — отдельный
@@ -561,9 +660,22 @@ T1/top_p0,95/top_k40 завершил русский запрос на398/567/10
 [Sampling, измерения и границы](MINIMAX_M27_SAMPLING.md).
 MM27-19 реализовал history normalization и canonical input calls/results;
 MM27-20 — standalone P2.4 tool parser, MM27-21 — API adapters и scripted HTTP
-tool cycle. Следующий этап — resident Engine поверх native JSONL и startup
-profile, затем live GPU tools/API/web chat. Качество и independent
-model oracle остаются gates P6. Sampling opt-in, default greedy и18/2/4 сохраняются.
+tool cycle. MM27-22 подключил resident JSONL Engine и isolated startup:
+31 CPU methods и11 live GPU scenarios PASS, включая один OpenAI tool cycle,
+Anthropic SSE prefix,414-token EOS parity и repeated cancel/recovery/reload.
+Исправлен native Windows handler, завершавший процесс на второй отмене.
+MM27-23 проверил ограниченный multi-call/error corpus обоих API и web chat.
+MM27-24 проверил HTTP context4K/pressure/recovery. MM27-25 реализовал resident
+prefix reuse с short full-logit parity и HTTP isolation/cancel/restart.
+MM27-26 проверил reuse2K/4K/EOS414/sampling128, single-output accounting и
+live pressure/cancel/recovery. MM27-27 добавил bounded RAM snapshots с short
+full-logit и HTTP parity. MM27-28 проверил archive2K/4K/EOS/sampling/pressure.
+MM27-29 проверил bulk KV transfer/state/logits и три тёплых A/B.
+MM27-30 повторил full-logit corpus и real pressure/admission/cancel на bulk EXE.
+MM27-31 проверил границы prefix/archive при GPU batch1/8, prompts до513/ctx1024.
+Следующий этап — GPU batch1/8 prefix/archive на2K/4K, затем shift;
+качество и independent model oracle остаются gates P6.
+Sampling opt-in, default greedy и18/2/4 сохраняются.
 Контроль без cache/pipeline побитно повторил1024 tokens и204865536 logits
 русского цикла. Повторная проверка того же транспорта не заменяет проверку
 sampling/качества и независимого model/framework reference.
@@ -593,9 +705,22 @@ sampling/качества и независимого model/framework reference.
 - [x] MM27-17/P3.4: bounded RAM view LRU, отложенное admission, partition с GPU-кешем, pressure/lifecycle/parity и short A/B; default0 из-за замедления.
 - [x] MM27-18: output budget в пределах context, natural EOS английского ответа, полный повтор, live JSONL cancel/recovery и отдельный reasoning parser; [область проверки](MINIMAX_M27_COMPLETION.md).
 - [x] MM27-18b: optional seeded sampling, завершение фиксированного RU/EN/ZH корпуса, bit-exact greedy/repeat и JSONL cancel/recovery; [результаты](MINIMAX_M27_SAMPLING.md). Это не общий quality PASS: ручная проверка одного final не прошла; исходный greedy цикл сохранён.
-- [x] MM27-19/P2.3 и входная часть P2.5: история instructions/reasoning, canonical typed calls, ID/result correlation, порядок результатов, native prompt/token parity; [контракт и ограничения](MINIMAX_M27_HISTORY.md). API пока не подключён.
-- [x] MM27-20/P2.4: отдельный потоковый parser tools со schema validation, atomic multi-calls, raw strings, UTF-8/stop/truncation/limit, native wire/history round trips и replay; [границы поддержки](MINIMAX_M27_TOOLS.md). Live model tool generation и оба API остаются TODO.
-- [x] MM27-21/часть P2.5/P2.6: adapters обоих API, JSON/SSE через real loopback, scripted ID/result/answer cycle, usage/finish/UTF-8/cancel/recovery и native tokenizer replay; [проверенный scope](MINIMAX_M27_API.md). Native Engine bridge, startup profile и live GPU API ещё TODO.
+- [x] MM27-19/P2.3 и входная часть P2.5: история instructions/reasoning, canonical typed calls, ID/result correlation, порядок результатов, native prompt/token parity; [контракт и ограничения](MINIMAX_M27_HISTORY.md). API добавлен в MM27-21/22.
+- [x] MM27-20/P2.4: отдельный потоковый parser tools со schema validation, atomic multi-calls, raw strings, UTF-8/stop/truncation/limit, native wire/history round trips и replay; [границы поддержки](MINIMAX_M27_TOOLS.md). API и первый live tool cycle добавлены в MM27-21/22.
+- [x] MM27-21/часть P2.5/P2.6: adapters обоих API, JSON/SSE через real loopback, scripted ID/result/answer cycle, usage/finish/UTF-8/cancel/recovery и native tokenizer replay; [проверенный scope](MINIMAX_M27_API.md). Native transport добавлен следующим этапом MM27-22.
+- [x] MM27-22/часть P2.5/P2.6: resident native Engine, isolated startup entry point, repeated cancel/drain/reload, OpenAI live tool cycle и Anthropic SSE prefix; [запуск и проверенный scope](MINIMAX_M27_NATIVE_API.md).
+- [x] MM27-23/часть P2.5/P2.6: live JSON/SSE multi-call/error matrix обоих API, prompt/generated parity, web chat history/reasoning/Stop; [результаты и ограничения](MINIMAX_M27_LIVE_TOOLS_WEB.md).
+- [x] MM27-24/часть P2.6/P4: HTTP4K exact boundary, ранний overflow400, реальное давление RAM/VRAM, cache trim, repeated disconnect/recovery в том же PID; [результаты и ограничения](MINIMAX_M27_HTTP_CONTEXT.md). Prefix reuse добавлен MM27-25; широкий quality corpus и installer ещё TODO.
+- [x] MM27-25/часть P4: optional resident prefix reuse,16–513 prompt tokens с full-logit fresh parity, явный session ID, cached usage обоих API, cancel/error/restart invalidation; [измерения и границы](MINIMAX_M27_PREFIX_CACHE.md). Default off; расширение корпуса добавлено MM27-26.
+- [x] MM27-26/часть P4: reuse2032/4080 /ctx4K/batch16, EOS414, seeded128 и single-output full-logit parity; оба API под RAM/VRAM pressure, trim, отмена и fresh/reuse recovery; [scope и результаты](MINIMAX_M27_PREFIX_CONTEXT.md). Short archive добавлен MM27-27; shift, GPU batch1/8 и широкий long-context quality corpus ещё TODO.
+- [x] MM27-27/часть P4: bounded RAM snapshots,33/52/512 prompt tokens с full-logit fresh parity, LRU/caps/identity, anonymous/return, cancel/error isolation/restart; [проверки и измерения](MINIMAX_M27_SESSION_ARCHIVE.md). Archive2K/4K/EOS/sampling/real pressure проверены MM27-28; shift и GPU batch1/8 ещё TODO; default archive0.
+- [x] MM27-28/часть P4: archive2K/4K/EOS414/sampling128, full-logit reference/fresh parity; RAM94,191%/VRAM94,430%, admission rejection/защита target, eviction, оба API и cancel/recovery; [проверки и ограничения](MINIMAX_M27_SESSION_CONTEXT.md). Pressure PASS относится к EXE275e89f8.
+- [x] MM27-29/часть P4: bulk KV copies с scratch16МиБ, state/logit parity, три тёплых A/B2K/4K и HTTP lifecycle; [измерения](MINIMAX_M27_STATE_BULK.md). Pressure на EXE98e85e80 проверен MM27-30; default archive0.
+- [x] MM27-30/часть P4: full-logit corpus на bulk EXE,19 HTTP pressure scenarios, RAM94,197%/VRAM94,403%, protected restore/admission/trim/обе отмены/recovery; [измерения и ограничения](MINIMAX_M27_STATE_BULK_PRESSURE.md). Границы GPU batch1/8 проверены MM27-31; batch1/8 на2K/4K, shift, context>4K и большой quality corpus ещё TODO.
+- [x] MM27-31/часть P4: GPU batch1/8 до513 tokens /ctx1024,50 prefix/archive scenarios с full-logit fresh parity, branch/shorten/extend, single-output и sampling64; [корпус и ограничения](MINIMAX_M27_SESSION_BATCHES.md). GPU batch1/8 на2K/4K, shift и context>4K ещё TODO.
+- [x] MM27-32/часть P3: native frequency decay knob, три периода × три процесса, full-logit parity4608 IDs, history/cache regression; [измерения](MINIMAX_M27_CACHE_DECAY.md). Default65536 сохранён: агрегат+1,25/+1,53%, новая тема−2,79/−6,87%.
+- [x] MM27-33/часть P3.2: CUDA matrix event dependencies, deferred fill retirement, async splits/public graph drain;1256 fixtures и три full-logit A/B пары, **+4,40%**; [измерения](MINIMAX_M27_COPY_EVENTS.md). Native default0/server98e85e80… сохранены.
+- [ ] P3.2: новый events2 на full-model2K/4K/prefix/archive и real pressure/cancel/recovery перед serving. Повторное чтение router IDs в strict F32 — следующий кандидат; internal fences ещё остаются.
 - [ ] Широкая answer-quality проверка и независимый full-model oracle; причина фактической ошибки английского sampled final MM27-18b не установлена. До P6 sampler default остаётся greedy.
 - [ ] P3.4/P3.5: полезное ускорение RAM policy на длинных законченных ответах, page residency/SSD traffic; MM27-17 выигрыша не подтвердил.
 - [ ] Pressure/cancel/unload, sessions и заявленные контексты проверены.

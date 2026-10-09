@@ -90,7 +90,7 @@ private:
     struct Entry { void * data; size_t bytes,allocated; std::list<OrderItem>::iterator order; size_t pins=0; };
     std::map<MatrixKey,Entry> entries;
     std::list<OrderItem> order;
-    StrataExpertFrequencyHistory<MatrixKey,MatrixHash> history{65536};
+    StrataExpertFrequencyHistory<MatrixKey,MatrixHash> history;
     size_t cap=0,limit=0,resident=0,growth=0;
     bool reuse_allocations=false;
     bool match_size=false;
@@ -192,8 +192,8 @@ public:
     }
     explicit ExpertCache(size_t bytes, Probe reader=memory_sample,
         Allocate allocator=[](void ** p,size_t n){return cudaMalloc(p,n);},
-        Release releaser=[](void *p){return cudaFree(p);})
-        :cap(bytes),probe(std::move(reader)),allocate(std::move(allocator)),release(std::move(releaser)) { cuda_check(cudaGetDevice(&device)); }
+        Release releaser=[](void *p){return cudaFree(p);},uint64_t decay_period=65536)
+        :history(decay_period),cap(bytes),probe(std::move(reader)),allocate(std::move(allocator)),release(std::move(releaser)) { cuda_check(cudaGetDevice(&device)); }
     ExpertCache(const ExpertCache &)=delete;
     ExpertCache &operator=(const ExpertCache &)=delete;
     ~ExpertCache() {

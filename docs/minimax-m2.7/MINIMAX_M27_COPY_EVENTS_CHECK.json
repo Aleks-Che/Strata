@@ -1,0 +1,1462 @@
+{
+  "pass": true,
+  "stage": "MM27-33",
+  "gates": {
+    "minimax-m2-copy-events-screen-01/pass": true,
+    "minimax-m2-copy-events-screen-01/engine": true,
+    "minimax-m2-copy-events-screen-01/run_order": true,
+    "minimax-m2-copy-events-screen-01/artifacts/engine.exe": true,
+    "minimax-m2-copy-events-screen-01/artifacts/manifest.json": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e0.f32": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e0.json": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e0.memory.jsonl": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e0.stderr.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e0.stdout.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e1.f32": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e1.json": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e1.memory.jsonl": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e1.stderr.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e1.stdout.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e2.f32": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e2.json": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e2.memory.jsonl": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e2.stderr.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/r1-e2.stdout.log": true,
+    "minimax-m2-copy-events-screen-01/artifacts/requests.json": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/build_manifest.json.in": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/cache_runtime.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_arena.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_cache.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_cache_decay.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_dflash.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_graph.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_group_cache.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_host_cache.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_kernels.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_lifecycle.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_prefix.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_reclaim.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_reload.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_runtime.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_sampling.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_sessions.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/check_state_bulk.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/CMakeLists.txt": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/contract.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/DFlash.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/dflash_contract.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/dflash_decode.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/gpu_arena.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/gpu_only_audit.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/group_cache.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/host_cache.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/loader_oracle.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/main.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/pipeline_runtime.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/pipeline_sched.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/pipeline_state.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/pipeline_trace.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/prefix.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/pressure_holder.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/QuantF32.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/README.md": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/RoutedStrides.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/runtime.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/RuntimePatches.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/sampling.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/session_runtime.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/sessions.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/speculative_bench.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/state_bulk.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/StateBulk.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/StrictF32.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/sync_runtime.h": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/sync_runtime.inc": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/sync_test.h": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/template_oracle.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/TemplateJSON.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/minimax_m2/Tokenwise.cmake": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_api.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_engine.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_history.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_server.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_tools.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/minimax_m2_worker.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2_api.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2_engine.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2_history.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2_server.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/test_minimax_m2_tools.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/server.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/winjob.py": true,
+    "minimax-m2-copy-events-screen-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/strata_tokenizer.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/run_minimax_m2.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_completion_pipe.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_http_context.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_prefix.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_prefix_context.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_copy_events.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_cache_decay.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/check_minimax_m2_sessions.py": true,
+    "minimax-m2-copy-events-screen-01/sources/tools/minimax_m2_memory_observer.py": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/step35/expert_cache.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/common/expert_frequency.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/common/expert_pipeline.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/common/expert_file.hpp": true,
+    "minimax-m2-copy-events-screen-01/sources/backends/hy3/gpu_arena.hpp": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/completed": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/profile": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/native": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/events": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/fresh_kv": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/prefill": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/ids": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/same_cache_decisions": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/size": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/full_logits": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/metrics": true,
+    "minimax-m2-copy-events-screen-01/r1-e0/memory": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/completed": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/profile": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/native": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/events": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/fresh_kv": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/prefill": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/ids": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/same_cache_decisions": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/size": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/full_logits": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/metrics": true,
+    "minimax-m2-copy-events-screen-01/r1-e1/memory": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/completed": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/profile": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/native": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/events": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/fresh_kv": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/prefill": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/ids": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/same_cache_decisions": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/size": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/full_logits": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/metrics": true,
+    "minimax-m2-copy-events-screen-01/r1-e2/memory": true,
+    "minimax-m2-copy-events-screen-01/summary": true,
+    "minimax-m2-copy-events-ab-01/pass": true,
+    "minimax-m2-copy-events-ab-01/engine": true,
+    "minimax-m2-copy-events-ab-01/run_order": true,
+    "minimax-m2-copy-events-ab-01/artifacts/engine.exe": true,
+    "minimax-m2-copy-events-ab-01/artifacts/manifest.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e0.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e0.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e0.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e0.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e0.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e2.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e2.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e2.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e2.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r1-e2.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e0.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e0.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e0.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e0.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e0.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e2.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e2.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e2.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e2.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r2-e2.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e0.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e0.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e0.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e0.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e0.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e2.f32": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e2.json": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e2.memory.jsonl": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e2.stderr.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/r3-e2.stdout.log": true,
+    "minimax-m2-copy-events-ab-01/artifacts/requests.json": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/build_manifest.json.in": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/cache_runtime.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_arena.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_cache.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_cache_decay.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_dflash.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_graph.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_group_cache.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_host_cache.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_kernels.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_lifecycle.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_prefix.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_reclaim.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_reload.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_runtime.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_sampling.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_sessions.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/check_state_bulk.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/CMakeLists.txt": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/contract.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/DFlash.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/dflash_contract.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/dflash_decode.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/gpu_arena.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/gpu_only_audit.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/group_cache.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/host_cache.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/loader_oracle.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/main.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/pipeline_runtime.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/pipeline_sched.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/pipeline_state.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/pipeline_trace.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/prefix.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/pressure_holder.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/QuantF32.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/README.md": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/RoutedStrides.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/runtime.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/RuntimePatches.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/sampling.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/session_runtime.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/sessions.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/speculative_bench.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/state_bulk.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/StateBulk.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/StrictF32.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/sync_runtime.h": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/sync_runtime.inc": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/sync_test.h": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/template_oracle.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/TemplateJSON.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/minimax_m2/Tokenwise.cmake": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_api.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_engine.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_history.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_server.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_tools.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/minimax_m2_worker.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2_api.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2_engine.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2_history.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2_server.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/test_minimax_m2_tools.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/server.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/winjob.py": true,
+    "minimax-m2-copy-events-ab-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/strata_tokenizer.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/run_minimax_m2.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_completion_pipe.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_http_context.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_prefix.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_prefix_context.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_copy_events.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_cache_decay.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/check_minimax_m2_sessions.py": true,
+    "minimax-m2-copy-events-ab-01/sources/tools/minimax_m2_memory_observer.py": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/step35/expert_cache.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/common/expert_frequency.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/common/expert_pipeline.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/common/expert_file.hpp": true,
+    "minimax-m2-copy-events-ab-01/sources/backends/hy3/gpu_arena.hpp": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/completed": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/profile": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/native": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/events": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/prefill": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/ids": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/size": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/metrics": true,
+    "minimax-m2-copy-events-ab-01/r1-e0/memory": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/completed": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/profile": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/native": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/events": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/prefill": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/ids": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/size": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/metrics": true,
+    "minimax-m2-copy-events-ab-01/r1-e2/memory": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/completed": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/profile": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/native": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/events": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/prefill": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/ids": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/size": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/metrics": true,
+    "minimax-m2-copy-events-ab-01/r2-e2/memory": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/completed": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/profile": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/native": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/events": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/prefill": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/ids": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/size": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/metrics": true,
+    "minimax-m2-copy-events-ab-01/r2-e0/memory": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/completed": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/profile": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/native": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/events": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/prefill": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/ids": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/size": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/metrics": true,
+    "minimax-m2-copy-events-ab-01/r3-e0/memory": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/completed": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/profile": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/native": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/events": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/fresh_kv": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/prefill": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/ids": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/same_cache_decisions": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/size": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/full_logits": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/metrics": true,
+    "minimax-m2-copy-events-ab-01/r3-e2/memory": true,
+    "minimax-m2-copy-events-ab-01/summary": true,
+    "same_executable": true,
+    "fixture/e0": true,
+    "fixture/e0/profile": true,
+    "fixture/e1": true,
+    "fixture/e1/profile": true,
+    "fixture/e2": true,
+    "fixture/e2/profile": true,
+    "fixture/e2-groups": true,
+    "fixture/e2-groups/profile": true,
+    "fixture/e2-ram": true,
+    "fixture/e2-ram/profile": true,
+    "fixture/e2-single": true,
+    "fixture/e2-single/profile": true,
+    "cli": true
+  },
+  "requests": 36,
+  "output_tokens": 4608,
+  "compared_logits": 921894912,
+  "independent_memory_samples": 2917,
+  "observed_peak_percent": {
+    "ram": 23.709534880534278,
+    "gpu": 85.08501817094489
+  },
+  "engines": [
+    "13a885cc75352bb39cc4231174da3d9f03705d5f9c150117935d6f05ea9d2401"
+  ],
+  "fixtures": [
+    {
+      "name": "e0",
+      "cases": 228,
+      "report_sha256": "2ee8ae4a1fc0fdf0b625b9e7dad74fb9961a665ec0ffe819f440f789934cc654"
+    },
+    {
+      "name": "e1",
+      "cases": 228,
+      "report_sha256": "6c654ebb1d1156a5eb8f99cf8ac5dcecfc41a3c3dfff7378377ec5ef22689fd3"
+    },
+    {
+      "name": "e2",
+      "cases": 228,
+      "report_sha256": "184447accea298762522f50712b1b3b57028437e85a689477436a9de32a267ac"
+    },
+    {
+      "name": "e2-groups",
+      "cases": 120,
+      "report_sha256": "420109b7f9997992b0a03e452fd1f19b3d62d581ee7982cd33d8089fd920f2b9"
+    },
+    {
+      "name": "e2-ram",
+      "cases": 240,
+      "report_sha256": "92ad28f73896ad670b3dd669ffc453c31c62ec13cfb07be234dd22c5d2e9b2de"
+    },
+    {
+      "name": "e2-single",
+      "cases": 212,
+      "report_sha256": "bbd8d4143a26d8dc08308569594e414d2f062062a188def225e96043f114adac"
+    }
+  ],
+  "cli_sha256": "1aa78706e93d06bcd8054c8f4c43ed0134329abf826fddbe99ab5e0529c3082c",
+  "validator_sha256": "772552ad678aae5f335464b89a6fd3c5396a51de7ce1cbc12aef8b7e54c3fc3a",
+  "results": [
+    {
+      "directory": "build-local\\minimax-m2-copy-events-screen-01",
+      "report_sha256": "0a3abbde493ac3b7bd39cbb48287936177a06766b24e9ad0ba2f9355274ee1a7",
+      "summary": [
+        {
+          "name": "all_requests",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.045772229582722,
+                  "decode_ms": 125563.17340000001,
+                  "decode_steps": 508,
+                  "request_ms": 165991.4638,
+                  "prefill_ms": 39954.2824,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 48649.96199999963
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.045772229582722,
+                "decode_ms": 125563.17340000001,
+                "decode_steps": 508,
+                "request_ms": 165991.4638,
+                "prefill_ms": 39954.2824,
+                "decode_h2d_gib": 984.0849847793579,
+                "decode_hit_percent": 50.967889497520176,
+                "decode_evictions": 40711,
+                "decode_fill_gib": 125.15025329589844,
+                "decode_delivery_ms": 48649.96199999963
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "1": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.046148341725608,
+                  "decode_ms": 125551.50159999999,
+                  "decode_steps": 508,
+                  "request_ms": 165699.423,
+                  "prefill_ms": 39669.9366,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 48232.08779999988
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.046148341725608,
+                "decode_ms": 125551.50159999999,
+                "decode_steps": 508,
+                "request_ms": 165699.423,
+                "prefill_ms": 39669.9366,
+                "decode_h2d_gib": 984.0849847793579,
+                "decode_hit_percent": 50.967889497520176,
+                "decode_evictions": 40711,
+                "decode_fill_gib": 125.15025329589844,
+                "decode_delivery_ms": 48232.08779999988
+              },
+              "decode_gain_percent": 0.009296424058091723,
+              "request_time_reduction_percent": 0.17593723997268995
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.234132437619841,
+                  "decode_ms": 119977.35250000002,
+                  "decode_steps": 508,
+                  "request_ms": 158638.5472,
+                  "prefill_ms": 38182.396499999995,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 54717.57099999943
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.234132437619841,
+                "decode_ms": 119977.35250000002,
+                "decode_steps": 508,
+                "request_ms": 158638.5472,
+                "prefill_ms": 38182.396499999995,
+                "decode_h2d_gib": 984.0849847793579,
+                "decode_hit_percent": 50.967889497520176,
+                "decode_evictions": 40711,
+                "decode_fill_gib": 125.15025329589844,
+                "decode_delivery_ms": 54717.57099999943
+              },
+              "decode_gain_percent": 4.655729421934018,
+              "request_time_reduction_percent": 4.429695619082796
+            }
+          }
+        },
+        {
+          "name": "a_empty",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.9433686555250365,
+                  "decode_ms": 32205.96680000001,
+                  "decode_steps": 127,
+                  "request_ms": 44103.8516,
+                  "prefill_ms": 11780.0885,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 12900.40459999979
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.9433686555250365,
+                "decode_ms": 32205.96680000001,
+                "decode_steps": 127,
+                "request_ms": 44103.8516,
+                "prefill_ms": 11780.0885,
+                "decode_h2d_gib": 243.12637853622437,
+                "decode_hit_percent": 51.54483709180157,
+                "decode_evictions": 14935,
+                "decode_fill_gib": 56.883056640625,
+                "decode_delivery_ms": 12900.40459999979
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "1": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.130789674149911,
+                  "decode_ms": 30744.72679999999,
+                  "decode_steps": 127,
+                  "request_ms": 42051.3404,
+                  "prefill_ms": 11187.3604,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 11497.189300000045
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.130789674149911,
+                "decode_ms": 30744.72679999999,
+                "decode_steps": 127,
+                "request_ms": 42051.3404,
+                "prefill_ms": 11187.3604,
+                "decode_h2d_gib": 243.12637853622437,
+                "decode_hit_percent": 51.54483709180157,
+                "decode_evictions": 14935,
+                "decode_fill_gib": 56.883056640625,
+                "decode_delivery_ms": 11497.189300000045
+              },
+              "decode_gain_percent": 4.752815042090464,
+              "request_time_reduction_percent": 4.653813953972219
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.354086326988529,
+                  "decode_ms": 29168.002300000007,
+                  "decode_steps": 127,
+                  "request_ms": 39955.187,
+                  "prefill_ms": 10667.273,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 13040.122700000038
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.354086326988529,
+                "decode_ms": 29168.002300000007,
+                "decode_steps": 127,
+                "request_ms": 39955.187,
+                "prefill_ms": 10667.273,
+                "decode_h2d_gib": 243.12637853622437,
+                "decode_hit_percent": 51.54483709180157,
+                "decode_evictions": 14935,
+                "decode_fill_gib": 56.883056640625,
+                "decode_delivery_ms": 13040.122700000038
+              },
+              "decode_gain_percent": 10.415401331753205,
+              "request_time_reduction_percent": 9.406581170339335
+            }
+          }
+        },
+        {
+          "name": "a_repeat",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.495592232878218,
+                  "decode_ms": 28249.89310000001,
+                  "decode_steps": 127,
+                  "request_ms": 36537.0733,
+                  "prefill_ms": 8168.2809,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 9465.318600000333
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.495592232878218,
+                "decode_ms": 28249.89310000001,
+                "decode_steps": 127,
+                "request_ms": 36537.0733,
+                "prefill_ms": 8168.2809,
+                "decode_h2d_gib": 220.40705919265747,
+                "decode_hit_percent": 56.07279098208922,
+                "decode_evictions": 8490,
+                "decode_fill_gib": 22.557556629180908,
+                "decode_delivery_ms": 9465.318600000333
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "1": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.413830241461468,
+                  "decode_ms": 28773.1954,
+                  "decode_steps": 127,
+                  "request_ms": 37208.569,
+                  "prefill_ms": 8315.8013,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 9858.76660000022
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.413830241461468,
+                "decode_ms": 28773.1954,
+                "decode_steps": 127,
+                "request_ms": 37208.569,
+                "prefill_ms": 8315.8013,
+                "decode_h2d_gib": 220.40705919265747,
+                "decode_hit_percent": 56.07279098208922,
+                "decode_evictions": 8490,
+                "decode_fill_gib": 22.557556629180908,
+                "decode_delivery_ms": 9858.76660000022
+              },
+              "decode_gain_percent": -1.8187145804459237,
+              "request_time_reduction_percent": -1.8378475322488486
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.669079195818386,
+                  "decode_ms": 27200.224000000006,
+                  "decode_steps": 127,
+                  "request_ms": 35359.4347,
+                  "prefill_ms": 8039.5452,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 11306.12330000007
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.669079195818386,
+                "decode_ms": 27200.224000000006,
+                "decode_steps": 127,
+                "request_ms": 35359.4347,
+                "prefill_ms": 8039.5452,
+                "decode_h2d_gib": 220.40705919265747,
+                "decode_hit_percent": 56.07279098208922,
+                "decode_evictions": 8490,
+                "decode_fill_gib": 22.557556629180908,
+                "decode_delivery_ms": 11306.12330000007
+              },
+              "decode_gain_percent": 3.8590457931522826,
+              "request_time_reduction_percent": 3.2231333646529303
+            }
+          }
+        },
+        {
+          "name": "b_new_topic",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.8582976686373054,
+                  "decode_ms": 32916.070999999996,
+                  "decode_steps": 127,
+                  "request_ms": 43918.1832,
+                  "prefill_ms": 10883.8542,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 13411.927599999766
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.8582976686373054,
+                "decode_ms": 32916.070999999996,
+                "decode_steps": 127,
+                "request_ms": 43918.1832,
+                "prefill_ms": 10883.8542,
+                "decode_h2d_gib": 266.26556158065796,
+                "decode_hit_percent": 46.93320276275873,
+                "decode_evictions": 9065,
+                "decode_fill_gib": 23.96898126602173,
+                "decode_delivery_ms": 13411.927599999766
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "1": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.7869676702037554,
+                  "decode_ms": 33536.066600000006,
+                  "decode_steps": 127,
+                  "request_ms": 44599.7708,
+                  "prefill_ms": 10943.6921,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 13853.555599999872
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.7869676702037554,
+                "decode_ms": 33536.066600000006,
+                "decode_steps": 127,
+                "request_ms": 44599.7708,
+                "prefill_ms": 10943.6921,
+                "decode_h2d_gib": 266.26556158065796,
+                "decode_hit_percent": 46.93320276275873,
+                "decode_evictions": 9065,
+                "decode_fill_gib": 23.96898126602173,
+                "decode_delivery_ms": 13853.555599999872
+              },
+              "decode_gain_percent": -1.8487427502902554,
+              "request_time_reduction_percent": -1.5519485332444294
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.9040038168984212,
+                  "decode_ms": 32530.7059,
+                  "decode_steps": 127,
+                  "request_ms": 43220.0771,
+                  "prefill_ms": 10569.5165,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 15745.299599999584
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.9040038168984212,
+                "decode_ms": 32530.7059,
+                "decode_steps": 127,
+                "request_ms": 43220.0771,
+                "prefill_ms": 10569.5165,
+                "decode_h2d_gib": 266.26556158065796,
+                "decode_hit_percent": 46.93320276275873,
+                "decode_evictions": 9065,
+                "decode_fill_gib": 23.96898126602173,
+                "decode_delivery_ms": 15745.299599999584
+              },
+              "decode_gain_percent": 1.1846195443302454,
+              "request_time_reduction_percent": 1.5895605171572735
+            }
+          }
+        },
+        {
+          "name": "a_return",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.9451723554938893,
+                  "decode_ms": 32191.2425,
+                  "decode_steps": 127,
+                  "request_ms": 41432.3557,
+                  "prefill_ms": 9122.0588,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 12872.311199999738
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.9451723554938893,
+                "decode_ms": 32191.2425,
+                "decode_steps": 127,
+                "request_ms": 41432.3557,
+                "prefill_ms": 9122.0588,
+                "decode_h2d_gib": 254.28598546981812,
+                "decode_hit_percent": 49.32072983265402,
+                "decode_evictions": 8221,
+                "decode_fill_gib": 21.7406587600708,
+                "decode_delivery_ms": 12872.311199999738
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "1": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.907991383266723,
+                  "decode_ms": 32497.512799999993,
+                  "decode_steps": 127,
+                  "request_ms": 41839.7428,
+                  "prefill_ms": 9223.0828,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 13022.576299999744
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.907991383266723,
+                "decode_ms": 32497.512799999993,
+                "decode_steps": 127,
+                "request_ms": 41839.7428,
+                "prefill_ms": 9223.0828,
+                "decode_h2d_gib": 254.28598546981812,
+                "decode_hit_percent": 49.32072983265402,
+                "decode_evictions": 8221,
+                "decode_fill_gib": 21.7406587600708,
+                "decode_delivery_ms": 13022.576299999744
+              },
+              "decode_gain_percent": -0.9424422782287278,
+              "request_time_reduction_percent": -0.9832583571877329
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.086436787136184,
+                  "decode_ms": 31078.42030000001,
+                  "decode_steps": 127,
+                  "request_ms": 40103.8484,
+                  "prefill_ms": 8906.0618,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 14626.025399999735
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.086436787136184,
+                "decode_ms": 31078.42030000001,
+                "decode_steps": 127,
+                "request_ms": 40103.8484,
+                "prefill_ms": 8906.0618,
+                "decode_h2d_gib": 254.28598546981812,
+                "decode_hit_percent": 49.32072983265402,
+                "decode_evictions": 8221,
+                "decode_fill_gib": 21.7406587600708,
+                "decode_delivery_ms": 14626.025399999735
+              },
+              "decode_gain_percent": 3.580691004426595,
+              "request_time_reduction_percent": 3.206448867207412
+            }
+          }
+        }
+      ]
+    },
+    {
+      "directory": "build-local\\minimax-m2-copy-events-ab-01",
+      "report_sha256": "6393e1bd5b44c71099309471048bff54c6cb19b753792b67dc592c97b5599b1b",
+      "summary": [
+        {
+          "name": "all_requests",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.08594546600387,
+                  "decode_ms": 124328.6295,
+                  "decode_steps": 508,
+                  "request_ms": 164029.6831,
+                  "prefill_ms": 39222.414300000004,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 47473.359400000205
+                },
+                {
+                  "decode_tok_s": 4.117071455430226,
+                  "decode_ms": 123388.677,
+                  "decode_steps": 508,
+                  "request_ms": 163531.5758,
+                  "prefill_ms": 39661.5125,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 47400.833499999644
+                },
+                {
+                  "decode_tok_s": 4.000356683771496,
+                  "decode_ms": 126988.67629999999,
+                  "decode_steps": 508,
+                  "request_ms": 167269.898,
+                  "prefill_ms": 39800.4514,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 47811.7407999999
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.08594546600387,
+                "decode_ms": 124328.6295,
+                "decode_steps": 508,
+                "request_ms": 164029.6831,
+                "prefill_ms": 39661.5125,
+                "decode_h2d_gib": 984.0849847793579,
+                "decode_hit_percent": 50.967889497520176,
+                "decode_evictions": 40711,
+                "decode_fill_gib": 125.15025329589844,
+                "decode_delivery_ms": 47473.359400000205
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.26557679634508,
+                  "decode_ms": 119092.9209,
+                  "decode_steps": 508,
+                  "request_ms": 157808.0218,
+                  "prefill_ms": 38236.5118,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 54221.68089999955
+                },
+                {
+                  "decode_tok_s": 4.290842537576301,
+                  "decode_ms": 118391.6668,
+                  "decode_steps": 508,
+                  "request_ms": 156955.6312,
+                  "prefill_ms": 38086.2731,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 53979.580099999475
+                },
+                {
+                  "decode_tok_s": 4.163194541248164,
+                  "decode_ms": 122021.68190000001,
+                  "decode_steps": 508,
+                  "request_ms": 161423.7576,
+                  "prefill_ms": 38923.110499999995,
+                  "decode_h2d_gib": 984.0849847793579,
+                  "decode_hit_percent": 50.967889497520176,
+                  "decode_evictions": 40711,
+                  "decode_fill_gib": 125.15025329589844,
+                  "decode_delivery_ms": 54619.73029999956
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.26557679634508,
+                "decode_ms": 119092.9209,
+                "decode_steps": 508,
+                "request_ms": 157808.0218,
+                "prefill_ms": 38236.5118,
+                "decode_h2d_gib": 984.0849847793579,
+                "decode_hit_percent": 50.967889497520176,
+                "decode_evictions": 40711,
+                "decode_fill_gib": 125.15025329589844,
+                "decode_delivery_ms": 54221.68089999955
+              },
+              "decode_gain_percent": 4.396322267044184,
+              "request_time_reduction_percent": 3.7930094007479154
+            }
+          }
+        },
+        {
+          "name": "a_empty",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.176486781938928,
+                  "decode_ms": 30408.332800000007,
+                  "decode_steps": 127,
+                  "request_ms": 41542.406,
+                  "prefill_ms": 11014.0733,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 11273.437100000141
+                },
+                {
+                  "decode_tok_s": 4.189226213336884,
+                  "decode_ms": 30315.861100000013,
+                  "decode_steps": 127,
+                  "request_ms": 41551.1616,
+                  "prefill_ms": 11114.7574,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 11387.388199999834
+                },
+                {
+                  "decode_tok_s": 4.072559843116274,
+                  "decode_ms": 31184.317699999992,
+                  "decode_steps": 127,
+                  "request_ms": 42394.6045,
+                  "prefill_ms": 11089.8852,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 11627.834900000038
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.176486781938928,
+                "decode_ms": 30408.332800000007,
+                "decode_steps": 127,
+                "request_ms": 41551.1616,
+                "prefill_ms": 11089.8852,
+                "decode_h2d_gib": 243.12637853622437,
+                "decode_hit_percent": 51.54483709180157,
+                "decode_evictions": 14935,
+                "decode_fill_gib": 56.883056640625,
+                "decode_delivery_ms": 11387.388199999834
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.36505253290886,
+                  "decode_ms": 29094.724300000013,
+                  "decode_steps": 127,
+                  "request_ms": 39918.5848,
+                  "prefill_ms": 10703.7702,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 13015.432499999923
+                },
+                {
+                  "decode_tok_s": 4.36115446777817,
+                  "decode_ms": 29120.7296,
+                  "decode_steps": 127,
+                  "request_ms": 39890.2825,
+                  "prefill_ms": 10650.2635,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 13013.210399999922
+                },
+                {
+                  "decode_tok_s": 4.252858205354113,
+                  "decode_ms": 29862.270000000008,
+                  "decode_steps": 127,
+                  "request_ms": 40850.7975,
+                  "prefill_ms": 10868.5994,
+                  "decode_h2d_gib": 243.12637853622437,
+                  "decode_hit_percent": 51.54483709180157,
+                  "decode_evictions": 14935,
+                  "decode_fill_gib": 56.883056640625,
+                  "decode_delivery_ms": 13139.132400000091
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.36115446777817,
+                "decode_ms": 29120.7296,
+                "decode_steps": 127,
+                "request_ms": 39918.5848,
+                "prefill_ms": 10703.7702,
+                "decode_h2d_gib": 243.12637853622437,
+                "decode_hit_percent": 51.54483709180157,
+                "decode_evictions": 14935,
+                "decode_fill_gib": 56.883056640625,
+                "decode_delivery_ms": 13015.432499999923
+              },
+              "decode_gain_percent": 4.421603502681504,
+              "request_time_reduction_percent": 3.9290761969937416
+            }
+          }
+        },
+        {
+          "name": "a_repeat",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.473891338902165,
+                  "decode_ms": 28386.921000000006,
+                  "decode_steps": 127,
+                  "request_ms": 36763.0556,
+                  "prefill_ms": 8256.8436,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 9579.627700000337
+                },
+                {
+                  "decode_tok_s": 4.516677361708176,
+                  "decode_ms": 28118.014600000006,
+                  "decode_steps": 127,
+                  "request_ms": 36677.7563,
+                  "prefill_ms": 8439.3728,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 9540.968600000306
+                },
+                {
+                  "decode_tok_s": 4.377262450137295,
+                  "decode_ms": 29013.567599999988,
+                  "decode_steps": 127,
+                  "request_ms": 37638.2099,
+                  "prefill_ms": 8504.204,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 9581.276300000274
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.473891338902165,
+                "decode_ms": 28386.921000000006,
+                "decode_steps": 127,
+                "request_ms": 36763.0556,
+                "prefill_ms": 8439.3728,
+                "decode_h2d_gib": 220.40705919265747,
+                "decode_hit_percent": 56.07279098208922,
+                "decode_evictions": 8490,
+                "decode_fill_gib": 22.557556629180908,
+                "decode_delivery_ms": 9579.627700000337
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.677273264004067,
+                  "decode_ms": 27152.57219999998,
+                  "decode_steps": 127,
+                  "request_ms": 35254.8717,
+                  "prefill_ms": 7982.5801,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 11327.168600000145
+                },
+                {
+                  "decode_tok_s": 4.730658663872246,
+                  "decode_ms": 26846.155899999998,
+                  "decode_steps": 127,
+                  "request_ms": 35041.0475,
+                  "prefill_ms": 8074.8597,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 11178.950299999997
+                },
+                {
+                  "decode_tok_s": 4.5599422195718375,
+                  "decode_ms": 27851.230100000008,
+                  "decode_steps": 127,
+                  "request_ms": 36162.4842,
+                  "prefill_ms": 8191.1923,
+                  "decode_h2d_gib": 220.40705919265747,
+                  "decode_hit_percent": 56.07279098208922,
+                  "decode_evictions": 8490,
+                  "decode_fill_gib": 22.557556629180908,
+                  "decode_delivery_ms": 11376.11789999982
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.677273264004067,
+                "decode_ms": 27152.57219999998,
+                "decode_steps": 127,
+                "request_ms": 35254.8717,
+                "prefill_ms": 8074.8597,
+                "decode_h2d_gib": 220.40705919265747,
+                "decode_hit_percent": 56.07279098208922,
+                "decode_evictions": 8490,
+                "decode_fill_gib": 22.557556629180908,
+                "decode_delivery_ms": 11327.168600000145
+              },
+              "decode_gain_percent": 4.545973732831188,
+              "request_time_reduction_percent": 4.102444357209512
+            }
+          }
+        },
+        {
+          "name": "b_new_topic",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.8310176370157736,
+                  "decode_ms": 33150.46079999999,
+                  "decode_steps": 127,
+                  "request_ms": 44093.6218,
+                  "prefill_ms": 10823.4082,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 13610.851799999866
+                },
+                {
+                  "decode_tok_s": 3.8637377729242064,
+                  "decode_ms": 32869.7255,
+                  "decode_steps": 127,
+                  "request_ms": 43939.9476,
+                  "prefill_ms": 10950.0174,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 13583.120299999666
+                },
+                {
+                  "decode_tok_s": 3.7554265618115283,
+                  "decode_ms": 33817.72960000001,
+                  "decode_steps": 127,
+                  "request_ms": 44892.7707,
+                  "prefill_ms": 10954.9022,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 13633.680599999569
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.8310176370157736,
+                "decode_ms": 33150.46079999999,
+                "decode_steps": 127,
+                "request_ms": 44093.6218,
+                "prefill_ms": 10950.0174,
+                "decode_h2d_gib": 266.26556158065796,
+                "decode_hit_percent": 46.93320276275873,
+                "decode_evictions": 9065,
+                "decode_fill_gib": 23.96898126602173,
+                "decode_delivery_ms": 13610.851799999866
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.975940451031247,
+                  "decode_ms": 31942.12830000001,
+                  "decode_steps": 127,
+                  "request_ms": 42754.6662,
+                  "prefill_ms": 10693.056,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 15350.87459999968
+                },
+                {
+                  "decode_tok_s": 4.011708148118506,
+                  "decode_ms": 31657.337800000005,
+                  "decode_steps": 127,
+                  "request_ms": 42287.9109,
+                  "prefill_ms": 10511.7412,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 15220.340099999828
+                },
+                {
+                  "decode_tok_s": 3.896614006270432,
+                  "decode_ms": 32592.39939999999,
+                  "decode_steps": 127,
+                  "request_ms": 43517.2432,
+                  "prefill_ms": 10805.5865,
+                  "decode_h2d_gib": 266.26556158065796,
+                  "decode_hit_percent": 46.93320276275873,
+                  "decode_evictions": 9065,
+                  "decode_fill_gib": 23.96898126602173,
+                  "decode_delivery_ms": 15391.43949999989
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.975940451031247,
+                "decode_ms": 31942.12830000001,
+                "decode_steps": 127,
+                "request_ms": 42754.6662,
+                "prefill_ms": 10693.056,
+                "decode_h2d_gib": 266.26556158065796,
+                "decode_hit_percent": 46.93320276275873,
+                "decode_evictions": 9065,
+                "decode_fill_gib": 23.96898126602173,
+                "decode_delivery_ms": 15350.87459999968
+              },
+              "decode_gain_percent": 3.7828803661776655,
+              "request_time_reduction_percent": 3.0366196863420347
+            }
+          }
+        },
+        {
+          "name": "a_return",
+          "modes": {
+            "0": {
+              "samples": [
+                {
+                  "decode_tok_s": 3.9218211329085766,
+                  "decode_ms": 32382.914899999992,
+                  "decode_steps": 127,
+                  "request_ms": 41630.5997,
+                  "prefill_ms": 9128.0892,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 13009.442799999857
+                },
+                {
+                  "decode_tok_s": 3.9582265845854745,
+                  "decode_ms": 32085.075799999984,
+                  "decode_steps": 127,
+                  "request_ms": 41362.7103,
+                  "prefill_ms": 9157.3649,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 12889.356399999837
+                },
+                {
+                  "decode_tok_s": 3.8516290149509755,
+                  "decode_ms": 32973.06139999999,
+                  "decode_steps": 127,
+                  "request_ms": 42344.3129,
+                  "prefill_ms": 9251.46,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 12968.949000000015
+                }
+              ],
+              "median": {
+                "decode_tok_s": 3.9218211329085766,
+                "decode_ms": 32382.914899999992,
+                "decode_steps": 127,
+                "request_ms": 41630.5997,
+                "prefill_ms": 9157.3649,
+                "decode_h2d_gib": 254.28598546981812,
+                "decode_hit_percent": 49.32072983265402,
+                "decode_evictions": 8221,
+                "decode_fill_gib": 21.7406587600708,
+                "decode_delivery_ms": 12968.949000000015
+              },
+              "decode_gain_percent": 0.0,
+              "request_time_reduction_percent": 0.0
+            },
+            "2": {
+              "samples": [
+                {
+                  "decode_tok_s": 4.109567396162663,
+                  "decode_ms": 30903.4961,
+                  "decode_steps": 127,
+                  "request_ms": 39879.8991,
+                  "prefill_ms": 8857.1055,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 14528.2051999998
+                },
+                {
+                  "decode_tok_s": 4.12773976492392,
+                  "decode_ms": 30767.4435,
+                  "decode_steps": 127,
+                  "request_ms": 39736.3903,
+                  "prefill_ms": 8849.4087,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 14567.079299999727
+                },
+                {
+                  "decode_tok_s": 4.004315529671435,
+                  "decode_ms": 31715.782400000007,
+                  "decode_steps": 127,
+                  "request_ms": 40893.2327,
+                  "prefill_ms": 9057.7323,
+                  "decode_h2d_gib": 254.28598546981812,
+                  "decode_hit_percent": 49.32072983265402,
+                  "decode_evictions": 8221,
+                  "decode_fill_gib": 21.7406587600708,
+                  "decode_delivery_ms": 14713.040499999759
+                }
+              ],
+              "median": {
+                "decode_tok_s": 4.109567396162663,
+                "decode_ms": 30903.4961,
+                "decode_steps": 127,
+                "request_ms": 39879.8991,
+                "prefill_ms": 8857.1055,
+                "decode_h2d_gib": 254.28598546981812,
+                "decode_hit_percent": 49.32072983265402,
+                "decode_evictions": 8221,
+                "decode_fill_gib": 21.7406587600708,
+                "decode_delivery_ms": 14567.079299999727
+              },
+              "decode_gain_percent": 4.787221469094538,
+              "request_time_reduction_percent": 4.205321596652367
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

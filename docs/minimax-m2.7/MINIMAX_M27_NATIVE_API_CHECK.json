@@ -1,0 +1,332 @@
+{
+  "scope": "live resident CUDA via real loopback HTTP, token parity (not logits)",
+  "engine_sha256": "f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619",
+  "header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "reference": "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-completion-01\\generation.json",
+  "reference_sha256": "964f9442051bad6e3466a0006916c2ed30b0667f9d309397b0f2879c8b6b4878",
+  "gpu": "NVIDIA GeForce RTX 5090, 581.80, 32607 MiB",
+  "environment": {
+    "GGML_VULKAN_DEVICE": "0",
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32",
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "LLAMA_GRAPH_REUSE_DISABLE": "1",
+    "GGML_OP_OFFLOAD_MIN_BATCH": "1",
+    "STRATA_MM27_QUANT_F32": "1",
+    "STRATA_MM27_TOKENWISE": "0"
+  },
+  "command": [
+    "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-cuda\\bin\\strata-minimax-m2-bench.exe",
+    "--gguf",
+    "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "--pipe",
+    "--ctx",
+    "2048",
+    "--batch",
+    "16",
+    "--mode",
+    "2",
+    "--gpu-cache-mib",
+    "18432",
+    "--gpu-cache-allocator",
+    "arena",
+    "--pipeline-readers",
+    "2",
+    "--pipeline-chunk-mib",
+    "4",
+    "--pipeline-lookahead",
+    "1",
+    "--pipeline-d2d-batch",
+    "1"
+  ],
+  "stage": "MM27-22",
+  "git_head": "54467693c8354d8c64a72ec1cb083473a529b4ba",
+  "dirty": true,
+  "model_ready_for_general_use": false,
+  "unit_methods": 31,
+  "unit_skips": 0,
+  "live_report": "build-local\\minimax-m2-live-api-02\\report.json",
+  "startup_report": "build-local\\minimax-m2-startup-01\\report.json",
+  "live_scenarios": 11,
+  "startup_checks": [
+    {
+      "name": "auth-required",
+      "status": 401,
+      "wall_ms": 15.000000013969839
+    },
+    {
+      "name": "web-assets",
+      "status": 200,
+      "wall_ms": 16.00000006146729
+    },
+    {
+      "name": "prefix-0",
+      "status": 200,
+      "wall_ms": 12937.999999965541
+    },
+    {
+      "name": "unload-0",
+      "status": 200,
+      "wall_ms": 265.00000001396984
+    },
+    {
+      "name": "prefix-1",
+      "status": 200,
+      "wall_ms": 14937.999999965541
+    },
+    {
+      "name": "unload-1",
+      "status": 200,
+      "wall_ms": 281.00000007543713
+    }
+  ],
+  "full_model_logit_comparison": false,
+  "default_sampler_changed": false,
+  "mtp_dflash_enabled": false,
+  "pass": true,
+  "packages": {
+    "jinja2": "3.1.4",
+    "jsonschema": "4.26.0",
+    "referencing": "0.37.0"
+  },
+  "cases": [
+    {
+      "name": "openai-prefix",
+      "pass": true,
+      "wall_ms": 14062.000000034459,
+      "prompt_tokens": 52,
+      "generated_tokens": 8,
+      "stop_reason": "length",
+      "sampling": {
+        "temperature": 0.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 11560.8284,
+      "ttft_ms": 11561.8605,
+      "decode_ms": 2489.0439,
+      "decode_forward_tokens": 7,
+      "decode_tokens_per_second": 2.812324844893254,
+      "request_ms": 14056.4343,
+      "token_ids_sha256": "c63af144649cbbb83cb2429c1b657a21369e732b79cbadf52d14e8a418c217a6",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "anthropic-prefix",
+      "pass": true,
+      "wall_ms": 9234.99999998603,
+      "prompt_tokens": 52,
+      "generated_tokens": 8,
+      "stop_reason": "length",
+      "sampling": {
+        "temperature": 0.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 8342.1131,
+      "ttft_ms": 8342.922,
+      "decode_ms": 869.9198,
+      "decode_forward_tokens": 7,
+      "decode_tokens_per_second": 8.046718789479215,
+      "request_ms": 9218.2148,
+      "token_ids_sha256": "c63af144649cbbb83cb2429c1b657a21369e732b79cbadf52d14e8a418c217a6",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "openai-natural-eos",
+      "pass": true,
+      "wall_ms": 112655.99999995902,
+      "prompt_tokens": 52,
+      "generated_tokens": 414,
+      "stop_reason": "eos",
+      "sampling": {
+        "temperature": 0.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 8493.6924,
+      "ttft_ms": 8494.4868,
+      "decode_ms": 103817.63850000002,
+      "decode_forward_tokens": 413,
+      "decode_tokens_per_second": 3.978129400429388,
+      "request_ms": 112633.3797,
+      "token_ids_sha256": "8b8cad26e5472c7812df7269d339d5f76ebf68e86fe8125f7b5b63c00a0251ea",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "openai-stop",
+      "pass": true,
+      "wall_ms": 13579.000000027008,
+      "native_error": {
+        "event": "error",
+        "message": "MiniMax decode failed: 2 MiniMax request cancelled",
+        "request_id": 4
+      }
+    },
+    {
+      "name": "http-prefill-disconnect-0",
+      "pass": true,
+      "wall_ms": 625.0,
+      "native_error": {
+        "event": "error",
+        "message": "MiniMax decode failed: -3 MiniMax request cancelled",
+        "request_id": 5
+      }
+    },
+    {
+      "name": "http-prefill-disconnect-1",
+      "pass": true,
+      "wall_ms": 577.9999999795109,
+      "native_error": {
+        "event": "error",
+        "message": "MiniMax decode failed: -3 MiniMax request cancelled",
+        "request_id": 6
+      }
+    },
+    {
+      "name": "http-prefill-disconnect-2",
+      "pass": true,
+      "wall_ms": 531.0000000754371,
+      "native_error": {
+        "event": "error",
+        "message": "MiniMax decode failed: -3 MiniMax request cancelled",
+        "request_id": 7
+      }
+    },
+    {
+      "name": "post-cancel-recovery",
+      "pass": true,
+      "wall_ms": 13843.999999924563,
+      "prompt_tokens": 52,
+      "generated_tokens": 8,
+      "stop_reason": "length",
+      "sampling": {
+        "temperature": 0.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 11356.4517,
+      "ttft_ms": 11357.244,
+      "decode_ms": 2476.587,
+      "decode_forward_tokens": 7,
+      "decode_tokens_per_second": 2.8264704611628826,
+      "request_ms": 13839.3396,
+      "token_ids_sha256": "c63af144649cbbb83cb2429c1b657a21369e732b79cbadf52d14e8a418c217a6",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "openai-tool-call",
+      "pass": true,
+      "wall_ms": 55217.99999999348,
+      "prompt_tokens": 220,
+      "generated_tokens": 53,
+      "stop_reason": "eos",
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 38838.1691,
+      "ttft_ms": 38840.189,
+      "decode_ms": 15607.7829,
+      "decode_forward_tokens": 52,
+      "decode_tokens_per_second": 3.331671149782587,
+      "request_ms": 54510.7552,
+      "token_ids_sha256": "d1c3ca30a363782e45746688faf6b57ef95822e1377013ef55c8ee0485a07441",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "openai-tool-answer",
+      "pass": true,
+      "wall_ms": 55734.99999998603,
+      "prompt_tokens": 295,
+      "generated_tokens": 37,
+      "stop_reason": "eos",
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 46079.9456,
+      "ttft_ms": 46081.4911,
+      "decode_ms": 9598.6402,
+      "decode_forward_tokens": 36,
+      "decode_tokens_per_second": 3.750531247123942,
+      "request_ms": 55723.655,
+      "token_ids_sha256": "81c34a5477d7ba88a5c8efaad73bdb15a58a247f5d576f64b3a354a377edbf8f",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "name": "http-reload",
+      "pass": true,
+      "wall_ms": 18500.0,
+      "prompt_tokens": 52,
+      "generated_tokens": 8,
+      "stop_reason": "length",
+      "sampling": {
+        "temperature": 0.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "prefill_ms": 13837.9447,
+      "ttft_ms": 13838.7445,
+      "decode_ms": 2645.4665,
+      "decode_forward_tokens": 7,
+      "decode_tokens_per_second": 2.6460361527919556,
+      "request_ms": 16489.6962,
+      "token_ids_sha256": "c63af144649cbbb83cb2429c1b657a21369e732b79cbadf52d14e8a418c217a6",
+      "checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    }
+  ],
+  "sampled_memory": {
+    "ram_used_peak_bytes": 41359257600,
+    "vram_used_peak_bytes": 28942565376,
+    "ram_total_bytes": 134813700096,
+    "vram_total_bytes": 34190917632,
+    "ram_peak_percent": 30.678823866230456,
+    "vram_peak_percent": 84.64986429294324
+  }
+}

@@ -61,10 +61,10 @@ void strata_mm27_reset() {
     if(mm27_arena)mm27_arena->reset_counters();
     mm27_pipeline_account();
 }
-strata_mm27_stats strata_mm27_snapshot() {mm27_pipeline_account();auto s=mm27_stats;mm27_cache_snapshot(s);return s;}
+strata_mm27_stats strata_mm27_snapshot() {mm27_pipeline_account();auto s=mm27_stats;s.pipeline_pending_copy=mm27_pending_copy;mm27_cache_snapshot(s);return s;}
 void strata_mm27_release() {
     mm27_pipeline_dispose();mm27_pipeline_trace.reset();mm27_pipeline_readers=0;mm27_pipeline_lookahead=false;
-    mm27_pipeline_d2d_batch=false;
+    mm27_pipeline_d2d_batch=false;mm27_pipeline_events=0;
     mm27_ram_cache.reset();
     mm27_cache.reset();mm27_arena.reset();mm27_cache_admit=false;mm27_group_experts=false;mm27_tensors.clear();mm27_bound_model=nullptr;
     if(mm27_staging)cudaFreeHost(mm27_staging);
@@ -265,7 +265,12 @@ static ggml_status mm27_graph_compute(ggml_backend_t backend,ggml_cgraph *graph)
     if(!mm27_live_memory())return GGML_STATUS_FAILED;
     const auto start=mm27_clock::now();
     if(mm27_pipeline_active && mm27_pipeline_trace)mm27_pipeline_trace->record_compute(backend,true);
-    const auto rc=ggml_backend_graph_compute(backend,graph);
+    ggml_status rc;
+    if(mm27_pipeline_events==2 && std::strstr(ggml_backend_name(backend),"CUDA")) {
+        if(std::find(mm27_async_backends.begin(),mm27_async_backends.end(),backend)==mm27_async_backends.end())
+            mm27_async_backends.push_back(backend);
+        ++mm27_stats.async_compute_calls;rc=ggml_backend_graph_compute_async(backend,graph);
+    } else rc=ggml_backend_graph_compute(backend,graph);
     if(mm27_pipeline_active && mm27_pipeline_trace)mm27_pipeline_trace->record_compute(backend,false);
     mm27_stats.compute_ms+=mm27_elapsed(start);
     if(mm27_pipeline_active && mm27_plan_next<mm27_plan.size() && mm27_test_limits.pipeline_compute_failure) {

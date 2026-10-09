@@ -14,6 +14,7 @@ static bool mm27_pipeline_complete() {
     try {
         if(mm27_plan_next!=mm27_plan.size())throw std::runtime_error("incomplete MiniMax matrix plan");
         mm27_pipeline_queue->finish();step35::cuda_check(cudaStreamSynchronize(mm27_pipeline_stream));
+        mm27_pipeline_retire_copy();
         mm27_pipeline_active=false;mm27_plan_fill_pins.clear();mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
         if(mm27_cache)mm27_cache->end_plan();
         mm27_pipeline_account();if(mm27_pipeline_trace)mm27_pipeline_trace->end(false);
@@ -23,7 +24,13 @@ static bool mm27_pipeline_complete() {
 // Every scheduler exit, including callbacks, cancellation and failed compute,
 // drains any abandoned plan before runtime/model ownership can change.
 struct mm27_pipeline_graph_scope {
-    ~mm27_pipeline_graph_scope() {if(mm27_pipeline_active)mm27_pipeline_abort();}
+    ~mm27_pipeline_graph_scope() {
+        // Success and every early scheduler return keep the public synchronous
+        // boundary. No queued kernel may outlive graph/scratch/context storage.
+        for(auto *backend:mm27_async_backends) {ggml_backend_synchronize(backend);++mm27_stats.graph_exit_fences;}
+        mm27_async_backends.clear();
+        if(mm27_pipeline_active)mm27_pipeline_abort();
+    }
 };
 static bool mm27_pipeline_begin(ggml_backend_t backend,std::vector<mm27_plan_tensor> plan) {
     try {
@@ -31,7 +38,7 @@ static bool mm27_pipeline_begin(ggml_backend_t backend,std::vector<mm27_plan_ten
         if(plan.empty() || plan.size()>3)throw std::runtime_error("invalid MiniMax matrix plan size");
         mm27_pipeline_create();
         if(mm27_cancelled() || !mm27_live_memory())return false;
-        ggml_backend_synchronize(backend);
+        if(!mm27_pipeline_events)ggml_backend_synchronize(backend);
         const bool entries=mm27_cache && (mm27_cache_admit || mm27_cache->size());
         std::vector<step35::MatrixKey> keys;std::vector<StrataExpertSlice> misses;
         for(size_t i=0;i<plan.size();++i) {
@@ -94,8 +101,19 @@ static void mm27_pipeline_copy_batch(ggml_backend_t backend,ggml_tensor *dst,con
     const auto id=entries?mm27_tensor_id(src):0;
     const uint64_t base=file->offset_of(src->data,ggml_nbytes(src));
     const size_t stride=src->nb[2];
+    // Retire the previous matrix before eviction/admission. Moving its wait
+    // here lets the CPU submit compute before waiting for the copy to finish.
+    mm27_pipeline_retire_copy();
     // Scratch can alias the previous split's activations, even on all hits.
-    ++mm27_stats.pipeline_scratch_fences;ggml_backend_synchronize(backend);
+    if(mm27_pipeline_events) {
+        if(!std::strstr(ggml_backend_name(backend),"CUDA"))throw std::runtime_error("MiniMax events require CUDA");
+        // The pinned CUDA backend uses cudaEvent_t as ggml event.context.
+        // Each wait captures the preceding record before this pair is reused.
+        ggml_backend_event released{ggml_backend_get_device(backend),mm27_scratch_released};
+        ggml_backend_event_record(&released,backend);
+        step35::cuda_check(cudaStreamWaitEvent(mm27_pipeline_stream,mm27_scratch_released,0));
+        ++mm27_stats.pipeline_scratch_events;
+    } else {++mm27_stats.pipeline_scratch_fences;ggml_backend_synchronize(backend);}
     Pending pending;pending.fills.reserve(256);int queued=0;
     auto check_live=[] {
         if(mm27_cancelled() || !mm27_live_memory())throw std::runtime_error(mm27_error);
@@ -145,17 +163,33 @@ static void mm27_pipeline_copy_batch(ggml_backend_t backend,ggml_tensor *dst,con
             submitted();
         }
     }
-    check_live();++mm27_stats.pipeline_copy_fences;
-    step35::cuda_check(cudaStreamSynchronize(mm27_pipeline_stream));pending.complete=true;
-    for(const auto &item:pending.commits) {
-        mm27_cache->commit(item.first,item.second);
-        if(mm27_ram_cache)mm27_ram_cache->drop_gpu(file,base+size_t(item.first.expert)*stride,item.second);
+    check_live();
+    if(mm27_pipeline_events) {
+        // Prepare metadata before publishing ownership. On allocation failure
+        // the local Pending guard still drains the copy stream before unpinning.
+        std::vector<mm27_pending_commit> commits;commits.reserve(pending.commits.size());
+        for(const auto &item:pending.commits)commits.push_back({item.first,item.second,file,base+size_t(item.first.expert)*stride});
+        step35::cuda_check(cudaEventRecord(mm27_copy_ready,mm27_pipeline_stream));
+        ggml_backend_event ready{ggml_backend_get_device(backend),mm27_copy_ready};
+        ggml_backend_event_wait(backend,&ready);++mm27_stats.pipeline_copy_events;
+        mm27_pending_fills=std::move(pending.fills);mm27_pending_commits=std::move(commits);
+        mm27_pending_copy=true;pending.complete=true;
+    } else {
+        ++mm27_stats.pipeline_copy_fences;step35::cuda_check(cudaStreamSynchronize(mm27_pipeline_stream));pending.complete=true;
+        for(const auto &item:pending.commits) {
+            mm27_cache->commit(item.first,item.second);
+            if(mm27_ram_cache)mm27_ram_cache->drop_gpu(file,base+size_t(item.first.expert)*stride,item.second);
+        }
+        pending.fills.clear();
     }
-    pending.fills.clear();++mm27_stats.pipeline_copy_batches;
+    ++mm27_stats.pipeline_copy_batches;
     // Diagnostics receive completed bytes. They can cancel or inject pressure;
     // future-hit plan pins remain live until the outer drain on every exit.
-    if(mm27_observer)for(const auto &range:ranges) {
-        check_live();mm27_observer(backend,dst,src,range.first,range.second,mm27_owner);
+    if(mm27_observer) {
+        if(mm27_pending_copy) {mm27_pipeline_retire_copy();++mm27_stats.pipeline_observer_fences;}
+        for(const auto &range:ranges) {
+            check_live();mm27_observer(backend,dst,src,range.first,range.second,mm27_owner);
+        }
     }
     check_live();
 }

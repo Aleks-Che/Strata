@@ -1136,7 +1136,11 @@ async function send() {
   let firstAt = null, thinkStart = null, usage = null, frame = 0;
   const paint = () => { frame = 0; updateAssistant(el, m, true); scrollDown(); };
   try {
-    const r = await fetch("v1/chat/completions", {method: "POST", headers: {...headers(true), "X-Strata-Session-Id": chatSessionId}, body: JSON.stringify(body),
+    const chatHeaders = headers(true);
+    // A native adapter can support chat without the engine's session cache.
+    // Older servers omit the capability; retain their existing header behavior.
+    if (health.session_id !== false) chatHeaders["X-Strata-Session-Id"] = chatSessionId;
+    const r = await fetch("v1/chat/completions", {method: "POST", headers: chatHeaders, body: JSON.stringify(body),
                                                    signal: controller.signal});
     if (!r.ok) {
       let msg = `HTTP ${r.status}`;

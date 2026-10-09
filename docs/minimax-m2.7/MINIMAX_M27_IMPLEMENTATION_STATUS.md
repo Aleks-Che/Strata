@@ -70,12 +70,98 @@ Tool corpus создан native template oracle; живой model tool cycle е�
 report checks PASS.32 API prompts /14284 IDs совпали с native oracle.
 Проверены JSON/SSE, ID/results, usage, finish_reason, strict UTF-8 и disconnect/recovery.
 [Контракт и ограничения MM27-21](MINIMAX_M27_API.md).
-Следующий пункт — native Engine JSONL bridge и startup profile, затем live GPU
-tool cycle. Скриптовый движок в API fixtures не заменяет проверку полной модели.
+**MM27-22: native JSONL Engine и отдельный экспериментальный сервер реализованы.**
+31 CPU methods,11 live GPU scenarios и6 standalone startup checks PASS: полный ответ414 IDs совпал с
+эталоном, OpenAI toolcall/result/answer, Anthropic SSE prefix, stop/disconnect,
+повторная отмена и recovery/reload. Исправлен одноразовый SIGBREAK handler MSVC,
+из-за которого вторая отмена завершала CUDA-процесс; исходный FAIL сохранён.
+Полный EN decode **3,978 токена/с**; это транспортная проверка, не speedup A/B.
+[Запуск, измерения и ограничения MM27-22](MINIMAX_M27_NATIVE_API.md).
+**MM27-23: live multi-call/error matrix обоих API и web chat проверены.**
+Четыре JSON/SSE цикла /8 model requests PASS: два calls, typed arguments,
+кириллица, результаты в обратном порядке и ошибка инструмента. Prompt/generated
+IDs совпали между API. Исправлен порядок полей tool definitions; web chat
+не отправляет session header неподдерживающему движку.213 различных CPU методов,
+272 regression checks и32 native prompts /14284 IDs PASS.
+[Живые проверки, browser evidence и ограничения](MINIMAX_M27_LIVE_TOOLS_WEB.md).
+**MM27-24: HTTP context4K/pressure/recovery проверены.**
+17 scenarios и33 CPU methods PASS:8 ранних HTTP400, одинаковые4080/8 ответы
+обоих API, два disconnect под реальной нагрузкой и recovery в том же CUDA PID.
+Все пять32-token controls совпали с прежним эталоном. RAM достигла87,025%,
+VRAM94,479%; кеш освободил128МиБ. Native EXE и defaults не менялись.
+[Проверки, память и ограничения MM27-24](MINIMAX_M27_HTTP_CONTEXT.md).
+**MM27-25: optional resident prefix reuse реализован.**
+16 full-model scenarios PASS:128 IDs и25 608 192 logits побитно совпали с fresh.
+21 live HTTP/lifecycle scenarios,14 430 C++ checks и29 Python methods PASS.
+Повтор512 в одном измерении: prefill51,236→1,579с; полное время8 outputs
+53,060→3,415с. Это повтор prompt, не повышение decode tokens/s.
+Явный session ID, cached usage обоих API, cancel/error/restart invalidation;
+default off. [Контракт, команды и границы MM27-25](MINIMAX_M27_PREFIX_CACHE.md).
+**MM27-26: reuse2K/4K, EOS и pressure проверены.**
+11 native requests /6 сравнений:567 IDs и113 436 288 logits побитно,
+включая EOS414, sampling128 и один output.11 live pressure scenarios
+(9 HTTP ответов /72 IDs) и6 CPU methods PASS. RAM86,604%/VRAM94,425%,
+trim128МиБ, cancel/fresh/reuse recovery в том же native PID. Runtime и pin
+не менялись. Повтор4K: prefill304,798→2,042с в одном offline измерении.
+[Контракт, timings и границы MM27-26](MINIMAX_M27_PREFIX_CONTEXT.md).
+**MM27-27: bounded RAM snapshot/restore нескольких сессий реализован.**
+27 сравнений /188 IDs /37 612 032 logits побитно,14 live HTTP/lifecycle
+scenarios,531 archive checks и54 Python methods PASS. LRU/byte/count caps,
+cancel/error isolation, anonymous/return и restart проверены. Возврат512
+в одном проходе: полное время55,864→6,960с с учётом save/restore.
+Default archive cap0. [Контракт и границы MM27-27](MINIMAX_M27_SESSION_ARCHIVE.md).
+**MM27-28: архив2K/4K/EOS/sampling и real pressure проверены.**
+14 offline requests /1150 IDs /230 073 600 logits совпали с прежним reference;
+шесть fresh/restore сравнений /567 IDs /113 436 288 logits побитно.
+19 live scenarios /662 полных HTTP IDs и14 CPU methods PASS.
+RAM94,191%/VRAM94,430%: отказ сохранить4K, защищённый restore2K,
+eviction, trim128МиБ и обе отмены/recovery прошли. Engine EXE/defaults прежние.
+[Измерения и границы MM27-28](MINIMAX_M27_SESSION_CONTEXT.md).
+**MM27-29: пакетное копирование KV реализовано и проверено.**
+Scratch до16МиБ, прежний формат snapshot;1200 CPU cases/12 CUDA checks,
+192 full-model IDs /38 412 288 logits побитно,10 HTTP/lifecycle scenarios PASS.
+Три тёплых переключения на target: полное время2K **7,941→5,277с**,
+4K **8,024→3,608с**; transfer4K **4,842→0,551с**. Это session latency,
+не подтверждение роста decode tokens/s. Новый admission EXE `98e85e80…`.
+[Измерения, hashes и ограничения](MINIMAX_M27_STATE_BULK.md).
+**MM27-30: bulk EXE проверен на полном корпусе и real pressure.**
+14 offline requests /1150 IDs /230 073 600 logits побитно совпали с эталоном;
+19 live scenarios /662 полных HTTP IDs и18 CPU methods PASS.
+RAM94,197%/VRAM94,403%, trim64МиБ, отказ сохранить4K с защищённым restore2K,
+обе отмены/recovery прошли. Независимый observer записал2093 отсчёта;
+все измерения в пределах95%. EXE/defaults не менялись.
+[Измерения, hashes и ограничения](MINIMAX_M27_STATE_BULK_PRESSURE.md).
+**MM27-31: границы prefix/archive при GPU batch1/8 проверены.**
+Context1024, prompts1/8…513: по25 session-сценариев на batch, всего568 IDs /
+113 636 352 logits побитно совпали с fresh при том же batch. Ветвление,
+укорочение, single-output и seeded sampling64, восемь RAM restores на batch PASS.
+14 CPU methods и59 итоговых условий PASS. Runtime/defaults прежние.
+[Корпус, измерения и ограничения](MINIMAX_M27_SESSION_BATCHES.md).
+**MM27-32: проверен перенос настройки frequency decay из GLM.**
+Периоды65536/131072/262144: медианы **4,120/4,171/4,183 токена/с** в трёх
+процессах на вариант. На новой теме длинные периоды медленнее на2,79/6,87%;
+default65536 сохранён.4608 IDs /921894912 logits побитно,19 history checks,
+216 cache regression checks и285 итоговых gates PASS. Новый native flag
+`--cache-decay-period` доступен в отдельном candidate EXE36fbac11…;
+сервер использует прежний98e85e80…. [Результаты и границы](MINIMAX_M27_CACHE_DECAY.md).
+**MM27-33: CUDA matrix events и async split compute реализованы и измерены.**
+Native `--pipeline-events 2`: медиана трёх пар **4,086→4,266 токена/с
+(+4,40%)**, полное время четырёх запросов164,030→157,808с. Все три пары
+быстрее на4,07–4,40%; cache decisions прежние. Режим1 с одним переносом
+ожиданий на events не ускорил screen.4608 IDs /921894912 logits побитно,
+1256 CUDA fixture checks,6 CPU methods,8 CLI cases и357 evidence gates PASS.
+Candidate EXE13a885cc… сохранён отдельно; native default0/server98e85e80…
+сохранены до long-context и live pressure/cancel проверки нового EXE.
+[Реализация, измерения и ограничения](MINIMAX_M27_COPY_EVENTS.md).
+Следующий кандидат P3 — повторное использование host router IDs в strict F32
+CUDA path: сейчас он читает их снова после scheduler. Выигрыш ещё не измерен.
+В P4 остаются GPU batch1/8 на2K/4K с fresh при том же batch и shift;
+installer по-прежнему требует quality/model-oracle gates.
 Экспериментальный набор **18 ГиБ /2 readers /chunk4 МиБ** сохранён.
 Проверенные флаги: `--gpu-cache-mib 18432 --gpu-cache-allocator arena --pipeline-readers 2 --pipeline-chunk-mib 4 --pipeline-lookahead 1 --pipeline-d2d-batch 1`.
-Defaults: GPU cache0, RAM cache0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0.
-Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочий профиль ещё не готовы.
+Defaults: GPU cache0, RAM expert cache0, session archive0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0, prefix cache off.
+Strict F32 activations/KV; FA/graphs/MTP off. Есть изолированный API entry point;
+общий installer и утверждённый P6 профиль ещё не готовы.
 **OPEN:** причина старого MM27-06 tiny native-after-cache reload расхождения
 не установлена. Новые PASS не закрывают его причину.
 
@@ -92,14 +178,14 @@ Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочи�
 | Header/ranges | PASS постоянного inspector/contract, все809 tensors |
 | Candidate dependency | Unsloth `86ebfef2`; отдельные CPU/CUDA builds, source/patch hashes сохранены |
 | MTP / DFlash | Native MTP weights отсутствуют; DFlash offline greedy/corpus parity PASS, Q3/Q4/Q5 depth screen и повторные timings измерены; serving off |
-| Tokenizer/template/API | PASS: tokenizer/template/history/parser; MM27-21 JSON/SSE adapters, scripted HTTP cycle и native tokenizer replay; native API Engine/live tools TODO |
+| Tokenizer/template/API | MM27-23/24: native Engine/entry point, live multi-call/error JSON/SSE, web chat и HTTP4K/pressure/recovery PASS; широкий tools/quality corpus и server-side MCP не проверены |
 | CUDA kernels / tiny graph | PASS:83 kernel cases в обоих режимах;217 graph cases с F32 активациями |
 | Fast quant graph | 208/217 PASS;9 logit FAIL, greedy fixture совпал; runtime default не утверждён |
-| Engine/cache/pipeline/sessions | Optional GPU cache/groups и RAM view LRU с GPU partition; file pipeline с lookahead/D2D batch; RAM64 short speed хуже off; API/session reuse TODO |
+| Engine/cache/pipeline/sessions | Optional GPU cache/groups и RAM view LRU с GPU partition; file pipeline с lookahead/D2D batch; RAM64 short speed хуже off; prefix/RAM snapshots и bulk KV transfer2K/4K PASS. Pressure94%/admission/cancel на bulk EXE прошли MM27-30; batch1/8 до513 tokens — MM27-31. Batch1/8 на2K/4K и shift ещё TODO |
 | Reload validation | MM27-11: 55 stress и 18 tiny lifecycle checks PASS; старый native discrepancy остаётся OPEN |
 | Скорость, токенов/с | P5.DF-03, медиана workload64: off/cap18 3.550; DFlash Q4/depth1 3.675, depth2 3.497; три повтора, устойчивый speedup не подтверждён |
 | Рекомендуемые defaults | Для correctness: strict F32, FA/graphs/MTP off, context512/batch8; быстрый профиль не выбран |
-| Следующая задача | P2.6 native Engine JSONL bridge и startup profile, затем live GPU API/tools/web chat; answer quality/model oracle остаются gates P6 |
+| Следующая задача | P3: проверить MM27-33 mode2 на long context/live pressure/cancel перед serving; исследовать повторное чтение router IDs в strict F32. Frequency decay default65536 сохранён. P4: batch1/8 prefix/archive на2K/4K и shift; sparse snapshots требуют отдельного A/B. Installer, answer quality/model oracle остаются gates P6 |
 
 В PREP-01 созданы только план и статус в `docs/minimax-m2.7`.
 Код, действующие профили и GGUF не изменялись. Существующая работа
@@ -160,11 +246,14 @@ Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочи�
   базовой модели не заменяет проверку локального файла. MM27-18b проверил optional
   sampling на фиксированном корпусе: natural EOS PASS, ручной answer-quality FAIL
   английского final. Причина фактической ошибки не установлена; default greedy.
-- Live GPU API/tools и no-thinking профиль. MM27-19 проверил canonical history;
+- Широкий live tools/quality corpus и no-thinking профиль. MM27-19 проверил canonical history;
   MM27-20 — generated-tool parser. MM27-21 проверил оба HTTP API и ID/results
   через scripted engine, включая native tokenizer и сохранённые outputs.
-  Native Engine к Service ещё не подключён; генерация calls самой моделью,
-  её cancel/drain через API, server-side MCP и web chat не проверены.
+  MM27-22 подключил native Engine к Service, проверил один настоящий OpenAI
+  tool cycle, Anthropic SSE prefix и repeated cancel/drain/reload через API.
+  MM27-23 добавил четыре live multi-call/error цикла обоих API и web chat.
+  Это одна инструментальная задача и короткий текстовый диалог, не широкий
+  quality corpus. Server-side MCP и no-thinking ещё не проверены.
 - Причина двух tiny long-context native-after-cache reload расхождений MM27-06.
   Поздние PASS с диагностическим replay не доказывают устранение причины.
   Full-model cache-on pressure/cancel/unload и context2K/4K прошли в MM27-06;
@@ -184,16 +273,22 @@ Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочи�
 | PREP-01 | DONE | Исследование и документация сохранены |
 | P0 — contract/oracles | DONE для F32 activation baseline; fast-quant logit issue открыт | Inspector, полный contract, изолированная сборка и CUDA fixtures |
 | P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload; MM27-18b sampled RU/EN/ZH EOS PASS, ручной answer-quality FAIL | Greedy repetition, independent oracle, quality/SSD measurements остаются |
-| P2 — tokenizer/template/API | PARTIAL: tokenizer/template/history/parser и оба API со scripted engine PASS | Native Engine/startup profile, live GPU tool cycle и web chat |
-| P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, expert groups и RAM view LRU/partition проверены; RAM64 short speed хуже off; tiny reload OPEN | Нужны полезный RAM speedup, законченные длинные ответы, residency/SSD measurements |
-| P4 — sessions/context | TODO | Fresh/restore/shift/cancel parity |
+| P2 — tokenizer/template/API | PARTIAL: adapters, native Engine/entry point, live multi-call/error JSON/SSE, web chat и HTTP4K/pressure/recovery PASS | Более широкий tools/quality corpus; server-side MCP вне scope |
+| P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, groups и RAM LRU/partition; MM27-33 matrix events/async splits +4,40% в трёх коротких A/B; RAM64 short speed хуже off; tiny reload OPEN | Новый mode2 ещё требует long context/live pressure/cancel; полезный RAM speedup, законченные длинные ответы, residency/SSD measurements |
+| P4 — sessions/context | PARTIAL: prefix и bounded RAM snapshot/restore до4080 /ctx4K/batch16, EOS414/sampling128/single-output exact logits; bulk copies и HTTP94% pressure/admission/cancel/recovery PASS. GPU batch1/8 до513 /ctx1024 с full logits PASS, MM27-31 | Shift, GPU batch1/8 на2K/4K, context>4K; sparse-copy A/B отдельно |
 | P5 — MTP / DFlash | Native MTP ждёт weights/backend; DFlash OFFLINE_GREEDY_AND_CORPUS_PASS, timings измерены | Live GPU EOS/cancel/pressure/recovery, context/sessions и полезный speedup |
-| P6 — profile/regressions | TODO | Измеренные defaults и отдельный рабочий профиль |
+| P6 — profile/regressions | PARTIAL: изолированный experimental entry point MM27-22 | Installer, quality/oracle gates и утверждённые defaults |
 
 Отсутствие P5 не блокирует P0–P4/P6. `DONE` относится только к указанной
 части; чтение header и найденный upstream loader не означают working inference.
 
-## Точка продолжения: P2, качество ответов и оставшиеся DFlash lifecycle gates
+## Точка продолжения: P3/P4, качество ответов и оставшиеся DFlash lifecycle gates
+
+MM27-33 завершил short A/B CUDA matrix events/async splits. Перед переносом
+mode2 в server admission проверить full-model2K/4K, prefix/archive и реальные
+pressure/cancel/recovery на candidate13a885cc…. Отдельная следующая оптимизация:
+reuse уже прочитанных scheduler router IDs внутри strict F32 CUDA dispatch
+с проверкой identity/lifetime и полных logits. Частотный default65536 прежний.
 
 1. P5.DF-03a выполнен для offline greedy и короткого корпуса. DFlash оставлен
    off; перед serving нужны live GPU EOS/cancel/pressure/recovery, длинный
@@ -219,16 +314,404 @@ Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочи�
    typed calls, ID/result correlation и порядок results, native prompt/ID parity.
    MM27-20 проверил standalone P2.4 tools parser, native fixtures и byte replay.
    MM27-21 проверил API adapters, real loopback JSON/SSE и scripted tool cycle.
-   Следующий шаг — P2.6 resident Engine поверх `strata-minimax-m2-bench --pipe`:
-   ready/token/result/error, sampling, EOS/cancel drain и restart, затем startup
-   profile и live GPU API/tools/web chat. Добавить capability/install jsonschema.
-   Default sampler greedy; RAM cache и grouping выключены. Sessions ещё TODO.
+   MM27-22 реализовал resident JSONL Engine, startup entry point и dependency
+   preflight. Live EOS, repeated cancel/recovery, один OpenAI tool cycle и
+   Anthropic SSE prefix PASS. MM27-23 проверил live tools JSON/SSE обоих API,
+   multi-call/error corpus и web chat; исправлены tool-definition order и web
+   session header. MM27-24 проверил HTTP4080/8 boundary, ранние overflow400,
+   реальную RAM/VRAM pressure, два disconnect и точный следующий ответ в том же
+   процессе. MM27-25 реализовал P4 resident prefix reuse: явная session identity,
+   фактически вычисленные KV positions, short fresh token/logit parity, isolation
+   и cancel/error/restart invalidation. MM27-26 проверил reuse2032/4080
+   /ctx4K/batch16, EOS414, sampling128 и single-output exact logits, live pressure
+   обоих API, trim и cancel/fresh/reuse recovery. MM27-27 добавил bounded
+   RAM snapshot/restore: short full-logit parity, LRU/caps и HTTP lifecycle.
+   MM27-28 проверил archive2K/4K/EOS/sampling и реальное RAM94,191%/VRAM94,430%
+   давление, защищённый restore при отказе admission и repeated cancel/recovery.
+   MM27-29 добавил bounded bulk IO: state bytes на CUDA fixture и полные logits
+   на2K/4K совпали, три тёплых повтора и HTTP lifecycle прошли. MM27-30 повторил
+   полный offline corpus и real pressure/admission/cancel на bulk EXE:
+   RAM94,197%/VRAM94,403%,19 scenarios PASS. MM27-31 проверил GPU batch1/8
+   до513 tokens при context1024: по25 session cases, single-output/sampling64
+   и full-logit fresh parity. Следующий шаг — GPU batch1/8 prefix/archive
+   на2K/4K относительно fresh с тем же batch, затем shift. Installer
+   registration требует выполнения quality/model-oracle gates.
+   Default sampler greedy; RAM cache, grouping и prefix cache выключены.
    Cache/pipeline off уже воспроизвёл1024 IDs/logits побитно; повторять этот
    контроль без изменения реализации или корпуса не требуется.
 5. Старый MM27-06 discrepancy OPEN: при повторении сохранить EXE/logits и
    трассировать первый расходящийся node. Native MTP требует отсутствующих local weights.
 
 ## Подтверждённый журнал
+
+### MM27-33 / часть P3.2 — 2026-10-09 — CUDA matrix events и async split compute
+
+Перенесена идея matrix-level event dependencies из GLM. Флаг
+`--pipeline-events 0|1|2`: прежние fences /events /events+async split API.
+Scratch защищён backend→delivery event, compute ждёт delivery→backend event;
+pending fills закреплены до retirement перед cache decisions следующей матрицы.
+Public graph boundary синхронизирует CUDA backend на успехе, ошибке и отмене.
+Shared transport и математика не изменены; strict F32 internal waits остаются.
+
+Strata HEAD54467693… с прежними staged/unstaged changes, dependency86ebfef2…;
+candidate SHA `13a885cc75352bb39cc4231174da3d9f03705d5f9c150117935d6f05ea9d2401`.
+Основные изменения: `pipeline_state.inc`, `pipeline_runtime.inc`,
+`sync_runtime.*`, `RuntimePatches.cmake`, `main.cpp`, `check_cache.cpp`.
+Build manifest/source snapshots и команды сохранены в
+[отчёте](MINIMAX_M27_COPY_EVENTS.md); build и tests exit0.
+
+RTX5090/RAM128GB, target Q4_K_M, ctx2048/batch16/F32, cache18ГиБ/arena64,
+decay65536, readers2/chunk4/lookahead/D2D; RAM/groups/prefix/MTP off.
+Screen0/1/2:4,046/4,046/4,234 токена/с. Отдельные три пары0↔2:
+**4,086→4,266 токена/с (+4,40%)**, request164,030→157,808с (−3,79%).
+Каждая пара быстрее на4,07–4,40%; все четыре сценария A,A,B,A быстрее
+в медианах на3,78–4,79%. H2D/cache decisions во всех вариантах одинаковы.
+
+Всего36 requests/4608 IDs/921894912 logits побитно совпали с old EXE98e85e80….
+1256 CUDA fixture checks включают ошибки, pending fills, observer-free
+cancel/pressure, группы, RAM LRU, no-lookahead и recovery/reload/unload.
+6 CPU methods,8 CLI cases и357 итоговых gates PASS.2917 memory samples:
+RAM≤23,710%,VRAM≤85,085%; это не реальное давление около95%.
+[Машинные проверки](MINIMAX_M27_COPY_EVENTS_CHECK.json).
+
+Native default0 и admitted server EXE98e85e80… сохранены. Short A/B принят
+как ускорение в этом корпусе; full-model long context/pressure/cancel и
+prefix/archive на candidate ещё TODO. `compute_ms` режима2 отражает CPU
+submission, не GPU wall time. Следующий кандидат — убрать повторное чтение
+router IDs в strict F32 без изменения арифметики; speedup не измерен.
+
+### MM27-32 / часть P3 — 2026-10-09 — Frequency decay
+
+Добавлен native `--cache-decay-period N`,1..4294967295, default65536;
+параметр передаётся в конструктор cache, отражается в JSON header.
+Общий алгоритм history и defaults других backends прежние.
+Candidate EXE `36fbac1185a69a31b627eb818feb9f4193741937d42c391bcb44ebd64b4d9efa`
+сохранён отдельно; admitted server EXE98e85e80… не заменён.
+
+RTX5090/RAM128GB, target Q4_K_M, ctx2048/batch16/F32, cache18ГиБ,
+arena64/reserve0/file/readers2/chunk4/lookahead/D2D; RAM/groups/prefix/MTP off.
+Один старый EXE для numerical control, затем9 candidate процессов в трёх
+латинских порядках. Каждый: A, повтор A, новая тема B, возврат A, по128 tokens.
+40 requests/5120 outputs; все4608 candidate IDs и921894912 logits побитно.
+Все три65536 процесса повторили cache decisions старого EXE.
+
+Медианы65536/131072/262144: **4,120/4,171/4,183 токена/с**,
+полное время корпуса **163,804/161,512/160,484с**.
+H2D **984,085/987,351/988,071ГиБ**, вытеснения40711/22633/17602.
+На возврате A длинные периоды быстрее на7,08/12,81%, но новая тема медленнее
+на2,79/6,87%. Малый агрегатный выигрыш не оправдывает общий default:
+корпус содержит три A и один B. **Default65536 сохранён.**
+
+19 history/admission checks,10 CLI boundaries,5 CPU methods,216 cache regression
+checks и285 итоговых gates PASS.3249 независимых samples: RAM≤23,608%,
+VRAM≤85,654%; реального давления около95% здесь не было. Процессы завершены.
+Следующий кандидат — CUDA events с отдельным lifetime/cancel/pressure A/B.
+Открытые P4/quality/MM27-06 gates этот эксперимент не закрывает.
+[Полный отчёт](MINIMAX_M27_CACHE_DECAY.md),
+[машинные проверки](MINIMAX_M27_CACHE_DECAY_CHECK.json).
+
+### MM27-31 / часть P4 — 2026-10-09 — Границы GPU batch1/8
+
+Ревизия `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree.
+Добавлены отдельный corpus runner, четыре CPU methods и итоговый validator.
+Native EXE `98e85e80…`, target/dependency и defaults прежние, bulk1/tokenwise0.
+Context1024, F32, cache18ГиБ, file/readers2/chunk4/lookahead/D2D.
+На batch: один fresh-процесс с prefix/archive off, затем session-процесс с
+archive768МиБ/4 записи; процессы выполнялись последовательно.
+
+68 native requests /810 output tokens.50 session-сценариев /568 IDs /
+113 636 352 logits побитно совпали с fresh при том же batch, NaN/Inf нет.
+Проверены prompt ровно из одного пакета, repeat/branch/shorten/extend,
+anonymous/return, RAM restore,512→513, single-output и sampling64/seed42.
+При repeat512 reused511 для batch1 и504 для batch8; extend512→513 reused512.
+По восемь RAM restores на batch; все accounting/caps/IO-time/GPU checks PASS.
+
+Глобальные sampled peaks: batch1 RAM24,063%/VRAM88,959%,
+batch8 RAM23,507%/VRAM87,301%; pressure holder не запускался.
+14 CPU methods;59 итоговых условий /166 source checks /194 artifact hashes PASS.
+Четыре native-процесса завершены, независимые memory observers закрыты.
+Полное время8 outputs при prompt512, одна наблюдаемая тройка на batch:
+batch1 fresh159,425с /resident1,950с /RAM restore3,824с;
+batch8 fresh88,182с /resident3,029с /RAM restore5,582с.
+Это не repeated speed A/B и не основание менять defaults.
+
+[MM27-31: команды и scope](MINIMAX_M27_SESSION_BATCHES.md),
+[SESSION_BATCHES_CHECK](MINIMAX_M27_SESSION_BATCHES_CHECK.json).
+Следующий пункт — batch1/8 на2K/4K; shift, context>4K, широкий quality/model
+oracle и MM27-06 reload discrepancy остаются OPEN. EOS и HTTP pressure этого
+этапа не проверялись: предыдущие длинные проверки относятся к batch16.
+
+### MM27-30 / часть P4 — 2026-10-09 — Bulk KV при реальном давлении памяти
+
+Ревизия `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree.
+EXE `98e85e80…`, holder `50cf15e7…`, target/header/template/dependency прежние;
+`STRATA_MM27_STATE_BULK=1`, context4096/batch16, F32, cache18ГиБ,
+file/readers2/chunk4/lookahead/D2D, archive6144МиБ/4 записи.
+Изменён диагностический код: независимый Windows/NVML observer RAM/commit/VRAM,
+ошибки и95% guard, join/закрытие до hashes, environment/stage evidence и validator.
+Новых runtime optimizations или defaults на этом этапе нет.
+
+14 offline requests /1150 IDs /230 073 600 logits совпали с MM27-26;
+6 fresh/restore сравнений /567 IDs /113 436 288 logits побитно.
+EOS414, sampling128/seed42, one-output PASS.19 live scenarios /662 полных IDs
+PASS в одном native PID; pressure проверяет IDs, не полные logits.
+Пики по записанным отсчётам RAM94,196664%/VRAM94,403402%, все≤95%.
+Отдельный observer:2093 отсчёта, максимум RAM94,140979%/VRAM94,403402%.
+Holder private11,65625ГиБ и GPU1184МиБ; FREE обнулил выделения.
+Arena trim64МиБ. Отказ сохранить4K по свободной физической RAM, eviction
+и protected restore2K (1 035 642 236байт) прошли; commit и archive caps достаточны.
+HTTP disconnect до первого output:1,644с, decode cancel3,519мс без лишних client tokens;
+другая сессия сохранна, fresh2K recovery совпал, процессы завершены.
+
+18 CPU methods;100 итоговых условий,160 source checks/211 artifact hashes PASS.
+Один pressure pass, не повторный speed A/B. Команды и scope:
+[MM27-30](MINIMAX_M27_STATE_BULK_PRESSURE.md),
+[STATE_BULK_PRESSURE_CHECK](MINIMAX_M27_STATE_BULK_PRESSURE_CHECK.json).
+Следующий шаг — GPU batch1/8 prefix/archive parity, затем shift.
+Context>4K, широкий quality/model oracle и MM27-06 discrepancy остаются OPEN.
+
+### MM27-29 / часть P4 — 2026-10-09 — Пакетные host KV copies
+
+Ревизия `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree.
+Private generated `llama-context.cpp`, source SHA pin и два точных anchors;
+`state_bulk.hpp`, CUDA/CPU fixture, A/B/HTTP checkers и итоговый validator.
+Исходный dependency и формат snapshots не изменены. Scratch16МиБ, gaps
+сохраняются read-modify-write, при плотности ниже25% остаётся legacy path.
+Default bulk on, диагностическое `STRATA_MM27_STATE_BULK=0`; archive cap0.
+
+1200 CPU cases/12 CUDA checks,21 подтверждённая bulk group; state5 901 216байт
+и continuation logits побитно. На полной модели24 запроса /192 IDs /
+38 412 288 logits совпали с MM27-28, NaN/Inf нет. Два последовательных
+процесса, по три тёплых переключения на каждый target, одинаковая cold setup:
+2K request7,941→5,277с (1,51×),4K8,024→3,608с (2,22×),
+short6,807→4,281с (1,59×). Transfer4K4,842→0,551с (8,79×).
+Короткий decode по7 шагов не является устойчивым throughput benchmark.
+
+10 live scenarios /312 полных HTTP IDs и2 cancelled IDs PASS:
+оба API JSON/SSE, restore, cancel/isolation/fresh recovery, restart.
+25 Python methods и отдельный пересекающийся набор14 methods PASS.
+Build/fixture/A/B/live/unit exit0; итоговый validator159 source/29 artifact
+hash checks PASS. Новый admission EXE `98e85e80…`; старый `275e89f8…`
+сохранён до сборки. Точные команды, hashes и ограничения:
+[MM27-29](MINIMAX_M27_STATE_BULK.md),
+[STATE_BULK_CHECK](MINIMAX_M27_STATE_BULK_CHECK.json).
+
+Следующий шаг — real RAM/VRAM94% pressure, отказ admission, protected restore
+и обе отмены на новом EXE. MM27-28 pressure PASS относится к старому EXE.
+GPU batch1/8, shift, широкий quality corpus и MM27-06 остаются открытыми.
+
+### MM27-28 / часть P4 — 2026-10-09 — Archive2K/4K, EOS, sampling и pressure
+
+Ревизия `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree,
+прежние target/header/template/dependency86ebfef2 и native EXE `275e89f8…`.
+Добавлены offline/live checkers, три новых CPU methods, независимый memory
+observer и финальный validator. Только диагностический holder получил
+bounded private RAM topup до94,2%; до16ГиБ chunks32МиБ, guard95%.
+Native arithmetic, session runtime, admission pin и defaults не менялись.
+
+**PASS, exit0:**14 CPU methods,14 native requests /1150 tokens и все
+230 073 600 logits с MM27-26 reference; шесть дополнительных fresh/restore
+сравнений /567 IDs /113 436 288 logits побитно. EOS414, seed42 sampling128,
+один output, snapshot987,665/1979,689МиБ проверены. Повтор4K request
+306,510→7,185с в одном corpus; это latency, не decode speedup/три A/B.
+
+**19 live scenarios PASS:**17 ответов /662 IDs, оба API JSON/SSE, EOS414 и
+sampling128 после restore под нагрузкой; RAM94,191%/VRAM94,430%,771 samples
+оба выше85%, expert arena trim128МиБ. При недостатке physical RAM уходящий
+snapshot4K не сохраняется, старая запись вытесняется, запрошенная2K восстанавливается.
+Cap6ГиБ/4 slots и доступного commit хватало. Prefill/restore disconnect
+3051,781мс /0 outputs; decode cancel3,187мс /0 лишних клиентских tokens;
+другая сессия сохранна, отменённая2K прошла fresh recovery в том же PID.
+
+Full pressure logits не экспортировались. GPU batch1/8, shift/context>4K,
+другие KV types и широкое качество остаются TODO. Старые OPEN gates не закрыты.
+Артефакты: `build-local/minimax-m2-sessions-context-01`,
+`build-local/minimax-m2-sessions-pressure-01`; holder baseline сохранён отдельно.
+Команды, hashes и scope: [MM27-28](MINIMAX_M27_SESSION_CONTEXT.md),
+[SESSION_CONTEXT_CHECK](MINIMAX_M27_SESSION_CONTEXT_CHECK.json).
+Следующий шаг — пакетные V copies с bounded scratch, bit-exact state/logits,
+затем три A/B полной задержки переключения с учётом transfer.
+
+### MM27-27 / часть P4 — 2026-10-09 — RAM snapshots нескольких сессий
+
+Ревизия `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree,
+dependency86ebfef2, прежние target/header/template. Перед сборкой сохранены
+старый EXE/source/manifest; индекс Git не изменялся.
+Добавлены `sessions.hpp`, `session_runtime.hpp`, CPU checker,
+native/server flags `session-cache-mib`/`session-cache-slots`, protocol counters,
+offline/live audit tools. Архив принадлежит одному model/context; disk import
+нет. Default cap0; kernels/sampler/expert pipeline не менялись.
+
+**PASS, exit0:**531 archive и14 430 prefix C++ checks,54 Python methods,
+31 native requests /27 full-logit comparisons,14 HTTP/lifecycle scenarios.
+188 сравниваемых IDs /37 612 032 logits побитно; оба API и cached usage,
+LRU, недостаточный cap, branch/shortening, anonymous/return, cancel/error
+isolation и restart проверены. Ещё6 CLI invalid-limit cases вернули ожидаемый
+exit2 до загрузки. Первая сборка FAIL из-за missing windows.h исправлена;
+первоначальный лог сохранён. GPU correctness FAIL не было.
+
+Одна пара512: request55,864→6,960с, restored prefill1,606с,
+save/restore/trim3,516с. Это latency reuse, не decode speedup и не3-repeat A/B.
+Sampled global RAM22,718%, VRAM84,579%; реального pressure в этапе нет.
+Новый EXE `275e89f8…` допущен после offline checks и проверен обычным Engine.
+
+Артефакты: `build-local/minimax-m2-session-baseline`,
+`build-local/minimax-m2-sessions-01`, `build-local/minimax-m2-sessions-http-01`;
+полные команды, hashes и ограничения в
+[MM27-27](MINIMAX_M27_SESSION_ARCHIVE.md) и
+[SESSION_ARCHIVE_CHECK](MINIMAX_M27_SESSION_ARCHIVE_CHECK.json).
+Следующий шаг — archive2K/4K/EOS/sampling и eviction/cancel под real pressure.
+Оптимизация мелких KV copies, shift, GPU batch1/8 и P6 quality/oracle отдельно.
+
+### MM27-26 / часть P4 — 2026-10-09 — Длинный prefix, EOS и pressure
+
+Добавлены full-logit context checker, live pressure checker и6 CPU методов
+для ограниченного по памяти сравнения logits/one-output accounting.
+Native EXE `294ce711…`, CUDA arithmetic, weights и defaults не менялись.
+
+**PASS:**11 native requests,6 сравнений /567 IDs /113 436 288 logits побитно.
+2032/4080 prompt tokens при context4096/batch16, продолжение2K→4K, EOS414,
+T1/top_p0,95/top_k40/seed42 с budget128, один output с нулевым decode graph.
+Первый EOS414 также побитно совпал с историческим английским эталоном MM27-18.
+6 CPU methods PASS; initial mock-test FAIL исправлен и сохранён, GPU FAIL нет.
+
+11 live scenarios /9 HTTP ответов /72 IDs совпали с offline fresh reference:
+OpenAI/Anthropic JSON/SSE cached usage, два repeated4K под pressure,
+trim128МиБ (arena16384→16256МиБ), HTTP disconnect с3936 reusable positions,
+полный4K recovery/repeat, native cancel после первого output, short recovery
+и FREE. Native PID19336 не перезапускался; все owned процессы завершены.
+Пики RAM108,736ГиБ /86,604%, VRAM30,068ГиБ /94,425%;17 monitor samples
+одновременно выше85%. Pressure проверяет IDs, не full logits.
+
+Один offline corpus: prefill2K221,605→2,096с;4K304,798→2,042с.
+Live4K repeat под pressure:2,653/1,850с, после cancel full prefill341,153с,
+следующий repeat1,900с. Это latency общего prompt, не рост decode tokens/s.
+Во время cancel runtime очищает expert cache; GPU usage в fresh recovery
+падает, затем arena растёт. Пик94,425% не описывает постоянную загрузку.
+
+Артефакты: `build-local/minimax-m2-prefix-context-01`,
+`build-local/minimax-m2-prefix-pressure-01`; команды и полный scope:
+[MM27-26](MINIMAX_M27_PREFIX_CONTEXT.md),
+[26 gates /318 hash checks](MINIMAX_M27_PREFIX_CONTEXT_CHECK.json).
+Следующий шаг — bounded snapshot/restore нескольких сессий; shift и GPU
+batch1/8 отдельно. Quality/model oracle, MM27-06 и DFlash serving остаются OPEN.
+
+### MM27-25 / часть P4 — 2026-10-09 — Resident KV prefix reuse
+
+Добавлены `prefix.hpp`, CPU policy fixture, native `--prefix-cache 1`,
+серверный `--prefix-cache` и проверяемые reused/evaluated/KV counters.
+Одна именованная сессия; совпадение полных prefill-пакетов, последний пакет
+считается заново. Decode tail не объявляется готовым batched prefill.
+Native ошибка/отмена, anonymous/ID switch и restart инвалидируют кеш.
+
+**PASS:**14 430 policy checks,29 Python methods,16 full-model cases
+(16–513 prompt tokens;128 IDs /25 608 192 logits) и21 live scenarios
+(17 HTTP ответов /136 IDs, две отмены, already-cancelled, malformed key).
+Новый fresh побитно совпал со старым EXE на16 IDs /3 201 024 logits.
+После restart новый native PID начал с reused0; owned процессы завершены.
+Native GPU-only/bytes/drain/global95% gates PASS; RAM max36,036ГиБ /28,701%,
+VRAM27,170ГиБ /85,324%. External pressure здесь не создавался.
+
+Один corpus fresh/reuse: prompt52 prefill8,235→0,689с, prompt512
+51,236→1,579с. Request512/8:53,060→3,415с. Повторов A/B нет; это latency
+общего prompt, не заявка на рост decode tokens/s. Default off сохранён.
+Новый admission SHA `294ce7117876b7a112e5a29c199c8822d9f48bc333a274cbd7f6d8ff65ebbfcd`.
+
+Артефакты: `build-local/minimax-m2-prefix-01`,
+`build-local/minimax-m2-prefix-http-01`; полный контракт, команды и ограничения:
+[MM27-25](MINIMAX_M27_PREFIX_CACHE.md),
+[проверка артефактов](MINIMAX_M27_PREFIX_CACHE_CHECK.json).
+Следующий шаг — reuse2K/4K/EOS/pressure; затем snapshot/restore/shift.
+Quality/model oracle, MM27-06 discrepancy и DFlash serving gates остаются OPEN.
+
+### MM27-24 / часть P2.6/P4 — 2026-10-09 — HTTP4K и реальное давление на память
+
+Основание: commit `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree;
+dependency86ebfef2, прежние model/header/template и EXE SHA
+`f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619`.
+Добавлены opt-in pressure-holder target, HTTP checker и CPU boundary tests.
+CUDA/model/serving defaults не менялись; собран только диагностический helper.
+
+**17 scenarios PASS**, exit0:8 overflow400 без native generation, OpenAI JSON
+и Anthropic SSE4080 prompt /8 output с точными одинаковыми IDs, пять controls
+52/32 с совпадением со старым greedy reference, два disconnect под давлением,
+восстановление в том же PID59184 и cleanup всех owned processes.
+**33 различных CPU methods PASS**,0 skips;109 source snapshots сверены.
+GPU-only/bytes/drain/global95% PASS. Arena18432→18304МиБ,2 trims;
+пики среди всех видов samples: RAM109,264ГиБ (87,025%), VRAM30,085ГиБ (94,479%).
+Наблюдаемые cancel/drain141/156мс, опрос50мс.
+
+Fresh4080-token prefill405,253с и328,856с. Decode8-token окон2,455/6,676
+токена/с не является сравнением API или устойчивым speedup: кеши и порядок
+различаются. Короткие controls3,186–4,088 токена/с. Defaults сохранены.
+Нагрузка — отдельный read-only RAM mapping и1248МиБ CUDA allocations;
+runtime RAM cache остаётся0. Native memory samples подтвердили≥85% обеих
+памятей в каждом полном pressure/recovery запросе, но не на всей его длине.
+
+Команды, timings и границы: [MM27-24](MINIMAX_M27_HTTP_CONTEXT.md).
+Артефакты: `build-local/minimax-m2-http-context-01`,
+[проверка evidence и источников](MINIMAX_M27_HTTP_CONTEXT_CHECK.json).
+Следующий шаг — P4 resident prefix reuse с fresh parity/isolation/cancel.
+Независимый oracle, широкое качество, старые FAIL, installer и DFlash serving открыты.
+
+### MM27-23 / часть P2.5/P2.6 — 2026-10-09 — Live multi-tools и web chat
+
+Основание: commit `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree;
+dependency86ebfef2, те же model/header/template и EXE SHA
+`f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619`.
+Native/CUDA, sampler и cache/pipeline не менялись.
+
+Исправлены порядок `name/description/parameters/strict` в tool definitions обоих
+API и unconditional session header web chat. Health сообщает capability;
+клиент опускает header при явном false. Добавлены live matrix, независимый SSE
+reader, focused CPU tests и helper для браузерной проверки настоящей модели.
+
+Результаты:4 live cycles /8 requests PASS. Два calls с integer revision и
+кириллицей, reversed results, нормальный/error final, EOS/usage/GPU-only/bytes/
+drain/memory95% PASS. Prompt/generated IDs совпали между всеми четырьмя первыми
+запросами и обоими follow-up парами. Decode3,788–3,920 токена/с; CPU regressions
+выполнялись одновременно, это не isolated speed A/B.
+213 различных CPU методов,16 scripted cycles,32 HTTP replays,272 report checks,
+32 native prompts /14284 IDs PASS,0 skips. Браузерный диалог сохраняет историю
+и разделяет reasoning/final; два Stop дошли до native Engine в одном PID.
+
+Исходный CPU field-order FAIL и прерванный диагностический live проход01
+сохранены. Полные команды, browser results и ограничение истории после Stop:
+[MM27-23](MINIMAX_M27_LIVE_TOOLS_WEB.md). Сводный проверяемый отчёт:
+[CHECK](MINIMAX_M27_LIVE_TOOLS_WEB_CHECK.json).
+
+Следующий шаг: HTTP context4K/pressure/recovery. Sessions, installer, independent
+oracle, старые numerical/quality FAIL и DFlash serving остаются открытыми.
+
+### MM27-22 / часть P2.5/P2.6 — 2026-10-09 — Native API Engine и повторная отмена
+
+Основание: commit `54467693c8354d8c64a72ec1cb083473a529b4ba`, dirty tree;
+dependency86ebfef2, прежний model/header/template. Новый EXE SHA
+`f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619`.
+Изменены Engine/worker/CLI, добавлены unit/live/startup checkers и optional
+requirements. Native main.cpp использует постоянный Windows console handler.
+GPU math, веса, cache/pipeline, sampler/defaults и остальные модели не менялись.
+
+31 CPU methods PASS,0 skips, exit0; build exit0. Финальный live API checker:
+11 scenarios PASS, exit0, `build-local/minimax-m2-live-api-02/report.json`.
+Standalone CLI:6 auth/HTML/prefix/unload/reload checks PASS, exit0,
+`build-local/minimax-m2-startup-01/report.json`. Sources/EXE/report hashes
+проверены в `MINIMAX_M27_NATIVE_API_VALIDATION_CHECK.json`; sampled global
+RAM30,68%, VRAM84,65%, обе ниже95%. Серверы после тестов остановлены.
+Полный EN ответ414 IDs совпал с эталоном;3,978 decode tokens/s, prefill8,494с,
+TTFT8,494с, HTTP wall112,656с. Три prefill disconnect после stop-string cancel
+сохранили PID и дали восстановление за0,531–0,625с. Live get_code/Oslo вызван
+самой моделью, ID результата связан, финальный ответ содержит OSLO-4179 и EOS.
+Tools53/37 generated, decode3,332/3,751 tokens/s, sampling T1/p0,95/k40/seed42.
+
+Исходный `minimax-m2-live-api-01` FAIL сохранён: первый cancel проходил,
+второй завершал native process из-за reset SIGBREAK→SIG_DFL в MSVC.
+Старые EXE/main/manifest — `minimax-m2-live-api-baseline-01`.
+Новый handler проверен четырьмя отменами в одном native process и token recovery.
+[Команды, отчёты и границы проверки](MINIMAX_M27_NATIVE_API.md).
+Это один tool cycle, не общая model-quality приёмка. Anthropic live tools,
+multi-call/error corpus, web chat, HTTP pressure/4K, sessions, installer,
+independent oracle и прежние numerical/quality FAIL остаются открытыми.
 
 ### MM27-21 / часть P2.5/P2.6 — 2026-10-09 — OpenAI/Anthropic API adapters
 

@@ -559,3 +559,126 @@ the existing default. The final screen matches serial logits bit-for-bit.
 This does not resolve the separate historical MM27-06 reload discrepancy.
 Normal bench/API speculation stays disabled. GPU EOS/cancel/pressure/recovery,
 long-context/session lifecycle and sampling remain separate gates.
+
+MM27-22 connects the resident JSONL benchmark to the existing OpenAI/Anthropic
+HTTP service through `serve.minimax_m2_engine`. Start the isolated experimental
+profile with `python -m serve.minimax_m2_server`; see
+[native API instructions](../../docs/minimax-m2.7/MINIMAX_M27_NATIVE_API.md)
+for the model path, extra dependency, explicit cache/pipeline flags and checks.
+The native Windows cancellation handler now uses `SetConsoleCtrlHandler`:
+MSVC resets a `signal(SIGBREAK, ...)` handler after its first delivery, which
+terminated the resident process on a second HTTP cancellation. The failed run
+and old binary are retained. This entry point does not register MiniMax in the
+main installer and does not enable DFlash, sessions or alternate precision.
+
+[MM27-23 live tools and web checks](../../docs/minimax-m2.7/MINIMAX_M27_LIVE_TOOLS_WEB.md)
+cover two generated calls, reversed results, tool errors across both APIs and
+browser history/repeated Stop. The adapter canonicalizes tool-definition field
+order; the web client omits the session header when health advertises no support.
+HTTP pressure/4K passed in [MM27-24](../../docs/minimax-m2.7/MINIMAX_M27_HTTP_CONTEXT.md).
+Broad answer quality and installer registration remain open.
+
+MM27-25 adds optional resident KV prefix reuse with native `--prefix-cache 1`
+or server `--prefix-cache`. HTTP clients must send `X-Strata-Session-Id`.
+Only complete prefill batches from that session are reused; the last prompt
+batch is evaluated again. A different session or an anonymous request clears
+the previous prefix. Native error/cancel and restart invalidate it. There is
+one resident prefix, no session archive or cache-admin capability. Defaults
+remain off. See [contract and validation](../../docs/minimax-m2.7/MINIMAX_M27_PREFIX_CACHE.md).
+
+[MM27-26](../../docs/minimax-m2.7/MINIMAX_M27_PREFIX_CONTEXT.md) extends the
+prefix checks to 2032/4080-token prompts, full EOS414, seeded sampling128 and
+one-token outputs: 113436288 compared logits are bit-identical. The live 4K
+pressure run checks both APIs, expert arena trim, cancellation and fresh recovery.
+Shift and GPU parity at other batch sizes remain open. Runtime, admission SHA
+and defaults were unchanged by this audit.
+
+MM27-27 adds opt-in RAM checkpoints for inactive sessions:
+`--prefix-cache --session-cache-mib 600 --session-cache-slots 2` on the server
+(native uses `--prefix-cache 1`). The RAM cap includes blob/token metadata;
+the active GPU sequence is separate. Oldest inactive entries are evicted first,
+with the requested checkpoint protected. Restore consumes its checkpoint;
+cancel/error discards partial active KV while keeping completed other sessions.
+Restart/unload clears everything. No on-disk format or cache-admin API is added.
+Copy/restore time is included in TTFT and request time. Default archive cap is0.
+See [session archive](../../docs/minimax-m2.7/MINIMAX_M27_SESSION_ARCHIVE.md)
+for the full-logit regression, HTTP lifecycle evidence and remaining checks.
+
+[MM27-28](../../docs/minimax-m2.7/MINIMAX_M27_SESSION_CONTEXT.md) verifies RAM
+restore at2K/4K, EOS414 and seeded sampling128:1150 output IDs and230073600
+logits match the saved reference;567 IDs/113436288 logits also match fresh
+requests in the same process. Nineteen live pressure scenarios pass with
+RAM94.191%/VRAM94.430%, protected restore after rejected snapshot admission,
+128MiB arena trim and cancellation/recovery. Only the diagnostic holder gains
+bounded private RAM topup; the engine binary and defaults are unchanged.
+
+[MM27-29](../../docs/minimax-m2.7/MINIMAX_M27_STATE_BULK.md) coalesces host KV
+state transfers with at most16MiB CPU scratch. The snapshot format is unchanged;
+restore preserves gaps and other sequences. Sparse ranges keep the old path.
+`STRATA_MM27_STATE_BULK=0` disables coalescing for diagnostics; default is on.
+1200 CPU cases/12 CUDA checks,192 output IDs/38412288 full-model logits and10
+live HTTP/lifecycle scenarios pass. Three warm switches per target give median
+request2K7.941→5.277s and4K8.024→3.608s; this is session latency, not sustained
+decode throughput. The admitted EXE is98e85e80…; archive default remains0.
+[MM27-30](../../docs/minimax-m2.7/MINIMAX_M27_STATE_BULK_PRESSURE.md) repeats
+the complete offline corpus on the bulk binary:1150 IDs/230073600 logits match
+the saved reference bit-for-bit. All19 live pressure scenarios pass, with
+RAM94.197%/VRAM94.403%,64MiB arena trim, rejected4K snapshot admission,
+protected2K restore and both cancellation/recovery paths. An independent
+Windows/NVML observer records physical RAM, commit and global VRAM every0.5s;
+all recorded samples stay within95%. Eighteen CPU methods and100 final gates
+pass. Runtime, holder and defaults are unchanged; this is not a new speed A/B.
+[MM27-31](../../docs/minimax-m2.7/MINIMAX_M27_SESSION_BATCHES.md) verifies
+GPU batch1/8 at context1024 with prompts up to513 tokens. All50 prefix/archive
+scenarios match fresh at the same batch size:568 IDs and113636352 full logits.
+Coverage includes branches, shorter/extended prompts, RAM restores, one-token
+outputs and seeded sampling64. Four sequential native processes finish cleanly;
+14 CPU methods and59 final gates pass. Runtime and defaults are unchanged.
+Next: GPU batch1/8 prefix/archive at2K/4K, then shift. Sparse-copy tuning,
+context>4K and broader quality remain open. Long EOS/pressure evidence remains
+specific to the previously tested batch16 profile.
+
+MM27-32 adds native `--cache-decay-period N` (1..4294967295, default65536).
+It controls the number of trained expert-matrix lookups between halvings of
+admission scores. Prefill/workspace warmup does not train this history. Request
+counter resets preserve it. Other backends keep their existing65536 default.
+The value is fixed when the GPU cache is configured and appears in the JSON
+header. With grouping off,65536/131072/262144 correspond to about44/88/176
+trained decode steps on this62-layer/top8 model.
+
+This is a native diagnostic setting; the server admission SHA remains98e85e80….
+The retained candidate is `build-local/minimax-m2-cache-decay-candidate/engine.exe`;
+pass it explicitly to `tools/run_minimax_m2.py --engine ... -- ...` to test the
+new flag without replacing the admitted server executable. See
+[cache decay](../../docs/minimax-m2.7/MINIMAX_M27_CACHE_DECAY.md) for the full-logit
+comparison, repeated-process timings and the boundary/admission fixture.
+Three runs per period give4.120/4.171/4.183 tokens/s at65536/131072/262144 on
+the four-request128-token corpus. Longer histories slow the new-topic request
+by2.79/6.87% while helping return to the old topic; default65536 is retained.
+All4608 candidate IDs and921894912 logits match the old EXE bit-for-bit;
+19 history checks,216 cache regressions and285 final evidence gates pass.
+
+MM27-33 adds native `--pipeline-events 0|1|2`, default0. It requires file
+pipeline readers and D2D batching. Mode1 replaces matrix scratch/copy CPU
+fences with CUDA stream event dependencies. Mode2 also uses async split
+compute; the public graph boundary drains each CUDA backend on every exit.
+Pending cache fills remain pinned until copy retirement, before the next
+matrix's cache decisions. Other scheduler inputs retain upstream waits.
+Strict F32 operators still contain internal CPU waits; mode2 `compute_ms`
+measures CPU submission, as identified by `compute_ms_scope`.
+
+The three-pair A/B on RTX5090, context2048/batch16, cache18GiB/readers2/chunk4,
+four fresh-KV128-token requests, gives **4.086→4.266 tokens/s (+4.40%)**.
+Full request time falls164.030→157.808s; all pairs improve4.07–4.40%.
+Mode1 alone did not improve the screening aggregate. All4608 IDs and921894912
+logits match the retained synchronous EXE exactly, with identical cache
+decisions.1256 CUDA fixture checks,6 CPU methods,8 CLI cases and357 evidence
+gates pass. This does not cover full-model long context or real pressure
+with mode2, which must precede serving admission.
+
+Use `tools/run_minimax_m2.py --engine build-local/minimax-m2-copy-events-candidate/engine.exe -- ...`
+and append `--pipeline-events 2` to the experimental18/2/4/lookahead/D2D profile.
+Candidate SHA13a885cc… is retained separately; admitted server EXE98e85e80…
+and native default0 are preserved. See
+[matrix events](../../docs/minimax-m2.7/MINIMAX_M27_COPY_EVENTS.md) for raw
+artifacts, reproduction, exact timings and the remaining gates.

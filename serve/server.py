@@ -2256,7 +2256,8 @@ def make_handler(svc: Service):
                 self._json(200, {"status": "ok", "max_context": svc.engine.max_context, "model": svc.model,
                                  "images": svc.vision is not None, "api_key": bool(svc.api_key),
                                  "loaded": svc.loaded(), "service": "strata", "reasoning": svc.reasoning_capabilities(),
-                                 "architecture": svc.engine_facts()["architecture"]})
+                                 "architecture": svc.engine_facts()["architecture"],
+                                 "session_id": bool(getattr(svc.engine, "can_session_id", False))})
             elif path == "/status":
                 if not self._authorized():                  # #212: it shows the end of the last answer
                     return

@@ -1,0 +1,2754 @@
+{
+  "pass": true,
+  "stage": "MM27-31 boundary",
+  "engine_sha256": "98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8",
+  "context": 1024,
+  "batches": {
+    "1": {
+      "requests": 34,
+      "comparisons": 25,
+      "generated_tokens": 405,
+      "compared_tokens": 284,
+      "compared_floats": 56818176,
+      "pairs": [
+        {
+          "name": "cold",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 25451.1015,
+          "session_ms": 0.7027,
+          "pass": true
+        },
+        {
+          "name": "resident",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 1525.2194,
+          "session_ms": 0.0076,
+          "pass": true
+        },
+        {
+          "name": "branch",
+          "reference_index": 1,
+          "expected_reused": 35,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17130.3497,
+          "request_ms": 6098.2551,
+          "session_ms": 0.0101,
+          "pass": true
+        },
+        {
+          "name": "shorter",
+          "reference_index": 2,
+          "expected_reused": 32,
+          "expected_restore": false,
+          "prompt_tokens": 33,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 12289.5743,
+          "request_ms": 2374.7017,
+          "session_ms": 0.0154,
+          "pass": true
+        },
+        {
+          "name": "extend-shorter",
+          "reference_index": 0,
+          "expected_reused": 33,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 6670.1261,
+          "session_ms": 0.0119,
+          "pass": true
+        },
+        {
+          "name": "one-full-batch",
+          "reference_index": 3,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 1,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 3193.16,
+          "request_ms": 3234.1506,
+          "session_ms": 0.382,
+          "pass": true
+        },
+        {
+          "name": "extend-full-batch",
+          "reference_index": 0,
+          "expected_reused": 1,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 17262.3453,
+          "session_ms": 0.0127,
+          "pass": true
+        },
+        {
+          "name": "other-session",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 19607.9648,
+          "session_ms": 2034.5092,
+          "pass": true
+        },
+        {
+          "name": "restored",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 5921.5276,
+          "session_ms": 4577.2488,
+          "pass": true
+        },
+        {
+          "name": "anonymous",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 18731.4399,
+          "session_ms": 2060.5227,
+          "pass": true
+        },
+        {
+          "name": "after-anonymous",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 3574.4408,
+          "session_ms": 2371.483,
+          "pass": true
+        },
+        {
+          "name": "long-cold",
+          "reference_index": 4,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 159425.0129,
+          "request_ms": 159728.1924,
+          "session_ms": 2046.5996,
+          "pass": true
+        },
+        {
+          "name": "short-restored",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 2944.9755,
+          "session_ms": 1887.1016,
+          "pass": true
+        },
+        {
+          "name": "long-restored",
+          "reference_index": 4,
+          "expected_reused": 511,
+          "expected_restore": true,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 159425.0129,
+          "request_ms": 3823.7174,
+          "session_ms": 1738.2223,
+          "pass": true
+        },
+        {
+          "name": "long-resident",
+          "reference_index": 4,
+          "expected_reused": 511,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 159425.0129,
+          "request_ms": 1949.9612,
+          "session_ms": 0.0085,
+          "pass": true
+        },
+        {
+          "name": "long-extend",
+          "reference_index": 5,
+          "expected_reused": 512,
+          "expected_restore": false,
+          "prompt_tokens": 513,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 158455.3099,
+          "request_ms": 1805.976,
+          "session_ms": 0.0193,
+          "pass": true
+        },
+        {
+          "name": "long-branch",
+          "reference_index": 6,
+          "expected_reused": 497,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 151331.64,
+          "request_ms": 5410.9799,
+          "session_ms": 0.0128,
+          "pass": true
+        },
+        {
+          "name": "long-shorter",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 1599.7721,
+          "session_ms": 0.0567,
+          "pass": true
+        },
+        {
+          "name": "one-cold",
+          "reference_index": 7,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 15482.7759,
+          "request_ms": 16377.4134,
+          "session_ms": 1672.5616,
+          "pass": true
+        },
+        {
+          "name": "long-one-restored",
+          "reference_index": 7,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 15482.7759,
+          "request_ms": 3712.0815,
+          "session_ms": 3486.3494,
+          "pass": true
+        },
+        {
+          "name": "one-restored",
+          "reference_index": 7,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 15482.7759,
+          "request_ms": 3720.6359,
+          "session_ms": 3491.6722,
+          "pass": true
+        },
+        {
+          "name": "one-resident",
+          "reference_index": 7,
+          "expected_reused": 51,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 15482.7759,
+          "request_ms": 222.851,
+          "session_ms": 0.0069,
+          "pass": true
+        },
+        {
+          "name": "sample-resident",
+          "reference_index": 8,
+          "expected_reused": 51,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 12804096,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 64,
+          "fresh_request_ms": 37184.1691,
+          "request_ms": 15973.3185,
+          "session_ms": 0.0077,
+          "pass": true
+        },
+        {
+          "name": "short-before-sample-restore",
+          "reference_index": 0,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 23504.7751,
+          "request_ms": 5333.1431,
+          "session_ms": 3495.539,
+          "pass": true
+        },
+        {
+          "name": "sample-restored",
+          "reference_index": 8,
+          "expected_reused": 51,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 12804096,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 64,
+          "fresh_request_ms": 37184.1691,
+          "request_ms": 17454.6581,
+          "session_ms": 3497.2464,
+          "pass": true
+        }
+      ],
+      "sampled_peak_percent": {
+        "ram": 24.06343220674093,
+        "vram": 88.95928213267091
+      }
+    },
+    "8": {
+      "requests": 34,
+      "comparisons": 25,
+      "generated_tokens": 405,
+      "compared_tokens": 284,
+      "compared_floats": 56818176,
+      "pairs": [
+        {
+          "name": "cold",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 15924.8244,
+          "session_ms": 0.3698,
+          "pass": true
+        },
+        {
+          "name": "resident",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 1874.3451,
+          "session_ms": 0.0076,
+          "pass": true
+        },
+        {
+          "name": "branch",
+          "reference_index": 1,
+          "expected_reused": 32,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 10883.7204,
+          "request_ms": 5127.6372,
+          "session_ms": 0.0087,
+          "pass": true
+        },
+        {
+          "name": "shorter",
+          "reference_index": 2,
+          "expected_reused": 32,
+          "expected_restore": false,
+          "prompt_tokens": 33,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 8353.7197,
+          "request_ms": 2504.4521,
+          "session_ms": 0.0108,
+          "pass": true
+        },
+        {
+          "name": "extend-shorter",
+          "reference_index": 0,
+          "expected_reused": 32,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 4893.7858,
+          "session_ms": 0.0088,
+          "pass": true
+        },
+        {
+          "name": "one-full-batch",
+          "reference_index": 3,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 8,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 3682.7273,
+          "request_ms": 4083.7161,
+          "session_ms": 0.3703,
+          "pass": true
+        },
+        {
+          "name": "extend-full-batch",
+          "reference_index": 0,
+          "expected_reused": 8,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 9063.7294,
+          "session_ms": 0.0067,
+          "pass": true
+        },
+        {
+          "name": "other-session",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 12899.5587,
+          "session_ms": 2070.7743,
+          "pass": true
+        },
+        {
+          "name": "restored",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 6185.2745,
+          "session_ms": 4475.09,
+          "pass": true
+        },
+        {
+          "name": "anonymous",
+          "reference_index": 0,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 12646.0221,
+          "session_ms": 2042.9634,
+          "pass": true
+        },
+        {
+          "name": "after-anonymous",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 3959.2961,
+          "session_ms": 2362.5062,
+          "pass": true
+        },
+        {
+          "name": "long-cold",
+          "reference_index": 4,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 88181.9734,
+          "request_ms": 94116.5442,
+          "session_ms": 2023.9039,
+          "pass": true
+        },
+        {
+          "name": "short-restored",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 4993.011,
+          "session_ms": 3166.6471,
+          "pass": true
+        },
+        {
+          "name": "long-restored",
+          "reference_index": 4,
+          "expected_reused": 504,
+          "expected_restore": true,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 88181.9734,
+          "request_ms": 5582.0027,
+          "session_ms": 2111.1968,
+          "pass": true
+        },
+        {
+          "name": "long-resident",
+          "reference_index": 4,
+          "expected_reused": 504,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 88181.9734,
+          "request_ms": 3028.8583,
+          "session_ms": 0.0234,
+          "pass": true
+        },
+        {
+          "name": "long-extend",
+          "reference_index": 5,
+          "expected_reused": 512,
+          "expected_restore": false,
+          "prompt_tokens": 513,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 85615.1237,
+          "request_ms": 1958.5125,
+          "session_ms": 0.0091,
+          "pass": true
+        },
+        {
+          "name": "long-branch",
+          "reference_index": 6,
+          "expected_reused": 496,
+          "expected_restore": false,
+          "prompt_tokens": 512,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 75130.23,
+          "request_ms": 4216.5838,
+          "session_ms": 0.0126,
+          "pass": true
+        },
+        {
+          "name": "long-shorter",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 2569.0583,
+          "session_ms": 0.0681,
+          "pass": true
+        },
+        {
+          "name": "one-cold",
+          "reference_index": 7,
+          "expected_reused": 0,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 9639.8546,
+          "request_ms": 11783.0037,
+          "session_ms": 2078.4519,
+          "pass": true
+        },
+        {
+          "name": "long-one-restored",
+          "reference_index": 7,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 9639.8546,
+          "request_ms": 5040.9496,
+          "session_ms": 4356.6916,
+          "pass": true
+        },
+        {
+          "name": "one-restored",
+          "reference_index": 7,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 9639.8546,
+          "request_ms": 5045.8523,
+          "session_ms": 4349.1198,
+          "pass": true
+        },
+        {
+          "name": "one-resident",
+          "reference_index": 7,
+          "expected_reused": 48,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 200064,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 1,
+          "fresh_request_ms": 9639.8546,
+          "request_ms": 681.2987,
+          "session_ms": 0.0078,
+          "pass": true
+        },
+        {
+          "name": "sample-resident",
+          "reference_index": 8,
+          "expected_reused": 48,
+          "expected_restore": false,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 12804096,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 64,
+          "fresh_request_ms": 26543.9991,
+          "request_ms": 17090.8233,
+          "session_ms": 0.0074,
+          "pass": true
+        },
+        {
+          "name": "short-before-sample-restore",
+          "reference_index": 0,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 1600512,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 8,
+          "fresh_request_ms": 17707.5145,
+          "request_ms": 6595.5221,
+          "session_ms": 4340.5551,
+          "pass": true
+        },
+        {
+          "name": "sample-restored",
+          "reference_index": 8,
+          "expected_reused": 48,
+          "expected_restore": true,
+          "prompt_tokens": 52,
+          "checks": {
+            "gpu_only": true,
+            "budget95": true,
+            "bytes": true,
+            "drained": true,
+            "kv_accounting": true,
+            "reuse": true,
+            "restore": true,
+            "restore_bytes": true,
+            "archive_limits": true,
+            "session_time_included": true,
+            "tokens": true,
+            "termination": true,
+            "sampling": true
+          },
+          "logits": {
+            "pass": true,
+            "floats": 12804096,
+            "different_bits": 0,
+            "finite": true,
+            "max_abs": 0.0
+          },
+          "generated_tokens": 64,
+          "fresh_request_ms": 26543.9991,
+          "request_ms": 19670.9414,
+          "session_ms": 4347.3901,
+          "pass": true
+        }
+      ],
+      "sampled_peak_percent": {
+        "ram": 23.507365564058347,
+        "vram": 87.30094381574509
+      }
+    }
+  },
+  "gates": {
+    "current_admitted_binary": true,
+    "batch1_completed": true,
+    "batch1_binary": true,
+    "batch1_environment": true,
+    "batch1_corpus": true,
+    "batch1_expectations": true,
+    "batch1_all_logit_rows": true,
+    "batch1_fresh_cleanup": true,
+    "batch1_fresh_observer": true,
+    "batch1_fresh_limit95": true,
+    "batch1_fresh_native95": true,
+    "batch1_sessions_cleanup": true,
+    "batch1_sessions_observer": true,
+    "batch1_sessions_limit95": true,
+    "batch1_sessions_native95": true,
+    "batch1_artifact_engine.exe": true,
+    "batch1_artifact_fresh.f32": true,
+    "batch1_artifact_fresh.json": true,
+    "batch1_artifact_fresh.memory.jsonl": true,
+    "batch1_artifact_fresh.requests.json": true,
+    "batch1_artifact_fresh.stderr.log": true,
+    "batch1_artifact_fresh.stdout.log": true,
+    "batch1_artifact_sessions.f32": true,
+    "batch1_artifact_sessions.json": true,
+    "batch1_artifact_sessions.memory.jsonl": true,
+    "batch1_artifact_sessions.requests.json": true,
+    "batch1_artifact_sessions.stderr.log": true,
+    "batch1_artifact_sessions.stdout.log": true,
+    "batch1_current_sources": true,
+    "batch8_completed": true,
+    "batch8_binary": true,
+    "batch8_environment": true,
+    "batch8_corpus": true,
+    "batch8_expectations": true,
+    "batch8_all_logit_rows": true,
+    "batch8_fresh_cleanup": true,
+    "batch8_fresh_observer": true,
+    "batch8_fresh_limit95": true,
+    "batch8_fresh_native95": true,
+    "batch8_sessions_cleanup": true,
+    "batch8_sessions_observer": true,
+    "batch8_sessions_limit95": true,
+    "batch8_sessions_native95": true,
+    "batch8_artifact_engine.exe": true,
+    "batch8_artifact_fresh.f32": true,
+    "batch8_artifact_fresh.json": true,
+    "batch8_artifact_fresh.memory.jsonl": true,
+    "batch8_artifact_fresh.requests.json": true,
+    "batch8_artifact_fresh.stderr.log": true,
+    "batch8_artifact_fresh.stdout.log": true,
+    "batch8_artifact_sessions.f32": true,
+    "batch8_artifact_sessions.json": true,
+    "batch8_artifact_sessions.memory.jsonl": true,
+    "batch8_artifact_sessions.requests.json": true,
+    "batch8_artifact_sessions.stderr.log": true,
+    "batch8_artifact_sessions.stdout.log": true,
+    "batch8_current_sources": true,
+    "cpu_tests": true,
+    "source_snapshots": true
+  },
+  "source_checks": {
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/build_manifest.json.in": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/cache_runtime.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_arena.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_cache.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_dflash.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_graph.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_group_cache.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_host_cache.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_kernels.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_lifecycle.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_prefix.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_reclaim.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_reload.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_runtime.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_sampling.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_sessions.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_state_bulk.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/CMakeLists.txt": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/contract.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/DFlash.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_contract.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_decode.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/gpu_arena.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/gpu_only_audit.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/group_cache.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/host_cache.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/loader_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/main.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_runtime.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_sched.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_state.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_trace.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/prefix.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pressure_holder.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/QuantF32.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/README.md": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/RoutedStrides.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/runtime.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/RuntimePatches.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sampling.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/session_runtime.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sessions.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/speculative_bench.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/state_bulk.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/StateBulk.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/StrictF32.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_runtime.h": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_runtime.inc": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_test.h": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/template_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/TemplateJSON.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/Tokenwise.cmake": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_api.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_engine.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_history.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_server.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_tools.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_worker.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_api.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_engine.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_history.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_server.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_tools.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/server.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/winjob.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/strata_tokenizer.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/run_minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_completion_pipe.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_http_context.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_prefix.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_prefix_context.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_session_batches.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/test_minimax_m2_session_batches.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_sessions.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_sessions_context.py": true,
+    "build-local/minimax-m2-session-batch1-01/sources/tools/minimax_m2_memory_observer.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/build_manifest.json.in": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/cache_runtime.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_arena.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_cache.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_dflash.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_graph.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_group_cache.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_host_cache.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_kernels.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_lifecycle.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_prefix.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_reclaim.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_reload.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_runtime.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_sampling.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_sessions.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_state_bulk.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/CMakeLists.txt": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/contract.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/DFlash.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_contract.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_decode.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/gpu_arena.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/gpu_only_audit.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/group_cache.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/host_cache.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/loader_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/main.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_runtime.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_sched.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_state.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_trace.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/prefix.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pressure_holder.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/QuantF32.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/README.md": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/RoutedStrides.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/runtime.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/RuntimePatches.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sampling.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/session_runtime.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sessions.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/speculative_bench.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/state_bulk.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/StateBulk.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/StrictF32.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_runtime.h": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_runtime.inc": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_test.h": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/template_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/TemplateJSON.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": true,
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/Tokenwise.cmake": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_api.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_engine.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_history.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_server.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_tools.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_worker.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_api.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_engine.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_history.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_server.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_tools.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/server.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/winjob.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/strata_tokenizer.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/run_minimax_m2.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_completion_pipe.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_http_context.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_prefix.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_prefix_context.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_session_batches.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/test_minimax_m2_session_batches.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_sessions.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_sessions_context.py": true,
+    "build-local/minimax-m2-session-batch8-01/sources/tools/minimax_m2_memory_observer.py": true
+  },
+  "owned_pids_exited": {
+    "36992": true,
+    "31536": true,
+    "38556": true,
+    "28160": true
+  },
+  "artifacts": {
+    "build-local/minimax-m2-session-batch1-01/engine.exe": {
+      "sha256": "98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8",
+      "bytes": 58183680
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.f32": {
+      "sha256": "d78948cf2547fa6224af5d2c59d8252fd5336c9ab6462c948c0a9b2c185f9c00",
+      "bytes": 96830976
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.json": {
+      "sha256": "fbd07a528509d304f316d7d1dbb62bfbd6a32826f1ef3ed071e6168983406c2e",
+      "bytes": 589502
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.memory.jsonl": {
+      "sha256": "817c055681fe738b70856214c6324b31125dd2eb8fa10c6c7d7996f6071d4c4a",
+      "bytes": 242482
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.requests.json": {
+      "sha256": "23a3ad838f233025d5dce1e7a9adcaae6d6d1de00b756a8ab82210a425ae0880",
+      "bytes": 23693
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.stderr.log": {
+      "sha256": "2f5a6a0451a936d65f7d392f65d08657698c39d186802f751af5dae6acc371a5",
+      "bytes": 143503
+    },
+    "build-local/minimax-m2-session-batch1-01/fresh.stdout.log": {
+      "sha256": "fbd07a528509d304f316d7d1dbb62bfbd6a32826f1ef3ed071e6168983406c2e",
+      "bytes": 589502
+    },
+    "build-local/minimax-m2-session-batch1-01/report.json": {
+      "sha256": "cb0b7451b920e968094b51a40ea4a0d62350620e7053b15d3b63c4086824cb9d",
+      "bytes": 47453
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.f32": {
+      "sha256": "00ac8d6c9abe4c02fcac4c0791b3525a2357275d3300976939c17ecdb445d9ab",
+      "bytes": 227272704
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.json": {
+      "sha256": "94f3da88230f8d14c460234bb0a58c87f2269b3fd8d6349ba586a6f99ba7c553",
+      "bytes": 509671
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.memory.jsonl": {
+      "sha256": "3bc1c54eb3ed6919ffd2d337a9e83bf1c27f9783f1ed6817cab779fd33f8d8c5",
+      "bytes": 147770
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.requests.json": {
+      "sha256": "0d0cc1ff431a44c771478c230a939b331c38d7cfc0055ce35d870a360eb70ef4",
+      "bytes": 49466
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.stderr.log": {
+      "sha256": "8f931598cc7372e55ff7507e38009fdad4f17618610f5278a663822a05496729",
+      "bytes": 143913
+    },
+    "build-local/minimax-m2-session-batch1-01/sessions.stdout.log": {
+      "sha256": "94f3da88230f8d14c460234bb0a58c87f2269b3fd8d6349ba586a6f99ba7c553",
+      "bytes": 509671
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2.py": {
+      "sha256": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+      "bytes": 2139
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_api.py": {
+      "sha256": "ef8a61dce0fa44eed560329b6dd5ed832ce58b806b55565f332602e26961526d",
+      "bytes": 14537
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_engine.py": {
+      "sha256": "c43bb824a0dc66d3566998ec3413d8c9572452f4538d54d94bb5ee3b71585b40",
+      "bytes": 19830
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_history.py": {
+      "sha256": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+      "bytes": 12001
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_server.py": {
+      "sha256": "80f012d50e6cdb64be55d4c995c760f529c3283957ae7e5abd6268505492a500",
+      "bytes": 3062
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_tools.py": {
+      "sha256": "199155ced393b6f602e493dfb509adda9d7dc05ed798d9c59421c56986a2ae7c",
+      "bytes": 12223
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/minimax_m2_worker.py": {
+      "sha256": "dec34c7fddd17769201c5ac5adda1b9e1d86f178dd64208271307a0ed28213d7",
+      "bytes": 4999
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/server.py": {
+      "sha256": "845471aa296b57eac41a5dfe3d4256e96fec9861df233e2f1b7bd448c7766f71",
+      "bytes": 175786
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2.py": {
+      "sha256": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+      "bytes": 4046
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_api.py": {
+      "sha256": "c7d40595a9b31541c81eccedb3dae85762f94b9d92aa06bc40050816bd0440ad",
+      "bytes": 20932
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_engine.py": {
+      "sha256": "f63635b993f36f658a528b50fe80565c05ac09326ade678bd6602d2d1d033503",
+      "bytes": 13438
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_history.py": {
+      "sha256": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+      "bytes": 10348
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_server.py": {
+      "sha256": "f2c751fccce706b50fe762bf1f79582ed421139d1845855d36fe41f3bdcd8f18",
+      "bytes": 1168
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/test_minimax_m2_tools.py": {
+      "sha256": "7816e9646135466274a993d4d1eeaad56a09dd275de1c58dfb83f1cae28a14b3",
+      "bytes": 12623
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/winjob.py": {
+      "sha256": "08fa746587f4a830c86670a57285fea4baf357e248298110728ab94db78155bb",
+      "bytes": 3592
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_completion_pipe.py": {
+      "sha256": "41c999e1e92b6b83588ee1772df4ebb256f9e1f6be634f62701e25e1647459cc",
+      "bytes": 12542
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_http_context.py": {
+      "sha256": "60c7109f33b7ae0aa8769f4428554123d485c8dfc61637531dae31ccb3de0c69",
+      "bytes": 16008
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_prefix.py": {
+      "sha256": "024dae1abbadd6156372e2b18ccf19a8a416eac06c66facf5cab0aaae501f56e",
+      "bytes": 9514
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_prefix_context.py": {
+      "sha256": "dc6f603618e08bf81585b9dbe53992b906bb89db2d9b7d65fbc54aa0e0df97a4",
+      "bytes": 10786
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_sessions.py": {
+      "sha256": "53db68f54b0aa9aedd33a09b2a5a1d56d490cf1d55540f90427429bdd387d9e2",
+      "bytes": 9458
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_sessions_context.py": {
+      "sha256": "60c9132b2fab428f08f61b0b6b9944bc21d4d6faa55b2914f349bdcbb51c490f",
+      "bytes": 8541
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/check_minimax_m2_session_batches.py": {
+      "sha256": "a2fc45c878353cd83c13c2024cd277869dba56808e7f0d12b1b33eb65fd0c142",
+      "bytes": 13206
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/minimax_m2_memory_observer.py": {
+      "sha256": "943ed71d9c9ff0ef5e29e46434549df542e05c6f68375de105457b2419f20348",
+      "bytes": 5204
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/run_minimax_m2.py": {
+      "sha256": "28c8ba8bf0f313b514f364f9dd20d472a3e9f52fc2c1b610368b707f6f4dd1d0",
+      "bytes": 1842
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/strata_tokenizer.py": {
+      "sha256": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+      "bytes": 21249
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/tools/test_minimax_m2_session_batches.py": {
+      "sha256": "58972042437764d37e49bed297d76f120c0974c42c814b7c5da34ba0a8f6ecd7",
+      "bytes": 2561
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/build_manifest.json.in": {
+      "sha256": "f86a72f753fc95572d62ae301cc8117fa0775338ce0fd7c95418c91b88c147f2",
+      "bytes": 2149
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/cache_runtime.inc": {
+      "sha256": "e0e84a4ca636b928f16096b1b9f808d0372d5358a48afc9bb80e44cdfabcf877",
+      "bytes": 9394
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_arena.cpp": {
+      "sha256": "2306e038b24a162b1adcdf39e63f7451fa355a9342ad9fe7f89e18e966a7fd01",
+      "bytes": 7140
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_cache.cpp": {
+      "sha256": "4c475da176bfcefa27ed604bd1a99a2798607fb0e19dce95d3c9f3111bb887f8",
+      "bytes": 20508
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_dflash.cpp": {
+      "sha256": "55cb3e7881b3e1bd52596f2e79d754eb891d223d8606afaf13e0634686c0669a",
+      "bytes": 15104
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_graph.cpp": {
+      "sha256": "c6a0265c6ddc27721c2a812325508e22ee004b5243a214dbe90e1cfc7307c424",
+      "bytes": 24834
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_group_cache.cpp": {
+      "sha256": "4cb5db7d0093050261860dc3ea164708017734ef4ceba2a9719aaf56442950f0",
+      "bytes": 8461
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_host_cache.cpp": {
+      "sha256": "0029f7b092ad0f0010420df47a42a83f8c34cd65a9485c2977ec47049685136e",
+      "bytes": 6879
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_kernels.cpp": {
+      "sha256": "1afac45b1bfef7b7a0c4f7f5ac84b4b581f06f3f0eeebd61bc170288bf31e410",
+      "bytes": 18282
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_lifecycle.cpp": {
+      "sha256": "3d46784335ec59a33477a9789cfa392c56a4ed5540fcf53ec67e18ad8b7479da",
+      "bytes": 24806
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_prefix.cpp": {
+      "sha256": "db42b0a17bd1108c6c10d6722884d556cd6a75a2f101a571c88ba063ebfb3597",
+      "bytes": 1464
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_reclaim.cpp": {
+      "sha256": "5d21e2af30080fc68cd6e8d7ec7b3dea473c43c2b85ffdea13fd036a05d155da",
+      "bytes": 10497
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_reload.cpp": {
+      "sha256": "a45c5211d89799279d2cc48440d28cef517a4da655db6f6b1225d7ce6ce515f4",
+      "bytes": 10730
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_runtime.cpp": {
+      "sha256": "84949d82fd38684733c1455aef5bb52eefd20e8edec6e25af84e9c6f9de950ea",
+      "bytes": 10042
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_sampling.cpp": {
+      "sha256": "37f1d8d55ed74af14bfd34863373a977c6724131258f1f6f0847af4072462a8f",
+      "bytes": 7674
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_sessions.cpp": {
+      "sha256": "8f1d598ff5a97779983894a63b41ff3a4fba4c4eeb22b01e1c9487e4646a82c9",
+      "bytes": 3133
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/check_state_bulk.cpp": {
+      "sha256": "5a8f59a9983bdc55d900ba62a73901364ce7a70a8b92d70ec8b340c77a6ca49d",
+      "bytes": 6474
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/CMakeLists.txt": {
+      "sha256": "dcba280329329a50c3b7ea36f283f56f23762dfffa9e183e30fd54bc84cd34b7",
+      "bytes": 12609
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/contract.hpp": {
+      "sha256": "591745114ae34812daccfecc5f83ce36412faf5546b1086074235ba31d8fe08e",
+      "bytes": 7096
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/DFlash.cmake": {
+      "sha256": "3f48d322b250236415825ec76fe38e0b768a2e0172c4dc11e5974be84ca84337",
+      "bytes": 2313
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_contract.hpp": {
+      "sha256": "5f1b28789a65a0af55dc59c4724659d2be69b82bc2b6ee44ffbc05d37b7ccd61",
+      "bytes": 8055
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_decode.hpp": {
+      "sha256": "affdaa3a5981e3ca856b3489ed625bbce0248829bf6832888d1b0962497def2f",
+      "bytes": 4587
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": {
+      "sha256": "05ae9690d7d5752811f3fb9ce06ab773930438bb4f911752b91dbe010494ff38",
+      "bytes": 2083
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/gpu_arena.hpp": {
+      "sha256": "0ad8e50245b9657c359d984eca19fef7a5a9654a41595325e99f896e0b63030b",
+      "bytes": 2054
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/gpu_only_audit.inc": {
+      "sha256": "9f483d171fde41c84fb7dc5d61542d6ffdefd0397ef3a04df799bd392eea5443",
+      "bytes": 1204
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/group_cache.hpp": {
+      "sha256": "4b6a0978eefea415134d3fea9bc03367dcab78064d562a1bda723c199c2d1469",
+      "bytes": 7657
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/host_cache.hpp": {
+      "sha256": "5eeaba80f7807980511cbc490ff793ee084ef58f81f459741d9402d181546425",
+      "bytes": 11248
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/loader_oracle.cpp": {
+      "sha256": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+      "bytes": 3855
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/main.cpp": {
+      "sha256": "cdaa0d42ad56ab85019808cf6e31064e8fbc068c90dd0eaadd6e9dd8912707c8",
+      "bytes": 21973
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": {
+      "sha256": "f69f76ab7ab59c2aa429aa4738613b2c201da977701efddc3917d58d32f55200",
+      "bytes": 1244
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_runtime.inc": {
+      "sha256": "e08b3a9551660ef2911f9484141a9c39ed084977f5bea50327cca05edba1131d",
+      "bytes": 11355
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_sched.inc": {
+      "sha256": "8512c68d492a4f9c1277936b4ada352d8152431052a539ee83f93db791482a94",
+      "bytes": 2652
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_state.inc": {
+      "sha256": "e6b957486c10aa2a0b45437c5802deb6373df5d076cf79d0dd053eb0e22e40a9",
+      "bytes": 7743
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pipeline_trace.hpp": {
+      "sha256": "792343a13ca82c30b6043b73e1103c864bd0d948ff92cd85a942edfa71414ad7",
+      "bytes": 4141
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/prefix.hpp": {
+      "sha256": "f4934e0c6d42af43e2542c2a2c33413c0e31746c8f0df4eae602a66b3b5fa19c",
+      "bytes": 1359
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/pressure_holder.cpp": {
+      "sha256": "220d7afe06b316674a3172d3ed449042669e553c3a377e71652493d89c89005c",
+      "bytes": 7269
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/QuantF32.cmake": {
+      "sha256": "7aaa9ae7fa1efedd5804e0955b8652621507949e75e1c387308234073e429d84",
+      "bytes": 3627
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/README.md": {
+      "sha256": "5266f059d52b66c8f3ce85924a7ec335167dab745b0d2eb86a143dca9f3d5509",
+      "bytes": 43681
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/RoutedStrides.cmake": {
+      "sha256": "df9032cecf6bd1ded169ac1e882cf177b900dbfe6f11ea66b2a06b5b38c137ce",
+      "bytes": 2532
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/runtime.hpp": {
+      "sha256": "5b507e1f1ac44e102f62f7769db06163078b8ff17b25cdd6b461bfbc9b988a9c",
+      "bytes": 5395
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/RuntimePatches.cmake": {
+      "sha256": "d4ec228a81257cdb5a2d82c5c6ce8efe9dfa0e09729ca2db15dabc84aaaec40d",
+      "bytes": 8037
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sampling.hpp": {
+      "sha256": "316fbe2f9e3a9751ea0f032851dd79488aac758a516ada08a2c07647c5c3c320",
+      "bytes": 5168
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sessions.hpp": {
+      "sha256": "b10f14e50622694252acfc6d052a6f2bedf9e5e23404a7ff8ec00740492d4d13",
+      "bytes": 3496
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/session_runtime.hpp": {
+      "sha256": "b3547badd24f892c49e1c7ece7fd9245e6a0c89f9ad1690681dfdc23e0b1474f",
+      "bytes": 3016
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/speculative_bench.cpp": {
+      "sha256": "6723ca20a5b6ae955339bb94c9b87a1539cdaac7469ed4e0b8643c53954b8b06",
+      "bytes": 13627
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/StateBulk.cmake": {
+      "sha256": "d037fad4d6da07c77ee301aedd7d1dc02786c05e184dc29bd8b210c56ba38cfa",
+      "bytes": 2336
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/state_bulk.hpp": {
+      "sha256": "3634b61b4c3dde487c96d826e0bea7943befe54a42cf3a61d0984719ab69804e",
+      "bytes": 3726
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/StrictF32.cmake": {
+      "sha256": "93249e7c543a22b01591dc14418e95aa4e1a4a5beb5311a907413a4262e7c11d",
+      "bytes": 2720
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_runtime.h": {
+      "sha256": "a8ebc7f95284dd7a0ba88dd1d63c78364f8d185d9ea10757291f46fa6c4bb140",
+      "bytes": 4643
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_runtime.inc": {
+      "sha256": "f302e8b212f0b388e79cecee2c6d72ec81e9f6fa39b1bbe11f92181315c45b29",
+      "bytes": 16935
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/sync_test.h": {
+      "sha256": "40ffd42119acdb884c768f81780b042c72c62e7d578fe0a5ea9cd4b0d311a612",
+      "bytes": 659
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": {
+      "sha256": "de866ed75cba59f804b9fd5e74596b0a420d309a5ac5323e07e94c8f3189bc13",
+      "bytes": 4785
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/TemplateJSON.cmake": {
+      "sha256": "d705ce7f86f29a211192ead229dc245fea5836734b8833c0ca0be5ffd5aedc42",
+      "bytes": 2721
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/template_oracle.cpp": {
+      "sha256": "d60014322183fbf852668abd28907801c7b642583e49b9b61aee57123d482947",
+      "bytes": 2210
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": {
+      "sha256": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+      "bytes": 4930
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/backends/minimax_m2/Tokenwise.cmake": {
+      "sha256": "8b4412879df6dd5fc6cb1dbf9b79febf994b6056c95d1772cac5577d3ffc4b2e",
+      "bytes": 1541
+    },
+    "build-local/minimax-m2-session-batch1-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": {
+      "sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+      "bytes": 6524
+    },
+    "build-local/minimax-m2-session-batch8-01/engine.exe": {
+      "sha256": "98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8",
+      "bytes": 58183680
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.f32": {
+      "sha256": "3459204c67701c86924b902b15d1771d5dd9af4e519750750211545a6601f389",
+      "bytes": 96830976
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.json": {
+      "sha256": "441f0afe7c14b1852f0169bb389246ea9a4e7af26936297214f9aac3bc12899d",
+      "bytes": 170422
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.memory.jsonl": {
+      "sha256": "2c11f42af7494f6c4a12c2680c18fc489d0bf0db3a9c9b8744c88b013d33fce9",
+      "bytes": 137317
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.requests.json": {
+      "sha256": "3806ba84aa7fe93e39d0578513f4dc63a0c58da38ed049bb2756cac05e7b3bfc",
+      "bytes": 23784
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.stderr.log": {
+      "sha256": "153cb90d899b0eb3eaeb5177fc698ab51dea78979509956fdc4c9776dd251fe7",
+      "bytes": 143503
+    },
+    "build-local/minimax-m2-session-batch8-01/fresh.stdout.log": {
+      "sha256": "441f0afe7c14b1852f0169bb389246ea9a4e7af26936297214f9aac3bc12899d",
+      "bytes": 170422
+    },
+    "build-local/minimax-m2-session-batch8-01/report.json": {
+      "sha256": "390c0dcbd63f836e107f937b68d69abfc22a33764d2bcfc3b61ac629feba9b65",
+      "bytes": 47444
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.f32": {
+      "sha256": "de8d69f78b845d26da3314238ee1fd07768785be82eed0d720a2b4a0c3dc0f1f",
+      "bytes": 227272704
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.json": {
+      "sha256": "1d81412ec97e4e30871d683c8083eda774672581ace25c9358b7a1aaddd66e6c",
+      "bytes": 316292
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.memory.jsonl": {
+      "sha256": "b168c3ac4ee09ed5f396d341851aa756d710afe678716154f777777328988283",
+      "bytes": 110298
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.requests.json": {
+      "sha256": "01beb79ce8ac88dba430aee51983fb7bea862518f399eed0e64299ada20cbe98",
+      "bytes": 49557
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.stderr.log": {
+      "sha256": "095e47063ba04a2813f0b21cde228b21a798bde37297b6b5396a94876430e079",
+      "bytes": 143913
+    },
+    "build-local/minimax-m2-session-batch8-01/sessions.stdout.log": {
+      "sha256": "1d81412ec97e4e30871d683c8083eda774672581ace25c9358b7a1aaddd66e6c",
+      "bytes": 316292
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2.py": {
+      "sha256": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+      "bytes": 2139
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_api.py": {
+      "sha256": "ef8a61dce0fa44eed560329b6dd5ed832ce58b806b55565f332602e26961526d",
+      "bytes": 14537
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_engine.py": {
+      "sha256": "c43bb824a0dc66d3566998ec3413d8c9572452f4538d54d94bb5ee3b71585b40",
+      "bytes": 19830
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_history.py": {
+      "sha256": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+      "bytes": 12001
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_server.py": {
+      "sha256": "80f012d50e6cdb64be55d4c995c760f529c3283957ae7e5abd6268505492a500",
+      "bytes": 3062
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_tools.py": {
+      "sha256": "199155ced393b6f602e493dfb509adda9d7dc05ed798d9c59421c56986a2ae7c",
+      "bytes": 12223
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/minimax_m2_worker.py": {
+      "sha256": "dec34c7fddd17769201c5ac5adda1b9e1d86f178dd64208271307a0ed28213d7",
+      "bytes": 4999
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/server.py": {
+      "sha256": "845471aa296b57eac41a5dfe3d4256e96fec9861df233e2f1b7bd448c7766f71",
+      "bytes": 175786
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2.py": {
+      "sha256": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+      "bytes": 4046
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_api.py": {
+      "sha256": "c7d40595a9b31541c81eccedb3dae85762f94b9d92aa06bc40050816bd0440ad",
+      "bytes": 20932
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_engine.py": {
+      "sha256": "f63635b993f36f658a528b50fe80565c05ac09326ade678bd6602d2d1d033503",
+      "bytes": 13438
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_history.py": {
+      "sha256": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+      "bytes": 10348
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_server.py": {
+      "sha256": "f2c751fccce706b50fe762bf1f79582ed421139d1845855d36fe41f3bdcd8f18",
+      "bytes": 1168
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/test_minimax_m2_tools.py": {
+      "sha256": "7816e9646135466274a993d4d1eeaad56a09dd275de1c58dfb83f1cae28a14b3",
+      "bytes": 12623
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/winjob.py": {
+      "sha256": "08fa746587f4a830c86670a57285fea4baf357e248298110728ab94db78155bb",
+      "bytes": 3592
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_completion_pipe.py": {
+      "sha256": "41c999e1e92b6b83588ee1772df4ebb256f9e1f6be634f62701e25e1647459cc",
+      "bytes": 12542
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_http_context.py": {
+      "sha256": "60c7109f33b7ae0aa8769f4428554123d485c8dfc61637531dae31ccb3de0c69",
+      "bytes": 16008
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_prefix.py": {
+      "sha256": "024dae1abbadd6156372e2b18ccf19a8a416eac06c66facf5cab0aaae501f56e",
+      "bytes": 9514
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_prefix_context.py": {
+      "sha256": "dc6f603618e08bf81585b9dbe53992b906bb89db2d9b7d65fbc54aa0e0df97a4",
+      "bytes": 10786
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_sessions.py": {
+      "sha256": "53db68f54b0aa9aedd33a09b2a5a1d56d490cf1d55540f90427429bdd387d9e2",
+      "bytes": 9458
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_sessions_context.py": {
+      "sha256": "60c9132b2fab428f08f61b0b6b9944bc21d4d6faa55b2914f349bdcbb51c490f",
+      "bytes": 8541
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/check_minimax_m2_session_batches.py": {
+      "sha256": "a2fc45c878353cd83c13c2024cd277869dba56808e7f0d12b1b33eb65fd0c142",
+      "bytes": 13206
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/minimax_m2_memory_observer.py": {
+      "sha256": "943ed71d9c9ff0ef5e29e46434549df542e05c6f68375de105457b2419f20348",
+      "bytes": 5204
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/run_minimax_m2.py": {
+      "sha256": "28c8ba8bf0f313b514f364f9dd20d472a3e9f52fc2c1b610368b707f6f4dd1d0",
+      "bytes": 1842
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/strata_tokenizer.py": {
+      "sha256": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+      "bytes": 21249
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/tools/test_minimax_m2_session_batches.py": {
+      "sha256": "58972042437764d37e49bed297d76f120c0974c42c814b7c5da34ba0a8f6ecd7",
+      "bytes": 2561
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/build_manifest.json.in": {
+      "sha256": "f86a72f753fc95572d62ae301cc8117fa0775338ce0fd7c95418c91b88c147f2",
+      "bytes": 2149
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/cache_runtime.inc": {
+      "sha256": "e0e84a4ca636b928f16096b1b9f808d0372d5358a48afc9bb80e44cdfabcf877",
+      "bytes": 9394
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_arena.cpp": {
+      "sha256": "2306e038b24a162b1adcdf39e63f7451fa355a9342ad9fe7f89e18e966a7fd01",
+      "bytes": 7140
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_cache.cpp": {
+      "sha256": "4c475da176bfcefa27ed604bd1a99a2798607fb0e19dce95d3c9f3111bb887f8",
+      "bytes": 20508
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_dflash.cpp": {
+      "sha256": "55cb3e7881b3e1bd52596f2e79d754eb891d223d8606afaf13e0634686c0669a",
+      "bytes": 15104
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_graph.cpp": {
+      "sha256": "c6a0265c6ddc27721c2a812325508e22ee004b5243a214dbe90e1cfc7307c424",
+      "bytes": 24834
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_group_cache.cpp": {
+      "sha256": "4cb5db7d0093050261860dc3ea164708017734ef4ceba2a9719aaf56442950f0",
+      "bytes": 8461
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_host_cache.cpp": {
+      "sha256": "0029f7b092ad0f0010420df47a42a83f8c34cd65a9485c2977ec47049685136e",
+      "bytes": 6879
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_kernels.cpp": {
+      "sha256": "1afac45b1bfef7b7a0c4f7f5ac84b4b581f06f3f0eeebd61bc170288bf31e410",
+      "bytes": 18282
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_lifecycle.cpp": {
+      "sha256": "3d46784335ec59a33477a9789cfa392c56a4ed5540fcf53ec67e18ad8b7479da",
+      "bytes": 24806
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_prefix.cpp": {
+      "sha256": "db42b0a17bd1108c6c10d6722884d556cd6a75a2f101a571c88ba063ebfb3597",
+      "bytes": 1464
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_reclaim.cpp": {
+      "sha256": "5d21e2af30080fc68cd6e8d7ec7b3dea473c43c2b85ffdea13fd036a05d155da",
+      "bytes": 10497
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_reload.cpp": {
+      "sha256": "a45c5211d89799279d2cc48440d28cef517a4da655db6f6b1225d7ce6ce515f4",
+      "bytes": 10730
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_runtime.cpp": {
+      "sha256": "84949d82fd38684733c1455aef5bb52eefd20e8edec6e25af84e9c6f9de950ea",
+      "bytes": 10042
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_sampling.cpp": {
+      "sha256": "37f1d8d55ed74af14bfd34863373a977c6724131258f1f6f0847af4072462a8f",
+      "bytes": 7674
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_sessions.cpp": {
+      "sha256": "8f1d598ff5a97779983894a63b41ff3a4fba4c4eeb22b01e1c9487e4646a82c9",
+      "bytes": 3133
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/check_state_bulk.cpp": {
+      "sha256": "5a8f59a9983bdc55d900ba62a73901364ce7a70a8b92d70ec8b340c77a6ca49d",
+      "bytes": 6474
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/CMakeLists.txt": {
+      "sha256": "dcba280329329a50c3b7ea36f283f56f23762dfffa9e183e30fd54bc84cd34b7",
+      "bytes": 12609
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/contract.hpp": {
+      "sha256": "591745114ae34812daccfecc5f83ce36412faf5546b1086074235ba31d8fe08e",
+      "bytes": 7096
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/DFlash.cmake": {
+      "sha256": "3f48d322b250236415825ec76fe38e0b768a2e0172c4dc11e5974be84ca84337",
+      "bytes": 2313
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_contract.hpp": {
+      "sha256": "5f1b28789a65a0af55dc59c4724659d2be69b82bc2b6ee44ffbc05d37b7ccd61",
+      "bytes": 8055
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_decode.hpp": {
+      "sha256": "affdaa3a5981e3ca856b3489ed625bbce0248829bf6832888d1b0962497def2f",
+      "bytes": 4587
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/dflash_loader_oracle.cpp": {
+      "sha256": "05ae9690d7d5752811f3fb9ce06ab773930438bb4f911752b91dbe010494ff38",
+      "bytes": 2083
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/gpu_arena.hpp": {
+      "sha256": "0ad8e50245b9657c359d984eca19fef7a5a9654a41595325e99f896e0b63030b",
+      "bytes": 2054
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/gpu_only_audit.inc": {
+      "sha256": "9f483d171fde41c84fb7dc5d61542d6ffdefd0397ef3a04df799bd392eea5443",
+      "bytes": 1204
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/group_cache.hpp": {
+      "sha256": "4b6a0978eefea415134d3fea9bc03367dcab78064d562a1bda723c199c2d1469",
+      "bytes": 7657
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/host_cache.hpp": {
+      "sha256": "5eeaba80f7807980511cbc490ff793ee084ef58f81f459741d9402d181546425",
+      "bytes": 11248
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/loader_oracle.cpp": {
+      "sha256": "7fee2fde4c1f6c59d4c35c0a8b4a80054b3f59e20dc332520682ab92e164171d",
+      "bytes": 3855
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/main.cpp": {
+      "sha256": "cdaa0d42ad56ab85019808cf6e31064e8fbc068c90dd0eaadd6e9dd8912707c8",
+      "bytes": 21973
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/minimax_tokenwise.hpp": {
+      "sha256": "f69f76ab7ab59c2aa429aa4738613b2c201da977701efddc3917d58d32f55200",
+      "bytes": 1244
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_runtime.inc": {
+      "sha256": "e08b3a9551660ef2911f9484141a9c39ed084977f5bea50327cca05edba1131d",
+      "bytes": 11355
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_sched.inc": {
+      "sha256": "8512c68d492a4f9c1277936b4ada352d8152431052a539ee83f93db791482a94",
+      "bytes": 2652
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_state.inc": {
+      "sha256": "e6b957486c10aa2a0b45437c5802deb6373df5d076cf79d0dd053eb0e22e40a9",
+      "bytes": 7743
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pipeline_trace.hpp": {
+      "sha256": "792343a13ca82c30b6043b73e1103c864bd0d948ff92cd85a942edfa71414ad7",
+      "bytes": 4141
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/prefix.hpp": {
+      "sha256": "f4934e0c6d42af43e2542c2a2c33413c0e31746c8f0df4eae602a66b3b5fa19c",
+      "bytes": 1359
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/pressure_holder.cpp": {
+      "sha256": "220d7afe06b316674a3172d3ed449042669e553c3a377e71652493d89c89005c",
+      "bytes": 7269
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/QuantF32.cmake": {
+      "sha256": "7aaa9ae7fa1efedd5804e0955b8652621507949e75e1c387308234073e429d84",
+      "bytes": 3627
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/README.md": {
+      "sha256": "5266f059d52b66c8f3ce85924a7ec335167dab745b0d2eb86a143dca9f3d5509",
+      "bytes": 43681
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/RoutedStrides.cmake": {
+      "sha256": "df9032cecf6bd1ded169ac1e882cf177b900dbfe6f11ea66b2a06b5b38c137ce",
+      "bytes": 2532
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/runtime.hpp": {
+      "sha256": "5b507e1f1ac44e102f62f7769db06163078b8ff17b25cdd6b461bfbc9b988a9c",
+      "bytes": 5395
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/RuntimePatches.cmake": {
+      "sha256": "d4ec228a81257cdb5a2d82c5c6ce8efe9dfa0e09729ca2db15dabc84aaaec40d",
+      "bytes": 8037
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sampling.hpp": {
+      "sha256": "316fbe2f9e3a9751ea0f032851dd79488aac758a516ada08a2c07647c5c3c320",
+      "bytes": 5168
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sessions.hpp": {
+      "sha256": "b10f14e50622694252acfc6d052a6f2bedf9e5e23404a7ff8ec00740492d4d13",
+      "bytes": 3496
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/session_runtime.hpp": {
+      "sha256": "b3547badd24f892c49e1c7ece7fd9245e6a0c89f9ad1690681dfdc23e0b1474f",
+      "bytes": 3016
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/speculative_bench.cpp": {
+      "sha256": "6723ca20a5b6ae955339bb94c9b87a1539cdaac7469ed4e0b8643c53954b8b06",
+      "bytes": 13627
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/StateBulk.cmake": {
+      "sha256": "d037fad4d6da07c77ee301aedd7d1dc02786c05e184dc29bd8b210c56ba38cfa",
+      "bytes": 2336
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/state_bulk.hpp": {
+      "sha256": "3634b61b4c3dde487c96d826e0bea7943befe54a42cf3a61d0984719ab69804e",
+      "bytes": 3726
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/StrictF32.cmake": {
+      "sha256": "93249e7c543a22b01591dc14418e95aa4e1a4a5beb5311a907413a4262e7c11d",
+      "bytes": 2720
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_runtime.h": {
+      "sha256": "a8ebc7f95284dd7a0ba88dd1d63c78364f8d185d9ea10757291f46fa6c4bb140",
+      "bytes": 4643
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_runtime.inc": {
+      "sha256": "f302e8b212f0b388e79cecee2c6d72ec81e9f6fa39b1bbe11f92181315c45b29",
+      "bytes": 16935
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/sync_test.h": {
+      "sha256": "40ffd42119acdb884c768f81780b042c72c62e7d578fe0a5ea9cd4b0d311a612",
+      "bytes": 659
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/synthetic_minimax_m2.hpp": {
+      "sha256": "de866ed75cba59f804b9fd5e74596b0a420d309a5ac5323e07e94c8f3189bc13",
+      "bytes": 4785
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/TemplateJSON.cmake": {
+      "sha256": "d705ce7f86f29a211192ead229dc245fea5836734b8833c0ca0be5ffd5aedc42",
+      "bytes": 2721
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/template_oracle.cpp": {
+      "sha256": "d60014322183fbf852668abd28907801c7b642583e49b9b61aee57123d482947",
+      "bytes": 2210
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/tokenizer_oracle.cpp": {
+      "sha256": "bbd947192343f94cc2d71c5f4b28b24c5f6e08e0eebe40e4cf6fe7f00203dc0d",
+      "bytes": 4930
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/backends/minimax_m2/Tokenwise.cmake": {
+      "sha256": "8b4412879df6dd5fc6cb1dbf9b79febf994b6056c95d1772cac5577d3ffc4b2e",
+      "bytes": 1541
+    },
+    "build-local/minimax-m2-session-batch8-01/sources/serve/fixtures/minimax_m27_chat_template.jinja": {
+      "sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+      "bytes": 6524
+    }
+  },
+  "unit_log_sha256": "359087219c9cd80ed0cbae2e7d3876d237a8383be1f1ba0cc5bb9a4af4329e74",
+  "validator_sha256": "4914414b69da21e776401fc969803bdaa8150a71e8e6722118b658b72ddaca2b",
+  "limitations": [
+    "Prompts up to513; GPU batch1/8 at2K/4K still open.",
+    "Offline full logits; no new HTTP/cancel/pressure or EOS corpus.",
+    "Same engine fresh reference, not an independent model oracle or speed A/B."
+  ]
+}

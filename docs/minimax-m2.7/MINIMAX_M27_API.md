@@ -1,5 +1,8 @@
 # MM27-21: адаптеры OpenAI и Anthropic
 
+Продолжение: [MM27-22 — подключение native CUDA Engine и отдельный сервер](MINIMAX_M27_NATIVE_API.md).
+Ниже сохранён scope проверки MM27-21 со scripted engine.
+
 Дата: **2026-10-09**, `Asia/Yekaterinburg`; ревизия
 `d342001b4dca70860bcd585f28004591a83e5bf3`, dirty tree.
 [План](MINIMAX_M27_IMPLEMENTATION_PLAN.md),

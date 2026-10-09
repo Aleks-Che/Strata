@@ -1,0 +1,444 @@
+{
+  "pass": true,
+  "stage": "MM27-23",
+  "commit": "54467693c8354d8c64a72ec1cb083473a529b4ba",
+  "dirty": true,
+  "scope": "limited live multi-call/error corpus + browser text/history/cancel/recovery; not broad quality or speed A/B",
+  "gates": {
+    "live_matrix": true,
+    "api_regression": true,
+    "web_ui": true,
+    "web_stopped": true,
+    "parity_calls": true,
+    "parity_json-normal-answer": true,
+    "parity_sse-error-answer": true,
+    "sources_match_run": true,
+    "only_expected_product_changes": true,
+    "same_native_exe": true,
+    "five_ui_requests": true,
+    "no_session_header": true,
+    "one_native_pid": true,
+    "two_cancels_reached_engine": true,
+    "history_preserved": true,
+    "web_request_1": true,
+    "web_request_2": true,
+    "web_request_5": true,
+    "unit_unit.log": true,
+    "unit_minimax-m2-live-tools-regression.log": true,
+    "unit_minimax-m2-web-capability-tests.log": true,
+    "213_distinct_methods": true
+  },
+  "header": {
+    "architecture": "minimax-m2",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,mm27-optional-tokenwise-verification,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena,mm27-opt-in-expert-triplet-cache,mm27-bounded-mmap-readers,mm27-mapped-ram-lru-gpu-partition,mm27-tensor-file-pipeline,mm27-router-matrix-lookahead,mm27-dflash-borrowed-head-prefix",
+    "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "mode": 2,
+    "context": 2048,
+    "batch": 16,
+    "kv": "F32",
+    "flash_attention": false,
+    "strict_f32": true,
+    "graphs": false,
+    "cache": true,
+    "gpu_cache_mib": 18432,
+    "ram_cache_mib": 0,
+    "gpu_cache_allocator": "arena",
+    "cache_group_experts": false,
+    "arena_block_mib": 64,
+    "arena_growth_reserve_mib": 0,
+    "expert_reader": "file",
+    "host_working_set_target_percent": 0,
+    "pipeline_readers": 2,
+    "pipeline_chunk_mib": 4,
+    "pipeline_lookahead": true,
+    "pipeline_d2d_batch": true,
+    "pipeline_trace": "",
+    "cache_policy": "decode admission after first serial step; prefill hits only; global 95% minus 256 MiB",
+    "mtp": false,
+    "load_ms": 1133.3679,
+    "memory_before": {
+      "ram_total": 134813700096,
+      "ram_available": 110005858304,
+      "vram_total": 34190917632,
+      "vram_available": 32259239936,
+      "process_private": 259674112,
+      "process_working_set": 173338624
+    },
+    "memory_loaded": {
+      "ram_total": 134813700096,
+      "ram_available": 107167666176,
+      "vram_total": 34190917632,
+      "vram_available": 27077431296,
+      "process_private": 6021009408,
+      "process_working_set": 2959159296
+    },
+    "event": "ready",
+    "request_id": null,
+    "native_pid": 56492
+  },
+  "gpu": "NVIDIA GeForce RTX 5090, 581.80, 32607 MiB",
+  "engine_sha256": "f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619",
+  "header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "parity": {
+    "calls": {
+      "count": 4,
+      "prompt_ids": true,
+      "generated_ids": true
+    },
+    "json-normal-answer": {
+      "count": 2,
+      "prompt_ids": true,
+      "generated_ids": true
+    },
+    "sse-error-answer": {
+      "count": 2,
+      "prompt_ids": true,
+      "generated_ids": true
+    }
+  },
+  "changed_product_sources": [
+    "serve/minimax_m2_api.py",
+    "serve/server.py",
+    "serve/test_session_cache.py",
+    "serve/web/app.js"
+  ],
+  "unit_runs": [
+    {
+      "log": "build-local\\minimax-m2-api-regression-23\\unit.log",
+      "methods": 191,
+      "pass": true
+    },
+    {
+      "log": "build-local\\minimax-m2-live-tools-regression.log",
+      "methods": 58,
+      "pass": true
+    },
+    {
+      "log": "build-local\\minimax-m2-web-capability-tests.log",
+      "methods": 17,
+      "pass": true
+    }
+  ],
+  "distinct_unit_methods": 213,
+  "api_report_checks": 272,
+  "api_native_prompts": 32,
+  "api_native_prompt_ids": 14284,
+  "live_cycles": [
+    {
+      "name": "anthropic-sse-error",
+      "pass": true,
+      "calls": [
+        {
+          "type": "tool_use",
+          "id": "call_d1d233b574ba4c908b4dbb6a",
+          "name": "get_code",
+          "input": {
+            "city": "Oslo",
+            "revision": 2
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "call_51b2023e66c84b48b9ffe714",
+          "name": "get_code",
+          "input": {
+            "city": "Уфа",
+            "revision": 3
+          }
+        }
+      ],
+      "final_text": "\n\nThe lookups returned the following:\n\n1. **Oslo, revision 2:** `OSLO-4179`\n2. **Уфа, revision 3:** `Error: CODE_UNAVAILABLE`"
+    },
+    {
+      "name": "openai-json-normal",
+      "pass": true,
+      "calls": [
+        {
+          "id": "call_3df9726a8bac4a048cc8811b",
+          "name": "get_code",
+          "input": {
+            "city": "Oslo",
+            "revision": 2
+          }
+        },
+        {
+          "id": "call_1756c6db6d444bbe8d3f0285",
+          "name": "get_code",
+          "input": {
+            "city": "Уфа",
+            "revision": 3
+          }
+        }
+      ],
+      "final_text": "\n\nHere are the exact codes returned:\n\n- **Oslo, revision 2:** `OSLO-4179`\n- **Уфа, revision 3:** `UFA-9264`\n\nBoth lookups succeeded without errors."
+    },
+    {
+      "name": "anthropic-json-normal",
+      "pass": true,
+      "calls": [
+        {
+          "type": "tool_use",
+          "id": "call_0eddda4dd8974645b810b84f",
+          "name": "get_code",
+          "input": {
+            "city": "Oslo",
+            "revision": 2
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "call_5137e6062fe94b40b9eaf411",
+          "name": "get_code",
+          "input": {
+            "city": "Уфа",
+            "revision": 3
+          }
+        }
+      ],
+      "final_text": "\n\nHere are the exact codes returned:\n\n- **Oslo, revision 2:** `OSLO-4179`\n- **Уфа, revision 3:** `UFA-9264`\n\nBoth lookups succeeded without errors."
+    },
+    {
+      "name": "openai-sse-error",
+      "pass": true,
+      "calls": [
+        {
+          "id": "call_adaa4370c4ec4f06b6eb758e",
+          "name": "get_code",
+          "input": {
+            "city": "Oslo",
+            "revision": 2
+          }
+        },
+        {
+          "id": "call_eb77a07dc9a64298ba2ed5fc",
+          "name": "get_code",
+          "input": {
+            "city": "Уфа",
+            "revision": 3
+          }
+        }
+      ],
+      "final_text": "\n\nThe lookups returned the following:\n\n1. **Oslo, revision 2:** `OSLO-4179`\n2. **Уфа, revision 3:** `Error: CODE_UNAVAILABLE`"
+    }
+  ],
+  "web_observations": {
+    "pass": true,
+    "source": "CUA accessibility and screenshots from real browser UI",
+    "url": "http://127.0.0.1:55904/",
+    "completed_finals": [
+      "SAVED",
+      "TEST-4821",
+      "4"
+    ],
+    "stop_clicks": 2,
+    "reasoning_separate": true,
+    "js_warnings_errors": [],
+    "settings": "UI default T0.6/p0.95/k20, reasoning high; seed omitted",
+    "scope": "text chat, history, streamed reasoning, two Stop actions, completion after explicit cancellation of old task",
+    "limitation": "The stopped pencil-list user request remains in chat history. The immediate next question (2+2, number only) led the model to reason about fulfilling both requests; this generation was stopped without an EOS/final. The fifth request explicitly cancelled the pencil task and completed with 4. This is not evidence that all follow-ups after Stop ignore the cancelled task."
+  },
+  "web_completions": [
+    {
+      "index": 1,
+      "final": "SAVED",
+      "prompt_tokens": 51,
+      "generated_tokens": 56,
+      "prefill_ms": 12352.808,
+      "ttft_ms": 12354.4404,
+      "decode_tokens_per_second": 4.013102033892647,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "index": 2,
+      "final": "TEST-4821",
+      "prompt_tokens": 76,
+      "generated_tokens": 41,
+      "prefill_ms": 11341.2276,
+      "ttft_ms": 11342.8169,
+      "decode_tokens_per_second": 4.11246759940996,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    },
+    {
+      "index": 5,
+      "final": "4",
+      "prompt_tokens": 168,
+      "generated_tokens": 155,
+      "prefill_ms": 27258.3468,
+      "ttft_ms": 27259.9157,
+      "decode_tokens_per_second": 4.322006490952123,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true
+      }
+    }
+  ],
+  "memory": {
+    "scope": "sampled global use, 8 live tools + 3 completed UI requests; excludes cancelled request without terminal stats",
+    "ram_used_peak_gib": 32.43570327758789,
+    "vram_used_peak_mib": 27720.92578125,
+    "ram_used_peak_percent": 25.833851585706423,
+    "vram_used_peak_percent": 85.01525985601252,
+    "process_private_peak_gib": 26.235733032226562,
+    "process_working_set_peak_gib": 2.9721412658691406
+  },
+  "source_checks": {
+    "minimax-m2-live-tools-02/serve/__init__.py": true,
+    "minimax-m2-live-tools-02/serve/archive_policy.py": true,
+    "minimax-m2-live-tools-02/serve/deepseek.py": true,
+    "minimax-m2-live-tools-02/serve/frontend.py": true,
+    "minimax-m2-live-tools-02/serve/glm5next.py": true,
+    "minimax-m2-live-tools-02/serve/hy3.py": true,
+    "minimax-m2-live-tools-02/serve/mcp.py": true,
+    "minimax-m2-live-tools-02/serve/mcp_fake_server.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_api.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_engine.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_history.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_server.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_tools.py": true,
+    "minimax-m2-live-tools-02/serve/minimax_m2_worker.py": true,
+    "minimax-m2-live-tools-02/serve/server.py": true,
+    "minimax-m2-live-tools-02/serve/step35.py": true,
+    "minimax-m2-live-tools-02/serve/structured.py": true,
+    "minimax-m2-live-tools-02/serve/telemetry.py": true,
+    "minimax-m2-live-tools-02/serve/test_archive_policy.py": true,
+    "minimax-m2-live-tools-02/serve/test_cache_admin.py": true,
+    "minimax-m2-live-tools-02/serve/test_deepseek.py": true,
+    "minimax-m2-live-tools-02/serve/test_detok.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_handlers.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_http.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_info.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_mcp.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_profile.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_requests.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_service.py": true,
+    "minimax-m2-live-tools-02/serve/test_glm5next_settings.py": true,
+    "minimax-m2-live-tools-02/serve/test_hy3.py": true,
+    "minimax-m2-live-tools-02/serve/test_hy3_http.py": true,
+    "minimax-m2-live-tools-02/serve/test_lifecycle.py": true,
+    "minimax-m2-live-tools-02/serve/test_mcp.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2_api.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2_engine.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2_history.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2_server.py": true,
+    "minimax-m2-live-tools-02/serve/test_minimax_m2_tools.py": true,
+    "minimax-m2-live-tools-02/serve/test_monitor.py": true,
+    "minimax-m2-live-tools-02/serve/test_server.py": true,
+    "minimax-m2-live-tools-02/serve/test_session_cache.py": true,
+    "minimax-m2-live-tools-02/serve/test_step35.py": true,
+    "minimax-m2-live-tools-02/serve/test_step35_http.py": true,
+    "minimax-m2-live-tools-02/serve/test_structured.py": true,
+    "minimax-m2-live-tools-02/serve/test_usage_stats.py": true,
+    "minimax-m2-live-tools-02/serve/test_vram_settings.py": true,
+    "minimax-m2-live-tools-02/serve/test_winjob.py": true,
+    "minimax-m2-live-tools-02/serve/usage_stats.py": true,
+    "minimax-m2-live-tools-02/serve/vram_settings.py": true,
+    "minimax-m2-live-tools-02/serve/winjob.py": true,
+    "minimax-m2-live-tools-02/tools/check_minimax_m2_live_tools.py": true,
+    "minimax-m2-live-tools-02/serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "minimax-m2-live-tools-02/tools/strata_tokenizer.py": true,
+    "minimax-m2-live-tools-02/serve/web/app.css": true,
+    "minimax-m2-live-tools-02/serve/web/app.js": true,
+    "minimax-m2-live-tools-02/serve/web/components.css": true,
+    "minimax-m2-live-tools-02/serve/web/index.html": true,
+    "minimax-m2-live-tools-02/serve/web/monitor.html": true,
+    "minimax-m2-live-tools-02/serve/web/monitor.js": true,
+    "minimax-m2-live-tools-02/serve/web/sprite.svg": true,
+    "minimax-m2-live-tools-02/serve/web/tokens.css": true,
+    "minimax-m2-web-check-01/serve/__init__.py": true,
+    "minimax-m2-web-check-01/serve/archive_policy.py": true,
+    "minimax-m2-web-check-01/serve/deepseek.py": true,
+    "minimax-m2-web-check-01/serve/frontend.py": true,
+    "minimax-m2-web-check-01/serve/glm5next.py": true,
+    "minimax-m2-web-check-01/serve/hy3.py": true,
+    "minimax-m2-web-check-01/serve/mcp.py": true,
+    "minimax-m2-web-check-01/serve/mcp_fake_server.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_api.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_engine.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_history.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_server.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_tools.py": true,
+    "minimax-m2-web-check-01/serve/minimax_m2_worker.py": true,
+    "minimax-m2-web-check-01/serve/server.py": true,
+    "minimax-m2-web-check-01/serve/step35.py": true,
+    "minimax-m2-web-check-01/serve/structured.py": true,
+    "minimax-m2-web-check-01/serve/telemetry.py": true,
+    "minimax-m2-web-check-01/serve/test_archive_policy.py": true,
+    "minimax-m2-web-check-01/serve/test_cache_admin.py": true,
+    "minimax-m2-web-check-01/serve/test_deepseek.py": true,
+    "minimax-m2-web-check-01/serve/test_detok.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_handlers.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_http.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_info.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_mcp.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_profile.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_requests.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_service.py": true,
+    "minimax-m2-web-check-01/serve/test_glm5next_settings.py": true,
+    "minimax-m2-web-check-01/serve/test_hy3.py": true,
+    "minimax-m2-web-check-01/serve/test_hy3_http.py": true,
+    "minimax-m2-web-check-01/serve/test_lifecycle.py": true,
+    "minimax-m2-web-check-01/serve/test_mcp.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2_api.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2_engine.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2_history.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2_server.py": true,
+    "minimax-m2-web-check-01/serve/test_minimax_m2_tools.py": true,
+    "minimax-m2-web-check-01/serve/test_monitor.py": true,
+    "minimax-m2-web-check-01/serve/test_server.py": true,
+    "minimax-m2-web-check-01/serve/test_session_cache.py": true,
+    "minimax-m2-web-check-01/serve/test_step35.py": true,
+    "minimax-m2-web-check-01/serve/test_step35_http.py": true,
+    "minimax-m2-web-check-01/serve/test_structured.py": true,
+    "minimax-m2-web-check-01/serve/test_usage_stats.py": true,
+    "minimax-m2-web-check-01/serve/test_vram_settings.py": true,
+    "minimax-m2-web-check-01/serve/test_winjob.py": true,
+    "minimax-m2-web-check-01/serve/usage_stats.py": true,
+    "minimax-m2-web-check-01/serve/vram_settings.py": true,
+    "minimax-m2-web-check-01/serve/winjob.py": true,
+    "minimax-m2-web-check-01/serve/web/app.css": true,
+    "minimax-m2-web-check-01/serve/web/app.js": true,
+    "minimax-m2-web-check-01/serve/web/components.css": true,
+    "minimax-m2-web-check-01/serve/web/index.html": true,
+    "minimax-m2-web-check-01/serve/web/monitor.html": true,
+    "minimax-m2-web-check-01/serve/web/monitor.js": true,
+    "minimax-m2-web-check-01/serve/web/sprite.svg": true,
+    "minimax-m2-web-check-01/serve/web/tokens.css": true,
+    "minimax-m2-web-check-01/tools/serve_minimax_m2_web_check.py": true
+  },
+  "artifacts": {
+    "build-local/minimax-m2-api-regression-23/unit.log": "e585bebd94767a3e554d4d018d438f068c1ade7029e6fec7600da83b5db82dcd",
+    "build-local/minimax-m2-live-tools-regression.log": "8dc1f0feafacbc55c585528220b300e228830091a781d3b2da01b61bc0bb09cc",
+    "build-local/minimax-m2-web-capability-tests.log": "74b60a0aca80a640211b5b961e7888e7759a1bacf9dd112a79a877dad1dffea1",
+    "build-local/minimax-m2-live-tools-02/report.json": "f51e5c66fc1596ea752e5d52ac37ffdcd888f2b045572d3193238b120701ee6f",
+    "build-local/minimax-m2-live-tools-02/engine.exe": "f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619",
+    "build-local/minimax-m2-web-check-01/evidence.json": "779215b263616dcab733ddc94ea0b8f8d62d3a15c45b6ed9f28562be7c653d61",
+    "build-local/minimax-m2-web-check-01/ready.json": "ef41efffe72f1dda2b08510b56de36bdd3b84e150992d218e2f78500edf9f5f2",
+    "build-local/minimax-m2-web-check-01/ui-observations.json": "30d8dcd549bb06c7939e8706dca093309f6f3cbf35f8f334dda31e20a66a1ef1",
+    "build-local/minimax-m2-web-check-01/chat-history.jpg": "f6f991b01fb249ce578a45ee8db912bd1c6030a3eefbc8f782d818d5686f4780",
+    "build-local/minimax-m2-web-check-01/chat-recovery.jpg": "e40bde275d7c93d41dd72fef1cb669c7b0305d7750b4d4802f1526f7ac8393f2",
+    "build-local/minimax-m2-api-regression-23/api-report.json": "9f858c171db1bf9df1831322d5b8492807e995f82d14e1023396a37bf0b0adad",
+    "build-local/minimax-m2-live-tools-01/INTERRUPTED.json": "82de2c68a1fdbbe2124e41282c3c94ee985d0e0ce01424cbf9f1e57f887b6053",
+    "build-local/minimax-m2-live-tools-client-tests.log": "f2d6cd317f8b8aac29216ce7da33f1fe2a148e9d968a61de238f168c7e77ba9e",
+    "build-local/minimax-m2-live-tools-web-validation.py": "9653ecd6f96359e43c69dbf99d2359753e12456e5c66614f3fe0bc555e8071b7"
+  },
+  "unit_driver_sha256": "c4dedcebb7caaad5109ef4420e61799213d70e9915f08af7ff929435fe267f39"
+}

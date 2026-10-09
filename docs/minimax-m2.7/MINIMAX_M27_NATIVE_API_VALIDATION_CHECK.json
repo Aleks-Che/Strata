@@ -1,0 +1,39 @@
+{
+  "pass": true,
+  "source_checks": {
+    "minimax-m2-live-api-02/serve/minimax_m2_engine.py": true,
+    "minimax-m2-live-api-02/serve/minimax_m2_worker.py": true,
+    "minimax-m2-live-api-02/serve/minimax_m2_server.py": true,
+    "minimax-m2-live-api-02/serve/minimax_m2_api.py": true,
+    "minimax-m2-live-api-02/serve/minimax_m2_history.py": true,
+    "minimax-m2-live-api-02/serve/minimax_m2_tools.py": true,
+    "minimax-m2-live-api-02/serve/server.py": true,
+    "minimax-m2-live-api-02/serve/winjob.py": true,
+    "minimax-m2-live-api-02/backends/minimax_m2/main.cpp": true,
+    "minimax-m2-live-api-02/tools/check_minimax_m2_live_api.py": true,
+    "minimax-m2-startup-01/serve/minimax_m2_server.py": true,
+    "minimax-m2-startup-01/serve/minimax_m2_engine.py": true,
+    "minimax-m2-startup-01/serve/minimax_m2_worker.py": true,
+    "minimax-m2-startup-01/tools/check_minimax_m2_startup.py": true,
+    "minimax-m2-startup-01/serve/requirements-minimax.txt": true
+  },
+  "old_failure_preserved": true,
+  "unit_methods": 31,
+  "unit_skips": 0,
+  "artifacts": {
+    "build-local\\minimax-m2-live-api-02\\report.json": "ce85169c27f5b6bc23339d6e691b42548c79b8580065a678808a98dfd1498576",
+    "build-local\\minimax-m2-startup-01\\report.json": "dad9078035ee0706ecd5b711bf446d7346fcd44eb350905a8936bc3544cbe5ca",
+    "build-local\\minimax-m2-engine-tests-final.log": "5ef1543bd232b25fc4c3e2029380dfd44296b7878a159f43b5b82a0fb3cbaaf4",
+    "build-local\\minimax-m2-native-api-validation-01\\build-manifest.json": "ee2764a6a323861a947d802912ba16cfa6f2a115d6d798fe3535c9bf9b0e3c36",
+    "build-local\\minimax-m2-live-api-01\\report.json": "d3c48d88f130eefe813d470c88a06ce4091d422fd7b4c8d8f144031915e1d520",
+    "build-local\\minimax-m2-live-api-baseline-01\\engine.exe": "07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef",
+    "docs\\minimax-m2.7\\MINIMAX_M27_NATIVE_API_CHECK.json": "fc1f131211b2b9e7cc68d5e1b8824f5e8d216da5fe149786e26d78169c76b652"
+  },
+  "unit_sources": {
+    "serve/test_minimax_m2_engine.py": "d63c692c06d72541a137e2c8932e350d6d4dc8911649c7a693c288c0b67e763d",
+    "serve/test_minimax_m2_server.py": "f2c751fccce706b50fe762bf1f79582ed421139d1845855d36fe41f3bdcd8f18",
+    "serve/test_minimax_m2_api.py": "c7d40595a9b31541c81eccedb3dae85762f94b9d92aa06bc40050816bd0440ad",
+    "serve/fixtures/minimax_jsonl_child.py": "0569675e604bd56702c7b2735ea54668ca7d4cffb1d5c9c1c78085cfe13a16c8",
+    "serve/requirements-minimax.txt": "07b2be3506e3638cc642107bea4aa4ede74c9e7cf6269dc19e0b45f84a6ac59c"
+  }
+}

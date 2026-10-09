@@ -506,6 +506,9 @@ their own namespace; anonymous requests still use automatic prefix matching. The
 chat keeps a session ID across reloads and changes it on New chat. See
 [session archive and token statistics](SESSION_ARCHIVE.md) for the inspector, manual
 release, idle expiry, API endpoints and persistent usage totals.
+`GET /health` (also `/api/health`) reports `session_id: false` for engines that
+cannot accept this header. The web chat then sends ordinary history without it;
+explicit session headers remain an error on those engines.
 The default budget is 0 (disabled); `--prompt-cache 0` also disables parking.
 The initial shared-core integration supports a single session GPU: combining
 enabled parking with `--layer-split` is rejected before model loading. Ordinary

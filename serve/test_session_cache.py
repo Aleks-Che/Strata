@@ -60,6 +60,17 @@ class SessionHeaders(unittest.TestCase):
         self.assertEqual(self.post("/v1/chat/completions", "named", True)[0], 400)
         self.assertEqual(self.post("/v1/chat/completions")[0], 200)
 
+    def test_health_advertises_session_header_capability(self):
+        for supported in (False, True):
+            self.engine.can_session_id = supported
+            for path in ('/health', '/api/health'):
+                with urllib.request.urlopen(self.base + path, timeout=5) as response:
+                    capability = json.load(response)['session_id']
+                self.assertIs(capability, supported)
+            identity = 'browser-chat' if capability else None
+            self.assertEqual(self.post('/v1/chat/completions', identity, True)[0], 200)
+            self.assertEqual(self.engine.last_session_id, identity)
+
     def test_metrics_include_archive_and_transfer_phase(self):
         self.engine.cache = {"bytes": 123, "sessions": 2, "phase": "restoring"}
         self.svc.status.update(busy=True, first_token=None, started=0)

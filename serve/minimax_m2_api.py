@@ -120,6 +120,12 @@ def finish_request(req, messages, tools, kwargs, api):
     if choice == 'none':
         tools = []
     context = prepare_minimax_context({'messages': messages, 'tools': tools, **kwargs})
+    # The native template serializes definitions in insertion order. Equivalent
+    # OpenAI/Anthropic tools must not change the prompt just because the API
+    # conversion inserted description after parameters instead of before it.
+    context['tools'] = [{'type': 'function', 'function': {key: tool['function'][key]
+                         for key in ('name', 'description', 'parameters', 'strict') if key in tool['function']}}
+                        for tool in context['tools']]
     # Canonical form retains call IDs, and orders results before rendering.
     return context['messages'], context['tools'], kwargs
 

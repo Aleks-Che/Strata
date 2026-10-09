@@ -26,6 +26,9 @@ struct strata_mm27_stats {
     uint64_t pipeline_plans=0,pipeline_matrices=0,pipeline_plan_peak=0,pipeline_lookahead_plans=0;
     uint64_t pipeline_copy_batches=0,pipeline_copy_fences=0,pipeline_scratch_fences=0;
     uint64_t pipeline_copy_submissions=0,pipeline_pending_fills_peak=0,pipeline_abort_fences=0;
+    uint64_t pipeline_scratch_events=0,pipeline_copy_events=0,pipeline_retire_checks=0,pipeline_retire_waits=0;
+    uint64_t pipeline_scheduler_waits_skipped=0,pipeline_observer_fences=0,pipeline_pending_copy=0;
+    uint64_t async_compute_calls=0,graph_exit_fences=0;
     double pipeline_delivery_ms=0;
     double source_ms=0,h2d_ms=0,compute_ms=0;
 };
@@ -42,7 +45,8 @@ void strata_mm27_reader(int reader);
 // 0 disables; 1/2 native-file producers, four slots of 4/8/16 MiB each.
 // Configuration is lazy: allocation occurs after model/context admission.
 // Lookahead plans at most three matrices using already-observed router IDs.
-void strata_mm27_pipeline(int readers,int chunk_mib=8,bool lookahead=false,bool d2d_batch=false);
+// events: 0 host fences; 1 matrix event dependencies; 2 also async split compute.
+void strata_mm27_pipeline(int readers,int chunk_mib=8,bool lookahead=false,bool d2d_batch=false,int events=0);
 // Optional bounded read-only file-view LRU, configured after the file pipeline.
 // GPU admissions drop overlapping views after copy completion. Zero disables.
 void strata_mm27_ram_cache_configure(uint64_t bytes);
@@ -56,7 +60,8 @@ strata_mm27_stats strata_mm27_snapshot();
 const char *strata_mm27_last_error();
 // One live model per thread. Bind validates immutable tensor/mapping identities;
 // unbind invalidates all entries before the corresponding model is freed.
-void strata_mm27_cache_configure(uint64_t bytes,bool arena=false,uint32_t block_mib=64,uint32_t growth_reserve_mib=0,bool group_experts=false);
+// Decay halves admission scores every N trained matrix lookups (not tokens).
+void strata_mm27_cache_configure(uint64_t bytes,bool arena=false,uint32_t block_mib=64,uint32_t growth_reserve_mib=0,bool group_experts=false,uint64_t decay_period=65536);
 void strata_mm27_cache_bind(const void *model,const ggml_tensor *const *tensors,size_t count);
 void strata_mm27_cache_unbind(const void *model);
 void strata_mm27_cache_clear();

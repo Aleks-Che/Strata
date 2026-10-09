@@ -1,0 +1,487 @@
+{
+  "pass": true,
+  "stage": "MM27-24",
+  "commit": "54467693c8354d8c64a72ec1cb083473a529b4ba",
+  "dirty": true,
+  "scope": "real HTTP context4096 + external RAM/VRAM pressure; exact IDs, not logits/quality/speed A/B",
+  "checks": {
+    "run_pass": true,
+    "17_cases": true,
+    "every_case_pass": true,
+    "monitor_ok": true,
+    "holder_closed": true,
+    "engine_closed": true,
+    "sources_current": true,
+    "engine_identical": true,
+    "holder_identical": true,
+    "8_early_rejections": true,
+    "7_completions": true,
+    "openai-4k-boundary": true,
+    "anthropic-4k-boundary": true,
+    "warm-short": true,
+    "under-pressure": true,
+    "openai-pressure-recovery": true,
+    "anthropic-pressure-recovery": true,
+    "after-release": true,
+    "4k_exact_boundary_parity": true,
+    "5_short_ID_parity": true,
+    "2_cancel_same_pid": true,
+    "cache_trimmed": true,
+    "pressure_measured": true,
+    "sampled_memory95": true,
+    "pressure_during_each_target_request": true,
+    "pressure_in_native_completion_samples": true,
+    "33_CPU_methods": true,
+    "build_unit_evidence": true,
+    "unit_source_current": true,
+    "owned_processes_exited": true
+  },
+  "source_checks": {
+    "serve/__init__.py": true,
+    "serve/archive_policy.py": true,
+    "serve/deepseek.py": true,
+    "serve/frontend.py": true,
+    "serve/glm5next.py": true,
+    "serve/hy3.py": true,
+    "serve/mcp.py": true,
+    "serve/mcp_fake_server.py": true,
+    "serve/minimax_m2.py": true,
+    "serve/minimax_m2_api.py": true,
+    "serve/minimax_m2_engine.py": true,
+    "serve/minimax_m2_history.py": true,
+    "serve/minimax_m2_server.py": true,
+    "serve/minimax_m2_tools.py": true,
+    "serve/minimax_m2_worker.py": true,
+    "serve/server.py": true,
+    "serve/step35.py": true,
+    "serve/structured.py": true,
+    "serve/telemetry.py": true,
+    "serve/test_archive_policy.py": true,
+    "serve/test_cache_admin.py": true,
+    "serve/test_deepseek.py": true,
+    "serve/test_detok.py": true,
+    "serve/test_glm5next.py": true,
+    "serve/test_glm5next_handlers.py": true,
+    "serve/test_glm5next_http.py": true,
+    "serve/test_glm5next_info.py": true,
+    "serve/test_glm5next_mcp.py": true,
+    "serve/test_glm5next_profile.py": true,
+    "serve/test_glm5next_requests.py": true,
+    "serve/test_glm5next_service.py": true,
+    "serve/test_glm5next_settings.py": true,
+    "serve/test_hy3.py": true,
+    "serve/test_hy3_http.py": true,
+    "serve/test_lifecycle.py": true,
+    "serve/test_mcp.py": true,
+    "serve/test_minimax_m2.py": true,
+    "serve/test_minimax_m2_api.py": true,
+    "serve/test_minimax_m2_engine.py": true,
+    "serve/test_minimax_m2_history.py": true,
+    "serve/test_minimax_m2_server.py": true,
+    "serve/test_minimax_m2_tools.py": true,
+    "serve/test_monitor.py": true,
+    "serve/test_server.py": true,
+    "serve/test_session_cache.py": true,
+    "serve/test_step35.py": true,
+    "serve/test_step35_http.py": true,
+    "serve/test_structured.py": true,
+    "serve/test_usage_stats.py": true,
+    "serve/test_vram_settings.py": true,
+    "serve/test_winjob.py": true,
+    "serve/usage_stats.py": true,
+    "serve/vram_settings.py": true,
+    "serve/winjob.py": true,
+    "backends/minimax_m2/build_manifest.json.in": true,
+    "backends/minimax_m2/cache_runtime.inc": true,
+    "backends/minimax_m2/check_arena.cpp": true,
+    "backends/minimax_m2/check_cache.cpp": true,
+    "backends/minimax_m2/check_dflash.cpp": true,
+    "backends/minimax_m2/check_graph.cpp": true,
+    "backends/minimax_m2/check_group_cache.cpp": true,
+    "backends/minimax_m2/check_host_cache.cpp": true,
+    "backends/minimax_m2/check_kernels.cpp": true,
+    "backends/minimax_m2/check_lifecycle.cpp": true,
+    "backends/minimax_m2/check_reclaim.cpp": true,
+    "backends/minimax_m2/check_reload.cpp": true,
+    "backends/minimax_m2/check_runtime.cpp": true,
+    "backends/minimax_m2/check_sampling.cpp": true,
+    "backends/minimax_m2/CMakeLists.txt": true,
+    "backends/minimax_m2/contract.hpp": true,
+    "backends/minimax_m2/DFlash.cmake": true,
+    "backends/minimax_m2/dflash_contract.hpp": true,
+    "backends/minimax_m2/dflash_decode.hpp": true,
+    "backends/minimax_m2/dflash_loader_oracle.cpp": true,
+    "backends/minimax_m2/gpu_arena.hpp": true,
+    "backends/minimax_m2/gpu_only_audit.inc": true,
+    "backends/minimax_m2/group_cache.hpp": true,
+    "backends/minimax_m2/host_cache.hpp": true,
+    "backends/minimax_m2/loader_oracle.cpp": true,
+    "backends/minimax_m2/main.cpp": true,
+    "backends/minimax_m2/minimax_tokenwise.hpp": true,
+    "backends/minimax_m2/pipeline_runtime.inc": true,
+    "backends/minimax_m2/pipeline_sched.inc": true,
+    "backends/minimax_m2/pipeline_state.inc": true,
+    "backends/minimax_m2/pipeline_trace.hpp": true,
+    "backends/minimax_m2/pressure_holder.cpp": true,
+    "backends/minimax_m2/QuantF32.cmake": true,
+    "backends/minimax_m2/README.md": true,
+    "backends/minimax_m2/RoutedStrides.cmake": true,
+    "backends/minimax_m2/runtime.hpp": true,
+    "backends/minimax_m2/RuntimePatches.cmake": true,
+    "backends/minimax_m2/sampling.hpp": true,
+    "backends/minimax_m2/speculative_bench.cpp": true,
+    "backends/minimax_m2/StrictF32.cmake": true,
+    "backends/minimax_m2/sync_runtime.h": true,
+    "backends/minimax_m2/sync_runtime.inc": true,
+    "backends/minimax_m2/sync_test.h": true,
+    "backends/minimax_m2/synthetic_minimax_m2.hpp": true,
+    "backends/minimax_m2/template_oracle.cpp": true,
+    "backends/minimax_m2/TemplateJSON.cmake": true,
+    "backends/minimax_m2/tokenizer_oracle.cpp": true,
+    "backends/minimax_m2/Tokenwise.cmake": true,
+    "backends/common/device_memory.hpp": true,
+    "backends/glm5next/host_pages.hpp": true,
+    "tools/check_minimax_m2_live_tools.py": true,
+    "tools/check_minimax_m2_completion_pipe.py": true,
+    "tools/strata_tokenizer.py": true,
+    "serve/fixtures/minimax_m27_chat_template.jinja": true,
+    "tools/check_minimax_m2_http_context.py": true
+  },
+  "header": {
+    "architecture": "minimax-m2",
+    "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+    "patches": "cuda-f32-mmf-respect-tf32-override,cuda-routed-input-strides,mm27-optional-tokenwise-verification,cuda-minimax-quant-f32-opt-in,mm27-sync-selected-file-copy-gpu-audit-demand-mmap,mm27-live-memory-guard,mm27-bounded-gpu-matrix-cache,mm27-bounded-gpu-arena,mm27-opt-in-expert-triplet-cache,mm27-bounded-mmap-readers,mm27-mapped-ram-lru-gpu-partition,mm27-tensor-file-pipeline,mm27-router-matrix-lookahead,mm27-dflash-borrowed-head-prefix",
+    "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+    "mode": 2,
+    "context": 4096,
+    "batch": 16,
+    "kv": "F32",
+    "flash_attention": false,
+    "strict_f32": true,
+    "graphs": false,
+    "cache": true,
+    "gpu_cache_mib": 18432,
+    "ram_cache_mib": 0,
+    "gpu_cache_allocator": "arena",
+    "cache_group_experts": false,
+    "arena_block_mib": 64,
+    "arena_growth_reserve_mib": 0,
+    "expert_reader": "file",
+    "host_working_set_target_percent": 0,
+    "pipeline_readers": 2,
+    "pipeline_chunk_mib": 4,
+    "pipeline_lookahead": true,
+    "pipeline_d2d_batch": true,
+    "pipeline_trace": "",
+    "cache_policy": "decode admission after first serial step; prefill hits only; global 95% minus 256 MiB",
+    "mtp": false,
+    "load_ms": 1214.1802,
+    "memory_before": {
+      "ram_total": 134813700096,
+      "ram_available": 107224059904,
+      "vram_total": 34190917632,
+      "vram_available": 31540686848,
+      "process_private": 259870720,
+      "process_working_set": 173404160
+    },
+    "memory_loaded": {
+      "ram_total": 134813700096,
+      "ram_available": 104382390272,
+      "vram_total": 34190917632,
+      "vram_available": 25291444224,
+      "process_private": 7067140096,
+      "process_working_set": 2959417344
+    },
+    "event": "ready",
+    "request_id": null,
+    "native_pid": 59184
+  },
+  "gpu": "NVIDIA GeForce RTX 5090, 581.80, 32607 MiB",
+  "engine_sha256": "f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619",
+  "holder_sha256": "59c111a595ef53e5feed1b2fa3aa1eb44dc3fa1563f88f7fdfc9c0d23fab2283",
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "unit_methods": 33,
+  "cases": [
+    {
+      "name": "openai-False-one-token-over",
+      "pass": true
+    },
+    {
+      "name": "openai-False-no-room",
+      "pass": true
+    },
+    {
+      "name": "openai-True-one-token-over",
+      "pass": true
+    },
+    {
+      "name": "openai-True-no-room",
+      "pass": true
+    },
+    {
+      "name": "anthropic-False-one-token-over",
+      "pass": true
+    },
+    {
+      "name": "anthropic-False-no-room",
+      "pass": true
+    },
+    {
+      "name": "anthropic-True-one-token-over",
+      "pass": true
+    },
+    {
+      "name": "anthropic-True-no-room",
+      "pass": true
+    },
+    {
+      "name": "openai-4k-boundary",
+      "pass": true
+    },
+    {
+      "name": "anthropic-4k-boundary",
+      "pass": true
+    },
+    {
+      "name": "warm-short",
+      "pass": true
+    },
+    {
+      "name": "under-pressure",
+      "pass": true
+    },
+    {
+      "name": "openai-pressure-prefill-disconnect",
+      "pass": true
+    },
+    {
+      "name": "openai-pressure-recovery",
+      "pass": true
+    },
+    {
+      "name": "anthropic-pressure-prefill-disconnect",
+      "pass": true
+    },
+    {
+      "name": "anthropic-pressure-recovery",
+      "pass": true
+    },
+    {
+      "name": "after-release",
+      "pass": true
+    }
+  ],
+  "cache_pressure": {
+    "before": 19327352832,
+    "after": 19193135104,
+    "trims": 2
+  },
+  "pressure_ram": {
+    "phase": "ram",
+    "gpu_free": 3196342272,
+    "gpu_total": 34190917632,
+    "ram_free": 18435305472,
+    "ram_total": 134813700096,
+    "gpu_bytes": 0,
+    "ram_touched": 138342384352,
+    "process_working_set": 84268171264,
+    "process_private": 916545536,
+    "checksum": 17,
+    "monotonic": 568977.453
+  },
+  "pressure_gpu": {
+    "phase": "gpu",
+    "gpu_free": 1887719424,
+    "gpu_total": 34190917632,
+    "ram_free": 18431959040,
+    "ram_total": 134813700096,
+    "gpu_bytes": 1308622848,
+    "ram_touched": 138342384352,
+    "process_working_set": 84270104576,
+    "process_private": 2227789824,
+    "checksum": 17,
+    "monotonic": 568977.609
+  },
+  "monitor_samples": 1649,
+  "memory": {
+    "ram_peak_used_percent": 87.02501444619945,
+    "ram_peak_used_gib": 109.2642936706543,
+    "vram_peak_used_percent": 94.47888633958966,
+    "vram_peak_used_gib": 30.084697723388672
+  },
+  "phase_samples": [
+    {
+      "name": "openai-4k-boundary",
+      "samples": 801,
+      "both_over85_samples": 0,
+      "native_samples": 263,
+      "native_both_over85_samples": 0
+    },
+    {
+      "name": "anthropic-4k-boundary",
+      "samples": 646,
+      "both_over85_samples": 0,
+      "native_samples": 263,
+      "native_both_over85_samples": 0
+    },
+    {
+      "name": "warm-short",
+      "samples": 37,
+      "both_over85_samples": 1,
+      "native_samples": 36,
+      "native_both_over85_samples": 0
+    },
+    {
+      "name": "under-pressure",
+      "samples": 35,
+      "both_over85_samples": 35,
+      "native_samples": 36,
+      "native_both_over85_samples": 36
+    },
+    {
+      "name": "openai-pressure-prefill-disconnect",
+      "samples": 2,
+      "both_over85_samples": 2,
+      "native_samples": 0,
+      "native_both_over85_samples": 0
+    },
+    {
+      "name": "openai-pressure-recovery",
+      "samples": 43,
+      "both_over85_samples": 14,
+      "native_samples": 36,
+      "native_both_over85_samples": 25
+    },
+    {
+      "name": "anthropic-pressure-prefill-disconnect",
+      "samples": 2,
+      "both_over85_samples": 2,
+      "native_samples": 0,
+      "native_both_over85_samples": 0
+    },
+    {
+      "name": "anthropic-pressure-recovery",
+      "samples": 47,
+      "both_over85_samples": 14,
+      "native_samples": 36,
+      "native_both_over85_samples": 25
+    },
+    {
+      "name": "after-release",
+      "samples": 35,
+      "both_over85_samples": 0,
+      "native_samples": 36,
+      "native_both_over85_samples": 0
+    }
+  ],
+  "monitor_scope": "Last submitted native request ID; may include idle samples after that request. Native samples are within completed generation. Threshold85 need not hold for every sample.",
+  "timings": [
+    {
+      "name": "openai-4k-boundary",
+      "prompt_tokens": 4080,
+      "generated_tokens": 8,
+      "prefill_seconds": 405.2528332,
+      "decode_tokens_per_second": 2.454665914884319
+    },
+    {
+      "name": "anthropic-4k-boundary",
+      "prompt_tokens": 4080,
+      "generated_tokens": 8,
+      "prefill_seconds": 328.8559716,
+      "decode_tokens_per_second": 6.675689019321255
+    },
+    {
+      "name": "warm-short",
+      "prompt_tokens": 52,
+      "generated_tokens": 32,
+      "prefill_seconds": 10.0318203,
+      "decode_tokens_per_second": 3.696283403730442
+    },
+    {
+      "name": "under-pressure",
+      "prompt_tokens": 52,
+      "generated_tokens": 32,
+      "prefill_seconds": 9.9341895,
+      "decode_tokens_per_second": 4.0297237624360855
+    },
+    {
+      "name": "openai-pressure-recovery",
+      "prompt_tokens": 52,
+      "generated_tokens": 32,
+      "prefill_seconds": 12.684136200000001,
+      "decode_tokens_per_second": 3.4005813655841846
+    },
+    {
+      "name": "anthropic-pressure-recovery",
+      "prompt_tokens": 52,
+      "generated_tokens": 32,
+      "prefill_seconds": 13.7363362,
+      "decode_tokens_per_second": 3.186010593361894
+    },
+    {
+      "name": "after-release",
+      "prompt_tokens": 52,
+      "generated_tokens": 32,
+      "prefill_seconds": 10.7079658,
+      "decode_tokens_per_second": 4.087868388149803
+    }
+  ],
+  "cancel_ms": [
+    141.0000000614673,
+    155.9999999590218
+  ],
+  "artifacts": {
+    "build-local/minimax-m2-http-context-01/report.json": "a4669674085a14aa8fb418ccc7379c89fc9b0cd6517bb23b34e54faacb7b5a75",
+    "build-local/minimax-m2-http-context-01/owned-processes.json": "cf1f903c47884538c4a5f42b06ea725d350701904b76f9d402180b3994f9232c",
+    "build-local/minimax-m2-http-context-01/long.prompt.json": "c6a9a837bfc21e03eb4242faa8673c38be1e0237f048e70306a32691808d3756",
+    "build-local/minimax-m2-http-context-01/engine.exe": "f4ff449823beee3db1b260597cac1ed9276fb53922c5816f082f77ccbf52f619",
+    "build-local/minimax-m2-http-context-01/holder.exe": "59c111a595ef53e5feed1b2fa3aa1eb44dc3fa1563f88f7fdfc9c0d23fab2283",
+    "build-local/minimax-m2-http-context-01/support/build-minimax-m2-http-context.bat": "b78b7154a5f0406f72f70bc754b75b0285c2de1ef419ba96c98c38185874e94e",
+    "build-local/minimax-m2-http-context-01/support/manifest.json": "cf406f65b5607e6d5730817ba46fbc52a691831e7778d85c0f1c4f67c86a237f",
+    "build-local/minimax-m2-http-context-01/support/minimax-m2-build-manifest.json": "ee2764a6a323861a947d802912ba16cfa6f2a115d6d798fe3535c9bf9b0e3c36",
+    "build-local/minimax-m2-http-context-01/support/minimax-m2-http-context-build.log": "c8f69a48f2bcd4b87d9890875937caa930cdb0f22770a27abec3b85dfe298511",
+    "build-local/minimax-m2-http-context-01/support/minimax-m2-http-context-configure.log": "9aec2ba6b7e0488fca5c0e474274a90e6d992e4f55ca48b8fa55bece03c0a8c3",
+    "build-local/minimax-m2-http-context-01/support/minimax-m2-http-context-tests-final.log": "35db04e34bdf848addfa12674754ca94d69b487afa8c680c806e1e4f4feec270",
+    "build-local/minimax-m2-http-context-01/support/test_minimax_m2_http_context.py": "c5c912d29011da652218cb1c0114756b6a9577098bb117fae4a0ecc01e5b9207",
+    "build-local/minimax-m2-http-context-01/after-release.request.json": "410fa3790161c49c1503686fe7f4d56e7f38206ef13d5c0a35c0e08479e829a0",
+    "build-local/minimax-m2-http-context-01/anthropic-4k-boundary.request.json": "93adb086dd15987823213af907adeb9cd8561f460dbccd7159a6f878ab32777f",
+    "build-local/minimax-m2-http-context-01/anthropic-False-no-room.request.json": "4e6671dee9399df1af48eaa0c4f0141934ba06a2eccafcd6dc7103b40f4f0239",
+    "build-local/minimax-m2-http-context-01/anthropic-False-one-token-over.request.json": "57af7f052ce36c59bd410f7c61deba091f4b93b7f195478c2c156a6c9ea61494",
+    "build-local/minimax-m2-http-context-01/anthropic-pressure-prefill-disconnect.request.json": "93adb086dd15987823213af907adeb9cd8561f460dbccd7159a6f878ab32777f",
+    "build-local/minimax-m2-http-context-01/anthropic-pressure-recovery.request.json": "410fa3790161c49c1503686fe7f4d56e7f38206ef13d5c0a35c0e08479e829a0",
+    "build-local/minimax-m2-http-context-01/anthropic-True-no-room.request.json": "4f476beab4789dbda762d9e54cb86ff00d683bcadba1a31b538735aa3cd219c8",
+    "build-local/minimax-m2-http-context-01/anthropic-True-one-token-over.request.json": "3decc75644e367c355ecc5d2b5758abe319225750a9375ab7796f8f5ec3de711",
+    "build-local/minimax-m2-http-context-01/openai-4k-boundary.request.json": "5cfad441a37d7a0dd00d08b2108465a33de7a465da6b605a34e28d6137832095",
+    "build-local/minimax-m2-http-context-01/openai-False-no-room.request.json": "4e6671dee9399df1af48eaa0c4f0141934ba06a2eccafcd6dc7103b40f4f0239",
+    "build-local/minimax-m2-http-context-01/openai-False-one-token-over.request.json": "57af7f052ce36c59bd410f7c61deba091f4b93b7f195478c2c156a6c9ea61494",
+    "build-local/minimax-m2-http-context-01/openai-pressure-prefill-disconnect.request.json": "dd5c42d137c6f4fd8abb0537ea672f06cf115d41fd41f66482f40704c4a8709c",
+    "build-local/minimax-m2-http-context-01/openai-pressure-recovery.request.json": "410fa3790161c49c1503686fe7f4d56e7f38206ef13d5c0a35c0e08479e829a0",
+    "build-local/minimax-m2-http-context-01/openai-True-no-room.request.json": "4f476beab4789dbda762d9e54cb86ff00d683bcadba1a31b538735aa3cd219c8",
+    "build-local/minimax-m2-http-context-01/openai-True-one-token-over.request.json": "3decc75644e367c355ecc5d2b5758abe319225750a9375ab7796f8f5ec3de711",
+    "build-local/minimax-m2-http-context-01/under-pressure.request.json": "b45302dd9f77420be0fca2b2bb472dc602906d06412350860132e2e0b523f77e",
+    "build-local/minimax-m2-http-context-01/warm-short.request.json": "410fa3790161c49c1503686fe7f4d56e7f38206ef13d5c0a35c0e08479e829a0",
+    "build-local/minimax-m2-http-context-01/after-release.response.txt": "1055adf7e569ec9767d94c98d99fa42356363f8c45bab1bceee031539fd50c4b",
+    "build-local/minimax-m2-http-context-01/anthropic-4k-boundary.response.txt": "7e2c75e47af9ff399328f49043948972266868658bc3559bad40f6b7532b311f",
+    "build-local/minimax-m2-http-context-01/anthropic-False-no-room.response.txt": "3aadb8816353df765c99c368dc4446842277dba9ba2c7ab087b8958dd652b2fe",
+    "build-local/minimax-m2-http-context-01/anthropic-False-one-token-over.response.txt": "c9c36c54d11f411015ce2acaa1304389f51c2fac60eeb7ceba917b4455c62f58",
+    "build-local/minimax-m2-http-context-01/anthropic-pressure-recovery.response.txt": "1f5321c8163eb588ca3ce1a02a212d470c6c7c0def7549a51e39f55e9014990d",
+    "build-local/minimax-m2-http-context-01/anthropic-True-no-room.response.txt": "3aadb8816353df765c99c368dc4446842277dba9ba2c7ab087b8958dd652b2fe",
+    "build-local/minimax-m2-http-context-01/anthropic-True-one-token-over.response.txt": "c9c36c54d11f411015ce2acaa1304389f51c2fac60eeb7ceba917b4455c62f58",
+    "build-local/minimax-m2-http-context-01/openai-4k-boundary.response.txt": "f21b78077151f3b1b15d9367b4e9d019abf374765a42cfb7adec8f9f18721059",
+    "build-local/minimax-m2-http-context-01/openai-False-no-room.response.txt": "3aadb8816353df765c99c368dc4446842277dba9ba2c7ab087b8958dd652b2fe",
+    "build-local/minimax-m2-http-context-01/openai-False-one-token-over.response.txt": "c9c36c54d11f411015ce2acaa1304389f51c2fac60eeb7ceba917b4455c62f58",
+    "build-local/minimax-m2-http-context-01/openai-pressure-recovery.response.txt": "9c25ba25fbfb377fc337784683072d0e0b187342e76d7ffc1311b850b0ee3af2",
+    "build-local/minimax-m2-http-context-01/openai-True-no-room.response.txt": "3aadb8816353df765c99c368dc4446842277dba9ba2c7ab087b8958dd652b2fe",
+    "build-local/minimax-m2-http-context-01/openai-True-one-token-over.response.txt": "c9c36c54d11f411015ce2acaa1304389f51c2fac60eeb7ceba917b4455c62f58",
+    "build-local/minimax-m2-http-context-01/under-pressure.response.txt": "dd11c5f4dd6be4f6aee203745944128a6789d0d1bb8b91d85a9e25000551b284",
+    "build-local/minimax-m2-http-context-01/warm-short.response.txt": "4f4ef6d262b6f703de883b9e55691cc506ed2a7c84bf859f1c556329e6052bb3",
+    "build-local/minimax-m2-http-context-01/after-release.collected.json": "ee7e9f2c92debc29d5a30a7a91a7004ff1bc5a37370e4b0e7a6ad107a5e890c0",
+    "build-local/minimax-m2-http-context-01/anthropic-4k-boundary.collected.json": "b8a214f30ede90577f843390db354e35ab8f919531447f603f6b57c09b95cffc",
+    "build-local/minimax-m2-http-context-01/anthropic-pressure-recovery.collected.json": "ba8d2c79f2cd39eedf91650ae8f4bd19275bdf2e796054f9b8f3cb41fd0bedeb",
+    "build-local/minimax-m2-http-context-01/openai-4k-boundary.collected.json": "5ff051895fe4a9420f43a567687c7efad90e9cf743f128ce426cf1a2430acf71",
+    "build-local/minimax-m2-http-context-01/openai-pressure-recovery.collected.json": "fe866bf693737cb8b6c5500e4fa19a22bd49fc7c927b3f259016febbe53d98d4",
+    "build-local/minimax-m2-http-context-01/under-pressure.collected.json": "77cb4c7ed4af3ae98b99a7f17865907c753cf488921e84b5a3146aa2f2dc0211",
+    "build-local/minimax-m2-http-context-01/warm-short.collected.json": "17e2705f6d7f2da04c65974861a7b06e224600b190dcf18593cb150d342d4e80",
+    "build-local/validate-minimax-m2-http-context.py": "e5b76625c11ab807750aa60dcb66ee58bcecdbe465d4de76e5031c0ba7b3a261"
+  }
+}

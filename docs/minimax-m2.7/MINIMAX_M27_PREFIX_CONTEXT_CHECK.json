@@ -1,0 +1,1631 @@
+{
+  "pass": true,
+  "stage": "MM27-26",
+  "date": "2026-10-09",
+  "gates": {
+    "offline_pass": true,
+    "live_pass": true,
+    "offline_cases": true,
+    "six_full_logit_pairs": true,
+    "eos": true,
+    "live_cases": true,
+    "offline_native_checks": true,
+    "live_native_checks": true,
+    "same_executable": true,
+    "offline_reference_link": true,
+    "context4096": true,
+    "batch16": true,
+    "no_alternate_precision": true,
+    "monitor_ok": true,
+    "both_memories_over85": true,
+    "arena_trim": true,
+    "closed": true,
+    "cancelled_partial_prefill": true,
+    "cancelled_decode": true,
+    "4k_recovery_fresh": true,
+    "4k_recovery_reuse": true,
+    "same_native_pid": true,
+    "artifact_source_hashes": true,
+    "historical_eos": true,
+    "memory95": true,
+    "cpu_tests": true
+  },
+  "engine_sha256": "294ce7117876b7a112e5a29c199c8822d9f48bc333a274cbd7f6d8ff65ebbfcd",
+  "offline_report_sha256": "9b91ce027e70f975bfd5e31f91daa809ba2c5be997733b2a30d9afb3719b8b7d",
+  "live_report_sha256": "3e6877921eceb6086c510e89f929a6882d4cc1e9d47d1609b8d30ba6371307ad",
+  "offline_cases": [
+    {
+      "name": "2k-initial",
+      "expected_reused": 0,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 0,
+      "prompt_tokens": 2032,
+      "generated": 8,
+      "stop": "length",
+      "prefill_ms": 221604.6116,
+      "request_ms": 224166.0631,
+      "pass": true
+    },
+    {
+      "name": "2k-repeat",
+      "expected_reused": 2016,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 2016,
+      "prompt_tokens": 2032,
+      "generated": 8,
+      "stop": "length",
+      "prefill_ms": 2096.4716,
+      "request_ms": 2976.1739,
+      "pass": true
+    },
+    {
+      "name": "4k-extend",
+      "expected_reused": 2016,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 2016,
+      "prompt_tokens": 4080,
+      "generated": 8,
+      "stop": "length",
+      "prefill_ms": 130454.3969,
+      "request_ms": 131573.7381,
+      "pass": true
+    },
+    {
+      "name": "4k-repeat",
+      "expected_reused": 4064,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 4064,
+      "prompt_tokens": 4080,
+      "generated": 8,
+      "stop": "length",
+      "prefill_ms": 2042.1442,
+      "request_ms": 2957.978,
+      "pass": true
+    },
+    {
+      "name": "4k-fresh",
+      "expected_reused": 0,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 0,
+      "prompt_tokens": 4080,
+      "generated": 8,
+      "stop": "length",
+      "prefill_ms": 304798.4953,
+      "request_ms": 305716.4025,
+      "pass": true
+    },
+    {
+      "name": "eos-initial",
+      "expected_reused": 0,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 0,
+      "prompt_tokens": 52,
+      "generated": 414,
+      "stop": "eos",
+      "prefill_ms": 9071.8959,
+      "request_ms": 114526.7891,
+      "pass": true
+    },
+    {
+      "name": "eos-repeat",
+      "expected_reused": 48,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 48,
+      "prompt_tokens": 52,
+      "generated": 414,
+      "stop": "eos",
+      "prefill_ms": 1083.4231,
+      "request_ms": 104784.9326,
+      "pass": true
+    },
+    {
+      "name": "sample-reuse",
+      "expected_reused": 48,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 48,
+      "prompt_tokens": 52,
+      "generated": 128,
+      "stop": "length",
+      "prefill_ms": 1136.2108,
+      "request_ms": 32964.1316,
+      "pass": true
+    },
+    {
+      "name": "sample-fresh",
+      "expected_reused": 0,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 0,
+      "prompt_tokens": 52,
+      "generated": 128,
+      "stop": "length",
+      "prefill_ms": 11083.7569,
+      "request_ms": 41232.682,
+      "pass": true
+    },
+    {
+      "name": "one-initial",
+      "expected_reused": 0,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 0,
+      "prompt_tokens": 52,
+      "generated": 1,
+      "stop": "length",
+      "prefill_ms": 8999.8851,
+      "request_ms": 9000.8559,
+      "pass": true
+    },
+    {
+      "name": "one-repeat",
+      "expected_reused": 48,
+      "native_checks": {
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "drained": true,
+        "kv_accounting": true
+      },
+      "reused": 48,
+      "prompt_tokens": 52,
+      "generated": 1,
+      "stop": "length",
+      "prefill_ms": 872.0739,
+      "request_ms": 873.0944,
+      "pass": true
+    }
+  ],
+  "comparisons": [
+    {
+      "fresh": "2k-initial",
+      "reuse": "2k-repeat",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 1600512,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    },
+    {
+      "fresh": "4k-fresh",
+      "reuse": "4k-extend",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 1600512,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    },
+    {
+      "fresh": "4k-fresh",
+      "reuse": "4k-repeat",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 1600512,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    },
+    {
+      "fresh": "eos-initial",
+      "reuse": "eos-repeat",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 82826496,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    },
+    {
+      "fresh": "sample-fresh",
+      "reuse": "sample-reuse",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 25608192,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    },
+    {
+      "fresh": "one-initial",
+      "reuse": "one-repeat",
+      "tokens_equal": true,
+      "logits": {
+        "pass": true,
+        "floats": 200064,
+        "different_bits": 0,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      "pass": true
+    }
+  ],
+  "compared_floats": 113436288,
+  "http_completed": 9,
+  "http_generated_ids": 72,
+  "pressure_cache_trim": {
+    "before": 17179869184,
+    "after": 17045651456,
+    "count": 1
+  },
+  "memory_peaks": {
+    "ram": {
+      "bytes": 116754087936,
+      "percent": 86.60402307247715
+    },
+    "vram": {
+      "bytes": 32284741632,
+      "percent": 94.42490540758119
+    }
+  },
+  "hash_checks": [
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\engine.exe",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\generation.f32",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\generation.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\http-requests.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\requests.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\stderr.log",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\stdout.log",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\build_manifest.json.in",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/build_manifest.json.in",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\cache_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/cache_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_arena.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_arena.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_dflash.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_dflash.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_graph.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_graph.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_group_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_group_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_host_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_host_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_kernels.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_kernels.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_lifecycle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_lifecycle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_prefix.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_prefix.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_reclaim.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_reclaim.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_reload.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_reload.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_runtime.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_runtime.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\check_sampling.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_sampling.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\CMakeLists.txt",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/CMakeLists.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\DFlash.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/DFlash.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\dflash_contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\dflash_decode.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_decode.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\dflash_loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\gpu_arena.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/gpu_arena.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\gpu_only_audit.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/gpu_only_audit.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\group_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/group_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\host_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/host_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\main.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/main.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\minimax_tokenwise.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/minimax_tokenwise.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\pipeline_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\pipeline_sched.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_sched.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\pipeline_state.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_state.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\pipeline_trace.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_trace.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\prefix.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/prefix.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\pressure_holder.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pressure_holder.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\QuantF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/QuantF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\README.md",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\RoutedStrides.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/RoutedStrides.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\runtime.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/runtime.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\RuntimePatches.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/RuntimePatches.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\sampling.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sampling.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\speculative_bench.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/speculative_bench.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\StrictF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/StrictF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\sync_runtime.h",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_runtime.h",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\sync_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\sync_test.h",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_test.h",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\synthetic_minimax_m2.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/synthetic_minimax_m2.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\template_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/template_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\TemplateJSON.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/TemplateJSON.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\tokenizer_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/tokenizer_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\backends\\minimax_m2\\Tokenwise.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/Tokenwise.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\minimax_m2_worker.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_worker.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\test_minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\winjob.py",
+      "pass": true
+    },
+    {
+      "path": "serve/winjob.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\serve\\fixtures\\minimax_m27_chat_template.jinja",
+      "pass": true
+    },
+    {
+      "path": "serve/fixtures/minimax_m27_chat_template.jinja",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\strata_tokenizer.py",
+      "pass": true
+    },
+    {
+      "path": "tools/strata_tokenizer.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\run_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "tools/run_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\check_minimax_m2_completion_pipe.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_completion_pipe.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\check_minimax_m2_http_context.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_http_context.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\check_minimax_m2_prefix.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_prefix.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-context-01\\sources\\tools\\check_minimax_m2_prefix_context.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_prefix_context.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-anthropic.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-anthropic.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-cancel-recovery.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-cancel-recovery.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-openai.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-openai.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-recovered-repeat.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-pressure-recovered-repeat.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-repeat.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-repeat.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-warm.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\4k-warm.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\cancel-branch.ids.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\cancel-branch.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\checker.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\engine.exe",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\holder.exe",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\holder.stderr.log",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\native.stderr.log",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-after-release.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-after-release.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-pressure-cancel-recovery.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-pressure-cancel-recovery.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-pressure-repeat.request.json",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\short-pressure-repeat.response.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\build_manifest.json.in",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/build_manifest.json.in",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\cache_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/cache_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_arena.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_arena.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_dflash.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_dflash.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_graph.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_graph.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_group_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_group_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_host_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_host_cache.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_kernels.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_kernels.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_lifecycle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_lifecycle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_prefix.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_prefix.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_reclaim.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_reclaim.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_reload.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_reload.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_runtime.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_runtime.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\check_sampling.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/check_sampling.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\CMakeLists.txt",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/CMakeLists.txt",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\DFlash.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/DFlash.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\dflash_contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_contract.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\dflash_decode.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_decode.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\dflash_loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/dflash_loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\gpu_arena.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/gpu_arena.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\gpu_only_audit.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/gpu_only_audit.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\group_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/group_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\host_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/host_cache.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/loader_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\main.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/main.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\minimax_tokenwise.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/minimax_tokenwise.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\pipeline_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\pipeline_sched.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_sched.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\pipeline_state.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_state.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\pipeline_trace.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pipeline_trace.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\prefix.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/prefix.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\pressure_holder.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/pressure_holder.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\QuantF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/QuantF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\README.md",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\RoutedStrides.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/RoutedStrides.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\runtime.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/runtime.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\RuntimePatches.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/RuntimePatches.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\sampling.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sampling.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\speculative_bench.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/speculative_bench.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\StrictF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/StrictF32.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\sync_runtime.h",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_runtime.h",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\sync_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_runtime.inc",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\sync_test.h",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/sync_test.h",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\synthetic_minimax_m2.hpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/synthetic_minimax_m2.hpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\template_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/template_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\TemplateJSON.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/TemplateJSON.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\tokenizer_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/tokenizer_oracle.cpp",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\backends\\minimax_m2\\Tokenwise.cmake",
+      "pass": true
+    },
+    {
+      "path": "backends/minimax_m2/Tokenwise.cmake",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\minimax_m2_worker.py",
+      "pass": true
+    },
+    {
+      "path": "serve/minimax_m2_worker.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_api.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_engine.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_history.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\test_minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "serve/test_minimax_m2_tools.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\server.py",
+      "pass": true
+    },
+    {
+      "path": "serve/server.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\winjob.py",
+      "pass": true
+    },
+    {
+      "path": "serve/winjob.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\serve\\fixtures\\minimax_m27_chat_template.jinja",
+      "pass": true
+    },
+    {
+      "path": "serve/fixtures/minimax_m27_chat_template.jinja",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\strata_tokenizer.py",
+      "pass": true
+    },
+    {
+      "path": "tools/strata_tokenizer.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\run_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "tools/run_minimax_m2.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\check_minimax_m2_completion_pipe.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_completion_pipe.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\check_minimax_m2_http_context.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_http_context.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\check_minimax_m2_prefix.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_prefix.py",
+      "pass": true
+    },
+    {
+      "path": "build-local\\minimax-m2-prefix-pressure-01\\sources\\tools\\check_minimax_m2_prefix_context.py",
+      "pass": true
+    },
+    {
+      "path": "tools/check_minimax_m2_prefix_context.py",
+      "pass": true
+    }
+  ],
+  "historical_eos_check": {
+    "tokens_equal": true,
+    "new_range_sha256": "d367f18de2c52301b1a49e8d2a509599a662398a12061301fe9c0df97d2ee84a",
+    "old_range_sha256": "d367f18de2c52301b1a49e8d2a509599a662398a12061301fe9c0df97d2ee84a",
+    "generated_tokens": 414,
+    "generation_json_sha256": "964f9442051bad6e3466a0006916c2ed30b0667f9d309397b0f2879c8b6b4878"
+  },
+  "support_hashes": {
+    "minimax-m2-build-manifest.json": "cdf2de54c04278d3be8801d6b4bc3820ff902da21941076960afe68fd256418d",
+    "minimax-m2-prefix-context-01.log": "b72da6bd08a59a314ffc08bcd0710dd06af321fd1912dd013b662d3978a9b3e3",
+    "minimax-m2-prefix-context-tests-initial.log": "acd69a01f0fbf68caae5ac72cc240cb31eb914d0a6f355b73038582c1770e738",
+    "minimax-m2-prefix-context-tests.log": "928d776c37962a28c35ed9b600a0e1b525675e5aad01adfbc33cf7d8373e90a1",
+    "minimax-m2-prefix-pressure-01.log": "48c6c491877d9b66f1a5c4503b251901cef96c0a3235bfdae39bdfd066d545ad",
+    "test_minimax_m2_prefix_context.py": "b4c6eac8851ea12bd88dfe6c9a8383a7181d7a872686079e56bad14ae58ff1b7",
+    "validate-minimax-m2-prefix-context.py": "e642bb044c1f6eb1ff646a3145b4d4260953ada17343d7729222895653cc23a3"
+  },
+  "limits": [
+    "pressure token parity only; no pressure logits",
+    "batch16 only",
+    "one long English EOS example, sample limited128",
+    "single resident prefix; no archive/shift",
+    "no independent model oracle/quality acceptance"
+  ]
+}

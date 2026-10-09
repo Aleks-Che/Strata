@@ -1,0 +1,2 @@
+# Extra dependency for the experimental MiniMax API, after root requirements.txt.
+jsonschema==4.26.0

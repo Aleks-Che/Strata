@@ -1,0 +1,261 @@
+{
+  "pass": true,
+  "stage": "MM27-29",
+  "engine_sha256": "98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8",
+  "reference_engine_sha256": "275e89f8628ceecd8f0599ba92dda1abae979ea2802bfb9bf32f3669344a2ba3",
+  "tokens_compared": 192,
+  "f32_logits_compared": 38412288,
+  "cpu_fixture_cases": 1200,
+  "cuda_checks": 12,
+  "cuda_bulk_groups": 21,
+  "scratch_cap_bytes": 16777216,
+  "http_lifecycle_cases": 10,
+  "python_test_runs": [
+    {
+      "methods": 25,
+      "log": "build-local/minimax-m2-state-bulk-unit.log"
+    },
+    {
+      "methods": 14,
+      "log": "build-local/minimax-m2-state-bulk-context-unit.log"
+    }
+  ],
+  "source_hash_checks": 159,
+  "artifact_hash_checks": 29,
+  "sampled_memory": {
+    "legacy": {
+      "ram_peak_percent": 26.10475257554643,
+      "vram_peak_percent": 89.13328857683933,
+      "process_private_peak": 32330444800,
+      "process_working_set_peak": 6301597696
+    },
+    "bulk": {
+      "ram_peak_percent": 24.835741418088585,
+      "vram_peak_percent": 87.9397541172141,
+      "process_private_peak": 32329441280,
+      "process_working_set_peak": 6301065216
+    }
+  },
+  "comparisons": [
+    {
+      "target": "2k",
+      "repetitions": 3,
+      "session_ms": {
+        "legacy": [
+          4504.2122,
+          4491.1962,
+          4433.61
+        ],
+        "bulk": [
+          1953.1485,
+          1910.2526,
+          1919.1256
+        ],
+        "legacy_median": 4491.1962,
+        "bulk_median": 1919.1256,
+        "ratio_legacy_over_bulk": 2.340230467458722
+      },
+      "ttft_ms": {
+        "legacy": [
+          6772.6872,
+          6567.1269,
+          6525.723
+        ],
+        "bulk": [
+          4156.4852,
+          3967.6515,
+          3957.479
+        ],
+        "legacy_median": 6567.1269,
+        "bulk_median": 3967.6515,
+        "ratio_legacy_over_bulk": 1.655167269605206
+      },
+      "request_ms": {
+        "legacy": [
+          8687.9373,
+          7870.3141,
+          7941.4134
+        ],
+        "bulk": [
+          5655.7831,
+          5193.1989,
+          5276.551
+        ],
+        "legacy_median": 7941.4134,
+        "bulk_median": 5276.551,
+        "ratio_legacy_over_bulk": 1.5050386890982386
+      },
+      "decode_tokens_per_second": {
+        "legacy": [
+          3.6686786923508414,
+          5.400159119545714,
+          4.969240754674334
+        ],
+        "bulk": [
+          4.689042778807135,
+          5.744756842497806,
+          5.332815288419601
+        ],
+        "legacy_median": 4.969240754674334,
+        "bulk_median": 5.332815288419601,
+        "ratio_legacy_over_bulk": 0.9318231526723263
+      }
+    },
+    {
+      "target": "4k",
+      "repetitions": 3,
+      "session_ms": {
+        "legacy": [
+          4842.0777,
+          4691.9823,
+          4841.5714
+        ],
+        "bulk": [
+          594.3025,
+          550.6229,
+          544.4523
+        ],
+        "legacy_median": 4841.5714,
+        "bulk_median": 550.6229,
+        "ratio_legacy_over_bulk": 8.792898733416282
+      },
+      "ttft_ms": {
+        "legacy": [
+          6956.6296,
+          6769.1706,
+          7019.1625
+        ],
+        "bulk": [
+          2651.1877,
+          2596.9991,
+          2603.5079
+        ],
+        "legacy_median": 6956.6296,
+        "bulk_median": 2603.5079,
+        "ratio_legacy_over_bulk": 2.6720216981096927
+      },
+      "request_ms": {
+        "legacy": [
+          8023.7159,
+          7909.6589,
+          8102.8256
+        ],
+        "bulk": [
+          3667.4748,
+          3601.019,
+          3608.2993
+        ],
+        "legacy_median": 8023.7159,
+        "bulk_median": 3608.2993,
+        "ratio_legacy_over_bulk": 2.223683578576755
+      },
+      "decode_tokens_per_second": {
+        "legacy": [
+          6.601338562850874,
+          6.173883186425783,
+          6.501167981264747
+        ],
+        "bulk": [
+          6.931431506960543,
+          7.017249803466882,
+          7.011923776381737
+        ],
+        "legacy_median": 6.501167981264747,
+        "bulk_median": 7.011923776381737,
+        "ratio_legacy_over_bulk": 0.9271589635875153
+      }
+    },
+    {
+      "target": "short",
+      "repetitions": 3,
+      "session_ms": {
+        "legacy": [
+          4593.3824,
+          4559.2504,
+          4600.601
+        ],
+        "bulk": [
+          2173.3396,
+          2166.485,
+          2159.4657
+        ],
+        "legacy_median": 4593.3824,
+        "bulk_median": 2166.485,
+        "ratio_legacy_over_bulk": 2.1202004168041784
+      },
+      "ttft_ms": {
+        "legacy": [
+          5326.1487,
+          5285.1409,
+          5293.7299
+        ],
+        "bulk": [
+          2878.6685,
+          2858.8253,
+          2857.8739
+        ],
+        "legacy_median": 5293.7299,
+        "bulk_median": 2858.8253,
+        "ratio_legacy_over_bulk": 1.8517150733205
+      },
+      "request_ms": {
+        "legacy": [
+          6825.4521,
+          6806.7623,
+          6665.3371
+        ],
+        "bulk": [
+          4322.2524,
+          4280.9707,
+          4191.9215
+        ],
+        "legacy_median": 6806.7623,
+        "bulk_median": 4280.9707,
+        "ratio_legacy_over_bulk": 1.590004411849864
+      },
+      "decode_tokens_per_second": {
+        "legacy": [
+          4.690771603784193,
+          4.624447006975317,
+          5.129742923666201
+        ],
+        "bulk": [
+          4.870974157255365,
+          4.944557384413908,
+          5.272848041490986
+        ],
+        "legacy_median": 4.690771603784193,
+        "bulk_median": 4.944557384413908,
+        "ratio_legacy_over_bulk": 0.948673711133439
+      }
+    }
+  ],
+  "evidence": {
+    "build-local\\minimax-m2-state-bulk-ab-01": "d82a27f811971b9b6424c34ae0452685e65ba11568eb0f5233acf496210deb62",
+    "build-local\\minimax-m2-state-bulk-fixture-02": "498b333b4d78ea54257682a2ec8c3f604fcaaa90061c30138d45ed5802dce488",
+    "build-local\\minimax-m2-state-bulk-http-01": "7cc38b47a09f873272545e1336140ddf28c47d9cf5373de70672d459cf293410"
+  },
+  "support_sha256": {
+    "build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe": "98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8",
+    "build-local/minimax-m2-cuda/bin/strata-minimax-m2-state-bulk-check.exe": "45fd124c89bf6a262d7e8dff44146cf2fb2bf6bced9a144e96aea8143ea780c8",
+    "build-local/minimax-m2-cuda/minimax-m2-build-manifest.json": "7baf424be44372f9cb18964a9e1661769be40cd04aa7b9a14624812f4c397438",
+    "build-local/build-minimax-m2-state-bulk.bat": "29ea615cefc3018c0686a79a31a03d334bef13e32021df8024d374275b87015a",
+    "build-local/minimax-m2-state-bulk-build.log": "449e862e8499f63a5cfdd60f4cf0198cfbe7223b46de771ccbda0a50a930a009",
+    "build-local/minimax-m2-state-bulk-configure.log": "529a1ea7f5528e193e17e759da9e53c31048834e0a602e92c8100993de1c05e9",
+    "build-local/minimax-m2-state-bulk-unit.log": "761c8fdbe0e0d40bf2f76b161104f52b482bab7886ae929f26eb81cb678576b0",
+    "build-local/minimax-m2-state-bulk-context-unit.log": "97353007cad6e1ab28e37ada88eeb9c1fccff93e99f5eb174a4f303e8d34254a",
+    "tools/validate_minimax_m2_state_bulk.py": "c8d35860f388b5e67281a1ce0453451a896419ae30683c8af21b7d8dcd4d08ff",
+    "build-local/minimax-m2-state-bulk-fixture-02/support/check_state_bulk.cpp": "5a8f59a9983bdc55d900ba62a73901364ce7a70a8b92d70ec8b340c77a6ca49d",
+    "build-local/minimax-m2-state-bulk-fixture-02/support/minimax-m2-build-manifest.json": "7baf424be44372f9cb18964a9e1661769be40cd04aa7b9a14624812f4c397438",
+    "build-local/minimax-m2-state-bulk-fixture-02/support/state_bulk.hpp": "3634b61b4c3dde487c96d826e0bea7943befe54a42cf3a61d0984719ab69804e",
+    "build-local/minimax-m2-state-bulk-fixture-02/support/StateBulk.cmake": "d037fad4d6da07c77ee301aedd7d1dc02786c05e184dc29bd8b210c56ba38cfa",
+    "build-local/minimax-m2-state-bulk-fixture-02/support/strata-minimax-m2-state-bulk-check.exe": "45fd124c89bf6a262d7e8dff44146cf2fb2bf6bced9a144e96aea8143ea780c8"
+  },
+  "limits": [
+    "A/B repetitions share the warm cache within each of two sequential processes.",
+    "State bytes are compared on a CUDA fixture; the full model compares all output logits.",
+    "Live API checks compare IDs, not full logits.",
+    "Real 94% RAM/VRAM pressure has not been rerun on this new executable.",
+    "Decode speedup, GPU batch1/8, shift and broad quality are not established by this stage."
+  ]
+}

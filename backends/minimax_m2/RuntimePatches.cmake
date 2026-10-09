@@ -19,6 +19,22 @@ function(mm27_runtime_source target relative expected output)
   endif()
   file(READ "${original}" content)
   if(target STREQUAL "ggml-base")
+    # Only our selected-expert path replaces the allocator scratch dependency.
+    # User inputs, other weights and other backend transfers keep upstream waits.
+    set(wait_before "                // wait for the split backend to finish using the input before overwriting it
+                if (sched->events[split_backend_id][sched->cur_copy] != NULL) {
+                    ggml_backend_event_wait(split_backend, sched->events[split_backend_id][sched->cur_copy]);
+                } else {
+                    ggml_backend_synchronize(split_backend);
+                }")
+    mm27_replace_once(content "${wait_before}" "                const bool mm27_event_input = mm27_mode == 2 && mm27_pipeline_events &&
+                    mm27_pipeline_readers && mm27_pipeline_d2d_batch && split->graph.n_nodes > 0 &&
+                    ggml_backend_buffer_is_host(input->buffer) && mm27_expert(input) &&
+                    ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&
+                    split->graph.nodes[0]->op == GGML_OP_MUL_MAT_ID && split->graph.nodes[0]->src[0] == input_cpy;
+                if (mm27_event_input) {++mm27_stats.pipeline_scheduler_waits_skipped;} else {
+${wait_before}
+                }")
     set(anchor "static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t sched) {")
     mm27_replace_once(content "${anchor}" "#include \"sync_runtime.inc\"\n${anchor}\n#include \"gpu_only_audit.inc\"")
     mm27_replace_once(content "#include \"gpu_only_audit.inc\"" "    mm27_pipeline_graph_scope mm27_scope;\n#include \"gpu_only_audit.inc\"")
@@ -88,6 +104,7 @@ string(APPEND mm27_patch_set ",mm27-bounded-gpu-matrix-cache")
 string(APPEND mm27_patch_set ",mm27-bounded-gpu-arena,mm27-opt-in-expert-triplet-cache")
 string(APPEND mm27_patch_set ",mm27-bounded-mmap-readers,mm27-mapped-ram-lru-gpu-partition")
 string(APPEND mm27_patch_set ",mm27-tensor-file-pipeline,mm27-router-matrix-lookahead")
+string(APPEND mm27_patch_set ",mm27-opt-in-matrix-events-async-splits")
 target_link_libraries(ggml-base PRIVATE CUDA::cudart_static)
 target_compile_features(ggml-base PRIVATE cxx_std_17)
 target_include_directories(ggml-base PRIVATE "${mm27_source}/vendor")

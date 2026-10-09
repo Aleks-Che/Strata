@@ -7,6 +7,7 @@ static thread_local int mm27_pipeline_readers=0,mm27_pipeline_chunk_mib=8;
 static thread_local bool mm27_pipeline_active=false;
 static thread_local bool mm27_pipeline_lookahead=false;
 static thread_local bool mm27_pipeline_d2d_batch=false;
+static thread_local int mm27_pipeline_events=0;
 using mm27_ranges=std::vector<std::pair<size_t,size_t>>;
 struct mm27_plan_tensor {const ggml_tensor *source;mm27_ranges ranges;};
 static thread_local std::vector<mm27_plan_tensor> mm27_plan;
@@ -16,6 +17,29 @@ static thread_local std::unique_ptr<step35::ExpertCache::PlanPins> mm27_plan_pin
 static thread_local std::vector<std::unique_ptr<step35::ExpertCache::PlanPins>> mm27_plan_fill_pins;
 static thread_local std::unique_ptr<StrataExpertPipeline> mm27_pipeline_queue;
 static thread_local cudaStream_t mm27_pipeline_stream=nullptr;
+static thread_local cudaEvent_t mm27_scratch_released=nullptr,mm27_copy_ready=nullptr;
+// At most one matrix is awaiting retirement. Its slots remain pinned until
+// the copy event completes, before the next matrix's cache decisions.
+static thread_local bool mm27_pending_copy=false;
+static thread_local std::vector<std::unique_ptr<step35::ExpertCache::PlanPins>> mm27_pending_fills;
+struct mm27_pending_commit {
+    step35::MatrixKey key;size_t bytes;std::shared_ptr<strata_expert_file::Source> file;uint64_t offset;
+};
+static thread_local std::vector<mm27_pending_commit> mm27_pending_commits;
+static thread_local std::vector<ggml_backend_t> mm27_async_backends;
+static void mm27_pipeline_retire_copy() {
+    if(!mm27_pending_copy)return;
+    ++mm27_stats.pipeline_retire_checks;
+    const auto status=cudaEventQuery(mm27_copy_ready);
+    if(status==cudaErrorNotReady) {
+        ++mm27_stats.pipeline_retire_waits;step35::cuda_check(cudaEventSynchronize(mm27_copy_ready));
+    } else step35::cuda_check(status);
+    for(const auto &c:mm27_pending_commits) {
+        mm27_cache->commit(c.key,c.bytes);
+        if(mm27_ram_cache)mm27_ram_cache->drop_gpu(c.file,c.offset,c.bytes);
+    }
+    mm27_pending_commits.clear();mm27_pending_fills.clear();mm27_pending_copy=false;
+}
 static thread_local StrataExpertPipeline::Counters mm27_pipeline_accounted;
 struct mm27_pipeline_job_state {
     const std::atomic<bool> *cancel=nullptr;
@@ -44,21 +68,28 @@ static void mm27_pipeline_dispose() {
         mm27_pipeline_queue.reset();
     }
     if(mm27_pipeline_stream)cudaStreamDestroy(mm27_pipeline_stream);
+    if(mm27_scratch_released)cudaEventDestroy(mm27_scratch_released);
+    if(mm27_copy_ready)cudaEventDestroy(mm27_copy_ready);
+    mm27_scratch_released=mm27_copy_ready=nullptr;
+    // Stream was drained above, including copies without a published event.
+    mm27_pending_commits.clear();mm27_pending_fills.clear();mm27_pending_copy=false;
     mm27_pipeline_stream=nullptr;mm27_pipeline_job.reset();mm27_pipeline_accounted={};mm27_pipeline_active=false;
     mm27_plan_fill_pins.clear();mm27_plan_pins.reset();mm27_plan.clear();mm27_plan_next=0;
     if(mm27_cache)mm27_cache->end_plan();
     mm27_stats.staging_bytes=mm27_staging?mm27_staging_limit:0;
     mm27_stats.pipeline_device_bytes=mm27_stats.pipeline_queued_bytes=mm27_stats.pipeline_reader_owned_bytes=0;
 }
-void strata_mm27_pipeline(int readers,int chunk_mib,bool lookahead,bool d2d_batch) {
+void strata_mm27_pipeline(int readers,int chunk_mib,bool lookahead,bool d2d_batch,int events) {
     if(!readers && mm27_ram_cache)throw std::invalid_argument("disable MiniMax RAM cache before pipeline");
     if(readers<0 || readers>2 || (chunk_mib!=4 && chunk_mib!=8 && chunk_mib!=16) ||
-        (readers && (mm27_mode!=2 || mm27_reader)) || ((lookahead || d2d_batch) && !readers))
+        (readers && (mm27_mode!=2 || mm27_reader)) || ((lookahead || d2d_batch) && !readers) ||
+        events<0 || events>2 || (events && (!readers || !d2d_batch)))
         throw std::invalid_argument("MiniMax pipeline requires mode 2/file, 0..2 readers and 4/8/16 MiB chunks");
     if(mm27_pipeline_active)throw std::logic_error("cannot configure an active MiniMax pipeline");
     mm27_pipeline_dispose();mm27_pipeline_trace.reset();mm27_pipeline_readers=readers;mm27_pipeline_chunk_mib=chunk_mib;
     mm27_pipeline_lookahead=lookahead;
     mm27_pipeline_d2d_batch=d2d_batch;
+    mm27_pipeline_events=events;
     if(readers && mm27_staging) {cudaFreeHost(mm27_staging);mm27_staging=nullptr;mm27_stats.staging_bytes=0;}
 }
 void strata_mm27_ram_cache_configure(uint64_t bytes) {
@@ -85,6 +116,10 @@ static void mm27_pipeline_create() {
     int device=0;step35::cuda_check(cudaGetDevice(&device));
     try {
         step35::cuda_check(cudaStreamCreateWithFlags(&mm27_pipeline_stream,cudaStreamNonBlocking));
+        if(mm27_pipeline_events) {
+            step35::cuda_check(cudaEventCreateWithFlags(&mm27_scratch_released,cudaEventDisableTiming));
+            step35::cuda_check(cudaEventCreateWithFlags(&mm27_copy_ready,cudaEventDisableTiming));
+        }
         mm27_pipeline_job=std::make_shared<mm27_pipeline_job_state>();const auto job=mm27_pipeline_job;
         const auto trace=mm27_pipeline_trace;const auto ram_cache=mm27_ram_cache;
         mm27_pipeline_queue=std::make_unique<StrataExpertPipeline>(device,chunk,false,mm27_pipeline_readers,1,

@@ -56,7 +56,8 @@ void strata_mm27_cache_clear() {
     if(mm27_ram_cache) {mm27_ram_cache->clear();mm27_ram_cache->set_prefill(true);}
     mm27_cache_admit=false;
 }
-void strata_mm27_cache_configure(uint64_t bytes,bool use_arena,uint32_t block_mib,uint32_t growth_reserve_mib,bool group_experts) {
+void strata_mm27_cache_configure(uint64_t bytes,bool use_arena,uint32_t block_mib,uint32_t growth_reserve_mib,bool group_experts,uint64_t decay_period) {
+    if(!decay_period || decay_period>UINT32_MAX)throw std::runtime_error("MiniMax cache decay period must be 1..4294967295");
     if(block_mib!=8 && block_mib!=16 && block_mib!=32 && block_mib!=64)
         throw std::runtime_error("MiniMax arena block MiB must be 8, 16, 32 or 64");
     if(growth_reserve_mib>1024)throw std::runtime_error("MiniMax arena growth reserve MiB must be 0..1024");
@@ -85,7 +86,7 @@ void strata_mm27_cache_configure(uint64_t bytes,bool use_arena,uint32_t block_mi
         if(mm27_test_limits.cache_oom || ram.ullAvailPageFile<(1ull<<30) ||
             bytes>ram.ullAvailPageFile-(1ull<<30))return cudaErrorMemoryAllocation;
         return arena?arena->allocate(p,bytes):cudaMalloc(p,bytes);
-    },[arena](void *p){return arena?arena->release(p):cudaFree(p);});
+    },[arena](void *p){return arena?arena->release(p):cudaFree(p);},decay_period);
     if(arena) {
         mm27_cache->set_backing_bytes([arena]{return arena->snapshot().reserved;});
         mm27_cache->set_backing_groups([arena](const void *p){return arena->allocation_group(p);});
