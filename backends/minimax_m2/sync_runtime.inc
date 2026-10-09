@@ -1,6 +1,7 @@
 // Compiled only in MiniMax's private generated ggml-backend.cpp.
 #include "sync_runtime.h"
 #include "sync_test.h"
+#include "router_ids.hpp"
 #include "../common/expert_file.hpp"
 #include "../common/device_memory.hpp"
 #include "../glm5next/host_pages.hpp"
@@ -9,6 +10,16 @@
 #include <stdexcept>
 static thread_local int mm27_mode=0;
 static thread_local strata_mm27_stats mm27_stats;
+static thread_local minimax_m2::RouterIds mm27_router_ids;
+static thread_local bool mm27_router_host_ids=false;
+void strata_mm27_router_host_ids(bool enabled) {
+    mm27_router_ids.clear();mm27_router_host_ids=enabled;
+}
+bool strata_mm27_router_ids_take(const ggml_tensor *node,void *data,size_t bytes) {
+    if(!mm27_router_host_ids || mm27_mode!=2)return false;
+    if(!mm27_router_ids.take(node,data,bytes)) {++mm27_stats.router_ids_misses;return false;}
+    ++mm27_stats.router_ids_hits;mm27_stats.router_ids_bytes+=bytes;return true;
+}
 static thread_local void *mm27_staging=nullptr;
 static thread_local int mm27_reader=0;
 static thread_local std::unique_ptr<strata_glm::HostWorkingSetBudget> mm27_host_budget;
@@ -51,6 +62,7 @@ void strata_mm27_reader(int reader) {
 }
 void strata_mm27_observe(strata_mm27_observer fn,void *owner) {mm27_observer=fn;mm27_owner=owner;}
 void strata_mm27_reset() {
+    mm27_router_ids.clear();
     mm27_pipeline_account();
     const auto host_limit=mm27_stats.host_working_set_limit;
     mm27_stats={};mm27_stats.staging_bytes=mm27_staging?mm27_staging_limit:0;
@@ -63,6 +75,7 @@ void strata_mm27_reset() {
 }
 strata_mm27_stats strata_mm27_snapshot() {mm27_pipeline_account();auto s=mm27_stats;s.pipeline_pending_copy=mm27_pending_copy;mm27_cache_snapshot(s);return s;}
 void strata_mm27_release() {
+    strata_mm27_router_host_ids(false);
     mm27_pipeline_dispose();mm27_pipeline_trace.reset();mm27_pipeline_readers=0;mm27_pipeline_lookahead=false;
     mm27_pipeline_d2d_batch=false;mm27_pipeline_events=0;
     mm27_ram_cache.reset();

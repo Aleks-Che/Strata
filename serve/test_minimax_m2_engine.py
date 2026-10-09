@@ -137,6 +137,52 @@ class EngineTests(unittest.TestCase):
                 with self.subTest(stage=stage, axis=axis), self.assertRaises(ValueError):
                     MiniMaxEngine._validate_ready(e, bad)
 
+        e.native_events = True
+        e.pipeline_events = 2
+        events = {**good, 'pipeline_events': 2, 'cache_decay_period': 65536}
+        MiniMaxEngine._validate_ready(e, events)
+        for key, value in [('pipeline_events', 0), ('pipeline_events', True), ('cache_decay_period', 131072)]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                MiniMaxEngine._validate_ready(e, {**events, key: value})
+        with self.assertRaises(ValueError):
+            MiniMaxEngine._validate_ready(e, good)
+
+    def test_pipeline_events_validate_before_startup(self):
+        for options in ({'pipeline_events': True}, {'pipeline_events': -1}, {'pipeline_events': 1},
+                        {'pipeline_events': 3}, {'pipeline_events': 2}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                self.engine(**options)
+
+    def test_pipeline_events_binary_capability_and_exact_hash(self):
+        import hashlib
+        import json
+        from unittest.mock import patch
+        from serve import minimax_m2_engine as module
+        binary = Path(self.tmp.name)/'reviewed.exe'
+        legacy, events = b'legacy fixture', b'events fixture'
+        with patch.object(MiniMaxEngine, 'restart'), \
+             patch.object(module, 'EXE_SHA256', hashlib.sha256(legacy).hexdigest()), \
+             patch.object(module, 'EVENTS_EXE_SHA256', hashlib.sha256(events).hexdigest()), \
+             patch.object(module, 'inspect_model', return_value={'header_sha256': module.HEADER_SHA256}), \
+             patch.object(module.subprocess, 'check_output', return_value=json.dumps(
+                 {'architecture': 'minimax-m2', 'source_revision': module.LOADER_SHA}).encode()):
+            e = MiniMaxEngine('unused', binary, ROOT, Path(self.tmp.name)/'unused.log',
+                             pipeline_readers=2, pipeline_events=2)
+            binary.write_bytes(legacy)
+            with self.assertRaisesRegex(ValueError, 'events executable'):
+                e._admit()
+            binary.write_bytes(events)
+            command = e._admit()
+            self.assertEqual(command[command.index('--pipeline-events')+1], '2')
+            self.assertTrue(e.native_events)
+            binary.write_bytes(events+b'changed')
+            with self.assertRaisesRegex(ValueError, 'SHA-256'):
+                e._admit()
+            binary.write_bytes(legacy)
+            e.pipeline_events = 0
+            self.assertNotIn('--pipeline-events', e._admit())
+            self.assertFalse(e.native_events)
+
     def test_prefix_session_opt_in_digest_and_anonymous_request(self):
         import hashlib
         from unittest.mock import patch

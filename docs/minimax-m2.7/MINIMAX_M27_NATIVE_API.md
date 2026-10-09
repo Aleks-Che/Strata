@@ -37,6 +37,17 @@ Sampling default greedy; MTP/DFlash и session reuse выключены.
 клиент передаёт `X-Strata-Session-Id`. Контракт и границы проверок:
 [MM27-27](MINIMAX_M27_SESSION_ARCHIVE.md). Default cap0.
 
+MM27-34 добавил проверенный opt-in `--pipeline-events 2` для CUDA matrix
+events/async splits. К команде запуска выше добавить
+`--engine build-local/minimax-m2-copy-events-candidate/engine.exe --pipeline-events 2`.
+Server принимает конкретный SHA13a885cc…; старый98e85e80… поддерживает режим0.
+Batch16/context2K/4K, prefix/archive, EOS, real RAM94,20%/VRAM94,45%, обе
+отмены/recovery и CLI reload проверены. [Команды и область MM27-34](MINIMAX_M27_COPY_EVENTS_CONTEXT.md).
+Default events0 сохранён; mode1 доступен только в native diagnostics.
+[MM27-35](MINIMAX_M27_ROUTER_IDS.md) добавляет native `--router-host-ids 1`.
+Его новый EXE612354a1… пока не входит в server admission: нужны отдельные
+long-context/session/pressure проверки этой сборки.
+
 Используется только проверенный GGUF/header и конкретный EXE. Изменившаяся
 сборка отклоняется до загрузки, пока её SHA не проверен и явно не принят.
 EXE SHA этого исторического этапа (новый admission указан в

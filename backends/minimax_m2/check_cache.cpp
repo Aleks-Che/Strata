@@ -36,7 +36,7 @@ struct Observer {
 int main(int argc,char **argv) {
     try {
         require(argc>=2,"usage: cache-check NEW_DIRECTORY [--pipeline-readers N --pipeline-chunk-mib N]");const std::filesystem::path dir=argv[1];
-        int pipeline_readers=0,pipeline_chunk=8,pipeline_events=0;bool pipeline_lookahead=false,pipeline_d2d_batch=false;
+        int pipeline_readers=0,pipeline_chunk=8,pipeline_events=0;bool pipeline_lookahead=false,pipeline_d2d_batch=false,router_host_ids=false;
         uint64_t ram_cache_mib=0;uint32_t arena_block_mib=64,arena_growth_reserve_mib=0;bool group_experts=false;
         for(int i=2;i<argc;++i) {
             const std::string arg=argv[i];require(i+1<argc,"missing pipeline argument");const std::string v=argv[++i];
@@ -45,6 +45,7 @@ int main(int argc,char **argv) {
             else if(arg=="--pipeline-lookahead") {require(v=="0" || v=="1","invalid chunk");pipeline_lookahead=v=="1";}
             else if(arg=="--pipeline-d2d-batch") {require(v=="0" || v=="1","invalid chunk");pipeline_d2d_batch=v=="1";}
             else if(arg=="--pipeline-events") {require(v=="0" || v=="1" || v=="2","invalid events");pipeline_events=std::stoi(v);}
+            else if(arg=="--router-host-ids") {require(v=="0" || v=="1","invalid router host IDs flag");router_host_ids=v=="1";}
             else if(arg=="--ram-cache-mib") {
                 require(!v.empty() && v.find_first_not_of("0123456789")==std::string::npos,"invalid RAM cache MiB");
                 ram_cache_mib=std::stoull(v);require(ram_cache_mib<=131072,"RAM cache MiB too large");
@@ -68,6 +69,7 @@ int main(int argc,char **argv) {
             write_synthetic_minimax_m2(path,mixed);strata_mm27_mode(2);
             auto model=load(path,false,true);auto ctx=context(model.get());
             const auto reference=run(ctx.get()),topic=run(ctx.get(),3);
+            strata_mm27_router_host_ids(router_host_ids);
             strata_mm27_reader(reader);
             strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch,pipeline_events);
             strata_mm27_ram_cache_configure(ram_cache_mib<<20);
@@ -75,6 +77,7 @@ int main(int argc,char **argv) {
                 strata_mm27_reset();
                 check(label+"batch_uncached_exact",equal(run(ctx.get()),reference));
                 const auto s=strata_mm27_snapshot();
+                if(router_host_ids && mixed)check(label+"router_ids_used",s.router_ids_hits>0 && s.router_ids_bytes>0);
                 check(label+"batch_uncached_fences",s.pipeline_copy_batches>0 && s.pipeline_copy_batches==s.pipeline_copy_fences+s.pipeline_copy_events &&
                     s.pipeline_copy_batches==s.pipeline_scratch_fences+s.pipeline_scratch_events && s.pipeline_copy_batches==s.pipeline_matrices && !s.pipeline_abort_fences);
                 check(label+"event_path_and_graph_drain",!s.pipeline_pending_copy &&
@@ -243,7 +246,7 @@ int main(int argc,char **argv) {
                 old_min==restored_min && old_max==restored_max && old_flags==restored_flags && !strata_mm27_snapshot().host_working_set_limit);
         }
         size_t failures=0;for(const auto &t:tests)if(!t.at("pass").get<bool>())++failures;
-        json report={{"ram_cache_mib",ram_cache_mib},{"cache_group_experts",group_experts},{"arena_block_mib",arena_block_mib},{"arena_growth_reserve_mib",arena_growth_reserve_mib},{"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},{"pipeline_events",pipeline_events},
+        json report={{"router_host_ids",router_host_ids},{"ram_cache_mib",ram_cache_mib},{"cache_group_experts",group_experts},{"arena_block_mib",arena_block_mib},{"arena_growth_reserve_mib",arena_growth_reserve_mib},{"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},{"pipeline_events",pipeline_events},
             {"tests",tests},{"runs",runs},{"cases",tests.size()},{"failures",failures},{"pass",!failures}};
         std::ofstream(dir/"cache-report.json")<<report.dump(2)<<'\n';std::cout<<report.dump(2)<<'\n';return failures?1:0;
     }catch(const std::exception &e){std::cerr<<e.what()<<'\n';strata_mm27_release();return 2;}

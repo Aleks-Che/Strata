@@ -43,7 +43,7 @@ ${wait_before}
     mm27_replace_once(content "ggml_backend_graph_compute_async(split_backend, &split->graph)" "mm27_graph_compute(split_backend, &split->graph)")
     mm27_replace_once(content "ggml_backend_graph_compute_async(split_backend, &gv)" "mm27_graph_compute(split_backend, &gv)")
     mm27_replace_once(content "        struct ggml_backend_sched_split * split = &splits[split_id];"
-      "        if (mm27_mode && mm27_cancelled()) return GGML_STATUS_ABORTED;\n        struct ggml_backend_sched_split * split = &splits[split_id];")
+      "        minimax_m2::RouterIdsScope mm27_ids_scope(mm27_router_ids);\n        if (mm27_mode && mm27_cancelled()) return GGML_STATUS_ABORTED;\n        struct ggml_backend_sched_split * split = &splits[split_id];")
     set(anchor "                        ggml_backend_tensor_set_async(split_backend,")
     mm27_replace_once(content "${anchor}" "                        if (mm27_mode == 2) return mm27_copy_range(split_backend, input_cpy, input, expert_offset, expert_size_copy + padding_end);\n                        if (mm27_mode == 1) {\n                            ++mm27_stats.ranges;\n                            mm27_stats.h2d_bytes += expert_size_copy + padding_end;\n                        }\n${anchor}")
     mm27_replace_once(content "                            expert_size_copy + padding_end);\n                    };"
@@ -53,7 +53,7 @@ ${wait_before}
     mm27_replace_once(content "                    copy_experts(first_id, last_id);"
       "                    if (!copy_experts(first_id, last_id)) return GGML_STATUS_FAILED;")
     set(anchor "                    // group consecutive experts and copy them together")
-    mm27_replace_once(content "${anchor}" "#include \"pipeline_sched.inc\"\n${anchor}")
+    mm27_replace_once(content "${anchor}" "                    if (mm27_mode == 2 && mm27_router_host_ids && !sched->callback_eval &&\n                        mm27_router_ids.publish(node, ids_tensor, ids.data(), ids.size()*sizeof(int32_t)))\n                        ++mm27_stats.router_ids_published;\n#include \"pipeline_sched.inc\"\n${anchor}")
     set(anchor "                    // try async copy, but if not possible,")
     mm27_replace_once(content "${anchor}" "                    if (mm27_mode && ggml_backend_buffer_is_host(input->buffer) &&\n                        ggml_backend_buffer_get_usage(input->buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS && mm27_expert(input)) {\n                        ++mm27_stats.rejected_full_copies;\n                        GGML_LOG_ERROR(\"STRATA_MM27 refusing full expert copy: %s\\n\",input->name);\n                        return GGML_STATUS_FAILED;\n                    }\n${anchor}")
   elseif(relative STREQUAL "src/llama-mmap.cpp")
@@ -89,7 +89,7 @@ ${wait_before}
   get_filename_component(directory "${original}" DIRECTORY)
   set_source_files_properties("${generated}" TARGET_DIRECTORY ${target} PROPERTIES
     INCLUDE_DIRECTORIES "${directory};${CMAKE_CURRENT_SOURCE_DIR}"
-    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_test.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/group_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/host_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/gpu_arena.hpp;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_state.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_trace.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../step35/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../hy3/gpu_arena.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/device_memory.hpp")
+    OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/router_ids.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_test.h;${CMAKE_CURRENT_SOURCE_DIR}/sync_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/cache_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/group_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/host_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/gpu_arena.hpp;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_state.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_runtime.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_sched.inc;${CMAKE_CURRENT_SOURCE_DIR}/pipeline_trace.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../step35/expert_cache.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../hy3/gpu_arena.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_pipeline.hpp;${CMAKE_CURRENT_SOURCE_DIR}/gpu_only_audit.inc;${CMAKE_CURRENT_SOURCE_DIR}/../common/expert_file.hpp;${CMAKE_CURRENT_SOURCE_DIR}/../common/device_memory.hpp")
 endfunction()
 mm27_runtime_source(ggml-base ggml/src/ggml-backend.cpp
   a39c4fe81b043c7e8616ebe57afb75d727c692fe3b26c3e9bc2ddde3c6991041 strata-minimax-m2-backend.cpp)

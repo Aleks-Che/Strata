@@ -673,8 +673,8 @@ Full request time falls164.030→157.808s; all pairs improve4.07–4.40%.
 Mode1 alone did not improve the screening aggregate. All4608 IDs and921894912
 logits match the retained synchronous EXE exactly, with identical cache
 decisions.1256 CUDA fixture checks,6 CPU methods,8 CLI cases and357 evidence
-gates pass. This does not cover full-model long context or real pressure
-with mode2, which must precede serving admission.
+gates pass. Those initial checks cover the short corpus; MM27-34 below adds
+full-model context/pressure checks and server admission.
 
 Use `tools/run_minimax_m2.py --engine build-local/minimax-m2-copy-events-candidate/engine.exe -- ...`
 and append `--pipeline-events 2` to the experimental18/2/4/lookahead/D2D profile.
@@ -682,3 +682,42 @@ Candidate SHA13a885cc… is retained separately; admitted server EXE98e85e80…
 and native default0 are preserved. See
 [matrix events](../../docs/minimax-m2.7/MINIMAX_M27_COPY_EVENTS.md) for raw
 artifacts, reproduction, exact timings and the remaining gates.
+
+MM27-34 validates that same events EXE at context4096/batch16 with prefix
+and RAM archive:1150 IDs/230073600 logits match the prior reference exactly;
+six fresh/restore pairs also match. All19 live pressure scenarios pass,
+including17 HTTP answers/662 IDs, EOS414, seeded sampling128, physical RAM
+admission rejection,128MiB GPU trim and both cancellations/recovery.
+Sampled global peaks: RAM94.199%, VRAM94.451%. Six real CLI/auth/unload/reload
+checks,51 CPU methods and111 final evidence gates pass.
+
+The experimental server now accepts that exact13a885cc… binary with explicit
+`--pipeline-events 2`; append
+`--engine build-local/minimax-m2-copy-events-candidate/engine.exe --pipeline-events 2`
+to its18/2/4/batch16 launch command. The legacy98e85e80… executable still
+works with mode0; default0 and the main bench binary are preserved. See
+[context and pressure](../../docs/minimax-m2.7/MINIMAX_M27_COPY_EVENTS_CONTEXT.md)
+for the launch command, memory measurement timing, raw artifacts and scope.
+No new speed A/B was performed in MM27-34. GPU batch1/8 at2K/4K, shift,
+context>4K and quality/oracle gates remain open.
+
+MM27-35 adds native `--router-host-ids 0|1` (default0). The strict Q4_K/Q6_K
+CUDA path can consume an owned snapshot of the IDs already fetched by the
+scheduler. It requires exact node/storage/layout identity and a single split
+lifetime; mismatches, tokenwise slices and eval callbacks use the original D2H.
+The permutation-table H2D fence and graph-exit synchronization remain.
+
+Three full-model pairs on RTX5090/RAM125.555GiB, context2048/batch16 and the
+same18/2/4/events2 profile: median decode4.292→4.458tok/s (+3.87%), all pairs
++2.56–6.74%. All3072 IDs/614596608 F32 logits match the retained reference;
+transport/cache decisions are identical.97 router-ID checks,230 cache/fault/
+reload checks,12 Python methods and4 CLI cases pass. Candidate612354a1… is
+retained in `build-local/minimax-m2-router-ids-candidate`; legacy98e85e80… and
+accepted events13a885cc… binaries are preserved. New server admission requires
+long-context/session/real-pressure validation. See
+[host router IDs](../../docs/minimax-m2.7/MINIMAX_M27_ROUTER_IDS.md).
+
+Short full-model batch1/8 pairs also match exactly (32 IDs/6402048 logits).
+Final evidence:695 gates/163 hashes pass;2144 independent memory samples,
+RAM22.213%/VRAM84.406% peaks, all10 native processes exited. This preserves
+cache18GiB for an equal comparison; it is not a full-model pressure test.

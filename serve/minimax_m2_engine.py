@@ -19,6 +19,7 @@ from tools.run_minimax_m2 import runtime_environment
 
 ROOT = Path(__file__).resolve().parents[1]
 EXE_SHA256 = '98e85e80e2dbaff5dc38f03f1ab4039835fb8d7e384f4491e1d700c989c5d3d8'
+EVENTS_EXE_SHA256 = '13a885cc75352bb39cc4231174da3d9f03705d5f9c150117935d6f05ea9d2401'
 HEADER_SHA256 = '9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db'
 MAX_LINE = 16*1024*1024
 
@@ -37,7 +38,7 @@ class MiniMaxEngine:
     can_cache_admin = False
 
     def __init__(self, model, binary, cuda_root, log_path, *, context=512, batch=8,
-                 gpu_cache_mib=0, pipeline_readers=0, pipeline_chunk_mib=8,
+                 gpu_cache_mib=0, pipeline_readers=0, pipeline_chunk_mib=8, pipeline_events=0,
                  prefix_cache=False, session_cache_mib=0, session_cache_slots=4,
                  startup_timeout=180, request_timeout=900, drain_timeout=30):
         check(type(context) is int and 256 <= context <= 4096, 'context must be 256..4096')
@@ -45,6 +46,10 @@ class MiniMaxEngine:
         check(type(gpu_cache_mib) is int and 0 <= gpu_cache_mib <= 131072, 'invalid GPU cache cap')
         check(type(pipeline_readers) is int and pipeline_readers in (0, 1, 2), 'invalid pipeline readers')
         check(type(pipeline_chunk_mib) is int and pipeline_chunk_mib in (4, 8, 16), 'invalid pipeline chunk')
+        check(type(pipeline_events) is int and pipeline_events in (0, 2), 'pipeline events must be 0 or 2')
+        check(not pipeline_events or pipeline_readers > 0, 'pipeline events require readers')
+        self.pipeline_events = pipeline_events
+        self.native_events = False
         check(type(prefix_cache) is bool, 'prefix_cache must be boolean')
         check(type(session_cache_mib) is int and 0 <= session_cache_mib <= 131072, 'invalid session cache cap')
         check(type(session_cache_slots) is int and 1 <= session_cache_slots <= 64, 'invalid session cache slots')
@@ -74,7 +79,10 @@ class MiniMaxEngine:
         self.restart()
 
     def _admit(self):
-        check(hashlib.sha256(self.binary.read_bytes()).hexdigest() == EXE_SHA256, 'unreviewed executable SHA-256')
+        digest = hashlib.sha256(self.binary.read_bytes()).hexdigest()
+        check(digest in (EXE_SHA256, EVENTS_EXE_SHA256), 'unreviewed executable SHA-256')
+        self.native_events = digest == EVENTS_EXE_SHA256
+        check(not self.pipeline_events or self.native_events, 'pipeline events require the reviewed events executable')
         inventory = inspect_model(self.model)
         check(inventory['header_sha256'] == HEADER_SHA256, 'unreviewed model header')
         flags = {'startupinfo': self._hidden()} if os.name == 'nt' else {}
@@ -90,6 +98,8 @@ class MiniMaxEngine:
                 '--prefix-cache', str(int(self.options['prefix_cache'])),
                 '--session-cache-mib', str(self.options['session_cache_mib']),
                 '--session-cache-slots', str(self.options['session_cache_slots'])]
+        if self.native_events:
+            args += ['--pipeline-events', str(self.pipeline_events)]
         return [str(self.binary), *args]
 
     @staticmethod
@@ -107,6 +117,8 @@ class MiniMaxEngine:
                     'arena_block_mib': 64, 'arena_growth_reserve_mib': 0,
                     'pipeline_lookahead': self.options['pipeline_readers'] > 0,
                     'pipeline_d2d_batch': self.options['pipeline_readers'] > 0}
+        if self.native_events:
+            expected.update(pipeline_events=self.pipeline_events, cache_decay_period=65536)
         check(all(type(event.get(k)) is type(v) and event[k] == v for k, v in expected.items()), 'ready config/provenance mismatch')
         check(Path(event['model']).resolve() == self.model, 'ready model mismatch')
         for key in ('memory_before', 'memory_loaded'):

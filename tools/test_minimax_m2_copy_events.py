@@ -39,5 +39,12 @@ class Evidence(unittest.TestCase):
     def test_old_mode_cannot_claim_async_speed(self):
         self.assertFalse(all(event_checks(result(2),0).values()))
 
+    def test_single_output_has_no_decode_graph(self):
+        r=result(2)
+        r['decode']={k:0 for k in r['decode']}
+        self.assertTrue(all(event_checks(r,2).values()))
+        r['decode']['async_compute_calls']=1
+        self.assertFalse(event_checks(r,2)['compute_mode'])
+
 
 if __name__=='__main__':unittest.main()

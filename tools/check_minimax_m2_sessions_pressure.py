@@ -12,7 +12,7 @@ import traceback
 
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from serve.minimax_m2_api import MiniMaxAPITemplate
-from serve.minimax_m2_engine import MiniMaxEngine,EXE_SHA256
+from serve.minimax_m2_engine import MiniMaxEngine,EXE_SHA256,EVENTS_EXE_SHA256
 from serve.server import Service,Server,make_handler
 from tools.check_minimax_m2_http_context import Holder
 from tools.check_minimax_m2_live_tools import collect_sse
@@ -21,6 +21,7 @@ from tools.check_minimax_m2_prefix_context import snapshot,native_checks
 from tools.check_minimax_m2_sessions_context import sha
 from tools.strata_tokenizer import Tokenizer
 from tools.minimax_m2_memory_observer import MemoryObserver
+from tools.check_minimax_m2_copy_events import event_checks
 
 
 def main():
@@ -31,16 +32,20 @@ def main():
     p.add_argument('--cuda-root',type=Path,default=ROOT/'build-local/cuda-13.0')
     p.add_argument('--holder',type=Path,default=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-pressure-holder.exe')
     p.add_argument('--stage',default='MM27-28 pressure',help='Evidence label; does not change the corpus')
-    args=p.parse_args();binary=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe'
+    p.add_argument('--engine',type=Path,default=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe')
+    p.add_argument('--pipeline-events',type=int,choices=(0,2),default=0)
+    args=p.parse_args();binary=args.engine.resolve();digest=sha(binary)
     audit=json.loads((args.offline/'report.json').read_text(encoding='utf-8'))
-    assert audit['pass'] and audit['engine_sha256']==sha(binary)==EXE_SHA256
+    assert audit['pass'] and audit['engine_sha256']==digest and digest in (EXE_SHA256,EVENTS_EXE_SHA256)
+    assert not args.pipeline_events or digest==EVENTS_EXE_SHA256
+    assert audit.get('pipeline_events',0)==args.pipeline_events
     for name in ['generation.json','requests.json','http-requests.json']:
         assert sha(args.offline/name)==audit['artifacts'][name],name
     args.out.mkdir(parents=True,exist_ok=False)
-    report={'pass':False,'stage':args.stage,'engine_sha256':EXE_SHA256,
+    report={'pass':False,'stage':args.stage,'engine_sha256':digest,'pipeline_events':args.pipeline_events,
             'offline_report_sha256':sha(args.offline/'report.json'),'cases':[],'monitor':[],'monitor_error':None}
     snapshot(args.out,report)
-    for relative in ['tools/minimax_m2_memory_observer.py','tools/test_minimax_m2_memory_observer.py']:
+    for relative in ['tools/minimax_m2_memory_observer.py','tools/test_minimax_m2_memory_observer.py','tools/check_minimax_m2_copy_events.py']:
         source=ROOT/relative;dest=args.out/'sources'/relative
         shutil.copyfile(source,dest);report['sources'][relative]=sha(dest)
     for source,name in [(binary,'engine.exe'),(args.holder,'holder.exe'),(Path(__file__),'checker.py')]:shutil.copyfile(source,args.out/name)
@@ -62,7 +67,7 @@ def main():
         report['holder_ready']=holder.expect('ready');report['holder_pid']=holder.proc.pid
         engine=MiniMaxEngine(args.gguf,binary,args.cuda_root,args.out/'native.stderr.log',context=4096,batch=16,
                              gpu_cache_mib=18432,pipeline_readers=2,pipeline_chunk_mib=4,prefix_cache=True,
-                             session_cache_mib=6144,session_cache_slots=4,request_timeout=1200)
+                             session_cache_mib=6144,session_cache_slots=4,request_timeout=1200,pipeline_events=args.pipeline_events)
         report['header'],report['command']=engine.header,engine.command;pid=engine.header['native_pid']
         report['runtime_environment']={k:v for k,v in engine.env.items() if k.startswith(('STRATA_','GGML_','LLAMA_','NVIDIA_'))}
         def cancel_on_observer_error():
@@ -100,6 +105,7 @@ def main():
             report['cases'].append(row);record()
             assert response.status==200 and r and not engine.last_error,row['error']
             row['checks']=native_checks(r,engine.header)
+            if digest==EVENTS_EXE_SHA256:row['checks'].update(event_checks(r,args.pipeline_events))
             assert all(row['checks'].values()) and r['token_ids']==refs[kind]
             assert r['reused_tokens']==reuse and r['session_restore']==restored,(name,r['reused_tokens'],r['session_restore'])
             assert r['session_archive_bytes']<=6144*2**20 and r['session_archive_entries']<=4

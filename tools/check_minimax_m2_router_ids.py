@@ -1,4 +1,4 @@
-"""MM27-33 full-model matrix-event A/B against the retained MM27-32 corpus.
+"""MM27-35 full-model host router-ID A/B against the retained MM27-32 corpus.
 
 One process per mode/repetition; fresh KV for A,A,B,A, warm expert history.
 Full F32 output is retained and compared to the old synchronous EXE's output.
@@ -24,22 +24,17 @@ from tools.minimax_m2_memory_observer import MemoryObserver
 from tools.run_minimax_m2 import runtime_environment
 
 
-def event_checks(result,mode):
-    checks={'pending_copy_drained':True,'matrix_dependencies':True,'compute_mode':True,'no_observer':True}
+from tools.check_minimax_m2_copy_events import event_checks
+
+
+def router_checks(result,mode):
+    checks={'router_reuse':True,'no_router_fallback':True}
     for s in (result['prefill'],result['decode']):
         n=s['pipeline_matrices']
-        checks['pending_copy_drained'] &= s['pipeline_pending_copy']==0
-        checks['no_observer'] &= s['pipeline_observer_fences']==0
-        checks['matrix_dependencies'] &= s['pipeline_copy_batches']==n and s['pipeline_abort_fences']==0
-        if mode:
-            checks['matrix_dependencies'] &= (s['pipeline_copy_events']==s['pipeline_scratch_events']==
-                s['pipeline_scheduler_waits_skipped']==s['pipeline_retire_checks']==n and
-                s['pipeline_copy_fences']==s['pipeline_scratch_fences']==0 and 0<=s['pipeline_retire_waits']<=n)
-        else:
-            checks['matrix_dependencies'] &= (s['pipeline_copy_fences']==s['pipeline_scratch_fences']==n and
-                s['pipeline_copy_events']==s['pipeline_scratch_events']==s['pipeline_scheduler_waits_skipped']==s['pipeline_retire_checks']==0)
-        checks['compute_mode'] &= (s['graph_exit_fences']==s['compute_calls'] and
-            (s['async_compute_calls']>=s['compute_calls'] if s['compute_calls'] else s['async_compute_calls']==0)) if mode==2 else s['async_compute_calls']==s['graph_exit_fences']==0
+        checks['router_reuse'] &= (s['router_ids_published']==s['router_ids_hits']==n and
+            (s['router_ids_bytes']>=32*n if n else s['router_ids_bytes']==0)) if mode else (
+            s['router_ids_published']==s['router_ids_hits']==s['router_ids_bytes']==0)
+        checks['no_router_fallback'] &= s['router_ids_misses']==0
     return checks
 
 
@@ -62,11 +57,11 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--out',type=Path,required=True)
     p.add_argument('--reference',type=Path,default=ROOT/'build-local/minimax-m2-cache-decay-01')
-    p.add_argument('--engine',type=Path,default=ROOT/'build-local/minimax-m2-copy-events-candidate/engine.exe')
+    p.add_argument('--engine',type=Path,default=ROOT/'build-local/minimax-m2-router-ids-candidate/engine.exe')
     p.add_argument('--cuda-root',type=Path,default=ROOT/'build-local/cuda-13.0')
-    p.add_argument('--modes',type=int,nargs='+',default=[0,1,2]);p.add_argument('--repeats',type=int,choices=[1,3],default=1)
+    p.add_argument('--modes',type=int,nargs='+',default=[0,1]);p.add_argument('--repeats',type=int,choices=[1,3],default=1)
     a=p.parse_args();a.out=a.out.resolve()
-    if a.modes not in ([0,1,2],[0,1],[0,2]):p.error('modes must be 0 1 2, 0 1 or 0 2')
+    if a.modes != [0,1]:p.error('modes must be 0 1 (host ID reuse off/on)')
     old=json.loads((a.reference/'report.json').read_text(encoding='utf-8'));assert old['pass']
     for name in ['requests.json','baseline.json','baseline.f32']:
         assert sha(a.reference/name)==old['artifacts'][name],name
@@ -74,12 +69,12 @@ def main():
     gguf=Path(old['model']);assert gguf.stat().st_size==old['model_size']
     with gguf.open('rb') as f:assert __import__('hashlib').sha256(f.read(8287960)).hexdigest()==old['header_sha256']
     a.out.mkdir(parents=True,exist_ok=False)
-    report={'pass':False,'stage':'MM27-33','model':str(gguf),'reference_report_sha256':sha(a.reference/'report.json'),
+    report={'pass':False,'stage':'MM27-35','model':str(gguf),'reference_report_sha256':sha(a.reference/'report.json'),
             'reference_logits_sha256':old['artifacts']['baseline.f32'],'engine_sha256':sha(a.engine),
             'modes':a.modes,'repeats':a.repeats,'runs':[],
-            'scope':'sequential fresh processes; ctx2048/batch16/cache18 GiB/decay65536; A,A,B,A x128; OS file cache uncontrolled'}
+            'scope':'sequential fresh processes; ctx2048/batch16/cache18 GiB/decay65536; events2; A,A,B,A x128; host IDs off/on; OS file cache uncontrolled'}
     snapshot(a.out,report)
-    for source in [Path(__file__),ROOT/'tools/check_minimax_m2_cache_decay.py',ROOT/'tools/check_minimax_m2_sessions.py',
+    for source in [Path(__file__),ROOT/'tools/check_minimax_m2_copy_events.py',ROOT/'tools/check_minimax_m2_cache_decay.py',ROOT/'tools/check_minimax_m2_sessions.py',
                    ROOT/'tools/minimax_m2_memory_observer.py',ROOT/'backends/step35/expert_cache.hpp',
                    ROOT/'backends/common/expert_frequency.hpp',ROOT/'backends/common/expert_pipeline.hpp',
                    ROOT/'backends/common/expert_file.hpp',ROOT/'backends/hy3/gpu_arena.hpp']:
@@ -97,7 +92,7 @@ def main():
                 command=[str(a.out/'engine.exe'),'--gguf',str(gguf),'--ctx','2048','--batch','16','--mode','2',
                     '--gpu-cache-mib','18432','--gpu-cache-allocator','arena','--cache-decay-period','65536',
                     '--pipeline-readers','2','--pipeline-chunk-mib','4','--pipeline-lookahead','1','--pipeline-d2d-batch','1',
-                    '--pipeline-events',str(mode),'--request',str(a.out/'requests.json'),'--output',str(base.with_suffix('.json')),
+                    '--pipeline-events','2','--router-host-ids',str(mode),'--request',str(a.out/'requests.json'),'--output',str(base.with_suffix('.json')),
                     '--logits',str(base.with_suffix('.f32'))]
                 run={'name':name,'repeat':repeat,'mode':mode,'command':command,'pass':False};report['runs'].append(run)
                 print('START '+name,flush=True);save(a.out/'report.json',report)
@@ -123,10 +118,10 @@ def main():
                 memory=[json.loads(line) for line in base.with_suffix('.memory.jsonl').read_text().splitlines()]
                 run['observed_peak_percent']={axis:max(100*(1-s[axis+'_free']/s[axis+'_total']) for s in memory) for axis in ['ram','gpu']}
                 data=json.loads(base.with_suffix('.json').read_text(encoding='utf-8'));results=data['results']
-                assert data['pipeline_events']==mode and data['cache_decay_period']==65536 and len(results)==4
+                assert data['pipeline_events']==2 and data['router_host_ids']==bool(mode) and data['cache_decay_period']==65536 and len(results)==4
                 run['results']=results;run['checks']=[];rows=0
                 for r in results:
-                    checks={**native_checks(r,data),**event_checks(r,mode)}
+                    checks={**native_checks(r,data),**event_checks(r,2),**router_checks(r,mode)}
                     checks['fresh_kv']=r['reused_tokens']==0 and not r['session_restore']
                     checks['prefill_no_fill']=r['prefill']['cache_fill_bytes']==r['prefill']['cache_evictions']==0
                     run['checks'].append(checks);assert all(checks.values()),checks;rows+=r['generated_tokens']

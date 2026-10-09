@@ -93,6 +93,11 @@ MM27-33 добавил CUDA matrix events и async split compute: три пар�
 Native default0/server98e85e80… сохранены до long-context/live pressure/cancel
 на новом EXE; [реализация и границы](MINIMAX_M27_COPY_EVENTS.md).
 Следующий кандидат P3 — reuse router IDs в strict F32 CUDA path; пока без замера.
+MM27-34 проверил тот же events EXE на ctx4096/batch16:1150 IDs/230073600
+logits побитно,19 live pressure scenarios /662 HTTP IDs, RAM94,199%/VRAM94,451%,
+trim128МиБ, protected admission, обе отмены/recovery и6 CLI reload checks PASS.
+Добавлен server opt-in `--pipeline-events 2` с exact candidate SHA;
+default0 сохранён. [Запуск и область проверки](MINIMAX_M27_COPY_EVENTS_CONTEXT.md).
 Следующий шаг P4 — GPU batch1/8 prefix/archive на2K/4K с fresh при том же batch,
 затем shift. Общий installer/утверждённый профиль ещё TODO.
 Размеры ниже рассчитаны по тензорам. **MTP-тензоров в локальном файле нет**;
@@ -410,6 +415,8 @@ default65536 сохранён; server admission EXE прежний. MM27-33 ре
 CUDA matrix events, pending fill retirement и async split API; три пары
 short A/B дали+4,40%, full logits и1256 fixtures PASS. Перед serving ещё
 проверить новый mode2 на long context/real pressure/cancel и prefix/archive.
+MM27-34 закрыл эти context/pressure/session gates при batch16 и подключил
+mode2 как server opt-in. Новый прогон не является повторным speed A/B.
 Strict F32 operator по-прежнему повторно читает router IDs на CPU; reuse
 данных scheduler — отдельный кандидат без измеренного выигрыша.
 Под нагрузкой RAM лучше
@@ -432,7 +439,10 @@ Strict F32 operator по-прежнему повторно читает router I
   матриц и пересечение H2D/compute CUDA event intervals; кольца не увеличены.
   MM27-33 добавил matrix events/async splits с public graph drain: short
   full-logit A/B+4,40%, fixture pins/cancel/pressure/reload PASS. Новый mode2
-  остаётся opt-in до full-model long context/live pressure/cancel проверки.
+  проверен MM27-34 на2K/4K/EOS/sampling при ctx4K/batch16 и real pressure,
+  включая обе отмены/recovery; server opt-in принят. Для следующего reuse
+  router IDs сохранить identity и lifetime на каждом graph/request; проверить
+  batch1/8/16 и prefix/archive, без изменения routing или арифметики.
 - **P3.3:** reusable allocations, batch ranges, early refill, host-copy методы
   и grouping gate/up/down включать по одному. Bytes/logits parity с P1,
   включая последний chunk и смену selected experts.
@@ -720,7 +730,9 @@ sampling/качества и независимого model/framework reference.
 - [x] MM27-31/часть P4: GPU batch1/8 до513 tokens /ctx1024,50 prefix/archive scenarios с full-logit fresh parity, branch/shorten/extend, single-output и sampling64; [корпус и ограничения](MINIMAX_M27_SESSION_BATCHES.md). GPU batch1/8 на2K/4K, shift и context>4K ещё TODO.
 - [x] MM27-32/часть P3: native frequency decay knob, три периода × три процесса, full-logit parity4608 IDs, history/cache regression; [измерения](MINIMAX_M27_CACHE_DECAY.md). Default65536 сохранён: агрегат+1,25/+1,53%, новая тема−2,79/−6,87%.
 - [x] MM27-33/часть P3.2: CUDA matrix event dependencies, deferred fill retirement, async splits/public graph drain;1256 fixtures и три full-logit A/B пары, **+4,40%**; [измерения](MINIMAX_M27_COPY_EVENTS.md). Native default0/server98e85e80… сохранены.
-- [ ] P3.2: новый events2 на full-model2K/4K/prefix/archive и real pressure/cancel/recovery перед serving. Повторное чтение router IDs в strict F32 — следующий кандидат; internal fences ещё остаются.
+- [x] MM27-34/часть P3.2/P4: events2 на2K/4K/prefix/archive/EOS/sampling при ctx4K/batch16, real RAM94,199%/VRAM94,451%, обе отмены/recovery и CLI reload; server opt-in с exact EXE admission. [Результаты](MINIMAX_M27_COPY_EVENTS_CONTEXT.md); default0 сохранён.
+- [x] MM27-35/часть P3.2: scheduler host router-ID reuse в strict F32 с identity/lifetime, CUDA batch1/8/16, short full-model batch1/8 и тремя full-logit A/B парами при batch16: **+3,87%**. Native default0, server admission прежний; [результаты](MINIMAX_M27_ROUTER_IDS.md).
+- [ ] P3.2: long-context/session/EOS/sampling/real-pressure и live cancel/recovery на router-ID EXE612354a1… перед server opt-in. Затем отдельный кандидат — H2D fence таблицы перестановки с bounded host-buffer lifetime.
 - [ ] Широкая answer-quality проверка и независимый full-model oracle; причина фактической ошибки английского sampled final MM27-18b не установлена. До P6 sampler default остаётся greedy.
 - [ ] P3.4/P3.5: полезное ускорение RAM policy на длинных законченных ответах, page residency/SSD traffic; MM27-17 выигрыша не подтвердил.
 - [ ] Pressure/cancel/unload, sessions и заявленные контексты проверены.

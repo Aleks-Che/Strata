@@ -1,6 +1,6 @@
 # Статус внедрения MiniMax-M2.7
 
-Обновлено: **2026-10-09**, `Asia/Yekaterinburg`.
+Обновлено: **2026-10-10**, `Asia/Yekaterinburg`.
 План: [MINIMAX_M27_IMPLEMENTATION_PLAN.md](MINIMAX_M27_IMPLEMENTATION_PLAN.md).
 
 Файл хранит проверенный прогресс и точку продолжения.
@@ -153,13 +153,33 @@ Native `--pipeline-events 2`: медиана трёх пар **4,086→4,266 т�
 Candidate EXE13a885cc… сохранён отдельно; native default0/server98e85e80…
 сохранены до long-context и live pressure/cancel проверки нового EXE.
 [Реализация, измерения и ограничения](MINIMAX_M27_COPY_EVENTS.md).
-Следующий кандидат P3 — повторное использование host router IDs в strict F32
-CUDA path: сейчас он читает их снова после scheduler. Выигрыш ещё не измерен.
+**MM27-34: events2 проверен на длинном корпусе и подключён к серверу.**
+При ctx4K/batch16:14 requests /1150 IDs /230073600 logits побитно,
+ещё113436288 logits в шести fresh/restore парах.19 live pressure scenarios
+PASS:17 полных HTTP-ответов /662 IDs, EOS414, sampling128, RAM admission,
+trim128МиБ, обе отмены и recovery в том же PID. Пики RAM94,199%/VRAM94,451%.
+6 CLI/auth/unload/reload checks,51 CPU methods и111 итоговых gates PASS.
+Server opt-in `--pipeline-events 2` требует candidate EXE13a885cc…;
+legacy98e85e80… и default0 сохранены. Это проверка надёжности, не новый speed A/B.
+[Проверенный запуск, результаты и границы](MINIMAX_M27_COPY_EVENTS_CONTEXT.md).
+**MM27-35: host router-ID reuse реализован и измерен.**
+Strict F32 Q4_K/Q6_K использует snapshot scheduler с проверкой node/storage/
+layout и lifetime одного split; mismatch/callback возвращает прежний D2H.
+Три пары поверх events2: **4,292→4,458 токена/с (+3,87%)**, все пары+2,56–6,74%.
+24 requests /3072 IDs /614596608 logits совпали с legacy reference побитно.
+Cache/H2D decisions прежние;97464 повторных чтений/ожиданий устранены на corpus.
+97 router-ID и230 cache/fault/reload checks,12 Python methods и4 CLI cases PASS.
+Short full-model batch1/8:32 IDs/6402048 logits в off/on парах побитно.
+695 итоговых gates/163 SHA PASS,2144 memory samples, RAM22,213%/VRAM84,406%.
+Native `--router-host-ids 1` требует candidate612354a1…; default0 и server
+admission сохранены. [Измерения и границы](MINIMAX_M27_ROUTER_IDS.md).
+Следующий шаг P3 — long-context/session/real-pressure проверка этого EXE
+перед подключением к серверу. H2D fence таблицы перестановки ещё остаётся.
 В P4 остаются GPU batch1/8 на2K/4K с fresh при том же batch и shift;
 installer по-прежнему требует quality/model-oracle gates.
 Экспериментальный набор **18 ГиБ /2 readers /chunk4 МиБ** сохранён.
 Проверенные флаги: `--gpu-cache-mib 18432 --gpu-cache-allocator arena --pipeline-readers 2 --pipeline-chunk-mib 4 --pipeline-lookahead 1 --pipeline-d2d-batch 1`.
-Defaults: GPU cache0, RAM expert cache0, session archive0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0, prefix cache off.
+Defaults: GPU cache0, RAM expert cache0, session archive0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0, pipeline events0, router host IDs0, prefix cache off.
 Strict F32 activations/KV; FA/graphs/MTP off. Есть изолированный API entry point;
 общий installer и утверждённый P6 профиль ещё не готовы.
 **OPEN:** причина старого MM27-06 tiny native-after-cache reload расхождения
@@ -185,7 +205,7 @@ Strict F32 activations/KV; FA/graphs/MTP off. Есть изолированны�
 | Reload validation | MM27-11: 55 stress и 18 tiny lifecycle checks PASS; старый native discrepancy остаётся OPEN |
 | Скорость, токенов/с | P5.DF-03, медиана workload64: off/cap18 3.550; DFlash Q4/depth1 3.675, depth2 3.497; три повтора, устойчивый speedup не подтверждён |
 | Рекомендуемые defaults | Для correctness: strict F32, FA/graphs/MTP off, context512/batch8; быстрый профиль не выбран |
-| Следующая задача | P3: проверить MM27-33 mode2 на long context/live pressure/cancel перед serving; исследовать повторное чтение router IDs в strict F32. Frequency decay default65536 сохранён. P4: batch1/8 prefix/archive на2K/4K и shift; sparse snapshots требуют отдельного A/B. Installer, answer quality/model oracle остаются gates P6 |
+| Следующая задача | P3: long-context/session/real-pressure для router-ID EXE612354a1… перед server admission; MM27-35 short A/B +3,87%, MM27-34 events EXE13a885cc… уже принят при batch16. Frequency decay default65536 сохранён. P4: batch1/8 prefix/archive на2K/4K и shift; sparse snapshots требуют отдельного A/B. Installer, answer quality/model oracle остаются gates P6 |
 
 В PREP-01 созданы только план и статус в `docs/minimax-m2.7`.
 Код, действующие профили и GGUF не изменялись. Существующая работа
@@ -274,7 +294,7 @@ Strict F32 activations/KV; FA/graphs/MTP off. Есть изолированны�
 | P0 — contract/oracles | DONE для F32 activation baseline; fast-quant logit issue открыт | Inspector, полный contract, изолированная сборка и CUDA fixtures |
 | P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload; MM27-18b sampled RU/EN/ZH EOS PASS, ручной answer-quality FAIL | Greedy repetition, independent oracle, quality/SSD measurements остаются |
 | P2 — tokenizer/template/API | PARTIAL: adapters, native Engine/entry point, live multi-call/error JSON/SSE, web chat и HTTP4K/pressure/recovery PASS | Более широкий tools/quality corpus; server-side MCP вне scope |
-| P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, groups и RAM LRU/partition; MM27-33 matrix events/async splits +4,40% в трёх коротких A/B; RAM64 short speed хуже off; tiny reload OPEN | Новый mode2 ещё требует long context/live pressure/cancel; полезный RAM speedup, законченные длинные ответы, residency/SSD measurements |
+| P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, groups и RAM LRU/partition; MM27-33 matrix events/async splits +4,40% в трёх коротких A/B, MM27-34 long corpus/live pressure/cancel и server opt-in PASS при batch16; RAM64 short speed хуже off; tiny reload OPEN | MM27-35 router-ID reuse +3,87% short A/B; для нового EXE нужны long-context/session/real-pressure. Полезный RAM speedup, residency/SSD measurements и широкий corpus остаются |
 | P4 — sessions/context | PARTIAL: prefix и bounded RAM snapshot/restore до4080 /ctx4K/batch16, EOS414/sampling128/single-output exact logits; bulk copies и HTTP94% pressure/admission/cancel/recovery PASS. GPU batch1/8 до513 /ctx1024 с full logits PASS, MM27-31 | Shift, GPU batch1/8 на2K/4K, context>4K; sparse-copy A/B отдельно |
 | P5 — MTP / DFlash | Native MTP ждёт weights/backend; DFlash OFFLINE_GREEDY_AND_CORPUS_PASS, timings измерены | Live GPU EOS/cancel/pressure/recovery, context/sessions и полезный speedup |
 | P6 — profile/regressions | PARTIAL: изолированный experimental entry point MM27-22 | Installer, quality/oracle gates и утверждённые defaults |
@@ -284,11 +304,14 @@ Strict F32 activations/KV; FA/graphs/MTP off. Есть изолированны�
 
 ## Точка продолжения: P3/P4, качество ответов и оставшиеся DFlash lifecycle gates
 
-MM27-33 завершил short A/B CUDA matrix events/async splits. Перед переносом
-mode2 в server admission проверить full-model2K/4K, prefix/archive и реальные
-pressure/cancel/recovery на candidate13a885cc…. Отдельная следующая оптимизация:
-reuse уже прочитанных scheduler router IDs внутри strict F32 CUDA dispatch
-с проверкой identity/lifetime и полных logits. Частотный default65536 прежний.
+MM27-33 завершил short A/B CUDA matrix events/async splits. MM27-34 проверил
+prompts2K/4K при ctx4096/batch16, prefix/archive, EOS/sampling, real pressure,
+обе отмены/recovery и CLI reload на candidate13a885cc…. Server opt-in принят,
+default0 сохранён. MM27-35 реализовал reuse уже прочитанных router IDs,
+проверил identity/lifetime и полные logits; три короткие пары дали+3,87%.
+Следующий шаг — long-context/session/real-pressure на EXE612354a1… перед
+server admission. Затем можно исследовать H2D fence таблицы перестановки
+с отдельным bounded host-buffer lifetime. Частотный default65536 прежний.
 
 1. P5.DF-03a выполнен для offline greedy и короткого корпуса. DFlash оставлен
    off; перед serving нужны live GPU EOS/cancel/pressure/recovery, длинный
@@ -343,6 +366,69 @@ reuse уже прочитанных scheduler router IDs внутри strict F32
    трассировать первый расходящийся node. Native MTP требует отсутствующих local weights.
 
 ## Подтверждённый журнал
+
+### MM27-35 / часть P3.2 — 2026-10-10 — Host router IDs в strict F32
+
+Добавлен native `--router-host-ids 0|1`, default0. Snapshot до64КиБ хранит
+owned bytes scheduler на одном thread, используется один раз и очищается
+на границе split/reset/release. Exact node/weight/IDs identity, shape/stride/
+view/storage checks; callback или mismatch возвращают прежний CUDA D2H.
+Арифметика, CUDA graphs policy, таблица перестановки/H2D fence и graph drain
+сохранены. Bridge действует только в private MiniMax runtime build.
+
+Candidate612354a1…/dependency86ebfef2…, RTX5090/RAM125,555ГиБ. Context2048,
+batch16/cache18ГиБ/arena64/reserve0/decay65536/readers2/chunk4/lookahead/D2D/
+events2, strict F32, RAM/prefix/archive/MTP off. A,A,B,A по128 выходных токенов.
+Три пары off/on, on/off, off/on:4,176→4,458;4,295→4,405;4,292→4,470 токена/с.
+Медианы4,292→4,458 (+3,87%), полное время157,033→152,176с.
+Все3072 IDs и614596608 logits побитно; cache/H2D decisions одинаковы.
+Per-case медианы быстрее на3,19–5,29%. На workload97464 reuse hits,0 misses;
+94488 приходится на decode. Матрицы весов передаются в прежнем объёме.
+
+97 identity/CUDA batch1/8/16 checks и230 cache/fault/pressure/reload checks
+PASS;12 Python methods и4 early CLI cases PASS. Short full-model batch1/8
+также побитный:32 IDs/6402048 logits в двух парах.695 evidence gates/163 SHA
+PASS;2144 независимых samples, RAM22,213%/VRAM84,406%,10 native PID закрыты. Новый EXE сохранён отдельно,
+legacy98e85e80… восстановлен, events13a885cc… сохранён. Server admission не
+расширен до проверки full-model long-context/sessions/real pressure нового EXE.
+[Полный отчёт, команды и артефакты](MINIMAX_M27_ROUTER_IDS.md).
+
+### MM27-34 / часть P3.2/P4 — 2026-10-09–10 — Events2: context, pressure и server opt-in
+
+Native candidate13a885cc…/dependency86ebfef2… не изменены. Adapter/CLI получили
+опцию `--pipeline-events 2` с exact EXE admission, проверкой ready mode/decay
+и отказом при events без readers или со старой сборкой. Legacy98e85e80…
+с режимом0 сохраняется. Диагностические drivers принимают явный engine/mode;
+offline теперь также имеет независимый memory observer. Учет events допускает
+нулевой decode graph для ответа из одного токена.
+
+RTX5090/RAM125,555ГиБ, Q4_K_M target, ctx4096/batch16/F32, cache18ГиБ,
+arena64/reserve0/decay65536, readers2/chunk4/lookahead/D2D/events2,
+RAM expert cache0, prefix on/archive6144МиБ/4, bulk KV on, MTP/DFlash off.
+14 offline requests /1150 IDs /230073600 logits совпали с MM27-26 побитно;
+шесть fresh/restore пар /113436288 logits тоже побитно. EOS414, seed42
+sampling128 и single-output прошли.1696 independent memory samples без ошибок.
+
+19 live scenarios в одном native PID:17 HTTP answers /662 IDs, оба API,
+cached usage, EOS/sampling, physical RAM admission rejection с защитой2K,
+GPU trim128МиБ, prefill disconnect1,702с и decode cancel3,561мс, fresh/reuse
+recovery. Пики RAM94,199%/VRAM94,451%,2110 independent samples; все≤95%.
+Ближайший к RAM94 независимый sample выбран по времени: за46мс до marker,
+94,076%. Первый последующий уже видит освобождение архива,93,363%; он всё
+ещё подтверждает нехватку137594440байт для4K snapshot с резервом. Исходное
+ожидание93,5–95% именно в последующем sample не выполнено и сохранено
+отдельным false diagnostic; native limits/admission не менялись.
+
+6 реальных CLI/auth/unload/reload checks,51 CPU methods и111 итоговых gates /
+165 source checks /231 artifact hashes PASS, exit0. Четыре новых CPU methods
+проверяют временную привязку RAM evidence. Все owned процессы завершены,
+buffers holder освобождены. [Команды, timings и scope](MINIMAX_M27_COPY_EVENTS_CONTEXT.md),
+[машинный отчёт](MINIMAX_M27_COPY_EVENTS_CONTEXT_CHECK.json).
+
+Mode2 теперь server opt-in; default0 и основной EXE98e85e80… сохранены.
+Повторный speed A/B не выполнялся, результат+4,40% относится к MM27-33.
+Следующий кандидат — host router-ID reuse в strict F32. Batch1/8 на2K/4K,
+shift/context>4K, большой quality corpus, model oracle и MM27-06 ещё OPEN.
 
 ### MM27-33 / часть P3.2 — 2026-10-09 — CUDA matrix events и async split compute
 

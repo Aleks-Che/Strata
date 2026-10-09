@@ -5,7 +5,9 @@
 Режим2 дал **4,086→4,266 токена/с (+4,40%)** в медианах трёх независимых
 пар на локальном MiniMax Q4_K_M. Полные logits совпали побитно.
 Это native opt-in: default `--pipeline-events 0` и server EXE98e85e80…
-сохранены до длинного контекста и live pressure/cancel проверки нового EXE.
+сохранены на этом этапе. Последующий
+[MM27-34](MINIMAX_M27_COPY_EVENTS_CONTEXT.md) проверил2K/4K, sessions,
+EOS/real pressure/cancel и подключил mode2 к серверу как opt-in с этим EXE.
 
 ## Реализация
 
@@ -51,7 +53,8 @@ async compute calls и graph exit fences. `pipeline_pending_copy` должен �
 Это не устранение всех host waits. Strict F32 CUDA `MUL_MAT_ID` по-прежнему
 копирует router IDs на CPU и синхронизирует stream, затем синхронизирует H2D
 таблицы перестановки. Scheduler уже читает IDs для выбора экспертов; повторное
-использование этих данных — следующий кандидат, ещё без реализации и замера.
+использование этих данных на этом этапе ещё не реализовано. Последующий
+[MM27-35](MINIMAX_M27_ROUTER_IDS.md) добавляет отдельный native opt-in.
 Математика strict F32 и исторический fast-quant logit FAIL остаются прежними.
 
 ## Профиль и методика
@@ -130,9 +133,10 @@ samples.2917 отсчётов: global RAM≤23,710%, VRAM≤85,085%; лимит9
 В этом эксперименте не создавалось реальное давление около95%.
 [Машинный итог](MINIMAX_M27_COPY_EVENTS_CHECK.json).
 
-Не закрыты long-context/prefix/archive parity и live full-model
-pressure/cancel/recovery на EXE13a885cc…, а также прежние independent oracle,
-answer-quality и MM27-06 discrepancy gates. Результат скорости относится
+На момент MM27-33 оставались long-context/prefix/archive parity и live
+pressure/cancel/recovery на EXE13a885cc…; они проверены MM27-34 при batch16
+и context≤4096. Прежние independent oracle, answer-quality и MM27-06
+discrepancy gates остаются. Результат скорости относится
 к указанному корпусу, машине и профилю; это не общий performance default.
 
 ## Воспроизведение
