@@ -47,7 +47,8 @@ MM27-17 реализовал optional RAM LRU read-only views, удаляемы�
 1344 generated tokens PASS. Три пары: RAM64 decode3,485 против3,941 токена/с
 off; default RAM0 сохранён. Long256 проверил55,859 ГиБ views без numerical FAIL.
 [Измерения RAM/GPU partition](MINIMAX_M27_RAM_CACHE.md).
-API и рабочий профиль ещё не реализованы; target94%/hard guard95% проверен.
+MM27-21 проверил API adapters через scripted HTTP; native Engine bridge и
+рабочий startup profile ещё TODO. Target94%/hard guard95% проверен.
 Размеры ниже рассчитаны по тензорам. **MTP-тензоров в локальном файле нет**;
 первый рабочий профиль будет без speculation, MTP — отдельный этап P5.
 После переноса в `H:\models\MiniMax-M2.7` найдены DFlash Q3/Q4/Q5;
@@ -278,6 +279,23 @@ F32 activation baseline. В MM27-02 добавлен opt-in reference режим
 **Готово:** корректный full-model baseline и отчёт на этом ПК, без CPU-expert fallback.
 
 ### P2. Tokenizer, reasoning, tools и API
+
+MM27-19: P2.3 и входная canonical history часть P2.5 реализованы отдельно в
+`serve/minimax_m2_history.py`: leading instructions, lossless reasoning/content,
+ID/result correlation и порядок tool responses.33 unit methods,293 prompts /
+71189 IDs и96 legacy cases PASS. Для native oracle исправлено округление JSON
+float в отдельном target; исходный raw сохранён. Late instructions, неполные
+result groups и неэкранированные структурные tool-теги отклоняются явно.
+[Контракт, ограничения и результаты](MINIMAX_M27_HISTORY.md).
+MM27-20: P2.4 реализован отдельным `serve/minimax_m2_tools.py`: atomic groups,
+schema types/validation, raw strings, stop/truncation/UTF-8 и bounded buffer.
+51 unit methods,281 native groups +281 histories /22079 IDs,8 completion replays,
+3966 checks PASS. [Контракт и ограничения](MINIMAX_M27_TOOLS.md).
+MM27-21: API adapters и scripted tool cycle проверены через real loopback
+JSON/SSE OpenAI/Anthropic.191 tests,16 cycles,32 completion replays и272 report
+checks PASS;32 API prompts /14284 IDs совпали с native oracle.
+[Контракт и ограничения](MINIMAX_M27_API.md). Native Engine JSONL bridge,
+startup profile, live model tool cycle и web chat ещё не подключены.
 
 - **P2.1:** GPT-2 BPE с pre-tokenizer `minimax-m2`, vocab200064/merges199744.
   BOS200034=`]~!b[`, EOS/PAD200020=`[e~[`, UNK200021=`]!d~[`.
@@ -535,8 +553,17 @@ grouping default off, устойчивого ускорения нет. MM27-17 
 17 live JSONL budget/EOS/cancel/recovery scenarios PASS. Русский запрос1..96
 зациклился в reasoning и остановился по length1536: полный completion gate FAIL.
 13 parser/tokenizer tests и18 real-output replay checks PASS; parser пока
-не подключён к API. Следующий этап — MM27-18b: диагностика повторов и проверка
-sampling перед P2 history/tools/API. Экспериментальные18/2/4 сохраняются.
+не подключён к API. MM27-18b добавил optional request-local sampling:
+T1/top_p0,95/top_k40 завершил русский запрос на398/567/1092 tokens при трёх seed.
+Все семь полных запросов завершились по EOS; greedy regression и seeded repeat
+побитные,48 CPU/14 pipe/48 parser checks PASS. **Ручной quality gate FAIL:**
+английский final ошибочно указал отношение рассеяния10 вместо≈4,35.
+[Sampling, измерения и границы](MINIMAX_M27_SAMPLING.md).
+MM27-19 реализовал history normalization и canonical input calls/results;
+MM27-20 — standalone P2.4 tool parser, MM27-21 — API adapters и scripted HTTP
+tool cycle. Следующий этап — resident Engine поверх native JSONL и startup
+profile, затем live GPU tools/API/web chat. Качество и independent
+model oracle остаются gates P6. Sampling opt-in, default greedy и18/2/4 сохраняются.
 Контроль без cache/pipeline побитно повторил1024 tokens и204865536 logits
 русского цикла. Повторная проверка того же транспорта не заменяет проверку
 sampling/качества и независимого model/framework reference.
@@ -565,7 +592,11 @@ sampling/качества и независимого model/framework reference.
 - [x] MM27-16: семантическая группа gate/up/down, плотность, readiness/pins, correctness/pressure и три пары измерений; ускорение не подтверждено, default off.
 - [x] MM27-17/P3.4: bounded RAM view LRU, отложенное admission, partition с GPU-кешем, pressure/lifecycle/parity и short A/B; default0 из-за замедления.
 - [x] MM27-18: output budget в пределах context, natural EOS английского ответа, полный повтор, live JSONL cancel/recovery и отдельный reasoning parser; [область проверки](MINIMAX_M27_COMPLETION.md).
-- [ ] MM27-18b: устойчивое завершение multilingual corpus; русский greedy повтор1..96 не дал final за1536 токенов. Проверить sampling отдельно, не ослабляя численные gates.
+- [x] MM27-18b: optional seeded sampling, завершение фиксированного RU/EN/ZH корпуса, bit-exact greedy/repeat и JSONL cancel/recovery; [результаты](MINIMAX_M27_SAMPLING.md). Это не общий quality PASS: ручная проверка одного final не прошла; исходный greedy цикл сохранён.
+- [x] MM27-19/P2.3 и входная часть P2.5: история instructions/reasoning, canonical typed calls, ID/result correlation, порядок результатов, native prompt/token parity; [контракт и ограничения](MINIMAX_M27_HISTORY.md). API пока не подключён.
+- [x] MM27-20/P2.4: отдельный потоковый parser tools со schema validation, atomic multi-calls, raw strings, UTF-8/stop/truncation/limit, native wire/history round trips и replay; [границы поддержки](MINIMAX_M27_TOOLS.md). Live model tool generation и оба API остаются TODO.
+- [x] MM27-21/часть P2.5/P2.6: adapters обоих API, JSON/SSE через real loopback, scripted ID/result/answer cycle, usage/finish/UTF-8/cancel/recovery и native tokenizer replay; [проверенный scope](MINIMAX_M27_API.md). Native Engine bridge, startup profile и live GPU API ещё TODO.
+- [ ] Широкая answer-quality проверка и независимый full-model oracle; причина фактической ошибки английского sampled final MM27-18b не установлена. До P6 sampler default остаётся greedy.
 - [ ] P3.4/P3.5: полезное ускорение RAM policy на длинных законченных ответах, page residency/SSD traffic; MM27-17 выигрыша не подтвердил.
 - [ ] Pressure/cancel/unload, sessions и заявленные контексты проверены.
 - [ ] Есть изолированный профиль, замеры defaults и регрессии.

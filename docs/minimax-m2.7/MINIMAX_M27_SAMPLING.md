@@ -3,6 +3,8 @@
 Измерения: **2026-10-08–09**, Windows, RTX 5090 32 ГиБ, RAM125,555 ГиБ.
 [План](MINIMAX_M27_IMPLEMENTATION_PLAN.md),
 [статус](MINIMAX_M27_IMPLEMENTATION_STATUS.md).
+Ревизия при фиксации: `d342001b4dca70860bcd585f28004591a83e5bf3`,
+dirty tree; состав до изменений закреплён отдельным baseline snapshot.
 
 ## Контракт
 
@@ -78,6 +80,79 @@ header. Добавлен явный `OBJECT_DEPENDS` для `main.cpp` и `check
 model/pipe проверки используют эту сборку. Неудачные EXE/исходники и причины
 сохранены в `build-local/minimax-m2-sampling-unit-01` и `-02`.
 
+## Воспроизводимость запросов
+
+Для T1/top_p0,95/top_k40 исходный русский запрос завершился по EOS при
+seed42/7/1234 на398/567/1092 tokens соответственно. Все три ответа закрыли
+reasoning и по-русски объяснили правильную сумму4656. Значительно различается
+длина reasoning/ответа; три seed не доказывают отсутствие циклов на другом
+входе или при другом seed.
+
+В одном дополнительном процессе сначала выполнены32 tokens с seed7,
+затем полный запрос с seed42. Короткий префикс совпал с исходным seed7
+по32 IDs и6402048 logits; полный повтор seed42 — по398 IDs и79625472
+logits. Все сравнения побитные. Частичный32-token запрос намеренно завершён
+по длине и не включается в natural-completion gate.
+
+## Полная модель: измерения корпуса
+
+Все семь полных запросов естественно завершились по EOS с закрытым reasoning
+и непустым final. Во всех4894 generated tokens, включая один короткий prefix,
+979113216 logits конечны; CPU replay заново выбрал все4894 IDs без расхождений.
+Это проверка сохранённых logits и sampler, а не независимое вычисление модели.
+
+| Запрос | T / seed | Prompt / output | Decode, токенов/с | TTFT, с | Request, с | Sampling, мс/токен |
+|---|---|---:|---:|---:|---:|---:|
+| Русский список1..96 | 1 /42 | 343 /398 | 4,451 | 48,870 | 138,611 | 0,838 |
+| Тот же список | 1 /7 | 343 /567 | 4,275 | 52,183 | 185,371 | 0,842 |
+| Тот же список | 1 /1234 | 343 /1092 | 4,544 | 62,657 | 304,276 | 0,822 |
+| Prefix перед повтором | 1 /7 | 343 /32 | 3,703 | 53,584 | 61,994 | 0,742 |
+| Полный повтор | 1 /42 | 343 /398 | 4,322 | 36,781 | 129,132 | 0,733 |
+| Пониженная температура | 0,7 /42 | 343 /1219 | 4,335 | 53,802 | 336,556 | 0,912 |
+| Почему небо голубое, EN | 1 /42 | 52 /879 | 4,268 | 13,094 | 219,898 | 0,734 |
+| 17×23, ZH | 1 /42 | 55 /309 | 4,268 | 12,774 | 85,316 | 0,735 |
+
+Для русского запроса T0,7 удлинила ответ относительно T1 при seed42;
+пользы от её понижения в этом одиночном сравнении не обнаружено. В английском
+запросе T1 тоже дал больше tokens, чем исторический greedy414. Sampling
+не гарантирует короткого reasoning. Эти числа **не являются A/B ускорения**:
+последовательности токенов и объём работы различаются, timings не повторялись
+для выбора быстрого профиля. T1/top_p0,95/top_k40 остаётся opt-in примером.
+Глобальные sampled peaks RAM30,07%, VRAM84,66%;95%-guard не сработал.
+
+## JSONL и потоковый текст
+
+14 сценариев в одном загруженном процессе PASS:10 неверных sampling configs,
+64-token seed42 запрос после ошибок,16-token запрос с seed7, адресная отмена
+после8 токенов и64-token seed42 повтор после неё. Seed42 IDs/text совпали
+с сохранённым префиксом полного английского ответа. GPU-only/bytes/drain/
+memory gates прошли. Полный sampled EOS проверен в offline corpus;
+в pipe этой серии проверялись ограниченные префиксы.
+
+CTRL_BREAK адресован только тестовой process group. Ошибка отмены получена
+через2,254 мс по `perf_counter`; это один замер, без гарантии latency для
+другой нагрузки. Следующий запрос работает без перезапуска процесса.
+
+Дополнительно48 real-output checks на8 ответах PASS: native token bytes,
+EOS по ID, точные reasoning/content segments, token-sized и однобайтовые
+UTF-8 chunks через существующий parser. Parser/API integration не менялась.
+
+## Ручная проверка качества
+
+Автоматические corpus gates проверяют EOS, закрытый reasoning, наличие final,
+язык, ожидаемое число/ключевое слово и отсутствие длинного повторяющегося
+фрагмента. Они не проверяют истинность каждого предложения.
+
+В английском final есть ошибка: для длин волн450 и650 нм модель утверждает,
+что первое излучение рассеивается примерно в10 раз сильнее. По приведённому
+в том же ответе закону `1/λ⁴` отношение равно `(650/450)**4 ≈ 4,3531`.
+Объяснение механизма Rayleigh scattering и natural EOS проходят узкие
+автоматические gates, но **ручная проверка точности ответа — FAIL**.
+Нельзя объявлять весь quality corpus успешным по наличию слова «scattering».
+Причина этой фактической ошибки не установлена; независимый model oracle
+в этой серии не запускался. Подбор другого seed с удачным текстом не закрывает
+общую проверку качества или выбор defaults P6.
+
 ## Границы результата
 
 Набор проверяет исходный русский список1..96, английское объяснение голубого
@@ -92,6 +167,37 @@ greedy после расхождения token IDs некорректно; чи�
 Новый sampling не исправляет этот greedy результат и не устанавливает причину
 старого MM27-06 reload discrepancy. P2 history/tools/API, P4 sessions,
 независимый full-model oracle и DFlash live lifecycle остаются открытыми.
+
+## Артефакты и итоговые gates
+
+- [48 CPU checks](MINIMAX_M27_SAMPLING_UNIT_CHECK.json),
+  [greedy regression](MINIMAX_M27_SAMPLING_GREEDY_CHECK.json).
+- [Screen и полный CPU replay](MINIMAX_M27_SAMPLING_SCREEN_CHECK.json),
+  [14 JSONL scenarios](MINIMAX_M27_SAMPLING_PIPE_CHECK.json),
+  [48 token-byte/parser checks](MINIMAX_M27_SAMPLING_OUTPUT_CHECK.json).
+- [Ручная проверка final:6 PASS /1 FAIL](MINIMAX_M27_SAMPLING_QUALITY_CHECK.json),
+  [build manifest](MINIMAX_M27_SAMPLING_BUILD_MANIFEST.json),
+  [хэши и сводные gates](MINIMAX_M27_SAMPLING_VALIDATION_CHECK.json).
+
+Bench SHA-256
+`07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef`.
+Проверены188 файлов исходного снимка
+`build-local/minimax-m2-sampling-baseline-01`. Shared common/Step/Hy3/GLM,
+MiniMax CUDA math/cache/pipeline и serving sources не менялись. Новый sampler,
+checker, main/CMake/manifest и драйверы сохранены вместе с EXE в
+`build-local/minimax-m2-sampling-evidence-01`. Raw reports/logits/JSONL/logs
+остаются в `build-local/minimax-m2-sampling-*`.
+
+Сводный validation намеренно имеет **`pass=false`**:
+`implementation_checks_pass=true`, `natural_completion_gate_pass=true`,
+но `manual_answer_quality_pass=false` и `ready_for_api=false`.
+Сборка, CPU fixtures, greedy regression, screen, pipe и output replay
+завершились с exit0. Screen PASS означает его узкие автоматические gates;
+отдельный ручной FAIL сохраняется в итоговом статусе.
+
+Следующий пункт плана — P2.3–P2.6: history/tool parser и API adapter.
+Проверка качества и независимого full-model oracle остаётся отдельным
+условием для P6; общий default sampler пока greedy.
 
 ## Воспроизведение
 

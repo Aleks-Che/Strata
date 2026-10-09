@@ -1,0 +1,79 @@
+[
+  {
+    "value": -9223372036854775808,
+    "python": "-9223372036854775808",
+    "native": "-9223372036854775808",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": 9223372036854775807,
+    "python": "9223372036854775807",
+    "native": "9223372036854775807",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": 9223372036854775808,
+    "python": "9223372036854775808",
+    "native": "-9223372036854775808",
+    "equal": false,
+    "native_error": null
+  },
+  {
+    "value": 18446744073709551615,
+    "python": "18446744073709551615",
+    "native": "-1",
+    "equal": false,
+    "native_error": null
+  },
+  {
+    "value": 18446744073709551616,
+    "python": "18446744073709551616",
+    "native": "1.84467e+19",
+    "equal": false,
+    "native_error": null
+  },
+  {
+    "value": 1e-08,
+    "python": "1e-08",
+    "native": "1e-08",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": 1e-05,
+    "python": "1e-05",
+    "native": "1e-05",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": 1e+16,
+    "python": "1e+16",
+    "native": "1e+16",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": 1e+20,
+    "python": "1e+20",
+    "native": "1e+20",
+    "equal": true,
+    "native_error": null
+  },
+  {
+    "value": -0.0,
+    "python": "-0.0",
+    "native": "-0",
+    "equal": false,
+    "native_error": null
+  },
+  {
+    "value": 0.12345678901234566,
+    "python": "0.12345678901234566",
+    "native": "0.123457",
+    "equal": false,
+    "native_error": null
+  }
+]

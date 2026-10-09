@@ -1,6 +1,6 @@
 # Статус внедрения MiniMax-M2.7
 
-Обновлено: **2026-10-08**, `Asia/Yekaterinburg`.
+Обновлено: **2026-10-09**, `Asia/Yekaterinburg`.
 План: [MINIMAX_M27_IMPLEMENTATION_PLAN.md](MINIMAX_M27_IMPLEMENTATION_PLAN.md).
 
 Файл хранит проверенный прогресс и точку продолжения.
@@ -46,10 +46,36 @@ Serial ReadFile/H2D с cache/pipeline off повторил первые1024 IDs 
 logits побитно, включая14 повторов фразы: pipeline/cache не объясняют этот цикл.
 Sampler и defaults не менялись; parser в API не зарегистрирован.
 [Изменения, результаты и границы MM27-18](MINIMAX_M27_COMPLETION.md).
+**MM27-18b: optional seeded sampling реализован и проверен.**
+T1/top_p0,95/top_k40 завершил русский список на398/567/1092 tokens при трёх seed;
+все семь полных RU/EN/ZH запросов дошли до EOS. Greedy96 IDs/19206144 logits
+и повтор seed42 по398 IDs/79625472 logits побитные.48 CPU,14 JSONL и48 parser
+checks PASS; sampling0,73–0,91 мс/токен. **Ручной quality gate FAIL:**
+английский final указал отношение рассеяния10 вместо≈4,35 для450/650 нм.
+Default greedy сохранён; API не подключён. [Результаты MM27-18b](MINIMAX_M27_SAMPLING.md).
+**MM27-19: P2.3 и canonical input tool history реализованы.**
+Нормализуются начальные system/developer, metadata и reasoning; ID инструментов
+сохраняются, ответы располагаются в порядке calls.33 unit methods,293 prompts /
+71189 IDs и96 legacy comparisons PASS. Новый CPU template oracle сохраняет
+точность JSON float; raw oracle оставлен. Late instructions и неоднозначные
+tool histories отклоняются. [Контракт и проверки MM27-19](MINIMAX_M27_HISTORY.md).
+**MM27-20: P2.4 streaming tool-output parser реализован отдельно.**
+Schema types/validation, atomic multi-calls, IDs, literal strings, UTF-8,
+stop/truncation и bounded buffer проверены.51 unit methods,281 native groups
++281 histories /22079 token IDs,8 real completion replays /3966 checks PASS.
+Tool corpus создан native template oracle; живой model tool cycle ещё не проверен.
+[Контракт и ограничения MM27-20](MINIMAX_M27_TOOLS.md).
+**MM27-21: OpenAI/Anthropic API adapters проверены через real loopback HTTP.**
+191 tests,16 scripted tool cycles,32 HTTP replays прежних completions и272
+report checks PASS.32 API prompts /14284 IDs совпали с native oracle.
+Проверены JSON/SSE, ID/results, usage, finish_reason, strict UTF-8 и disconnect/recovery.
+[Контракт и ограничения MM27-21](MINIMAX_M27_API.md).
+Следующий пункт — native Engine JSONL bridge и startup profile, затем live GPU
+tool cycle. Скриптовый движок в API fixtures не заменяет проверку полной модели.
 Экспериментальный набор **18 ГиБ /2 readers /chunk4 МиБ** сохранён.
 Проверенные флаги: `--gpu-cache-mib 18432 --gpu-cache-allocator arena --pipeline-readers 2 --pipeline-chunk-mib 4 --pipeline-lookahead 1 --pipeline-d2d-batch 1`.
 Defaults: GPU cache0, RAM cache0, allocator `cuda`, reader `file`, pipeline0, lookahead0, D2D batch0.
-Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профиль ещё не готовы.
+Strict F32 activations/KV; FA/graphs/MTP off. Native API engine и рабочий профиль ещё не готовы.
 **OPEN:** причина старого MM27-06 tiny native-after-cache reload расхождения
 не установлена. Новые PASS не закрывают его причину.
 
@@ -66,14 +92,14 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 | Header/ranges | PASS постоянного inspector/contract, все809 tensors |
 | Candidate dependency | Unsloth `86ebfef2`; отдельные CPU/CUDA builds, source/patch hashes сохранены |
 | MTP / DFlash | Native MTP weights отсутствуют; DFlash offline greedy/corpus parity PASS, Q3/Q4/Q5 depth screen и повторные timings измерены; serving off |
-| Tokenizer/template | PASS: 1316 tokenizer cases и103 template checks; отдельный reasoning parser проверен на chunks/UTF-8; tools/API TODO |
+| Tokenizer/template/API | PASS: tokenizer/template/history/parser; MM27-21 JSON/SSE adapters, scripted HTTP cycle и native tokenizer replay; native API Engine/live tools TODO |
 | CUDA kernels / tiny graph | PASS:83 kernel cases в обоих режимах;217 graph cases с F32 активациями |
 | Fast quant graph | 208/217 PASS;9 logit FAIL, greedy fixture совпал; runtime default не утверждён |
 | Engine/cache/pipeline/sessions | Optional GPU cache/groups и RAM view LRU с GPU partition; file pipeline с lookahead/D2D batch; RAM64 short speed хуже off; API/session reuse TODO |
 | Reload validation | MM27-11: 55 stress и 18 tiny lifecycle checks PASS; старый native discrepancy остаётся OPEN |
 | Скорость, токенов/с | P5.DF-03, медиана workload64: off/cap18 3.550; DFlash Q4/depth1 3.675, depth2 3.497; три повтора, устойчивый speedup не подтверждён |
 | Рекомендуемые defaults | Для correctness: strict F32, FA/graphs/MTP off, context512/batch8; быстрый профиль не выбран |
-| Следующая задача | MM27-18b: русский greedy repetition и проверка sampling; затем P2 history/tool parser/API; DFlash live lifecycle остаётся отдельно |
+| Следующая задача | P2.6 native Engine JSONL bridge и startup profile, затем live GPU API/tools/web chat; answer quality/model oracle остаются gates P6 |
 
 В PREP-01 созданы только план и статус в `docs/minimax-m2.7`.
 Код, действующие профили и GGUF не изменялись. Существующая работа
@@ -128,13 +154,17 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
   Первый корпус с production shapes и file/native parity — MM27-03.
   Быстрый MMVQ/MMQ путь не прошёл строгие logit tolerances малого графа; нужно
   отдельно решить policy точности/скорости перед выбором defaults.
-- Default temperature finetune и stop policy в HTTP/API. Experimental greedy runtime
+- Default temperature finetune и stop policy в HTTP/API. Experimental runtime
   останавливается по EOS/PAD200020; FIM/reponame aliases не являются stop IDs.
   Содержимое конфигурации самого finetune не получено; официальный config
-  базовой модели не заменяет проверку локального файла.
-- API call ID/result correlation, tool-output parser, reasoning/content streaming
-  и no-thinking профиль. Template-level nested `function`, JSON-string arguments
-  и несколько calls/results проверены после явной нормализации.
+  базовой модели не заменяет проверку локального файла. MM27-18b проверил optional
+  sampling на фиксированном корпусе: natural EOS PASS, ручной answer-quality FAIL
+  английского final. Причина фактической ошибки не установлена; default greedy.
+- Live GPU API/tools и no-thinking профиль. MM27-19 проверил canonical history;
+  MM27-20 — generated-tool parser. MM27-21 проверил оба HTTP API и ID/results
+  через scripted engine, включая native tokenizer и сохранённые outputs.
+  Native Engine к Service ещё не подключён; генерация calls самой моделью,
+  её cancel/drain через API, server-side MCP и web chat не проверены.
 - Причина двух tiny long-context native-after-cache reload расхождений MM27-06.
   Поздние PASS с диагностическим replay не доказывают устранение причины.
   Full-model cache-on pressure/cancel/unload и context2K/4K прошли в MM27-06;
@@ -153,8 +183,8 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 |---|---|---|
 | PREP-01 | DONE | Исследование и документация сохранены |
 | P0 — contract/oracles | DONE для F32 activation baseline; fast-quant logit issue открыт | Inspector, полный contract, изолированная сборка и CUDA fixtures |
-| P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload; MM27-18 English EOS PASS, Russian completion FAIL | Остались greedy repetition, quality/SSD measurements |
-| P2 — tokenizer/template/API | PARTIAL: offline tokenizer/template и отдельный reasoning parser PASS; tools/API TODO | History/tools, оба API и web chat |
+| P1 — GPU baseline | Functional gates PASS: corpus, 2K/4K, cancel/recovery, pressure/unload; MM27-18b sampled RU/EN/ZH EOS PASS, ручной answer-quality FAIL | Greedy repetition, independent oracle, quality/SSD measurements остаются |
+| P2 — tokenizer/template/API | PARTIAL: tokenizer/template/history/parser и оба API со scripted engine PASS | Native Engine/startup profile, live GPU tool cycle и web chat |
 | P3 — cache/pipeline | PARTIAL: cache, mmap, lookahead/D2D, overlap, expert groups и RAM view LRU/partition проверены; RAM64 short speed хуже off; tiny reload OPEN | Нужны полезный RAM speedup, законченные длинные ответы, residency/SSD measurements |
 | P4 — sessions/context | TODO | Fresh/restore/shift/cancel parity |
 | P5 — MTP / DFlash | Native MTP ждёт weights/backend; DFlash OFFLINE_GREEDY_AND_CORPUS_PASS, timings измерены | Live GPU EOS/cancel/pressure/recovery, context/sessions и полезный speedup |
@@ -163,7 +193,7 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
 Отсутствие P5 не блокирует P0–P4/P6. `DONE` относится только к указанной
 части; чтение header и найденный upstream loader не означают working inference.
 
-## Точка продолжения: MM27-18b, P2 и оставшиеся DFlash lifecycle gates
+## Точка продолжения: P2, качество ответов и оставшиеся DFlash lifecycle gates
 
 1. P5.DF-03a выполнен для offline greedy и короткого корпуса. DFlash оставлен
    off; перед serving нужны live GPU EOS/cancel/pressure/recovery, длинный
@@ -180,16 +210,136 @@ Strict F32 activations/KV; FA/graphs/MTP off. API и рабочий профил
    фактическая residency/SSD traffic и speedup долгих сессий остаются проверками.
 4. MM27-18 проверил свободный context budget, английский EOS на414 tokens,
    полный повтор и реальную адресную отмену после257 tokens с восстановлением.
-   Русский1..96 зациклился в reasoning: complete-corpus gate FAIL. MM27-18b:
-   проверка sampling/качества и независимого reference, затем P2.3–P2.6
-   history/tool parser/API. Reasoning parser готов только как отдельный модуль.
-   RAM cache и grouping сохранять выключенными; API/tools/session ещё TODO.
+   Русский1..96 зациклился в reasoning: исторический complete-corpus gate FAIL.
+   MM27-18b реализовал optional sampling; семь полных ответов с EOS, seeded
+   repeat/greedy/cancel/recovery PASS. Ручная проверка английского final FAIL:
+   неверное численное отношение рассеяния. Независимый reference и широкое
+   качество остаются gates P6; не подбирать успешный seed вместо этой проверки.
+   MM27-19 реализовал P2.3 и canonical tool inputs: instructions/reasoning,
+   typed calls, ID/result correlation и порядок results, native prompt/ID parity.
+   MM27-20 проверил standalone P2.4 tools parser, native fixtures и byte replay.
+   MM27-21 проверил API adapters, real loopback JSON/SSE и scripted tool cycle.
+   Следующий шаг — P2.6 resident Engine поверх `strata-minimax-m2-bench --pipe`:
+   ready/token/result/error, sampling, EOS/cancel drain и restart, затем startup
+   profile и live GPU API/tools/web chat. Добавить capability/install jsonschema.
+   Default sampler greedy; RAM cache и grouping выключены. Sessions ещё TODO.
    Cache/pipeline off уже воспроизвёл1024 IDs/logits побитно; повторять этот
    контроль без изменения реализации или корпуса не требуется.
 5. Старый MM27-06 discrepancy OPEN: при повторении сохранить EXE/logits и
    трассировать первый расходящийся node. Native MTP требует отсутствующих local weights.
 
 ## Подтверждённый журнал
+
+### MM27-21 / часть P2.5/P2.6 — 2026-10-09 — OpenAI/Anthropic API adapters
+
+Ревизия `d342001b4dca70860bcd585f28004591a83e5bf3`, dirty tree.
+Добавлены `serve/minimax_m2_api.py`,15 tests и API checker. Canonical messages,
+tools и fixed reasoning передаются в MiniMax template/parser через Service.
+В общем сервере добавлены optional decoder hook и terminal UTF-8 flush;
+MiniMax использует strict decoder. Profile/startup пока не зарегистрирован.
+
+**PASS, exit0:**191 tests (15 API +51 MiniMax +125 общих/других моделей), без
+skips;16 двухшаговых scripted tool cycles и32 HTTP replays восьми прежних
+completions,272 checks. Использованы production handlers, реальные sockets
+127.0.0.1, оба API, JSON/SSE и native tokenizer.32 prompts /14284 IDs совпали
+с CPU native oracle. Проверены ID/result order, precise JSON values, usage,
+EOS/length/stop, malformed UTF-8, disconnect и следующий успешный запрос.
+
+Первый length fixture неверно учитывал special token; первый replay harness
+оставлял старый single-script reference. Ошибки тестов исправлены, evidence
+сохранён. Это не ошибки CUDA/model output. Native engine/math/cache/pipeline
+не менялись, GPU inference и новые timings не запускались.
+
+[Контракт и команды](MINIMAX_M27_API.md), [отчёт](MINIMAX_M27_API_CHECK.json),
+[source/EXE hashes и проверка](MINIMAX_M27_API_VALIDATION_CHECK.json).
+Финальные артефакты: `build-local/minimax-m2-api-check-02`.
+Следующий пункт — native JSONL Engine bridge и startup profile; после них live
+model toolcall → result → answer и web chat. Общий P2/P6 остаётся PARTIAL,
+quality FAIL и independent model oracle по-прежнему открыты.
+
+### MM27-20 / P2.4 — 2026-10-09 — streaming tool-output parser
+
+Ревизия `d342001b4dca70860bcd585f28004591a83e5bf3`, dirty tree.
+Добавлен `serve/minimax_m2_tools.py`,18 unit methods, ручные wire fixtures и
+`tools/check_minimax_m2_tools.py`. Вся группа invokes проверяется до выдачи
+calls/IDs, аргументы сохраняют raw string/JSON types и проходят schema validation.
+Невалидные/неполные группы остаются текстом; malformed/oversized group отключает
+дальнейшее распознавание calls. Stop применяется до тегов, group buffer ограничен.
+Требуется optional jsonschema только при tools; поддержанный wire/schema contract
+описан явно. Истории с полученными ID и переставленными results проверены.
+
+**PASS, exit0:**51 unit methods,281 native tool groups +281 native history prompts,
+22079 token IDs; whole/token/byte delivery и значения, включая signed zero,
+int64 и finite double.8 прежних completions прошли по tokens/bytes с tools on/off.
+Итого3966 report checks, отдельно от unit tests. Это template fixtures и replay,
+не новые вызовы инструментов от полной модели. GPU/speed не запускались.
+
+[Контракт, команды и ограничения](MINIMAX_M27_TOOLS.md),
+[отчёт](MINIMAX_M27_TOOLS_CHECK.json),
+[hashes и неизменность прежних файлов](MINIMAX_M27_TOOLS_VALIDATION_CHECK.json).
+Артефакты: `build-local/minimax-m2-tools-check-02`, первый проход01 сохранён.
+Следующий пункт — P2.5/P2.6 API adapters и live toolcall → result → answer.
+Quality FAIL MM27-18b, independent full-model oracle, P4 sessions и DFlash live
+lifecycle остаются открытыми; общий P2/P6 этим этапом не закрыт.
+
+### MM27-19 / P2.3 — 2026-10-09 — history normalization и canonical tool inputs
+
+Ревизия `d342001b4dca70860bcd585f28004591a83e5bf3`, dirty tree.
+Добавлены `serve/minimax_m2_history.py`,20 unit methods, pinned GGUF template
+fixture, ручной корпус и native checker. Начальные system/developer объединяются,
+старый reasoning удаляется из копии, final/whitespace/буквальные теги сохраняются.
+Calls сохраняют ID и typed JSON; все6 порядков ответов трёх одноимённых calls
+дают правильный prompt. Late instructions, отсутствующие/чужие/повторные result
+IDs, незавершённые группы и неэкранированные structural tags отклоняются явно.
+
+В native raw oracle обнаружено округление float и переполнение unsigned integers.
+Новый отдельный `strata-minimax-m2-template-json` использует точный JSON double
+serializer; original/generated hashes и явный provenance записаны. Целые
+входного контракта ограничены signed64. Исходный raw oracle и отрицательный
+number probe сохранены. Первый build с конфликтующим include path исправлен;
+финальные CPU build и checker — **exit0**.
+
+**PASS:**33 unit methods (20 history +7 parser +6 tokenizer/input),23 вручную
+заданных prompts,293 native prompts/2074 checks/71189 token IDs,268 numeric cases,
+96 старых template cases.114 baseline hashes проверены. Existing Python helpers,
+GPU math/cache/pipeline и bench EXE не изменились; inference/speed не запускались.
+
+[Полный контракт и воспроизведение](MINIMAX_M27_HISTORY.md),
+[результаты](MINIMAX_M27_HISTORY_CHECK.json),
+[source/EXE/manifest hashes](MINIMAX_M27_HISTORY_VALIDATION_CHECK.json).
+Артефакты: `build-local/minimax-m2-history-check-04`; прежние запуски сохранены.
+Следующий пункт — P2.4 streaming tool-output parser. OpenAI/Anthropic adapters,
+live tool cycle, no-thinking, sampling quality FAIL и independent model oracle
+по-прежнему открыты; этот этап не закрывает общий P2/P6.
+
+### MM27-18b — 2026-10-08–09 — request-local sampling, EOS корпуса и отдельный quality FAIL
+
+На прежнем dirty tree добавлены `sampling.hpp`, `check_sampling.cpp`, optional
+JSON request config в `main.cpp`, target/manifest hashes и два Python drivers.
+Ревизия при фиксации `d342001b4dca70860bcd585f28004591a83e5bf3`;
+baseline source/EXE snapshot сохранён до изменений.
+Явные header dependencies исправили пропущенную пересборку локализованным MSVC.
+188 hashes baseline snapshot проверены; shared/backend math и serving не менялись.
+
+Build/48 CPU/greedy96/4894-token screen/14 pipe/48 parser checks: **exit0**.
+Все979113216 corpus logits конечны, CPU sampler replay выбрал те же4894 IDs.
+Полный seed42 repeat и32-token seed7 prefix побитно совпали. Адресная отмена
+после8 tokens:2,254 мс в одном измерении; последующий64-token ответ совпал.
+Русский список завершился на398/567/1092 tokens при T1, на1219 при T0,7.
+Forward decode полных ответов4,268–4,544 токена/с; sampling0,73–0,91 мс/токен.
+Это не A/B speedup: ответы и длины различаются. RAM/VRAM sampled peaks30,07/84,66%.
+
+Natural-completion gate **PASS**; ручной quality review **6 PASS /1 FAIL**.
+Английский final ошибочно указал≈10 для `(650/450)^4 ≈ 4,3531`.
+Итоговый validation **pass=false** при `implementation_checks_pass=true`;
+исторический greedy FAIL тоже сохранён. T1/top_p0,95/top_k40 — opt-in пример,
+а не утверждённый P6 профиль. Default greedy/кеши/precision не изменены.
+
+[Полный отчёт, команды, таблица и артефакты](MINIMAX_M27_SAMPLING.md).
+[Сводные gates и source/EXE/report hashes](MINIMAX_M27_SAMPLING_VALIDATION_CHECK.json).
+Bench SHA `07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef`.
+Следующий пункт: P2.3 history normalization, затем streaming tool parser/API;
+independent model oracle и качество остаются отдельными условиями P6.
 
 ### MM27-18 — 2026-10-08 — bounded output, английский EOS, JSONL отмена и reasoning parser
 

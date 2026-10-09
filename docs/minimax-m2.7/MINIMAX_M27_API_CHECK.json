@@ -1,0 +1,824 @@
+{
+  "pass": true,
+  "scope": "P2.5/P2.6 adapters + real loopback HTTP JSON/SSE with scripted IDs; no live GPU/model tool generation",
+  "native_engine_connected": false,
+  "startup_profile_registered": false,
+  "ready_for_use": false,
+  "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "source_sha256": {
+    "serve\\__init__.py": "5b38172f894574bf933b1e932a2dace1c113184f105bcd7db8718e6330f809c2",
+    "serve\\archive_policy.py": "02de10c7aa166c7efe300d863aa5d437841feb24f1a9d7982f27c206493976b0",
+    "serve\\deepseek.py": "35c42a89fdd1b996f0da3ee3dea8fc7c7dcc2fa501c8c49af706b9208dd7963f",
+    "serve\\frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "serve\\glm5next.py": "c76b04bcabe774dbfce00fa148ad9b9b1665c3844c03ae2bd959e9da689163b1",
+    "serve\\hy3.py": "0bb6ac1472bbc5e29e0754836682a0a963bd22d480198ee80cded4e7a371d255",
+    "serve\\mcp.py": "e7440cf7d404f2a9d9ff44c7bb9768c3a6abf0f036bc222e17beaed65aabba06",
+    "serve\\mcp_fake_server.py": "484a5202e378fb61aa2baf4adea106f13f95696c1719a054d68c7a167e9e5325",
+    "serve\\minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "serve\\minimax_m2_api.py": "457c67cde7b7881de1bc323fdbce08272538c0063896944b10f49bbc019b21d6",
+    "serve\\minimax_m2_history.py": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+    "serve\\minimax_m2_tools.py": "199155ced393b6f602e493dfb509adda9d7dc05ed798d9c59421c56986a2ae7c",
+    "serve\\server.py": "5d40cd7ed20ec17e8061c0a8f33c6763911fa0e5feb3fdb325ca24ca8f535059",
+    "serve\\step35.py": "c9c51edf09c08e03a365f37a9e97c4ff0880eae2545503245abd6e057adb36c6",
+    "serve\\structured.py": "d9a94602e1e2f7f18ad73c10aa4f082dd3eb81f008d9bb6215dc0fe3dd7aec7b",
+    "serve\\telemetry.py": "465675633e124d4863538cf17c94c34e0977eaa873a9433f9e5059e186a3c0e7",
+    "serve\\test_archive_policy.py": "e89400d87e45dcdc4a64a48ab39bb33b8e2f1be5ce51866752b2d95cad9e5f5b",
+    "serve\\test_cache_admin.py": "b8b9ef69a07b07ec81ec48e75c0bca9d86a96bdc48c1a536b68817ed6ca35f73",
+    "serve\\test_deepseek.py": "d9e2bdd7de860cb84f6cc2966f7cabeccfb1b74622b08737c38169af39e79d31",
+    "serve\\test_detok.py": "f666a94c12fa4697537cd600ec2c1fb0b1f8b52f2e765016425018a5b195c1c7",
+    "serve\\test_glm5next.py": "947dc68261582309f8e57daa4aa9b5a88c7792f3d93256e3b70551ff0a2196db",
+    "serve\\test_glm5next_handlers.py": "4aa26d58e6b55e68784db5541c8cf376bfe761bb5ccce0a0b03a40d0657e12b3",
+    "serve\\test_glm5next_http.py": "75d3c65c028f9bd9120c57f4f7d3b40faff6d491a3789141171d005053e6009c",
+    "serve\\test_glm5next_info.py": "4ec7db48facf736e4bef7307c30ec6c196dd91ff70381a2cba67381b5fe9ce5d",
+    "serve\\test_glm5next_mcp.py": "f387daffb6eefdea8674ee2b91eb8c5eef0ca806053e255a219c88205e1d2bf2",
+    "serve\\test_glm5next_profile.py": "1af6e6c59ec1de8180d989642bd856836f16a0e19c388966ee61cc7c15f9f5e0",
+    "serve\\test_glm5next_requests.py": "370d3118c1d0c3b59c21c561fb41ca1c0822d406e7b50b6c633dc21d913e1fc5",
+    "serve\\test_glm5next_service.py": "1e9d9fac149f9bf02d1bca9a690d3c71b682615e36760bfa994f69c9f111f18e",
+    "serve\\test_glm5next_settings.py": "d5840cdfc7bce62107c2c933e65ed5f6569daae36e558492d98e0f790e2bbed0",
+    "serve\\test_hy3.py": "adfdbadff420e7fd6a47372d1c9df40fd21592d91d2b91233306d9c62a5936fe",
+    "serve\\test_hy3_http.py": "f4061c6b48cfb8bc3a3f4b006a628b9605f3aa2c7f9756d60dc4ad850d7844ae",
+    "serve\\test_lifecycle.py": "4e596b23f158667e415673f267962620492b48da703b3b9fb9a65cd8e424fa8e",
+    "serve\\test_mcp.py": "e8b90d95730751f639c821a9a6bbc87351d51ce682ee5f63796065e5c6d406e6",
+    "serve\\test_minimax_m2.py": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+    "serve\\test_minimax_m2_api.py": "c7d40595a9b31541c81eccedb3dae85762f94b9d92aa06bc40050816bd0440ad",
+    "serve\\test_minimax_m2_history.py": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+    "serve\\test_minimax_m2_tools.py": "7816e9646135466274a993d4d1eeaad56a09dd275de1c58dfb83f1cae28a14b3",
+    "serve\\test_monitor.py": "a4054c794c5084d44c3e9f9fe9bbf6f22f6e0c88cb0518ebf488019db383e415",
+    "serve\\test_server.py": "181387547803a5019570f92becb6f5472007bc20f7a6589d879228fba390630d",
+    "serve\\test_session_cache.py": "f32b2f828f39cae25238844ee7f08b25b36714ca7de9380cf0db257a5b14a498",
+    "serve\\test_step35.py": "2e512fb990001ab20e2f99f258f69a811fca8892c23093209c8686609fb9ded6",
+    "serve\\test_step35_http.py": "fb6a9ca361d685be9d4faecdb5bf1d5bdd538a031885947bb3ed01d65755ee25",
+    "serve\\test_structured.py": "15c7bfdfc9054bdfff628fa951eac82d3603a40d4e562977448a8ae036e43e23",
+    "serve\\test_usage_stats.py": "0fd83d6094285d5f929fd825ac028708a345bfbb2a69d87190e552be93dcdf24",
+    "serve\\test_vram_settings.py": "1cec908963bcadefb26612073377007380d0a256bc6bb387ad674b247adddf38",
+    "serve\\test_winjob.py": "2a4382effa6efcad0064b2030465a61b9cdbb157449cde28c92e5f0207c55400",
+    "serve\\usage_stats.py": "6296806112b704ce04abea8d860b239982c881d5126b3d79c177d35219950eba",
+    "serve\\vram_settings.py": "955ba3c3f126185c70926ff511448c15c48c244de0b8ac2610a9e3ba012d4de6",
+    "serve\\winjob.py": "08fa746587f4a830c86670a57285fea4baf357e248298110728ab94db78155bb",
+    "serve\\fixtures\\minimax_m27_chat_template.jinja": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+    "serve\\chat_template.jinja": "ae9644304511ef71f28e036b6f65b4c709880bc5a23b7d0b42125ec63a8c70ca",
+    "serve\\fixtures\\glm53_chat_template.jinja": "a4fddbbf0b432101a296c17094f8bc5a2b0d30713b5b5cd92f86be78511aa724",
+    "serve\\fixtures\\hy3_chat_template.jinja": "7fc351fee674c13754656ba7f33a3ca426bfb7231039f48444360a3f3c5ecf3e",
+    "serve\\fixtures\\step37_chat_template.jinja": "f428623fc81c940c35be3509fbffc086b4b4360d8800e46103e6f34d02891633",
+    "tools\\check_minimax_m2_api.py": "732d41a75be9401e3201a00ba6d509bd561bfff6c63cb7bd80792b8d9ebaefaa",
+    "tools\\strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+    "tools\\gguf_reader.py": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+    "tools\\check_minimax_m2_oracles.py": "e3306bd44abf731bbfcbf93af8861fd4d84988e4009c2083f807c45f62d58652",
+    "tools\\inspect_minimax_m2_gguf.py": "fdf12b98910f617973250bb3e05d58d627db328804c0f4bd5188a6357c54dec0",
+    "tools\\minimax_m2_loader_contract.py": "c3a6e7734dd1b3027a61b729127ebc3476110e99e8f347e477e105a7f39cc275",
+    "tools\\minimax_m2_history_cases.py": "68b6aa4a59636372b45e83918d53bae160bcdde8bf17ce0ee5d6871336c5d3e5",
+    "tools\\minimax_m2_tool_cases.py": "6ee39352dc47ef6d07861731d408c12c10c105e6017866d313118fa8927ae3ca",
+    "tools\\minimax_m2_template.py": "98eff0c210ff6f3fc2f25463a15b4550989d593cf610a22049a228be713f666b",
+    "tools\\test_minimax_m2_tokenizer.py": "d48f61cd0e241c835ac44a737796b412509359c589d13c639eb6f57a55d8dc0e"
+  },
+  "cycles": [
+    {
+      "fixture": 0,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 0,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 0,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 0,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 1,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 1,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 1,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 1,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 2,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 2,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 2,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 2,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 3,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 3,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 3,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    },
+    {
+      "fixture": 3,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_json_values": true,
+        "tool_handoff": true,
+        "unique_call_ids": true,
+        "result_order": true,
+        "engine_closed_under_fifo": true,
+        "native_prompt_0": true,
+        "native_ids_0": true,
+        "native_prompt_1": true,
+        "native_ids_1": true
+      },
+      "pass": true
+    }
+  ],
+  "replays": [
+    {
+      "request": 0,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 0,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 0,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 0,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 1,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 567,
+      "pass": true
+    },
+    {
+      "request": 1,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 567,
+      "pass": true
+    },
+    {
+      "request": 1,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 567,
+      "pass": true
+    },
+    {
+      "request": 1,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 567,
+      "pass": true
+    },
+    {
+      "request": 2,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1092,
+      "pass": true
+    },
+    {
+      "request": 2,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1092,
+      "pass": true
+    },
+    {
+      "request": 2,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1092,
+      "pass": true
+    },
+    {
+      "request": 2,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1092,
+      "pass": true
+    },
+    {
+      "request": 3,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 32,
+      "pass": true
+    },
+    {
+      "request": 3,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 32,
+      "pass": true
+    },
+    {
+      "request": 3,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 32,
+      "pass": true
+    },
+    {
+      "request": 3,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 32,
+      "pass": true
+    },
+    {
+      "request": 4,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 4,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 4,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 4,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 398,
+      "pass": true
+    },
+    {
+      "request": 5,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1219,
+      "pass": true
+    },
+    {
+      "request": 5,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1219,
+      "pass": true
+    },
+    {
+      "request": 5,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1219,
+      "pass": true
+    },
+    {
+      "request": 5,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 1219,
+      "pass": true
+    },
+    {
+      "request": 6,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 879,
+      "pass": true
+    },
+    {
+      "request": 6,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 879,
+      "pass": true
+    },
+    {
+      "request": 6,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 879,
+      "pass": true
+    },
+    {
+      "request": 6,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 879,
+      "pass": true
+    },
+    {
+      "request": 7,
+      "api": "openai",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 309,
+      "pass": true
+    },
+    {
+      "request": 7,
+      "api": "openai",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 309,
+      "pass": true
+    },
+    {
+      "request": 7,
+      "api": "anthropic",
+      "stream": false,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 309,
+      "pass": true
+    },
+    {
+      "request": 7,
+      "api": "anthropic",
+      "stream": true,
+      "checks": {
+        "exact_segments": true,
+        "usage": true,
+        "finish": true,
+        "closed_under_fifo": true
+      },
+      "generated_tokens": 309,
+      "pass": true
+    }
+  ],
+  "python": "3.12.7 (tags/v3.12.7:0b05ead, Oct  1 2024, 03:06:41) [MSC v.1941 64 bit (AMD64)]",
+  "packages": {
+    "jinja2": "3.1.4",
+    "jsonschema": "4.26.0",
+    "referencing": "0.37.0"
+  },
+  "binary_sha256": {
+    "template-json": "3f0ed891a29f2af99c6b9a35c5a8f25ef5a57aac47ed445fd8efd7465f5bca43",
+    "tokenizer": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e"
+  },
+  "provenance": {
+    "template-json": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none;jinja-json-float-roundtrip",
+      "renderer": "native-jinja-json-float-roundtrip"
+    },
+    "tokenizer": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none"
+    }
+  },
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "template_sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+  "unit": {
+    "pass": true,
+    "modules": [
+      "serve.test_minimax_m2_api",
+      "serve.test_minimax_m2_tools",
+      "serve.test_minimax_m2_history",
+      "serve.test_minimax_m2",
+      "tools.test_minimax_m2_tokenizer",
+      "serve.test_server",
+      "serve.test_glm5next_service",
+      "serve.test_glm5next_http",
+      "serve.test_step35_http",
+      "serve.test_hy3_http"
+    ],
+    "methods": 191,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "replay_input_sha256": "f9b4b599eca517b287dd35d0a72dd16b89c9e4db41dfa4e9a6eb505337dec1ec",
+  "checks": 272,
+  "native_prompts": 32,
+  "native_prompt_token_ids": 14284,
+  "artifact_sha256": {
+    "fixtures.json": "3fe874ab08527dc7277a232a325faf58592731e16e35e27cfd6c380af722127e",
+    "replay-input.json": "f9b4b599eca517b287dd35d0a72dd16b89c9e4db41dfa4e9a6eb505337dec1ec",
+    "strata-minimax-m2-template-json.exe": "3f0ed891a29f2af99c6b9a35c5a8f25ef5a57aac47ed445fd8efd7465f5bca43",
+    "strata-minimax-m2-tokenizer.exe": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e",
+    "unit.log": "3d3e0f5cb320a044072e6c804e2af65fd5710f3bc86f6d7101c72423876a6d69",
+    "unit.stdout.log": "3d5a041f96e31eb0417023cadb3a882cf70af9f1a3b4e7d39a4ae1ff2417db73"
+  }
+}

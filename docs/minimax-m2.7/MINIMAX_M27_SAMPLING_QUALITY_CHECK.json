@@ -1,0 +1,65 @@
+{
+  "pass": false,
+  "scope": "assistant manual final-answer inspection plus arithmetic recalculation; seven completed answers, not a broad quality benchmark",
+  "reviewed_completed_answers": 7,
+  "passed": 6,
+  "failed": 1,
+  "automatic_completion_gate_pass": true,
+  "cases": [
+    {
+      "name": "russian-42",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.json",
+      "observed_final": "# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+      "finding": "Correct 96*97/2=4656 or 48*97=4656, Russian final"
+    },
+    {
+      "name": "russian-7",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.json",
+      "observed_final": "Чтобы найти сумму чисел от 1 до 96, можно воспользоваться **формулой суммы первых n натуральных чисел**:\n\n\\[\nS_n = \\frac{n\\,(n+1)}{2}\n\\]\n\nЗдесь \\(n = 96\\). Подставляем:\n\n\\[\nS_{96}= \\frac{96 \\times (96+1)}{2}\n      = \\frac{96 \\times 97}{2}\n\\]\n\nДальше считаем:\n\n1. \\(96 \\times 97 = 9312\\)\n2. Делим на 2: \\(9312 \\div 2 = 4656\\)\n\n\\[\n\\boxed{S_{96}=4656}\n\\]\n\n**Почему формула работает**  \nЕсли записать ряд чисел и «сложить» их попарно:  \n\n\\[\n1 + 96 = 97,\\; 2 + 95 = 97,\\; \\dots,\\; 48 + 49 = 97\n\\]\n\nПолучается \\(48\\) пар, каждая из которых даёт сумму \\(97\\).  \n\\(48 \\times 97 = 4656\\). Это тот же результат, что и по формуле.\n\nИтак, сумма всех чисел от 1 до 96 равна **4656**.",
+      "finding": "Correct 96*97/2=4656 or 48*97=4656, Russian final"
+    },
+    {
+      "name": "russian-1234",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.json",
+      "observed_final": "Этот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_{96} = 96\\).  \nДля нахождения суммы всех её элементов можно воспользоваться двумя эквивалентными способами.\n\n---\n\n## 1. Использование формулы суммы арифметической прогрессии  \n\nСумма первых \\(n\\) натуральных чисел вычисляется по формуле:\n\n\\[\nS_n = \\frac{n\\,(a_1 + a_n)}{2}\n\\]\n\nЗдесь:\n- \\(n = 96\\) – количество членов,\n- \\(a_1 = 1\\) – первый член,\n- \\(a_n = 96\\) – последний член.\n\nПодставляем значения:\n\n\\[\nS_{96} = \\frac{96\\,(1 + 96)}{2}\n       = \\frac{96 \\times 97}{2}\n       = 48 \\times 97\n       = 4656\n\\]\n\n---\n\n## 2. Метод попарного сложения  \n\nКаждый член можно сложить с членом, стоящим симметрично от него:\n\n\\[\n1 + 96 = 97 \\\\\n2 + 95 = 97 \\\\\n\\ldots \\\\\n48 + 49 = 97\n\\]\n\nПолучается **48 одинаковых пар**, каждая из которых в сумме даёт **97**.  \nПоэтому общая сумма:\n\n\\[\nS = 48 \\times 97 = 4656\n\\]\n\n---\n\n## 3. Проверка (на примере Python)\n\n```python\n# список от 1 до 96\nnumbers = list(range(1, 97))\n\n# стандартная функция sum\ntotal = sum(numbers)\nprint(total)   # 4656\n```\n\n---\n\n## Итог\n\nСумма всех чисел от **1 до 96** включительно равна **4656**.  \n\nЭтот результат можно получить как с помощью известной формулы для суммы арифметической прогрессии, так и простым попарным сложением симметричных элементов.",
+      "finding": "Correct 96*97/2=4656 or 48*97=4656, Russian final"
+    },
+    {
+      "name": "russian-42-repeat",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.json",
+      "observed_final": "# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+      "finding": "Correct 96*97/2=4656 or 48*97=4656, Russian final"
+    },
+    {
+      "name": "russian-temp07",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.json",
+      "observed_final": "Этот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_n = 96\\).  \nДля нахождения суммы такой прогрессии существует простая формула:\n\n\\[\nS_n = \\frac{n}{2}\\,(a_1 + a_n)\n\\]\n\nгде  \n* \\(n\\) – количество членов прогрессии (в нашем случае \\(n = 96\\)),  \n* \\(a_1\\) – первый член,  \n* \\(a_n\\) – последний член.\n\nПодставляем наши значения:\n\n\\[\nS_{96}= \\frac{96}{2}\\,(1 + 96) = 48 \\times 97 = 4656.\n\\]\n\n---\n\n### Как это работает на практике\n\n1. **Метод «пар»**  \n   Если записать ряд и складывать первый и последний элементы, получится одинаковая сумма:\n   \\[\n   1+96 = 97,\\quad 2+95 = 97,\\quad 3+94 = 97,\\;\\dots\n   \\]\n   Всего получается \\(96/2 = 48\\) таких пар, каждая из которых равна 97.  \n   Поэтому общая сумма:\n   \\[\n   48 \\times 97 = 4656.\n   \\]\n\n2. **Формула для любого \\(n\\)**  \n   Для первых \\(n\\) натуральных чисел сумма всегда равна:\n   \\[\n   S_n = \\frac{n(n+1)}{2}.\n   \\]\n   В нашем случае \\(n = 96\\):\n   \\[\n   S_{96} = \\frac{96 \\times 97}{2} = 4656.\n   \\]\n\n---\n\n### Краткий алгоритм на любом языке программирования\n\n```python\nn = 96\nsum_of_numbers = n * (n + 1) // 2   # целочисленное деление\nprint(sum_of_numbers)               # выведет 4656\n```\n\n---\n\n### Итог\n\nСумма всех чисел от 1 до 96 включительно равна **4656**. Этот результат получается как с помощью формулы \\(n(n+1)/2\\), так и через метод попарного сложения (48 пар по 97).",
+      "finding": "Correct 96*97/2=4656 or 48*97=4656, Russian final"
+    },
+    {
+      "name": "english-42",
+      "pass": false,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\06-english-42.json",
+      "observed_final": "The blue colour of the daytime sky is a result of **Rayleigh scattering** – the atmospheric gases (mainly nitrogen and oxygen) are much smaller than the wavelengths of visible light, so they scatter short‑wavelength (blue) light far more efficiently than longer‑wavelength (red) light. Because the scattering intensity varies roughly as 1/λ⁴, blue light (≈450 nm) is scattered roughly ten times more than red light (≈650 nm). The scattered blue light fills the sky in all directions, and although violet is also scattered, our eyes are less sensitive to it, so we perceive the sky as blue.",
+      "finding": "Incorrect numerical scattering ratio: claimed approximately 10 for 450/650 nm; (650/450)^4 = 4.353147386069196"
+    },
+    {
+      "name": "chinese-42",
+      "pass": true,
+      "reference": "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.json",
+      "observed_final": "\\(17\\times 23\\) 可以先把 23 拆成 \\(20+3\\)，再分别相乘后相加：\n\n1. \\(17 \\times 20 = 340\\)  \n2. \\(17 \\times 3 = 51\\)  \n\n把两部分结果相加：  \n\\(340 + 51 = 391\\)\n\n所以 **\\(17 \\times 23 = 391\\)**。",
+      "finding": "Correct 17*20=340, 17*3=51, sum391, Chinese final"
+    }
+  ],
+  "calculation": {
+    "expression": "(650/450)**4",
+    "expected": 4.353147386069196,
+    "observed_approximate_claim": 10
+  },
+  "consequence": "natural completion and implementation pass; answer quality gate remains FAIL; no production sampler default selected"
+}

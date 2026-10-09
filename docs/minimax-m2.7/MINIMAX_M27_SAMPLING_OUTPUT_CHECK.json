@@ -1,0 +1,173 @@
+{
+  "pass": true,
+  "reference": "build-local\\minimax-m2-sampling-output-input-01.json",
+  "reference_sha256": "f9b4b599eca517b287dd35d0a72dd16b89c9e4db41dfa4e9a6eb505337dec1ec",
+  "source_sha256": {
+    "serve/minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "tools/check_minimax_m2_output.py": "51e062db2cc8a86931c1f4e73ebbbe890356e017dc58310d7ee8171947700ef7",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "tools/strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34"
+  },
+  "cases": [
+    {
+      "request": 0,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 398,
+      "reasoning": "Пользователь просит прочитать список и объяснить, как найти его сумму. Список - это числа от 1 до 96.\n\nМне нужно:\n1. Показать, что это арифметическая прогрессия\n2. Объяснить формулу суммы: S = n(a1 + an)/2\n3. Подставить значения и вычислить\n\nДавайте посчитаем:\nn = 96\na1 = 1\na96 = 96\nS = 96 × (1 + 96) / 2 = 96 × 97 / 2 = 9312 / 2 = 4656\n",
+      "content": "\n\n# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 1,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 567,
+      "reasoning": "The user request: \"Прочитай список и объясни на русском, как найти его сумму: [list of numbers from 1 to 96]\" The user presumably wants an explanation in Russian on how to find the sum of the list, i.e., sum of integers from 1 to 96. Possibly also compute the sum.\n\nWe need to read the list and explain the method. Provide steps: formula sum = n(n+1)/2, apply for n=96. Then compute. Possibly also provide answer: sum = 96*97/2 = 96*48.5 = 4656? Let's compute properly: 96 * 97 = 9312, divided by 2 = 4656. Yes sum = 4656. Provide explanation.\n\nThe user wants the explanation in Russian. Provide method, formula, steps, final sum.\n\nMake sure we answer clearly.\n\nMake a short but thorough explanation. Possibly we could also show alternative method: pair numbers, etc.\n\nSo answer: The sum of numbers from 1 to n is n(n+1)/2. For n=96, sum = 96*97/2 = 4656.\n\nExplain steps: note that each pair sum to same number (1+96=97), etc.\n\nThus answer in Russian.\n\nThus final answer: The sum is 4656, and how to compute it.\n\nWill deliver.\n",
+      "content": "\n\nЧтобы найти сумму чисел от 1 до 96, можно воспользоваться **формулой суммы первых n натуральных чисел**:\n\n\\[\nS_n = \\frac{n\\,(n+1)}{2}\n\\]\n\nЗдесь \\(n = 96\\). Подставляем:\n\n\\[\nS_{96}= \\frac{96 \\times (96+1)}{2}\n      = \\frac{96 \\times 97}{2}\n\\]\n\nДальше считаем:\n\n1. \\(96 \\times 97 = 9312\\)\n2. Делим на 2: \\(9312 \\div 2 = 4656\\)\n\n\\[\n\\boxed{S_{96}=4656}\n\\]\n\n**Почему формула работает**  \nЕсли записать ряд чисел и «сложить» их попарно:  \n\n\\[\n1 + 96 = 97,\\; 2 + 95 = 97,\\; \\dots,\\; 48 + 49 = 97\n\\]\n\nПолучается \\(48\\) пар, каждая из которых даёт сумму \\(97\\).  \n\\(48 \\times 97 = 4656\\). Это тот же результат, что и по формуле.\n\nИтак, сумма всех чисел от 1 до 96 равна **4656**.",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 2,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 1092,
+      "reasoning": "The user says: \"Прочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96\". So the list is from 1 to 96 inclusive. They want me to read the list and explain in Russian how to find its sum. So I should answer with a description of the arithmetic series, use formula sum = n*(first+last)/2, where n = 96, first = 1, last = 96, so sum = 96 * 97 / 2 = 48 * 97 = 4656? Let's compute: 100 * 48 = 4800, subtract 3*48 = 144, gives 4656. Yes sum = 4656. So I should explain that we can use formula or pair numbers, etc. Also show that we can pair numbers: 1+96 = 97, there are 48 pairs, so sum = 48*97 = 4656. Provide a step-by-step. Also talk about alternative ways like arithmetic progression. Provide answer in Russian. So answer: \"Для нахождения суммы списка используется формула\". Provide details.\n\nOk I'll craft answer in Russian, explaining. Also can mention verifying by small example.\n\nNow, the user didn't request anything else. So answer accordingly.\n\nBe mindful of length and ensure clarity. Should include explanation and sum. Also maybe show code for calculation. But main is explanation.\n\nWill answer: \"Сумма первых n натуральных чисел равна n*(n+1)/2. При n=96 -> ...\" etc.\n\nAll right.\n",
+      "content": "\n\nЭтот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_{96} = 96\\).  \nДля нахождения суммы всех её элементов можно воспользоваться двумя эквивалентными способами.\n\n---\n\n## 1. Использование формулы суммы арифметической прогрессии  \n\nСумма первых \\(n\\) натуральных чисел вычисляется по формуле:\n\n\\[\nS_n = \\frac{n\\,(a_1 + a_n)}{2}\n\\]\n\nЗдесь:\n- \\(n = 96\\) – количество членов,\n- \\(a_1 = 1\\) – первый член,\n- \\(a_n = 96\\) – последний член.\n\nПодставляем значения:\n\n\\[\nS_{96} = \\frac{96\\,(1 + 96)}{2}\n       = \\frac{96 \\times 97}{2}\n       = 48 \\times 97\n       = 4656\n\\]\n\n---\n\n## 2. Метод попарного сложения  \n\nКаждый член можно сложить с членом, стоящим симметрично от него:\n\n\\[\n1 + 96 = 97 \\\\\n2 + 95 = 97 \\\\\n\\ldots \\\\\n48 + 49 = 97\n\\]\n\nПолучается **48 одинаковых пар**, каждая из которых в сумме даёт **97**.  \nПоэтому общая сумма:\n\n\\[\nS = 48 \\times 97 = 4656\n\\]\n\n---\n\n## 3. Проверка (на примере Python)\n\n```python\n# список от 1 до 96\nnumbers = list(range(1, 97))\n\n# стандартная функция sum\ntotal = sum(numbers)\nprint(total)   # 4656\n```\n\n---\n\n## Итог\n\nСумма всех чисел от **1 до 96** включительно равна **4656**.  \n\nЭтот результат можно получить как с помощью известной формулы для суммы арифметической прогрессии, так и простым попарным сложением симметричных элементов.",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 3,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 32,
+      "reasoning": "The user request: \"Прочитай список и объясни на русском, как найти его сумму: [list of numbers from 1 to ",
+      "content": "",
+      "reasoning_complete": false,
+      "event_kinds": [
+        "reasoning"
+      ]
+    },
+    {
+      "request": 4,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 398,
+      "reasoning": "Пользователь просит прочитать список и объяснить, как найти его сумму. Список - это числа от 1 до 96.\n\nМне нужно:\n1. Показать, что это арифметическая прогрессия\n2. Объяснить формулу суммы: S = n(a1 + an)/2\n3. Подставить значения и вычислить\n\nДавайте посчитаем:\nn = 96\na1 = 1\na96 = 96\nS = 96 × (1 + 96) / 2 = 96 × 97 / 2 = 9312 / 2 = 4656\n",
+      "content": "\n\n# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 5,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 1219,
+      "reasoning": "The user says: \"Прочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96\"\n\nThus the list is numbers from 1 to 96. The user wants an explanation in Russian on how to find its sum.\n\nWe need to respond in Russian, explaining how to sum the arithmetic series from 1 to n = 96. Use formula n(n+1)/2 = 96*97/2 = 96*48.5 = 4656? Let's compute: 96*97 = 9312, half is 4656. So sum = 4656.\n\nWe can also show method: pair terms: 1+96=97, 2+95=97, etc. There are 48 pairs each summing to 97, giving 48*97 = 4656.\n\nWe can explain that sum of first n natural numbers is n(n+1)/2. Provide explanation.\n\nThus answer: reading list, summarizing it as numbers 1-96, then explanation.\n\nWe can also mention that if you want to compute using a program or manually, you can use the formula. Provide steps.\n\nThe user might want a step-by-step demonstration: grouping, formula.\n\nThus answer in Russian: \"Это арифметическая прогрессия. Сумма = (n/2)*(a1+an) = (96/2)*(1+96) = 48*97 = 4656.\"\n\nWe can also show alternative: using known sum.\n\nThus answer.\n\nWe should also mention that the list includes numbers 1-96 inclusive.\n\nThus answer in Russian.\n\nGiven the context, the user just wants explanation, not the sum necessarily. But we can also give the sum.\n\nThus answer: \"Сумма = 4656.\"\n\nWe can also mention that if you have a list of numbers, you can sum them by adding them in order, using a loop, etc.\n\nThus answer.\n\nMake sure we answer in Russian.\n\nOk. Let's produce answer.\n",
+      "content": "\n\nЭтот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_n = 96\\).  \nДля нахождения суммы такой прогрессии существует простая формула:\n\n\\[\nS_n = \\frac{n}{2}\\,(a_1 + a_n)\n\\]\n\nгде  \n* \\(n\\) – количество членов прогрессии (в нашем случае \\(n = 96\\)),  \n* \\(a_1\\) – первый член,  \n* \\(a_n\\) – последний член.\n\nПодставляем наши значения:\n\n\\[\nS_{96}= \\frac{96}{2}\\,(1 + 96) = 48 \\times 97 = 4656.\n\\]\n\n---\n\n### Как это работает на практике\n\n1. **Метод «пар»**  \n   Если записать ряд и складывать первый и последний элементы, получится одинаковая сумма:\n   \\[\n   1+96 = 97,\\quad 2+95 = 97,\\quad 3+94 = 97,\\;\\dots\n   \\]\n   Всего получается \\(96/2 = 48\\) таких пар, каждая из которых равна 97.  \n   Поэтому общая сумма:\n   \\[\n   48 \\times 97 = 4656.\n   \\]\n\n2. **Формула для любого \\(n\\)**  \n   Для первых \\(n\\) натуральных чисел сумма всегда равна:\n   \\[\n   S_n = \\frac{n(n+1)}{2}.\n   \\]\n   В нашем случае \\(n = 96\\):\n   \\[\n   S_{96} = \\frac{96 \\times 97}{2} = 4656.\n   \\]\n\n---\n\n### Краткий алгоритм на любом языке программирования\n\n```python\nn = 96\nsum_of_numbers = n * (n + 1) // 2   # целочисленное деление\nprint(sum_of_numbers)               # выведет 4656\n```\n\n---\n\n### Итог\n\nСумма всех чисел от 1 до 96 включительно равна **4656**. Этот результат получается как с помощью формулы \\(n(n+1)/2\\), так и через метод попарного сложения (48 пар по 97).",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 6,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 879,
+      "reasoning": "The user asks: \"Explain in a few sentences why the sky appears blue during the day.\"\n\nWe need to explain Rayleigh scattering, short wavelength scattering more than longer wavelengths. The sky appears blue because shorter wavelengths (blue and violet) are scattered by atmospheric gases more efficiently, while the human eye perceives the scattered blue light (some violet is also scattered but we see blue due to the eye's sensitivity and lower violet scattering). The scattering is due to particles smaller than wavelength (Rayleigh). Also mention that the sun's direct light appears white/yellowish but overhead we see blue. Also mention scattering of longer wavelengths goes less. Also mention that at sunrise/sunset, longer wavelengths dominate.\n\nThus answer: The blue color is due to selective scattering of shorter wavelengths of visible light by molecules and small particles in Earth's atmosphere (Rayleigh scattering). The small size of N2 and O2 causes preferential scattering of blue light (around 450 nm). The eye perceives this as blue, though violet is also scattered, but appears less because the eye's sensitivity peaks at green/blue and violet is absorbed more. The result is a blue sky for most of the day.\n\nThe question: \"Explain in a few sentences why the sky appears blue during the day.\" So we need to answer concisely but with enough explanation.\n\nWe can mention the Rayleigh scattering effect, the scattering of shorter wavelengths, the human eye's spectral sensitivity, and mention that the intensity of scattering is inversely proportional to the fourth power of wavelength (i.e., λ^-4). So blue light scatters about ten times more than red.\n\nThus answer: due to Rayleigh scattering of sunlight by atmospheric molecules, scattering of short-wavelength (blue) light more than longer wavelengths. Because the eye's sensitivity, we see it blue, and because the direct sunlight's spectral composition still contains all colors, but the scattered blue light dominates the sky.\n\nThus we answer succinctly.\n\nPotential explanation: The atmosphere is comprised of molecules of N2, O2, etc., which are much smaller than visible light wavelengths (≈400–700 nm). When sunlight interacts with these particles, Rayleigh scattering occurs, where scattering intensity ∝ (1/λ)^4. Hence shorter wavelengths like blue (≈450 nm) scatter much more efficiently than longer wavelengths like red (≈650 nm). The scattered blue light fills the sky, making it appear blue. Additionally, the human eye has a peak sensitivity near 550 nm (green) and is less sensitive to violet, so even though violet is also scattered, the dominant perception is blue. At sunrise and sunset, the longer path length means even more scattering of short wavelengths, leaving primarily red light to reach the observer.\n\nThus answer is in a few sentences.\n\nNow ensure we do it in a few sentences, perhaps 2-4. Also include the mention of Rayleigh scattering, the reason for the blue, mention that violet is scattered but we see blue due to eye sensitivity.\n\nAnswer: \"During the day, the sky looks blue because the molecules in Earth's atmosphere scatter short‑wavelength (blue) light much more efficiently than longer wavelengths. This Rayleigh scattering causes the blue portion of sunlight to be redirected throughout the atmosphere, so we see a blue glow from all directions. Although violet light is also scattered, our eyes are less sensitive to it, so we perceive the sky as blue.\"\n\nThat's done. Also include mention that the scattering intensity ∝ 1/λ^4. That's optional. The user asks for a few sentences. Provide a succinct answer.\n\nThus final answer: three sentences: (1) At day, atmosphere scattering; (2) Blue scatters more; (3) Our eyes perceive as blue.\n\nNow respond.\n",
+      "content": "\n\nThe blue colour of the daytime sky is a result of **Rayleigh scattering** – the atmospheric gases (mainly nitrogen and oxygen) are much smaller than the wavelengths of visible light, so they scatter short‑wavelength (blue) light far more efficiently than longer‑wavelength (red) light. Because the scattering intensity varies roughly as 1/λ⁴, blue light (≈450 nm) is scattered roughly ten times more than red light (≈650 nm). The scattered blue light fills the sky in all directions, and although violet is also scattered, our eyes are less sensitive to it, so we perceive the sky as blue.",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    },
+    {
+      "request": 7,
+      "pass": true,
+      "checks": {
+        "native_token_bytes_equal": true,
+        "terminal_id": true,
+        "completion_state": true,
+        "exact_segments": true,
+        "byte_stream_equal": true,
+        "no_executable_calls": true
+      },
+      "generated_tokens": 309,
+      "reasoning": "The user asks in Chinese: \"请用中文简要说明 17 × 23 的计算过程，并给出结果。\" They want a Chinese explanation of the multiplication process of 17 times 23 and the result.\n\nWe need to respond in Chinese, presumably. Provide brief steps: 17×20=340, 17×3=51, sum=391. Or we can break down using long multiplication: 23×17 = (20+3)*17 = 340+51 = 391. Provide result 391.\n\nSince it's straightforward. Should we also mention alternative method like using distributive property: 23×17 = (23×10)+(23×7) = 230+161 = 391, etc.\n\nThus answer: 391.\n\nMake sure to answer concisely but also clear. Provide the steps and result.\n\nGiven policy: no special restrictions. This is fine.\n\nWe must comply with policies: no harmful content, safe. Provide answer. Ensure Chinese characters are used. The answer should include \"391\". Also note method.\n\nThus final answer: Provide calculation steps and result.\n",
+      "content": "\n\n\\(17\\times 23\\) 可以先把 23 拆成 \\(20+3\\)，再分别相乘后相加：\n\n1. \\(17 \\times 20 = 340\\)  \n2. \\(17 \\times 3 = 51\\)  \n\n把两部分结果相加：  \n\\(340 + 51 = 391\\)\n\n所以 **\\(17 \\times 23 = 391\\)**。",
+      "reasoning_complete": true,
+      "event_kinds": [
+        "content",
+        "reasoning"
+      ]
+    }
+  ],
+  "checks": 48
+}

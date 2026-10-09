@@ -1,0 +1,4879 @@
+{
+  "pass": true,
+  "scope": "unit methods, handwritten prompts, native Jinja with isolated float JSON fix, native token IDs; no inference/API",
+  "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "source_sha256": {
+    "serve/minimax_m2_history.py": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+    "serve/test_minimax_m2_history.py": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+    "tools/minimax_m2_history_cases.py": "68b6aa4a59636372b45e83918d53bae160bcdde8bf17ce0ee5d6871336c5d3e5",
+    "tools/check_minimax_m2_history.py": "84efebcfc1b68b610f6e30175357165261b2ea44b6ea329aa2e6352e005e5509",
+    "serve/fixtures/minimax_m27_chat_template.jinja": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+    "serve/minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "serve/test_minimax_m2.py": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "tools/minimax_m2_template.py": "98eff0c210ff6f3fc2f25463a15b4550989d593cf610a22049a228be713f666b",
+    "tools/test_minimax_m2_tokenizer.py": "d48f61cd0e241c835ac44a737796b412509359c589d13c639eb6f57a55d8dc0e",
+    "tools/strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+    "tools/check_minimax_m2_oracles.py": "e3306bd44abf731bbfcbf93af8861fd4d84988e4009c2083f807c45f62d58652",
+    ".gitattributes": "664d3e84d82448411e090def8017d2da433faa9f09719ac66faad22040eb3a7c",
+    "backends/minimax_m2/TemplateJSON.cmake": "d705ce7f86f29a211192ead229dc245fea5836734b8833c0ca0be5ffd5aedc42",
+    "backends/minimax_m2/template_oracle.cpp": "d60014322183fbf852668abd28907801c7b642583e49b9b61aee57123d482947",
+    "backends/minimax_m2/CMakeLists.txt": "d1deaee17d31f7d217f5b6a26139f6fa87b6b0ff09c98103302d839ae82b96a5",
+    "backends/minimax_m2/build_manifest.json.in": "338bfac45a98b4d2d6b5e6a76940a54a6392fc906f2bfc4738103cb912489a86"
+  },
+  "cases": [
+    {
+      "name": "default-user",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 39,
+      "render_sha256": "e1741b62d2a718455c5b6ae87306aa18b4b97da3ff3c521e69ab96eca608da89"
+    },
+    {
+      "name": "empty-transcript",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 28,
+      "render_sha256": "c25a1d706bc3d05654f59a6f0b59281d34cf7dc2e69b39719224cf4ac2deb6fc"
+    },
+    {
+      "name": "empty-instructions-default",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 33,
+      "render_sha256": "7fba2bd1bddc886ff1efb6e0f3570b2b421677bec38b6c92b38a6430258190b5"
+    },
+    {
+      "name": "merged-leading-instructions",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 41,
+      "render_sha256": "3b9da7d93ea9c7fa0e9af44e53d82f5ae54172a87cdc8463794f188ddad6df91"
+    },
+    {
+      "name": "metadata-with-identity",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 28,
+      "render_sha256": "f4370893352c67fe16aaffc428814a9ed61ccde3e696aae3b412a73610fd27ea"
+    },
+    {
+      "name": "system-overrides-identity",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 18,
+      "render_sha256": "c8c8bb733f08bdb1d40e48cd67903df64709ca3264219b62fed2ad713d23bb1c"
+    },
+    {
+      "name": "explicit-reasoning-whitespace",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 47,
+      "render_sha256": "dbd9d8817896557852e677d7e6044462a8b69827e40cad0cbf630e00c2fa59bb"
+    },
+    {
+      "name": "old-reasoning-cleared",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 58,
+      "render_sha256": "38e4cd3d3a1ce818e80c1866628256e41a84ceb97b12e802292544667af7d13b"
+    },
+    {
+      "name": "inline-first-close-only",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 49,
+      "render_sha256": "61435016ca8832d5c4db281fdb968835bee618acd50aa360951b07d0cf29789c"
+    },
+    {
+      "name": "old-inline-final-preserved",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 54,
+      "render_sha256": "a0060c7c990637db895c0ce40c495620bc7a5ca88305dcd1518b71f0cc20403d"
+    },
+    {
+      "name": "literal-close-without-open",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 43,
+      "render_sha256": "9e3555149d60393001f5933529c1f5187531b377ed3b8f9625fc01b5c6f066af"
+    },
+    {
+      "name": "explicit-field-keeps-literal-open",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 48,
+      "render_sha256": "03de3df34e6aff64e3db327cd5ffc36621afa1b17d35ee5e0b26c69f270eaab9"
+    },
+    {
+      "name": "inline-whitespace-not-stripped",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 47,
+      "render_sha256": "253b66eaa2364000c139fb485131dfe864b7bf9cd6514dc74ee7604a9009f54a"
+    },
+    {
+      "name": "unicode-text-parts",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 49,
+      "render_sha256": "0271ec4f950b1688040f1474c1ef3342849b9885913a4445917a2662d521e565"
+    },
+    {
+      "name": "null-assistant-content",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 39,
+      "render_sha256": "fbbd51e67ade5865ba20661d5f67d2b0a6ce5d0a6135d4a5c98215dab269ec29"
+    },
+    {
+      "name": "tool-result-order-0",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "tool-result-order-1",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "tool-result-order-2",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "tool-result-order-3",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "tool-result-order-4",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "tool-result-order-5",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 128,
+      "render_sha256": "a6536e9aaedd6b676fd7aa56480749a9bec23aab9c780ef0b70c054d9afd29a0"
+    },
+    {
+      "name": "unanswered-calls-transcript-only",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 100,
+      "render_sha256": "a694e22b227dfaa9b9e2017391ad43a8d394b56a7532416046f3feaaf84058cf"
+    },
+    {
+      "name": "reasoning-after-tool-results",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true,
+        "handwritten_prompt_equal": true
+      },
+      "tokens": 141,
+      "render_sha256": "a289d96c4f3b8fdf516cf40cbd682d7b37db6ba084847bc23d438114989a3271"
+    },
+    {
+      "name": "typed-schema/prompt=False",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 259,
+      "render_sha256": "d7f696ea6367fa4206b66541881c697da515af1f24c751845b65a3ecac0fce27"
+    },
+    {
+      "name": "typed-schema/prompt=True",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 264,
+      "render_sha256": "540e1ba8bb22f15c7ed4a10abbd7494760cb437f90c25e1fe2ebadb359c46269"
+    },
+    {
+      "name": "numeric-0",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 246,
+      "render_sha256": "60d47bdbec5748b6b33bb3fedf1fff4c728a455aa35c2cef568fa1293fafaec1"
+    },
+    {
+      "name": "numeric-1",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 244,
+      "render_sha256": "d748e3d299448b9cc5c4906a553e4c709eec772dc2633b90d2b30b0abb1f8a33"
+    },
+    {
+      "name": "numeric-2",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 232,
+      "render_sha256": "5d5d068ff03d473ef820aaaf5ebae3e3f43cc047d2977e20c7c2ead3545e700a"
+    },
+    {
+      "name": "numeric-3",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 232,
+      "render_sha256": "2ed905071c97907b64e1fd39df7d7b877794c470b8eeb73685340f076e138537"
+    },
+    {
+      "name": "numeric-4",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 232,
+      "render_sha256": "363eb5b6c8bed391726914548085616b42dcfeadf5046ca7673872e20d3fb4d0"
+    },
+    {
+      "name": "numeric-5",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 232,
+      "render_sha256": "ff217f9d5d458a88c9dd5c01f9d088bb93dee196204c61275d3c8bca5511bf63"
+    },
+    {
+      "name": "numeric-6",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 230,
+      "render_sha256": "f43d0ddac265985854bd82b5bf707e351d5d5f13a556136ecf64dd220deb4ac1"
+    },
+    {
+      "name": "numeric-7",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 248,
+      "render_sha256": "4d8dae3dcf90dd7225b7cfc41bb8cd9ddc3aad069f177dbcf82ebc62e2fc953a"
+    },
+    {
+      "name": "numeric-8",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 228,
+      "render_sha256": "e1979727cca12549114a847ec802c0ec931dc0c7bb5b326e152a0b401f98bd92"
+    },
+    {
+      "name": "numeric-9",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 228,
+      "render_sha256": "eb2d1b954d46b4575f1273ec1968fb5a646129d7877283f96904a9f71f931c29"
+    },
+    {
+      "name": "numeric-10",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 232,
+      "render_sha256": "9d44b148a1e0fb8103560ceb1a914c0c25da30ef7aa44d7d602c2b37005c60dc"
+    },
+    {
+      "name": "numeric-11",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "a9cf3d8e3fae4ff8af1865c6f1f7d4bd05bd6fec035d2ee40626f9fb44366005"
+    },
+    {
+      "name": "numeric-12",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "3b3bbd344be18f43c120386d20eafcbae776e411ae8797c4aface517aff14e25"
+    },
+    {
+      "name": "numeric-13",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "bfaf56c87350caba13eb1fbf159eda87aba77c17f7916201fd6e2c9a811d015d"
+    },
+    {
+      "name": "numeric-14",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "d8ff9f494682f5edb48571aa1a1f1f29c8b17dc7a1ccaba5ed5768a4712b1473"
+    },
+    {
+      "name": "numeric-15",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "326b2c7c427ce18ce45672229e1c027025ccd458cb2ff3cbdc5ac863483ad5c4"
+    },
+    {
+      "name": "numeric-16",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "a2bad955d05efd3ca30387655ec167ca82827c21904bca617a6d275c06505ec3"
+    },
+    {
+      "name": "numeric-17",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "d2646ee3b16289ad8d62637f56b241feb4839f24a4237de583ac552167740ec4"
+    },
+    {
+      "name": "numeric-18",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "00c988fd5205919ad52355e24d1f696085bf312b774db7d7acdcba40da54d9d0"
+    },
+    {
+      "name": "numeric-19",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "bb34945cfc237125296d69fd2edb2840d356e1a6f437c2675817be308a39b090"
+    },
+    {
+      "name": "numeric-20",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "82adcf2279036f953c8e15e426b485494bc87a0b6fc52af9d3b2b702d319f901"
+    },
+    {
+      "name": "numeric-21",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "0012513196b7f4f7122a5fd58e767eaca12c706494387beb1e879e473a0d0a5f"
+    },
+    {
+      "name": "numeric-22",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "71e759b998f10bfc9c0d431972b1c21184eafb38d8be8838f4bcf3d1d76b92d4"
+    },
+    {
+      "name": "numeric-23",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "5ff456b718eb6ab11ab4f012ecfe823032c9639ab801acd37cb288a74321ae59"
+    },
+    {
+      "name": "numeric-24",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "de0e18bec6e6c2f703abbb57931eb529a18a90bb6373c9a693cdc718950cbec8"
+    },
+    {
+      "name": "numeric-25",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "aaf4b3a32a915151bc1b475bc0a95d07dc63164d0b1fee1b0769e57cd7a100aa"
+    },
+    {
+      "name": "numeric-26",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "0086185a8f9157b70ad1cbfcc8810f862a3377582ac4fc01520938611617b02c"
+    },
+    {
+      "name": "numeric-27",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "f50ad0936d42156f6808c625c93f58aa85d60bd9358261ce8cebbf6d44a18342"
+    },
+    {
+      "name": "numeric-28",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "cc8e0ada5d9ad621517d08fe13fad992ce57ab9f69e9cbd310896d61ca08afc2"
+    },
+    {
+      "name": "numeric-29",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "837ff671a44e24a713655230f04974a1db2a860a375e26a23e6a783ea1840f7e"
+    },
+    {
+      "name": "numeric-30",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "98e7a22c29c26e5faa7142089d8b66589750df78679518cec9f59875716ec761"
+    },
+    {
+      "name": "numeric-31",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "3de0e32fe2a51ccdfbd3f2a87def1df1cd82e104f9ee6078c160a412c64b4d2e"
+    },
+    {
+      "name": "numeric-32",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "16a20314ce08a867cedd139d6e93b1beb6b2c462fdf85a739665a355dbd546bd"
+    },
+    {
+      "name": "numeric-33",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "f136dd9a3e5796247639241105114f940934f6fb693a32f335bc51bfe946e659"
+    },
+    {
+      "name": "numeric-34",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "888fe59d542f3bb967cb0bdf3d804b5f440ff4a4aebebabab397682afce21a24"
+    },
+    {
+      "name": "numeric-35",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "6194b2d11108c41c8275c4b24021b39c3000011b6a8342b242306a53e1569985"
+    },
+    {
+      "name": "numeric-36",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "4317cd9121b09e51ac4e01dc7fa809e268cf5544e5604eb6beaa5cfaa97e85c0"
+    },
+    {
+      "name": "numeric-37",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "bc8df8c25db137043a5885c3af64a181f1d946e0fedf96416fe17b9157c4de6d"
+    },
+    {
+      "name": "numeric-38",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "eab15b3756e1e576a0d4c8be7df87eb6b99450ddac3866d9b635485043bf911f"
+    },
+    {
+      "name": "numeric-39",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "cc167a4943b6952c1338000ebb26ac52d0e7da246c0a3e1ae9d8b5ea7b407dcb"
+    },
+    {
+      "name": "numeric-40",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 244,
+      "render_sha256": "d1b2c23c94284482c7616b2a0f4ec8cc453a45359a62d30a3ad8c1b7cc6cd824"
+    },
+    {
+      "name": "numeric-41",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "479db5492ebdec7dcd8bdd2ff6e05bbedb7787a67fa55e96da386e21918ad393"
+    },
+    {
+      "name": "numeric-42",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 252,
+      "render_sha256": "825bbfd761e1d4788b3f03798fa074cf1bef5828f547bf43e37e4a7650dc084e"
+    },
+    {
+      "name": "numeric-43",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 250,
+      "render_sha256": "38921386a1825672a159da21dbb341ad9d18aba7929a08c3ba670f497e5e5d33"
+    },
+    {
+      "name": "numeric-44",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "2cb843726a9815fa3bd3807a3d88b73dafd3cca7c1d331bb184b2a4010d185ac"
+    },
+    {
+      "name": "numeric-45",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "dc960859bdfa33e1da10d0ce66eeea09144226e017273e7f12f3534907e5e7ba"
+    },
+    {
+      "name": "numeric-46",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "d22102f7fb886f6aadaf6bd86b07b38161a88fd68afb4e30fd174cf5eaaa32af"
+    },
+    {
+      "name": "numeric-47",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "cc9ae2a9c9e13365eb966e0035d0bd38a4e0106d10ece2c68f1d0a5db8cdf2fb"
+    },
+    {
+      "name": "numeric-48",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "0797bb032352ea3c481e46beea6a7601ea4306710cc370a07e59fb01745f631f"
+    },
+    {
+      "name": "numeric-49",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "1f9a3f6764ba3a04dccc730080f685e7e9aa608f72e3928c096d005f752a6e12"
+    },
+    {
+      "name": "numeric-50",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "434c3623848b1ae4b50ee81d69f39905bc5386bae1ce951510268e6d603fd877"
+    },
+    {
+      "name": "numeric-51",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "11e78d5498390aa76ee1d7ab5d816098c577c8cf79221cd61c3846c08b382bc1"
+    },
+    {
+      "name": "numeric-52",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "817f8def1b2e17e64e79513178c0fd52cf382f68721e3a2bf2650cd587301b56"
+    },
+    {
+      "name": "numeric-53",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "91c63e0b73f6b9203adc96735c24aad62201d8215dfde19ca87c9c4c859f21a3"
+    },
+    {
+      "name": "numeric-54",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "8aa96fa260f61e5470a33683e0568ebb0fcf53c1f58f77cbfaef342b0280be82"
+    },
+    {
+      "name": "numeric-55",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "92dc7beb177a37609fd38ce7afed03e77ff71a13fc585798fb4c97f66a0ebc9c"
+    },
+    {
+      "name": "numeric-56",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "2a1cec108315d0e865a056051f81fd02990d5e35a405d5f01c9b5fbc9c6c2206"
+    },
+    {
+      "name": "numeric-57",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "25f0167e952b2eca98ac7fc6757a75258f9af4772040980d6e76278e2e0948da"
+    },
+    {
+      "name": "numeric-58",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "e9775369fd275aa1ab56c1d955164ac82eb1f8039e5fef1abffca789894625da"
+    },
+    {
+      "name": "numeric-59",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "edd1d3a6983b9066f7e76b45cb19b72a5c575395e683a37807e9780fd842b3ca"
+    },
+    {
+      "name": "numeric-60",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "2172a55fa8326fd6012405a4e53fa5dcec829bcf2543430ef99b9ca754670a57"
+    },
+    {
+      "name": "numeric-61",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "29a8e79ca1761d0412408a81130876654245f4be827973380151dc10386ed065"
+    },
+    {
+      "name": "numeric-62",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "44e50c93da767d284acd8e508b495f15c4ca8b78f7419623590660e9473a0409"
+    },
+    {
+      "name": "numeric-63",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "0b725ddac261265789e711c8bcd9d2ecff84a0f26321f335d9e2bc3bca4c7cb5"
+    },
+    {
+      "name": "numeric-64",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "855c404ad0353e2e76b756a4e4d209f1fbfa4e17241cd08f7e80786069d0cf15"
+    },
+    {
+      "name": "numeric-65",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "08b8e6bc09ac9750aef480266b7b843675b7d22a4034f8641ed463150670ba66"
+    },
+    {
+      "name": "numeric-66",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "6ddfbb8a5e6c65d8e56e58bd28730ed04c3103a92b8bd0d4cc65f9b7c68517c2"
+    },
+    {
+      "name": "numeric-67",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "8af59bacadb2fdc8443a29d9ab3d111def1109c1a0f8526547a9e59a9101e73e"
+    },
+    {
+      "name": "numeric-68",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "841d38f31d6ead95c737cda0e6fdb5f823fb28708e9f17d3070d78721488d035"
+    },
+    {
+      "name": "numeric-69",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "106abb4135758ea6d6298a3d3101f7c462f090ac68fe5e4eb99e8e507e2abd19"
+    },
+    {
+      "name": "numeric-70",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "c2735048d01f5a68f248f7714376acf06e8345e185803a55ef1a8fbffcda64e8"
+    },
+    {
+      "name": "numeric-71",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "77c866674a43f3742b4f9e3932fc4ecfc45d855d04c76e125b4eeb0355cda203"
+    },
+    {
+      "name": "numeric-72",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "42a47fc530dbc6bbb1218e1ff41dbb0f72ea42e10569395d2ef4788d222570bd"
+    },
+    {
+      "name": "numeric-73",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "3a1f3356102430859ad813a637b9d9286512a73f57097bf4abcd24a91d41c089"
+    },
+    {
+      "name": "numeric-74",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "966b77360cab3b5fd3925bf0defb94ad44a43ceb206d2ea7930c32aa85dd1dcf"
+    },
+    {
+      "name": "numeric-75",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "01afea02648253eaa499147f6afdc305a3fbea78e4fc22eadbfa4cea008df2fe"
+    },
+    {
+      "name": "numeric-76",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "ea03aa77d26436e62c2c3b48f8ca44b0ec11feef4fccbca7d78b01228b41d983"
+    },
+    {
+      "name": "numeric-77",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "612e96f4bb49dbf10bc3a41011bd97c17bd3b667dfafcb7882fdb7acd5219228"
+    },
+    {
+      "name": "numeric-78",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "ba4dc8cbdb4d1ba98279ef56380b39dfe4833ff6593dc797e2de6dc50d17f755"
+    },
+    {
+      "name": "numeric-79",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "ede4f4a7c93ea8a22c0e1668da4c62a14decad55c2d55902722d2f571c204968"
+    },
+    {
+      "name": "numeric-80",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "ed0a8cb8917496c1d3a61e60759bc55533382df77c07f1258e16db05995fb706"
+    },
+    {
+      "name": "numeric-81",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 250,
+      "render_sha256": "9c8175074a69618662c3306746d39d6500264f373cd89cdef3e4c2317299e3ef"
+    },
+    {
+      "name": "numeric-82",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "8d88c785e686a54448724dbc80b1e54e318442b9a76ab2513ca3142cea4091cd"
+    },
+    {
+      "name": "numeric-83",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "d7a1096f4ad9cf34ea1517cb764d1f9d6f19f174a04e11ec5855b408c2d93f3e"
+    },
+    {
+      "name": "numeric-84",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "9691ff6563527cc660d646f976e1489269653828fafd5a457dd80be7130cb02c"
+    },
+    {
+      "name": "numeric-85",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 246,
+      "render_sha256": "64fd20048499ff9022e2614ea5612a014ea84a4b9d83f543c0b5302917f547f6"
+    },
+    {
+      "name": "numeric-86",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "42a92430b9dd2f1419c5202c010b206688890022c0b646d0dfc4b945729064c8"
+    },
+    {
+      "name": "numeric-87",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 244,
+      "render_sha256": "a4a56b69e5a4ab7ecadf5cb984cc188bf27cdc4fe98201392aa5ddc6daaff77a"
+    },
+    {
+      "name": "numeric-88",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "5328398c3572dafcf7895b1812de03c30e4973990a037417041f0892fd00c6d0"
+    },
+    {
+      "name": "numeric-89",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "14b1cb42836231a5714747e5c3c1fe30bfc7b4bc2cb45a3aafc8f2c759608ffa"
+    },
+    {
+      "name": "numeric-90",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 246,
+      "render_sha256": "6e2f35fd26f9ab8d8527910f3081304b5ec3dbf66f4791ec8bd7de5c63f19e91"
+    },
+    {
+      "name": "numeric-91",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "b5d2588f0b17a6d8e97a24c22a7ca6a8cf424cee3ec5834e5227106282f66b87"
+    },
+    {
+      "name": "numeric-92",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "563a6532841b896fa991415679a04bfd4c879339352aea9dd0e5dcf4cd15afbe"
+    },
+    {
+      "name": "numeric-93",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "2ab2c4253d5dbbd54dd8129aa35f9d88e4951e0ff19ea82492de888af0b85641"
+    },
+    {
+      "name": "numeric-94",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "ea8136e4c6094da9ff18bc4d6266e30e4767e0ca2d45f79b9afafbdaab57dac3"
+    },
+    {
+      "name": "numeric-95",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "575b3e28d531b125c3bdfcac3c632c0f6dde044d2b3a85b8a0d0d7e08cd36e98"
+    },
+    {
+      "name": "numeric-96",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "d4c9139fed1d0ee27293cba1d4cbcffad4c1c3c6dd2e7866394391d8632852b7"
+    },
+    {
+      "name": "numeric-97",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "54cdf3ca56179d6dc8a3645c97b4f9facbd573569895d321ea8532c8226190a2"
+    },
+    {
+      "name": "numeric-98",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "5db7721e961293af7446155323d108ff58c0822ecf1c1ab094edda36bd4195e0"
+    },
+    {
+      "name": "numeric-99",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "04b0b3b7e96639d0040900664e4ce71374c060322e4c7bcff3eacf33330273db"
+    },
+    {
+      "name": "numeric-100",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "74126ab24a6acc78c88903917db35478d06d4a6f55f28b3cd7ce8e1cf3e2bbed"
+    },
+    {
+      "name": "numeric-101",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "fc50e13d2795cd6995471225dce8feffa52359227bc1b574a3963ececcc2e08b"
+    },
+    {
+      "name": "numeric-102",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "f6ac7c810b0bd5fa68f758a3215c9db7ccd85a513ed49d5688746b143aed0011"
+    },
+    {
+      "name": "numeric-103",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "026e643e4770e7787ba5a8de942691b7306605899731855fef015107818011ae"
+    },
+    {
+      "name": "numeric-104",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "cbe6a181617e286fb4d5c3cd4517ac0e41a81dbd42ec0a69d521e4853fa8bdf9"
+    },
+    {
+      "name": "numeric-105",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "7e0c9f37486dba67086f5921f2ebf3f100d72da8a54f6dbfb20f592bbf01cd6b"
+    },
+    {
+      "name": "numeric-106",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "9597bb74afd7142e02923a485de0ddf703175a12e77fc4350aabe302d1f8d359"
+    },
+    {
+      "name": "numeric-107",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "f9b0c7c55bfa0a726df98f5f70e2c6bcfae191b910ecf6cc27d7cd8c90d7a906"
+    },
+    {
+      "name": "numeric-108",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "1a99e0a3570b24ea2f87165d41367cf07b684c523a5c3650dbb343215d1a048f"
+    },
+    {
+      "name": "numeric-109",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "05957104718fca67b1e0f19f4a19ab36b685933b5a5ff15e4194e3af208daeef"
+    },
+    {
+      "name": "numeric-110",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "1b418f04e10b44384fc17fe8c02668d2df39e390996808268c5c9765c2ec8ca2"
+    },
+    {
+      "name": "numeric-111",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "a1471490ea9a497a3c68adde1842a02b78217a7b23f029c372eda76abbb498f8"
+    },
+    {
+      "name": "numeric-112",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "a508793f59cc7507c40bfe6757a03ebbf466f3d73ed4d6bda4b7d03fb8df80ae"
+    },
+    {
+      "name": "numeric-113",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 252,
+      "render_sha256": "1b25bf7fed93b192360876c70a3ae7dcb46cf2a42aed1f95e89cd13ef94a0889"
+    },
+    {
+      "name": "numeric-114",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "3b642848182391b4b5529b838051f84c733f29860a06ba18e1a7913dd0b2597d"
+    },
+    {
+      "name": "numeric-115",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "a5425dbc2d4c726674d1b0219e0bc6dc850ae725ea6c8a2b5c13267e1cf8f242"
+    },
+    {
+      "name": "numeric-116",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "9696fa6f1d45b39dfaeb55887580500634bfbd234dbce323a592a99880a2ef08"
+    },
+    {
+      "name": "numeric-117",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "541fdde7c43f8e1a0ec8dcbd162002c98f9df6a4d262ca7124c247e846364d5a"
+    },
+    {
+      "name": "numeric-118",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "616d17ce85d72eb2a05b32e72c48dfd4c818fd26a1e0b3b22f89c1041983c188"
+    },
+    {
+      "name": "numeric-119",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "5cade21dcbf327d34f47e5b7e66a099d12aab8c1cb4abf9b66bdd9ac251943fa"
+    },
+    {
+      "name": "numeric-120",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "a354e0e88368048ed74874595ea35f08a400b953034a3180dd7ce015a886b057"
+    },
+    {
+      "name": "numeric-121",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "bcf0c292c0ddbd582f92b46c0a0448f55a6ae1c3f0a95ae0a3fbf05e68d75073"
+    },
+    {
+      "name": "numeric-122",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "01970c7f4c38e68c53518faedaf9c1637cd61afa055d6247cd8a412229715080"
+    },
+    {
+      "name": "numeric-123",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "4e0b383a93d7e270d9f7001e2ad1d7e7616156b50af365130bb0eb50eda97aed"
+    },
+    {
+      "name": "numeric-124",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "e21f90f0d8c46ea1a9f70a31947176d6a9671077f3e98fa675012ada65fed386"
+    },
+    {
+      "name": "numeric-125",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "9d4b4bef99917b3788d7bf807bf13b0ea0bad010b17ed73b5455fde523d643e1"
+    },
+    {
+      "name": "numeric-126",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "22613a29bb51b25ed57489f9d7a567fbbbc30be90fe05a71faa3559f40c06a47"
+    },
+    {
+      "name": "numeric-127",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "6fddd2db987a78301a05316e62758f4e5d5d8722f9b35c1c1b0b0a937d55f858"
+    },
+    {
+      "name": "numeric-128",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "bd2adbd9661773712fc6a5a8ed76c9f2e572c34acfc0d9ef8e4f17d12ab302bb"
+    },
+    {
+      "name": "numeric-129",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "0967f7525ff724285099b86c051021f86e1569203cc90360671aea19f6569eff"
+    },
+    {
+      "name": "numeric-130",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "c2ca958f9530805baaf848245548a332d4c8f4ed009e4fd896d68b9b39dfe1c3"
+    },
+    {
+      "name": "numeric-131",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "e4567d2c0972566dbf2764afd01db35ef4ffddd3e4d78811c6df7c431394346f"
+    },
+    {
+      "name": "numeric-132",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "39f631edbde7729661f82e0be9868751aad4eb608c61f5722f96014c62c59977"
+    },
+    {
+      "name": "numeric-133",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "6ec24f82699ffd265f268582d7767019314228664f9bf8bb905bc897162f34f3"
+    },
+    {
+      "name": "numeric-134",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "df82cec0e6863fdb13f0d0e2eb09539428c33613aab96a2e174c66d06007205d"
+    },
+    {
+      "name": "numeric-135",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "21c45485fe96f04dc919b6dd9cbe3c59af7af5dc8906f2b37df122d47c6151de"
+    },
+    {
+      "name": "numeric-136",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "50d5d1a46edcc0d3e20185f759a9e4cada31d6259e727bd8c32f4dcb670a1888"
+    },
+    {
+      "name": "numeric-137",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "f64eb4fc91ace3975571ec6b71da430fcf37d08f5b477a796ad0180157af022e"
+    },
+    {
+      "name": "numeric-138",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "0a7c55557e35ba1b36129fe59f5810570e810bf526ed371b77190ad60c7975ee"
+    },
+    {
+      "name": "numeric-139",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "f92624d89e3cf47cb61abf91a4fb234e6dd37352d3f747293ef2a6c29af3209e"
+    },
+    {
+      "name": "numeric-140",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "1dc4139a5bc132367382b550abc7e90cd5ca3ad2ca82eeede4fb8122ad79090f"
+    },
+    {
+      "name": "numeric-141",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "a0db84aff1a026007f0411c8ea634d3b2d08ce33b322e26e933d745f063d981c"
+    },
+    {
+      "name": "numeric-142",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "69a357236fb799b62fab51e2ac7a47a5b118096b96ace5856e047d8f303d37bf"
+    },
+    {
+      "name": "numeric-143",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "995ba8c5dd01fc4b8e201aafaca922335e31dfb6c45e1f0a3717fd0fbeb8f59f"
+    },
+    {
+      "name": "numeric-144",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "875609d92547a7bf1b9c3a81a8fbe261c8323e7e23d6ee6004a8fd53e863d874"
+    },
+    {
+      "name": "numeric-145",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "8189d5dc3ce920523763f80eb7616125705709818cda74af4df435451f4fbb55"
+    },
+    {
+      "name": "numeric-146",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "94427fd51982ab7c86a87e8f7eb6d84ca708545ec507b9da9a03dda62a9c03a5"
+    },
+    {
+      "name": "numeric-147",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "133556610bd1e10964c116f5414f44768e2ad1c129126a9e01dd5c730564c9a6"
+    },
+    {
+      "name": "numeric-148",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "2d420ca3e0fc71bb106f91f8ff3bf4551ff7827b98162d7f0b7c3d1283591bbf"
+    },
+    {
+      "name": "numeric-149",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "3d19fa0221472594ca2474442656b04fa9e7eb5b6cc925082b8431f5c270b4fc"
+    },
+    {
+      "name": "numeric-150",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "55f3d534bfe1b4c46c6291cbae14c0068d22d34afcbb3452b2ff338f79017bbc"
+    },
+    {
+      "name": "numeric-151",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "420faa910a565d1672ed99c6d742b5e684c617ed3a7df1be82d803085117c02b"
+    },
+    {
+      "name": "numeric-152",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "15e055702788eb5e48a3d780fdb3bf24df7ed73383b95f01dc6dc366d27578e8"
+    },
+    {
+      "name": "numeric-153",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "cced4de6a8b9825cfac82a0af08ca80fa277ba41576ae354069bcd2dec5b2bd4"
+    },
+    {
+      "name": "numeric-154",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "bf1dda179a414439a599d7d60d41b02c90dbbb2692890c0d301259358a15daeb"
+    },
+    {
+      "name": "numeric-155",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "d2baf5db2fddd15b00cb042ea473adb5a4fdf567e9146fc9c761c1bc47ef80d6"
+    },
+    {
+      "name": "numeric-156",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "4c1d26282d54a5a511a9e9c02761680c0d5af2e43ce78fd267620e75d86ffbb6"
+    },
+    {
+      "name": "numeric-157",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 254,
+      "render_sha256": "be7ca6db04817cc95c7d936cf02c9f68b5c3aa63fe6a666359be3442a060b383"
+    },
+    {
+      "name": "numeric-158",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "02b5fc35c615181266f9f1929de8673a566c9cadb287de1d42b73e346fb6a3b1"
+    },
+    {
+      "name": "numeric-159",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "96919db783c3bb9df8857ec5b0846453963888de2bd99571b7944f5fc719428c"
+    },
+    {
+      "name": "numeric-160",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "a3442cac93691ac7f3d8b909a9c9f26caf6bd94176feba63eef6cb369246d62f"
+    },
+    {
+      "name": "numeric-161",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "250da3e5a47054ac7a7911b8a4ca7e60b9f7300be5d9131b710cfd4d46104566"
+    },
+    {
+      "name": "numeric-162",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "019b4b9fb1097aa125a0b27be2713294afdfcfe2ff08d5c7e167e6573a4a9330"
+    },
+    {
+      "name": "numeric-163",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "ae9d0d96e729898ed239135330d72812c802bb070a039a13545068925e20f8fb"
+    },
+    {
+      "name": "numeric-164",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "159022929267bc6dd2ef6e5708c521c6a3debce4cfa8432e5b4cc20d7acef891"
+    },
+    {
+      "name": "numeric-165",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "4f5e08b2077cebeb89e9743ee8900d97b7eecf2137c3885501aa007696ef4075"
+    },
+    {
+      "name": "numeric-166",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "74ce6c35d6255a1c13eb5696560ab4a37cdec294e9e3a43d443906316b0b2bfa"
+    },
+    {
+      "name": "numeric-167",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "2933842e11291003b9d6a34f9253ffe2347c37a398509ec4aa0dfa241cad755e"
+    },
+    {
+      "name": "numeric-168",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "2f9647d395c257761d31a11826d829f7ac7b3cc6c232bc63ca3fdddb4f77e280"
+    },
+    {
+      "name": "numeric-169",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "3d6586b367e890927488e58dee0d07b3326292f60ef26d83f50c94956a028de4"
+    },
+    {
+      "name": "numeric-170",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "e8199ec45191deedfeb7be56235d51e2a5eba47e8498649b13e764713a1f8921"
+    },
+    {
+      "name": "numeric-171",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "7ef0a59f90ec9040ef14c35c8ae1f43a92e8676452fd14c0c63ebbbaa2dd17f1"
+    },
+    {
+      "name": "numeric-172",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "42c4b41237f4d1273f2718f01486f93a055e0bd03758ce053a30bcc0ed8acd95"
+    },
+    {
+      "name": "numeric-173",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "a72f36fe956e9f80fadd73eba977045e449fd086b26c7e0782bbf932a26b47cb"
+    },
+    {
+      "name": "numeric-174",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "dbdbcfb4d7cd4af65859e78a824b8022a97c6bef202beae31207bc6a18bb322d"
+    },
+    {
+      "name": "numeric-175",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "df2a7d311f8776a1c1fa1e6aa73e5b1915c728658870a23666c8de0ed77e1b98"
+    },
+    {
+      "name": "numeric-176",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "324f59cb3813580d6e15c1c751abe7ba2d9ecd0256288bb78782dd2f2cd2af0f"
+    },
+    {
+      "name": "numeric-177",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "cd48c44bd06e4bc416309568433be49e0540c686377252fd4d551d0003a64a90"
+    },
+    {
+      "name": "numeric-178",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "7ea2736c24e4828eb1d3fb9cacff5bc0c95f394f787bc3820446675b2821ce8c"
+    },
+    {
+      "name": "numeric-179",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "0d956374f319f7a620d350cf7fde2924b154bc12f02cf37af3d5c3439e529e3d"
+    },
+    {
+      "name": "numeric-180",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "88314430861ed9909d2d9ed4139200586ef4a9abf81e8c6e5b2eb962add413e8"
+    },
+    {
+      "name": "numeric-181",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "1b5050e67e29f5764ca82715ddf98cb177b1ee497aded27721e39e6082e719ac"
+    },
+    {
+      "name": "numeric-182",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "e530bb163dbb2c61c17b43131d58d25d8c1d618065e2e823efecf0bf822b3546"
+    },
+    {
+      "name": "numeric-183",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "140ca0566251de4e1afd7a451c8c36c9c0ce703c3df33d91ba839a29a8551d15"
+    },
+    {
+      "name": "numeric-184",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "c170f02dfe89e82a68ec01c47c81d80377447c2891c2a47f0d812e308576e90a"
+    },
+    {
+      "name": "numeric-185",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "de483a569f9362ee3b83c44b346680d220e7c5aa4dc510b60286de5fc3f855ba"
+    },
+    {
+      "name": "numeric-186",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "0eeb1693bef259bee55023484af51bfcf013bc6dc3ebe1c950f4c498b9811285"
+    },
+    {
+      "name": "numeric-187",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "6a7a049f3dedb405e644cc0ef2ad1d1cd64ce38705326dff02e2b361877af350"
+    },
+    {
+      "name": "numeric-188",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "801eb28cf04dfebf6c41396543fbeeb75cf8bd8f924475dcc1036d1d0d55ca22"
+    },
+    {
+      "name": "numeric-189",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "5027b0a52c56155fd1b61268efeda8b01b7030ef14e849629e75894d22308934"
+    },
+    {
+      "name": "numeric-190",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "809885cb2d615afbeeab8dbc5a516ebcd63fd3e05ddde4c46e855227368f701c"
+    },
+    {
+      "name": "numeric-191",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "1d5ac98ae060ebe84aed9bda1b8c2856bac0cdf8196c862a4155352caf976089"
+    },
+    {
+      "name": "numeric-192",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "7fda45fdf2a08c99cc59161b88956f120e9088147146dd38fc081651ebd6c6bf"
+    },
+    {
+      "name": "numeric-193",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 246,
+      "render_sha256": "1688aee6a07b451a5b9c6a8d3fbb90319a21c896e5b35cae6cd0158b234a4dcb"
+    },
+    {
+      "name": "numeric-194",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "a04a4b187f5c1a77838fd4bbb3cf80cb086706288c9f969789fbce32d472d518"
+    },
+    {
+      "name": "numeric-195",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "efa7599f11ce95a37ddcc41b7d07af347590b7782d12b67a5c5c0fad4fcfb9fb"
+    },
+    {
+      "name": "numeric-196",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "d831f884b8ffa0611f4e940a22ee7e370b66df7989ed13e43159c7a2b4809b5d"
+    },
+    {
+      "name": "numeric-197",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "fad996cf23fb97fd3708efe061288e1f2e6ddc120ef3c14a36aa2c991af22616"
+    },
+    {
+      "name": "numeric-198",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "248974b340eda6b0905d617937ed7f4c754523afe1fbbbda00d9f8253fde1ada"
+    },
+    {
+      "name": "numeric-199",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "e7ec69b08f8c972b2d6ec3a167c640a238582fbfb05b4b1543b5c5ee94fb0ad4"
+    },
+    {
+      "name": "numeric-200",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "505e799c19d4d1631b6ef4098bf2e859f84dc8fa8f8866f2907906a78620f212"
+    },
+    {
+      "name": "numeric-201",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "409b4b723b72b92951f5c54070bab0e7298399fddd401ccdaee0d7cdeeb134b2"
+    },
+    {
+      "name": "numeric-202",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "b991071204afcbfbea558f970d30add4a61d305b8c5995e3412b932dc7e2e051"
+    },
+    {
+      "name": "numeric-203",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "fd50f08fcee09ce333f1af3f4fcf768c7c5453ccda5417f5eeed8f73472c3057"
+    },
+    {
+      "name": "numeric-204",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "1328289bd4087c65d0223cd3c54aceb80b03d23ecdf9f9dbf57c8120b1c3c6d9"
+    },
+    {
+      "name": "numeric-205",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "cc41bc4eaa4d103bef3e548e017a6be98655d973e98dfce73754e40ffaeb7444"
+    },
+    {
+      "name": "numeric-206",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "7fb48ed6b998f6d632dffa61da8f8b7fc2b7303a5dfca72303f8232359646ff9"
+    },
+    {
+      "name": "numeric-207",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "063389134226449c4a6314e9b649c331e205db6fcd7622d09280d5e1933a8fd4"
+    },
+    {
+      "name": "numeric-208",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "b19af97c6894f37d47418c8b6a49a03f3460a8341ec2ad17a2c1f941c93f98ea"
+    },
+    {
+      "name": "numeric-209",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "27b2f0a8e88b0a451f05afbd20de90741261d9fd3778a984154c5d419b80ec2a"
+    },
+    {
+      "name": "numeric-210",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "9525b7e2d447d563b577c6746c5ef27a83fa124027a5c11d20333333b26cbe93"
+    },
+    {
+      "name": "numeric-211",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "7800a33467aeaf8d3d5f05241749482e4100cdefd12e86ebd1af921d6802973c"
+    },
+    {
+      "name": "numeric-212",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "836ce209112e213215a0fc8fc1e4bd61218651f6d65a6e46a5d7931d20b14e0d"
+    },
+    {
+      "name": "numeric-213",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 246,
+      "render_sha256": "7cd9e6140bb346fb6307a63998137498156310880ba584a2b49f933e2016ed38"
+    },
+    {
+      "name": "numeric-214",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "f59b293f1db185112458370270e190e605f861151b9a67708caa2ebfe3fb89c0"
+    },
+    {
+      "name": "numeric-215",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "8f7d61c1026619fdca7140be99150f0c972967c8cca7e73425d6087701f49403"
+    },
+    {
+      "name": "numeric-216",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "58513a4c899ff3a072d41d6b9159761cb3ac997dbfb437215317f81defa6a5c7"
+    },
+    {
+      "name": "numeric-217",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "2642f9b0232caf5c564141f08608ee79d14deb9ff6fb1586b365031b66272838"
+    },
+    {
+      "name": "numeric-218",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "f696ab5cfdf7e8bc1fe6fdafa7a99ae32a8dc2563fb6c7124a75753049dcf70e"
+    },
+    {
+      "name": "numeric-219",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "6169e88544bb52584bfa91894cb65dcb49aed2319ff9652b21d5843e41bc3368"
+    },
+    {
+      "name": "numeric-220",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "c7e6991d99c65888a2a7dc027621739cf7d529963c1ffc6ad19536a79eb85093"
+    },
+    {
+      "name": "numeric-221",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "ccfda6a3319d6d517755da522d135f9e020a3aa0ef1849d0055a72d07d6fad73"
+    },
+    {
+      "name": "numeric-222",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "df8bfba21a16500e33ba11115255665ad292810945cc237e989739a6e3553d67"
+    },
+    {
+      "name": "numeric-223",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "d3e3df9704c4ce255da0d4d616efb504e4201784be85ecf325f73ccdd061b7db"
+    },
+    {
+      "name": "numeric-224",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "39a47f7260d01200c358f7d10aa651a984e15f5201446614e0681741e94bca77"
+    },
+    {
+      "name": "numeric-225",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "9bb46eee50f8bf71111b4ac2d97e95cd42ad56e1b687a4e39b23f33a9a97b74b"
+    },
+    {
+      "name": "numeric-226",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "8c08894473f879cdc711e45a24fb40d6bbed44be832828cc8aa342fddbd48115"
+    },
+    {
+      "name": "numeric-227",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "f3836b6c7f40410252d90e755c047c1b5e1535310f06796d1d928c8acd5723c0"
+    },
+    {
+      "name": "numeric-228",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "86f50f505eb353382541761bafbb9c16c8d71ec05d3983cd92f9a17f002a25ec"
+    },
+    {
+      "name": "numeric-229",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "7dece477a300504b21e058202d92912203fb5966fdd50f211f5272751a074b29"
+    },
+    {
+      "name": "numeric-230",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "eb3304d5491cfebda53f5bcbc54ae9c7b3a36019f252b6bc7d24fef722bcf487"
+    },
+    {
+      "name": "numeric-231",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "71e714e4a3948cbce498acf287dd734ff1c225c2217db7ceb3fae79ec62b38c2"
+    },
+    {
+      "name": "numeric-232",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "45ff1aff623785ec960ba18c63e853d1dbacad2baa263b575153c3ca3ba6d2cc"
+    },
+    {
+      "name": "numeric-233",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "1f38f549479c8c7e5d38a00ee3844c15e625336ef3a2bc04f8d728535d4cad0a"
+    },
+    {
+      "name": "numeric-234",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "59375ea4d8fdb03e4fdab17fb1de4cbe41b2abb878cb13500edc2a3bca3ceb9e"
+    },
+    {
+      "name": "numeric-235",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "9a58cae9449f4eecc2659e61e5448ca2395a0b3eb37014bde493a9dddd718fe8"
+    },
+    {
+      "name": "numeric-236",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "d791205c6d5c79dd80d1ac8515b3fd2227eb4093b0200ef5a147cc650a49efc6"
+    },
+    {
+      "name": "numeric-237",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "e38f96433146161430f68fcad3f98afa9f343881d4ffba01b9db1b5894f124b1"
+    },
+    {
+      "name": "numeric-238",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "a28f0d92b959468ba9c0dab7fa273188ca61d3600b77cb07665cd95f0f15199d"
+    },
+    {
+      "name": "numeric-239",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "f67937157ba5742719a40eb34934212383bf46eb92fcb1b57e4977e03a58b5e3"
+    },
+    {
+      "name": "numeric-240",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "aac177539bd50fc2fa300fabfc77a545c3424a66cdb1a2a81fc264625af9934a"
+    },
+    {
+      "name": "numeric-241",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "1dd4544378b0c695aa4eb4586a34e435a9c2fd139cb71fda4b0c2a964bd01b93"
+    },
+    {
+      "name": "numeric-242",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "c31cadc62e5377d3f2bb5f62dbf4136e28c90110f7f80ad545d95e341fd91e0c"
+    },
+    {
+      "name": "numeric-243",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "d2d423eedb7fa65753f50ca579bcca2fc5f57c1901be2944ad4b0eb9878b52c8"
+    },
+    {
+      "name": "numeric-244",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "2a9553fa2077fd50dc08107c8edcd6d601efa5cf626de1bf38253f6237301965"
+    },
+    {
+      "name": "numeric-245",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "182caa8c5cea83822fbd3e02f273fd7a1e888fb5fbc9cc6c3c9a8dfb494cbdfb"
+    },
+    {
+      "name": "numeric-246",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "1ca42d14e0f0c421e45c9a8b56d9384b3ca8f7235f478c10fc154c074da48127"
+    },
+    {
+      "name": "numeric-247",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "84063c3bc5611ea90e54ac878253e633d5fea8b3421e2ee57668194036e817f4"
+    },
+    {
+      "name": "numeric-248",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "af29cfeed30571b02642d6abf7aa97f7ead32a3a41bb3293b20b67b3da9e6bc2"
+    },
+    {
+      "name": "numeric-249",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "91f404318470879361bb479f21baeb0e2404bafea0395c1fb6705cad09be70c3"
+    },
+    {
+      "name": "numeric-250",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "ea3e5d2dcd7ee8b5574bfc3c244b7a6ea2ad8764ecaa6b2416770c5715803f27"
+    },
+    {
+      "name": "numeric-251",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "8b063c02453f2b67d50119a1d508017406123789131d1c39c59406cc5cff0170"
+    },
+    {
+      "name": "numeric-252",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "7caeee068c735f2e9e85e9157eefe2a4515ac10b92f0f987d00f1ef7ae023c04"
+    },
+    {
+      "name": "numeric-253",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "3af49d4cdb56e0f57170651d53152d0d966a64d265b8521127019e54315cac2d"
+    },
+    {
+      "name": "numeric-254",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "4d3e3acca68ba86c05d247aa29357245a013c40f36ba7ed7a1b3978b00aaec81"
+    },
+    {
+      "name": "numeric-255",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "8cf58044fe780c14dc00038fa3881a4a67a236b3346fd8eac1163749b5fe0cb7"
+    },
+    {
+      "name": "numeric-256",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "886bca2268b0d3555e73033df5abb44c6ad76660dd8fc29bb40a8c811953d9ca"
+    },
+    {
+      "name": "numeric-257",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "9859fdb16a683ba1f05af55814fe4ebaad9275e5eba97709c09b89a9473831a2"
+    },
+    {
+      "name": "numeric-258",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "8d62e4bbbab7a80679274b2abb510e744c9da6f2f1a9635f271c01cf44b0b720"
+    },
+    {
+      "name": "numeric-259",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "ee3ebdba9d0cbeed3fb17bc6d9f1bbb97cec02d9a59b8a5efcb86aacd8afb4c3"
+    },
+    {
+      "name": "numeric-260",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "1bcf6bdbcb7889c1c2e622e269b12eb9c5ec1bb1edf226c169429528a50a7f12"
+    },
+    {
+      "name": "numeric-261",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "eea7b1c189508d601e197cab8b288696e1f0f6f0021237c6654665fd59058a33"
+    },
+    {
+      "name": "numeric-262",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 260,
+      "render_sha256": "4e81684ffa46f4d9729d4f07e7597868580747e11532a1ea7f5c629af0e5ad3b"
+    },
+    {
+      "name": "numeric-263",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "d5f866d247f5793db15c378585e7da09ca399abe8de7484e83a8dad0cd74c0ed"
+    },
+    {
+      "name": "numeric-264",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 256,
+      "render_sha256": "d3acf9883d25195cb92b70b338fa3830bdd0f1a3c6700fc3f4fbf7036215218f"
+    },
+    {
+      "name": "numeric-265",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 258,
+      "render_sha256": "e4db6562327e347a957f0cf7b1bd26b14097a61d5cf88e815cc708a1a0fdc562"
+    },
+    {
+      "name": "numeric-266",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "3bbd9649096dfcc8802318b266b791e69a2e193cbecb224c1e6f0165c4aa2eeb"
+    },
+    {
+      "name": "numeric-267",
+      "pass": true,
+      "checks": {
+        "input_unchanged": true,
+        "normalization_idempotent": true,
+        "native_render_equal": true,
+        "token_ids_equal": true,
+        "decoded_bytes_equal": true,
+        "one_bos": true,
+        "generation_prefix": true
+      },
+      "tokens": 262,
+      "render_sha256": "2f4344f2e05ff61e43429de9ba88ae4b492ecf469d9f675c9a9f140213557b99"
+    }
+  ],
+  "binary_sha256": {
+    "template-json": "3f0ed891a29f2af99c6b9a35c5a8f25ef5a57aac47ed445fd8efd7465f5bca43",
+    "template": "c6ec501c8c51b9d71fc4e6b6c4c7f417f41d9fa86090ef15505adc043f0c80d1",
+    "tokenizer": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e"
+  },
+  "provenance": {
+    "template-json": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none;jinja-json-float-roundtrip",
+      "renderer": "native-jinja-json-float-roundtrip"
+    },
+    "tokenizer": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none"
+    },
+    "template": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none",
+      "renderer": "native-jinja-raw"
+    }
+  },
+  "build_manifest_sha256": "5c97fe148f6a17f10f30d4a8da8d640912d4d8218e0be662e8b1594e54d15cef",
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "template_sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+  "unit": {
+    "pass": true,
+    "methods": 33,
+    "failures": 0,
+    "errors": 0
+  },
+  "numeric_prompts": 268,
+  "handwritten_prompts": 23,
+  "native_prompts": 293,
+  "checks": 2074,
+  "prompt_tokens_compared": 71189,
+  "legacy": [
+    {
+      "name": "empty/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "empty/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "empty/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "empty/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "empty/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "empty/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "user/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "system/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "identity/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "history/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "reasoning/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "inline_reasoning/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "empty_assistant/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "text_parts/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "tools/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "flat_call/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "nested_call/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "string_args/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "results/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "after_result/prompt=True/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=False/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=False/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=False/thinking=True",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=True/thinking=None",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=True/thinking=False",
+      "pass": true
+    },
+    {
+      "name": "multiple_calls/prompt=True/thinking=True",
+      "pass": true
+    }
+  ],
+  "artifact_sha256": {
+    "requests.json": "814ef81b5001f30bfc01b2be0259c0e707a060c965781d0e88ba3a61874fec30",
+    "contexts.json": "0af7f72b8417987eeff4f06c3d1679c60a158e0c72da5d0ca784f0b8987b6233",
+    "native-rendered.json": "75fc9e5b5748877203f93da8064e8b8deb1a083d37bafa5b465b2e2559d56df9",
+    "native-tokens.json": "4ac741e4a8855dcf68e255173ab390cb7696c5dd032e2d5d282f81b8bf887ab7",
+    "unit.log": "032e190e4e2f4b46890b6a549e848880a3958d524d9429f2d4054147f6e3ade9",
+    "legacy-native.json": "6a35efe5bbad297549382e2dc0441b1fcaf152d6b0636c6f499dd5e2d9785acd"
+  }
+}

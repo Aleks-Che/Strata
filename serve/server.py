@@ -1520,7 +1520,8 @@ class Service:
         parser_factory = getattr(self.template, "create_output_parser", None)
         parser = (parser_factory(thinking, tools, sampling) if parser_factory else
                   parser_type(thinking=thinking, tools=tools, stream_tools=True))
-        detok, n, finish = Detokenizer(self.tok), 0, "length"
+        detok = getattr(self.template, "detokenizer", Detokenizer)(self.tok)
+        n, finish = 0, "length"
         timings, before = None, None                    # this request's timings; the engine's `last` before it
         raw_ids = []                                    # every generated id (STRATA_DEBUG: dump raw model text)
         emb = getattr(self.embeddings, "path", None)
@@ -1641,6 +1642,16 @@ class Service:
                                 for ev in evs:
                                     yield "event", ev
                             prompt = prompt + seg + extra
+                        # Model-specific strict decoders must observe terminal
+                        # partial UTF-8 too. Existing decoders keep their policy.
+                        if not cancel.is_set() and hasattr(detok, "finish"):
+                            try:
+                                tail = detok.finish()
+                            except ValueError:
+                                finish = "error"
+                                raise
+                            for ev in parser.feed(tail):
+                                yield "event", ev
                         if cancel.is_set():
                             finish = "cancel"
                 except GeneratorExit:                   # the client disconnected mid-stream

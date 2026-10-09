@@ -1,0 +1,60 @@
+{
+  "pass": true,
+  "date": "2026-10-09",
+  "timezone": "Asia/Yekaterinburg",
+  "revision_at_validation": "d342001b4dca70860bcd585f28004591a83e5bf3",
+  "dirty": true,
+  "scope": "P2.3 and canonical OpenAI/flat tool history only; no API registration, generated-tool parsing, inference or new speed measurement",
+  "ready_for_api": false,
+  "baseline_files_verified": 114,
+  "baseline_changes": [
+    "backends/minimax_m2/build_manifest.json.in",
+    "backends/minimax_m2/CMakeLists.txt",
+    "backends/minimax_m2/template_oracle.cpp",
+    ".gitattributes"
+  ],
+  "existing_python_and_inference_sources_unchanged": true,
+  "inference_executable_unchanged_sha256": "07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef",
+  "unit_methods": 33,
+  "new_history_unit_methods": 20,
+  "handwritten_prompts": 23,
+  "native_prompts": 293,
+  "numeric_prompts": 268,
+  "checks": 2074,
+  "legacy_template_cases": 96,
+  "prompt_tokens_compared": 71189,
+  "source_sha256": {
+    "serve/minimax_m2_history.py": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+    "serve/test_minimax_m2_history.py": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+    "tools/minimax_m2_history_cases.py": "68b6aa4a59636372b45e83918d53bae160bcdde8bf17ce0ee5d6871336c5d3e5",
+    "tools/check_minimax_m2_history.py": "84efebcfc1b68b610f6e30175357165261b2ea44b6ea329aa2e6352e005e5509",
+    "serve/fixtures/minimax_m27_chat_template.jinja": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+    "serve/minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "serve/test_minimax_m2.py": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "tools/minimax_m2_template.py": "98eff0c210ff6f3fc2f25463a15b4550989d593cf610a22049a228be713f666b",
+    "tools/test_minimax_m2_tokenizer.py": "d48f61cd0e241c835ac44a737796b412509359c589d13c639eb6f57a55d8dc0e",
+    "tools/strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+    "tools/check_minimax_m2_oracles.py": "e3306bd44abf731bbfcbf93af8861fd4d84988e4009c2083f807c45f62d58652",
+    ".gitattributes": "664d3e84d82448411e090def8017d2da433faa9f09719ac66faad22040eb3a7c",
+    "backends/minimax_m2/TemplateJSON.cmake": "d705ce7f86f29a211192ead229dc245fea5836734b8833c0ca0be5ffd5aedc42",
+    "backends/minimax_m2/template_oracle.cpp": "d60014322183fbf852668abd28907801c7b642583e49b9b61aee57123d482947",
+    "backends/minimax_m2/CMakeLists.txt": "d1deaee17d31f7d217f5b6a26139f6fa87b6b0ff09c98103302d839ae82b96a5",
+    "backends/minimax_m2/build_manifest.json.in": "338bfac45a98b4d2d6b5e6a76940a54a6392fc906f2bfc4738103cb912489a86"
+  },
+  "binary_sha256": {
+    "template-json": "3f0ed891a29f2af99c6b9a35c5a8f25ef5a57aac47ed445fd8efd7465f5bca43",
+    "template": "c6ec501c8c51b9d71fc4e6b6c4c7f417f41d9fa86090ef15505adc043f0c80d1",
+    "tokenizer": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e"
+  },
+  "native_original_source_unchanged": true,
+  "raw_number_probe_failures": 5,
+  "raw_number_probe_scope": "three integers outside admitted signed64 range and two float serialization failures; original raw oracle retained",
+  "retained_build_failure": "build-local/minimax-m2-history-build-01-failed.log; include path shadowed system string.h, repaired with qualified quoted Jinja includes",
+  "artifact_sha256": {
+    "MINIMAX_M27_HISTORY_BUILD_MANIFEST.json": "5c97fe148f6a17f10f30d4a8da8d640912d4d8218e0be662e8b1594e54d15cef",
+    "MINIMAX_M27_HISTORY_CHECK.json": "9d53fb889c390031808cda9dd1d5b9955661c0ccd891584084513756753ede0d",
+    "MINIMAX_M27_HISTORY_RAW_NUMBER_PROBE.json": "66acb7851bd181350e56644b142f35e714936f547cb9e1a49fa3c18da81627b9"
+  },
+  "evidence_directory": "build-local\\minimax-m2-history-check-04"
+}

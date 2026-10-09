@@ -10,3 +10,4 @@ tests/data/native_experts/** -text
 
 # GLM's embedded template fixture is checked against its GGUF UTF-8 SHA-256.
 serve/fixtures/glm53_chat_template.jinja -text
+serve/fixtures/minimax_m27_chat_template.jinja -text

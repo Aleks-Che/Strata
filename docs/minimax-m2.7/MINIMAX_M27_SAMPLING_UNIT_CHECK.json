@@ -1,0 +1,200 @@
+{
+  "scope": "CPU config/distribution/RNG tests; independent closed-form nucleus fixture",
+  "cases": 48,
+  "failures": 0,
+  "tests": [
+    {
+      "name": "invalid_config_0",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_1",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_2",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_3",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_4",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_5",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_6",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_7",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_8",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_9",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_10",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_11",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_12",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_13",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_14",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_15",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_16",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_17",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_18",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_19",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_20",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_21",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_22",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_23",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_24",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_25",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_26",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_27",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_28",
+      "pass": true
+    },
+    {
+      "name": "invalid_config_29",
+      "pass": true
+    },
+    {
+      "name": "default_remains_greedy",
+      "pass": true
+    },
+    {
+      "name": "valid_config_round_trip",
+      "pass": true
+    },
+    {
+      "name": "valid_config_round_trip",
+      "pass": true
+    },
+    {
+      "name": "valid_config_round_trip",
+      "pass": true
+    },
+    {
+      "name": "greedy_first_max_tie",
+      "pass": true
+    },
+    {
+      "name": "nonfinite_rejected",
+      "pass": true
+    },
+    {
+      "name": "nonfinite_rejected",
+      "pass": true
+    },
+    {
+      "name": "nonfinite_rejected",
+      "pass": true
+    },
+    {
+      "name": "temperature_before_top_p_keeps_two",
+      "pass": true
+    },
+    {
+      "name": "independent_two_token_softmax",
+      "pass": true
+    },
+    {
+      "name": "raw_logits_unchanged",
+      "pass": true
+    },
+    {
+      "name": "top_k_one_always_argmax",
+      "pass": true
+    },
+    {
+      "name": "disabled_filters_keep_vocabulary",
+      "pass": true
+    },
+    {
+      "name": "nucleus_min_keep_one",
+      "pass": true
+    },
+    {
+      "name": "fixed_seed_reproduces",
+      "pass": true
+    },
+    {
+      "name": "different_seed_changes_draws",
+      "pass": true
+    },
+    {
+      "name": "new_request_restarts_rng",
+      "pass": true
+    },
+    {
+      "name": "temperature_overflow_rejected",
+      "pass": true
+    }
+  ],
+  "pass": true
+}

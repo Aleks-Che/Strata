@@ -1,0 +1,918 @@
+{
+  "pass": true,
+  "scope": "narrow completion/answer gates; fresh process per group; sequential GPU runs; OS cache and external load uncontrolled",
+  "model": "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "source_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+  "engine_sha256": "07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef",
+  "replay_engine_sha256": "68f11db893bc7d68ded5dbae3058a29335b2d25f41302ac67e9f4c8d0db2db1b",
+  "driver_sha256": "986d32911128359f3ab1b319b7159f72ff34c4dfa89fccf7db49e7a291e64121",
+  "precision_environment": {
+    "NVIDIA_TF32_OVERRIDE": "0",
+    "GGML_CUDA_CUBLAS_COMPUTE_TYPE": "f32",
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "LLAMA_GRAPH_REUSE_DISABLE": "1",
+    "GGML_OP_OFFLOAD_MIN_BATCH": "1",
+    "STRATA_MM27_QUANT_F32": "1",
+    "STRATA_MM27_TOKENWISE": "0"
+  },
+  "groups": [
+    [
+      {
+        "name": "russian-42",
+        "language": "russian",
+        "expected": "4656",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 42
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "russian-7",
+        "language": "russian",
+        "expected": "4656",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 7
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "russian-1234",
+        "language": "russian",
+        "expected": "4656",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 1234
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "rng-prefix-7",
+        "language": "russian",
+        "expected": "4656",
+        "complete": false,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 32,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 7
+          }
+        }
+      },
+      {
+        "name": "russian-42-repeat",
+        "language": "russian",
+        "expected": "4656",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 42
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "russian-temp07",
+        "language": "russian",
+        "expected": "4656",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nПрочитай список и объясни на русском, как найти его сумму: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 42
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "english-42",
+        "language": "english",
+        "expected": "scattering",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\nExplain in a few sentences why the sky appears blue during the day.[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 42
+          }
+        }
+      }
+    ],
+    [
+      {
+        "name": "chinese-42",
+        "language": "chinese",
+        "expected": "391",
+        "complete": true,
+        "request": {
+          "prompt": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.7 and is built by MiniMax.[e~[\n]~b]user\n请用中文简要说明 17 × 23 的计算过程，并给出结果。[e~[\n]~b]ai\n<think>\n",
+          "max_tokens": 1536,
+          "sampling": {
+            "temperature": 1.0,
+            "top_p": 0.95,
+            "top_k": 40,
+            "seed": 42
+          }
+        }
+      }
+    ]
+  ],
+  "runs": [
+    {
+      "name": "01-russian-42",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 398,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 398,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.json",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\01-russian-42-replay"
+      ],
+      "report_sha256": "29ff74e9241fb5fb1874ca9d5bd641e1667b5f7ff99dcc2c0a0f7c7a94ce2004",
+      "logits_sha256": "8f45f8eb02250aa467538cfbf72e7612841b2368ccaeb25eaf1817e6bde69d57",
+      "pass": true
+    },
+    {
+      "name": "02-russian-7",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 567,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 567,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.json",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\02-russian-7-replay"
+      ],
+      "report_sha256": "0083169d256380866976e7261b81ce4b7096c44e819a4cecfc310e683c219b93",
+      "logits_sha256": "0fc08691a7abbfb6d65fc0e041881e7a038dee887d874ee5a792b8e980d169e3",
+      "pass": true
+    },
+    {
+      "name": "03-russian-1234",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 1092,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 1092,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.json",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234-replay"
+      ],
+      "report_sha256": "35055a81deec1983c35feba73dcda7963d0f801f945d41fd8fc663c2b01da2e2",
+      "logits_sha256": "164dcd109ea13fd68c9f2607ce46b4c83f9bbd3e5f4d4a52e2349df78caba96d",
+      "pass": true
+    },
+    {
+      "name": "04-russian-42-repeat",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 430,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 32,
+            "mismatches": 0,
+            "pass": true
+          },
+          {
+            "tokens": 398,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.json",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat-replay"
+      ],
+      "report_sha256": "381e63a36aaa567486bee03aa55e59d5ed475804e141dcd878d77871610f4198",
+      "logits_sha256": "92cc444a09952ad051395f9b79f9174fb3a62dc5223883e8852b829a9c86546f",
+      "pass": true
+    },
+    {
+      "name": "05-russian-temp07",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 1219,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 1219,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.json",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07-replay"
+      ],
+      "report_sha256": "28c936007cdefce99a0ae96b902aee4dde4ff735f4853452e3cc709fd1cde620",
+      "logits_sha256": "d054706070daacf5c0d701dd52758e8917583b373a37df98e50b4d59fbf74af8",
+      "pass": true
+    },
+    {
+      "name": "06-english-42",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 879,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 879,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42.json",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\06-english-42-replay"
+      ],
+      "report_sha256": "074396ed20f6fc1adcda239120a33735d05f79c038020bcb0a3d0510a0d6d9cd",
+      "logits_sha256": "2147e1cbaa4590a3bd8e59e4a7409310fc6630d53330cae6480a4f3388586206",
+      "pass": true
+    },
+    {
+      "name": "07-chinese-42",
+      "command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\engine.exe",
+        "--gguf",
+        "H:\\models\\MiniMax-M2.7\\MiniMax-M2.7-BF16-ultra-uncensored-heretic-Q4_K_M.gguf",
+        "--request",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.request.json",
+        "--output",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.json",
+        "--logits",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.f32",
+        "--ctx",
+        "2048",
+        "--batch",
+        "16",
+        "--gpu-cache-mib",
+        "18432",
+        "--gpu-cache-allocator",
+        "arena",
+        "--pipeline-readers",
+        "2",
+        "--pipeline-chunk-mib",
+        "4",
+        "--pipeline-lookahead",
+        "1",
+        "--pipeline-d2d-batch",
+        "1"
+      ],
+      "exit_code": 0,
+      "gates": {
+        "configuration": true,
+        "gpu_only": true,
+        "budget95": true,
+        "bytes": true,
+        "bounded_and_drained": true,
+        "requests": true
+      },
+      "replay": {
+        "scope": "CPU replay of request-local sampler against raw generated logits; not an independent model oracle",
+        "tokens": 309,
+        "mismatches": 0,
+        "runs": [
+          {
+            "tokens": 309,
+            "mismatches": 0,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "replay_command": [
+        "C:\\work\\git\\my-repos\\Strata\\build-local\\minimax-m2-sampling-screen-01\\sampling-check.exe",
+        "--replay",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.json",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.f32",
+        "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42-replay"
+      ],
+      "report_sha256": "5bf609778ffd4d2e21b60d7536646b3f2062eb1e743cbd93b4080e575210766b",
+      "logits_sha256": "a4cbbae5a7d86b5eb7d6d6d3f2b897d9d5f5c5d904c95c823acd1c0ebd046865",
+      "pass": true
+    }
+  ],
+  "cases": [
+    {
+      "name": "russian-42",
+      "run": "01-russian-42",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\01-russian-42.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 398,
+      "prompt_tokens": 343,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.451032141434524,
+      "sampling_ms": 333.3543999999996,
+      "sampling_ms_per_token": 0.8375738693467326,
+      "request_ms": 138610.5682,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "russian-7",
+      "run": "02-russian-7",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\02-russian-7.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 7
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 567,
+      "prompt_tokens": 343,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.274918649789786,
+      "sampling_ms": 477.29180000000014,
+      "sampling_ms_per_token": 0.8417844797178133,
+      "request_ms": 185370.5999,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "Чтобы найти сумму чисел от 1 до 96, можно воспользоваться **формулой суммы первых n натуральных чисел**:\n\n\\[\nS_n = \\frac{n\\,(n+1)}{2}\n\\]\n\nЗдесь \\(n = 96\\). Подставляем:\n\n\\[\nS_{96}= \\frac{96 \\times (96+1)}{2}\n      = \\frac{96 \\times 97}{2}\n\\]\n\nДальше считаем:\n\n1. \\(96 \\times 97 = 9312\\)\n2. Делим на 2: \\(9312 \\div 2 = 4656\\)\n\n\\[\n\\boxed{S_{96}=4656}\n\\]\n\n**Почему формула работает**  \nЕсли записать ряд чисел и «сложить» их попарно:  \n\n\\[\n1 + 96 = 97,\\; 2 + 95 = 97,\\; \\dots,\\; 48 + 49 = 97\n\\]\n\nПолучается \\(48\\) пар, каждая из которых даёт сумму \\(97\\).  \n\\(48 \\times 97 = 4656\\). Это тот же результат, что и по формуле.\n\nИтак, сумма всех чисел от 1 до 96 равна **4656**.",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "russian-1234",
+      "run": "03-russian-1234",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\03-russian-1234.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 1234
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 1092,
+      "prompt_tokens": 343,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.544031047552365,
+      "sampling_ms": 897.9774,
+      "sampling_ms_per_token": 0.8223236263736263,
+      "request_ms": 304276.0573,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "Этот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_{96} = 96\\).  \nДля нахождения суммы всех её элементов можно воспользоваться двумя эквивалентными способами.\n\n---\n\n## 1. Использование формулы суммы арифметической прогрессии  \n\nСумма первых \\(n\\) натуральных чисел вычисляется по формуле:\n\n\\[\nS_n = \\frac{n\\,(a_1 + a_n)}{2}\n\\]\n\nЗдесь:\n- \\(n = 96\\) – количество членов,\n- \\(a_1 = 1\\) – первый член,\n- \\(a_n = 96\\) – последний член.\n\nПодставляем значения:\n\n\\[\nS_{96} = \\frac{96\\,(1 + 96)}{2}\n       = \\frac{96 \\times 97}{2}\n       = 48 \\times 97\n       = 4656\n\\]\n\n---\n\n## 2. Метод попарного сложения  \n\nКаждый член можно сложить с членом, стоящим симметрично от него:\n\n\\[\n1 + 96 = 97 \\\\\n2 + 95 = 97 \\\\\n\\ldots \\\\\n48 + 49 = 97\n\\]\n\nПолучается **48 одинаковых пар**, каждая из которых в сумме даёт **97**.  \nПоэтому общая сумма:\n\n\\[\nS = 48 \\times 97 = 4656\n\\]\n\n---\n\n## 3. Проверка (на примере Python)\n\n```python\n# список от 1 до 96\nnumbers = list(range(1, 97))\n\n# стандартная функция sum\ntotal = sum(numbers)\nprint(total)   # 4656\n```\n\n---\n\n## Итог\n\nСумма всех чисел от **1 до 96** включительно равна **4656**.  \n\nЭтот результат можно получить как с помощью известной формулы для суммы арифметической прогрессии, так и простым попарным сложением симметричных элементов.",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "rng-prefix-7",
+      "run": "04-russian-42-repeat",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 7
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 32,
+      "prompt_tokens": 343,
+      "stop_reason": "length",
+      "decode_tok_s": 3.703278910623406,
+      "sampling_ms": 23.7507,
+      "sampling_ms_per_token": 0.742209375,
+      "request_ms": 61993.9479,
+      "quality": {
+        "pass": true,
+        "required": false,
+        "checks": {
+          "natural_eos": false,
+          "reasoning_closed": false,
+          "final_present": false,
+          "no_repeated_12_word_loop": true,
+          "answer": false,
+          "language": false
+        },
+        "final": "",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "russian-42-repeat",
+      "run": "04-russian-42-repeat",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\04-russian-42-repeat.f32",
+      "offset": 32,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 398,
+      "prompt_tokens": 343,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.322057964120943,
+      "sampling_ms": 291.78270000000026,
+      "sampling_ms_per_token": 0.7331223618090459,
+      "request_ms": 129131.8346,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "# Сумма чисел от 1 до 96\n\n## Что это за последовательность?\n\nЭто **арифметическая прогрессия** — числа идут по порядку с шагом 1:\n\n$$a_1 = 1,\\ a_2 = 2,\\ a_3 = 3,\\ \\dots,\\ a_{96} = 96$$\n\n## Формула суммы\n\nСумма первых n чисел вычисляется по формуле:\n\n$$S = \\frac{n \\cdot (a_1 + a_n)}{2}$$\n\n## Подставляем значения\n\n- Количество чисел: **n = 96**\n- Первое число: **a₁ = 1**\n- Последнее число: **aₙ = 96**\n\n$$S = \\frac{96 \\cdot (1 + 96)}{2} = \\frac{96 \\cdot 97}{2} = \\frac{9312}{2} = 4656$$\n\n## Результат\n\n$$\\boxed{S = 4656}$$\n\n---\n\n**Проверка:** 1 + 2 + 3 + ... + 95 + 96 = **4656** ✓",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "russian-temp07",
+      "run": "05-russian-temp07",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\05-russian-temp07.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 0.699999988079071,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 1219,
+      "prompt_tokens": 343,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.335155822638008,
+      "sampling_ms": 1111.6223000000023,
+      "sampling_ms_per_token": 0.9119132895816261,
+      "request_ms": 336555.7521,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "Этот список представляет собой **арифметическую прогрессию** с первым членом \\(a_1 = 1\\) и последним членом \\(a_n = 96\\).  \nДля нахождения суммы такой прогрессии существует простая формула:\n\n\\[\nS_n = \\frac{n}{2}\\,(a_1 + a_n)\n\\]\n\nгде  \n* \\(n\\) – количество членов прогрессии (в нашем случае \\(n = 96\\)),  \n* \\(a_1\\) – первый член,  \n* \\(a_n\\) – последний член.\n\nПодставляем наши значения:\n\n\\[\nS_{96}= \\frac{96}{2}\\,(1 + 96) = 48 \\times 97 = 4656.\n\\]\n\n---\n\n### Как это работает на практике\n\n1. **Метод «пар»**  \n   Если записать ряд и складывать первый и последний элементы, получится одинаковая сумма:\n   \\[\n   1+96 = 97,\\quad 2+95 = 97,\\quad 3+94 = 97,\\;\\dots\n   \\]\n   Всего получается \\(96/2 = 48\\) таких пар, каждая из которых равна 97.  \n   Поэтому общая сумма:\n   \\[\n   48 \\times 97 = 4656.\n   \\]\n\n2. **Формула для любого \\(n\\)**  \n   Для первых \\(n\\) натуральных чисел сумма всегда равна:\n   \\[\n   S_n = \\frac{n(n+1)}{2}.\n   \\]\n   В нашем случае \\(n = 96\\):\n   \\[\n   S_{96} = \\frac{96 \\times 97}{2} = 4656.\n   \\]\n\n---\n\n### Краткий алгоритм на любом языке программирования\n\n```python\nn = 96\nsum_of_numbers = n * (n + 1) // 2   # целочисленное деление\nprint(sum_of_numbers)               # выведет 4656\n```\n\n---\n\n### Итог\n\nСумма всех чисел от 1 до 96 включительно равна **4656**. Этот результат получается как с помощью формулы \\(n(n+1)/2\\), так и через метод попарного сложения (48 пар по 97).",
+        "max_12_word_repetitions": 1
+      }
+    },
+    {
+      "name": "english-42",
+      "run": "06-english-42",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\06-english-42.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\06-english-42.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 879,
+      "prompt_tokens": 52,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.268145257445314,
+      "sampling_ms": 645.5043999999994,
+      "sampling_ms_per_token": 0.7343622298065977,
+      "request_ms": 219898.1937,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "The blue colour of the daytime sky is a result of **Rayleigh scattering** – the atmospheric gases (mainly nitrogen and oxygen) are much smaller than the wavelengths of visible light, so they scatter short‑wavelength (blue) light far more efficiently than longer‑wavelength (red) light. Because the scattering intensity varies roughly as 1/λ⁴, blue light (≈450 nm) is scattered roughly ten times more than red light (≈650 nm). The scattered blue light fills the sky in all directions, and although violet is also scattered, our eyes are less sensitive to it, so we perceive the sky as blue.",
+        "max_12_word_repetitions": 2
+      }
+    },
+    {
+      "name": "chinese-42",
+      "run": "07-chinese-42",
+      "report": "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.json",
+      "logits": "build-local\\minimax-m2-sampling-screen-01\\07-chinese-42.f32",
+      "offset": 0,
+      "sampling": {
+        "temperature": 1.0,
+        "top_p": 0.949999988079071,
+        "top_k": 40,
+        "seed": 42
+      },
+      "sampling_ok": true,
+      "finite_logits": true,
+      "generated_tokens": 309,
+      "prompt_tokens": 55,
+      "stop_reason": "eos",
+      "decode_tok_s": 4.268402948031254,
+      "sampling_ms": 227.15249999999983,
+      "sampling_ms_per_token": 0.7351213592233005,
+      "request_ms": 85315.7833,
+      "quality": {
+        "pass": true,
+        "required": true,
+        "checks": {
+          "natural_eos": true,
+          "reasoning_closed": true,
+          "final_present": true,
+          "no_repeated_12_word_loop": true,
+          "answer": true,
+          "language": true
+        },
+        "final": "\\(17\\times 23\\) 可以先把 23 拆成 \\(20+3\\)，再分别相乘后相加：\n\n1. \\(17 \\times 20 = 340\\)  \n2. \\(17 \\times 3 = 51\\)  \n\n把两部分结果相加：  \n\\(340 + 51 = 391\\)\n\n所以 **\\(17 \\times 23 = 391\\)**。",
+        "max_12_word_repetitions": 1
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "pass": true,
+      "finite": true,
+      "bit_exact": true,
+      "elements": 6402048,
+      "max_abs": 0.0,
+      "token_ids_equal": true,
+      "actual": "rng-prefix-7",
+      "reference": "russian-7"
+    },
+    {
+      "pass": true,
+      "finite": true,
+      "bit_exact": true,
+      "elements": 79625472,
+      "max_abs": 0.0,
+      "token_ids_equal": true,
+      "actual": "russian-42-repeat",
+      "reference": "russian-42"
+    }
+  ],
+  "functional_pass": true,
+  "completion_pass": true
+}

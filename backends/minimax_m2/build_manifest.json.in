@@ -10,6 +10,11 @@
   "dflash_support_sha256": "@mm27_dflash_support_hashes@",
   "group_cache_support_sha256": "@mm27_group_support_hashes@",
   "sampling_support_sha256": "@mm27_sampling_support_hashes@",
+  "template_json_oracle": {
+    "original_sha256": "@mm27_template_json_original_sha256@",
+    "generated_sha256": "@mm27_template_json_generated_sha256@",
+    "patch_sha256": "@mm27_template_json_patch_sha256@"
+  },
   "patches": "@mm27_patch_set@",
   "oracle_source_sha256": {
     "loader": "@mm27_loader_sha256@",

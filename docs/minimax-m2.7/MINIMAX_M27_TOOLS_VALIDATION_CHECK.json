@@ -1,0 +1,70 @@
+{
+  "pass": true,
+  "date": "2026-10-09",
+  "timezone": "Asia/Yekaterinburg",
+  "revision_at_validation": "d342001b4dca70860bcd585f28004591a83e5bf3",
+  "dirty": true,
+  "scope": "P2.4 standalone parser/native-template fixtures; no new inference, HTTP/API or speed measurement",
+  "ready_for_api": false,
+  "previous_files_verified_unchanged": 121,
+  "source_sha256": {
+    "serve/minimax_m2_tools.py": "199155ced393b6f602e493dfb509adda9d7dc05ed798d9c59421c56986a2ae7c",
+    "serve/test_minimax_m2_tools.py": "7816e9646135466274a993d4d1eeaad56a09dd275de1c58dfb83f1cae28a14b3",
+    "tools/minimax_m2_tool_cases.py": "6ee39352dc47ef6d07861731d408c12c10c105e6017866d313118fa8927ae3ca",
+    "tools/check_minimax_m2_tools.py": "cfaf5f52e83fb832538077cb5100a7e8d7d387bcca9c3e366c63d0a58e16c231",
+    "serve/minimax_m2.py": "318d547ce70931dd1185451c004feb42291dafff30fe2fff0add59c736b74048",
+    "serve/minimax_m2_history.py": "1b079deabaae95d538f7a5310faf9f49ab094896eb443bba63a5caacf8872f94",
+    "serve/test_minimax_m2.py": "6f23a4dcc7f4b5df2abbb8fa31ac30786c1b5a8afe8ea96d7ac1d246c96ecf2d",
+    "serve/test_minimax_m2_history.py": "d88e4080b7d2d8745530eed411b590e2d3e943692c1236832610b383205d891a",
+    "tools/test_minimax_m2_tokenizer.py": "d48f61cd0e241c835ac44a737796b412509359c589d13c639eb6f57a55d8dc0e",
+    "tools/minimax_m2_history_cases.py": "68b6aa4a59636372b45e83918d53bae160bcdde8bf17ce0ee5d6871336c5d3e5",
+    "serve/frontend.py": "677d072f35cb2f148a8ad9c7ba58f8166bad24c8ecbeacdd746ce1bdd4cd07a0",
+    "tools/minimax_m2_template.py": "98eff0c210ff6f3fc2f25463a15b4550989d593cf610a22049a228be713f666b",
+    "tools/strata_tokenizer.py": "edde7ef78c757a540a0afb3c3ab7809a17e912ff8f3b4bedb577aef4566c0e34",
+    "tools/check_minimax_m2_oracles.py": "e3306bd44abf731bbfcbf93af8861fd4d84988e4009c2083f807c45f62d58652",
+    "tools/gguf_reader.py": "e1a3c0e472a75d49a18ea8243d2ff1014cf594b003d0fd9447a683d9f6edf56e",
+    "tools/inspect_minimax_m2_gguf.py": "fdf12b98910f617973250bb3e05d58d627db328804c0f4bd5188a6357c54dec0",
+    "tools/minimax_m2_loader_contract.py": "c3a6e7734dd1b3027a61b729127ebc3476110e99e8f347e477e105a7f39cc275",
+    "serve/fixtures/minimax_m27_chat_template.jinja": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566"
+  },
+  "binary_sha256": {
+    "template-json": "3f0ed891a29f2af99c6b9a35c5a8f25ef5a57aac47ed445fd8efd7465f5bca43",
+    "tokenizer": "9632a2a7356d2cd0d0be0286ba864fb2322c3bac5ad5ec4debd00bf58c59710e"
+  },
+  "model_header_sha256": "9a011b2ad6fb20db3bb0cdfe9af08665939ee1f0cb0609ffe2bfee7f31c825db",
+  "template_sha256": "893d908f7b5cc65fdde270dcae5ea1a99647c6a7ce572ae874a57b7160069566",
+  "dependency_provenance": {
+    "template-json": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none;jinja-json-float-roundtrip",
+      "renderer": "native-jinja-json-float-roundtrip"
+    },
+    "tokenizer": {
+      "architecture": "minimax-m2",
+      "requested_revision": "86ebfef2c6a0f3359a2a07d2c215d61b0fa885c9",
+      "archive_sha256": "f8e524b635b726bae74fd8f84bb9249e5b09384c63207f6707c5a3f921acad99",
+      "patches": "none"
+    }
+  },
+  "inference_executable_unchanged_sha256": "07844c0345c12f78ded9f24d7f86154c9f360bfb574e96569e8694489268b0ef",
+  "unit_methods": 51,
+  "new_tool_parser_unit_methods": 18,
+  "native_tool_groups": 281,
+  "native_history_prompts": 281,
+  "wire_tokens_compared": 22079,
+  "saved_completion_replays": 8,
+  "checks": 3966,
+  "packages": {
+    "jsonschema": "4.26.0",
+    "referencing": "0.37.0",
+    "jinja2": "3.1.4"
+  },
+  "evidence_directory": "build-local\\minimax-m2-tools-check-02",
+  "artifact_sha256": {
+    "MINIMAX_M27_TOOLS_CHECK.json": "dbf4240341686d1e86c9c71498bb3ddfe11d14fbae07b8285f7323b3b3889849",
+    "MINIMAX_M27_TOOLS.md": "b86adc5b4e477db2ae86b141bc2e29be00c38092f6b506207efa9de53fd4bb88"
+  },
+  "previous_validation_sha256": "3d7bba878f355426693968e8e71cb6f080090d92b99dc10fe99ca2533c78db93"
+}

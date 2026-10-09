@@ -7,11 +7,18 @@
 #include "json.h"
 #include <iostream>
 using json = common_json;
+#ifdef STRATA_MM27_TEMPLATE_JSON
+static const char * renderer_name = "native-jinja-json-float-roundtrip";
+static const std::string oracle_patches = std::string(STRATA_MM27_PATCH_SET) + ";jinja-json-float-roundtrip";
+#else
+static const char * renderer_name = "native-jinja-raw";
+static const std::string oracle_patches = STRATA_MM27_PATCH_SET;
+#endif
 int main(int argc, char ** argv) {
     if (argc == 2 && std::string(argv[1]) == "--version") {
         std::cout << json({{"architecture", "minimax-m2"}, {"requested_revision", STRATA_MM27_SOURCE_SHA},
-            {"archive_sha256", STRATA_MM27_ARCHIVE_SHA256}, {"patches", STRATA_MM27_PATCH_SET},
-            {"renderer", "native-jinja-raw"}}).dump() << '\n'; return 0;
+            {"archive_sha256", STRATA_MM27_ARCHIVE_SHA256}, {"patches", oracle_patches},
+            {"renderer", renderer_name}}).dump() << '\n'; return 0;
     }
     if (argc != 1) { std::cerr << "usage: strata-minimax-m2-template [--version]\n"; return 2; }
     for (std::string line; std::getline(std::cin, line);) {
