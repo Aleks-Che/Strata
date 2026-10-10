@@ -29,6 +29,8 @@ def main():
     ap.add_argument('--prompt-tokens', type=int, default=4096)
     ap.add_argument('--tokens', type=int, default=128)
     ap.add_argument('--generation-prompt', type=Path, help='UTF-8 file with the generation prompt')
+    ap.add_argument('--alternate-generation-prompt', type=Path, help='After normal repeats, alternate another prompt with the original; separate RAM sessions, shared expert cache')
+    ap.add_argument('--switch-rounds', type=int, default=2, help='Number of alternate/original pairs when an alternate prompt is supplied (2..5)')
     ap.add_argument('--repeats', type=int, default=1, help='Number of warm repeats of the same prompt')
     ap.add_argument('--prefill-repeats', type=int, default=0, help='Repeat full prefill in fresh sessions after decode; preserves expert cache, never restores KV')
     ap.add_argument('--timeout', type=int, default=240, help='Seconds per request, including prefill')
@@ -37,6 +39,8 @@ def main():
     args = ap.parse_args()
     if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10 or not 0 <= args.prefill_repeats <= 10:
         ap.error('Require prompt-tokens >= 64, tokens >= 1, timeout >= 30, repeats in [1, 10], prefill-repeats in [0, 10]')
+    if not 2 <= args.switch_rounds <= 5:
+        ap.error('switch-rounds must be in [2, 5]')
     cfg = json.loads(args.config.read_text(encoding='utf-8'))
     if cfg.get('architecture') != 'deepseek4':
         ap.error('This benchmark requires a DeepSeek profile')
@@ -103,11 +107,17 @@ def main():
         if args.generation_prompt:
             generation = args.generation_prompt.read_text(encoding='utf-8')
         result['generation_prompt'] = generation
+        alternate = args.alternate_generation_prompt.read_text(encoding='utf-8') if args.alternate_generation_prompt else None
+        result['alternate_generation_prompt'] = alternate
         requests = [
             ('prefill', 'bench-context', prefill, 8),
             ('decode', 'bench-generation', generation, args.tokens),
         ] + [('repeat' if i==0 else f'repeat_{i+1}', 'bench-generation', generation, args.tokens)
              for i in range(args.repeats)]
+        if alternate is not None:
+            for i in range(args.switch_rounds):
+                requests += [(f'switch_{i+1}_alternate', 'bench-alternate', alternate, args.tokens),
+                             (f'switch_{i+1}_original', 'bench-generation', generation, args.tokens)]
         requests += [(f'full_prefill_{i+1}', f'bench-fresh-prefill-{i+1}', prefill, 8)
                      for i in range(args.prefill_repeats)]
         for name, session, prompt, count in requests:
@@ -152,16 +162,26 @@ def main():
         result['repeat_identical'] = all(result['requests']['decode']['token_ids'] == entry['token_ids'] for entry in repeats)
         if not result['repeat_identical']:
             raise RuntimeError('Greedy cached repeat differs from original output')
+        if alternate is not None:
+            switched = result['requests']
+            for i in range(args.switch_rounds):
+                if switched[f'switch_{i+1}_original']['token_ids'] != switched['decode']['token_ids']:
+                    raise RuntimeError('Switching prompts changed original greedy output')
+                if switched[f'switch_{i+1}_alternate']['token_ids'] != switched['switch_1_alternate']['token_ids']:
+                    raise RuntimeError('Switching prompts changed alternate greedy output')
+            result['switch_identical'] = True
         if args.prefill_repeats:
             full = [entry for name, entry in result['requests'].items() if name.startswith('full_prefill_')]
             result['full_prefill_median_ms'] = statistics.median(entry['timings']['prompt_ms'] for entry in full)
             if any(entry['token_ids'] != result['requests']['prefill']['token_ids'] for entry in full):
                 raise RuntimeError('Repeated full prefill output differs')
     finally:
-        if engine:
-            engine.close()
+        # End sampling while weights/cache are still resident; otherwise a
+        # teardown sample is incorrectly attributed to the final request.
         done.set()
         watcher.join(timeout=8)
+        if engine:
+            engine.close()
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         print(f'Results: {args.output}', flush=True)
 

@@ -91,10 +91,11 @@ int main() {
     auto copy=(StrataExpertCopy)ggml_backend_reg_get_proc_address(reg,"strata_expert_copy");
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(reg,"strata_expert_stats");
     auto budget=(StrataExpertBudget)ggml_backend_reg_get_proc_address(reg,"strata_expert_budget");
+    auto decay=(StrataExpertDecay)ggml_backend_reg_get_proc_address(reg,"strata_expert_decay");
     auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(reg,"strata_expert_control");
     auto plan=(StrataExpertPlan)ggml_backend_reg_get_proc_address(reg,"strata_expert_plan");
     auto finish=(StrataExpertFinish)ggml_backend_reg_get_proc_address(reg,"strata_expert_finish");
-    if(!copy || !stats || !budget || !control || !plan || !finish)return 1;
+    if(!copy || !stats || !budget || !decay || !control || !plan || !finish)return 1;
     budget(4);
     constexpr int count=10;
     constexpr size_t width=(1<<20)+(256<<10); // crosses the 1 MiB staging boundary
@@ -144,6 +145,8 @@ int main() {
     const bool prefill_hits=prefill_env && std::strcmp(prefill_env,"1")==0;
     const char *pipeline_env=std::getenv("STRATA_EXPERT_PIPELINE");
     const bool pipeline_enabled=pipeline_env && std::strcmp(pipeline_env,"1")==0;
+    const char *slab_env=std::getenv("STRATA_EXPERT_SLAB_MIB");
+    const bool slabs=slab_env && std::atoi(slab_env)>0;
     const uint64_t prefill_copy_bytes=prefill_hits?0:2*width+(pipeline_enabled?1024:512);
     before=after;check(2,3,32);stats(gpu,&after);
     ok &= after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
@@ -196,6 +199,7 @@ int main() {
     ok &= control(0,&policy,&live);
     check(2,3,1);check(4,4,1);
     control(0,nullptr,&live);ok &= live.matrices==3 && live.cache_bytes>3*width;
+    ok &= live.cache_reserved_bytes>=live.cache_bytes && (slabs?live.slab_blocks>0:live.slab_blocks==0);
     policy.matrices=2;control(0,&policy,&live);ok &= live.matrices==2;
     stats(gpu,&before);check(3,4,1);stats(gpu,&after);
     ok &= after.hits==before.hits+2; // only the oldest was released
@@ -209,6 +213,7 @@ int main() {
     control(0,nullptr,&live);ok &= live.matrices==2;
     ggml_backend_free(draft_gpu);budget(4);
     policy.matrices=0;control(0,&policy,&live);ok &= live.matrices==0 && live.cache_bytes==0;
+    ok &= live.cache_reserved_bytes==0 && live.slab_blocks==0;
     check(0,9,1);control(0,nullptr,&live);ok &= live.matrices==0;
     policy.matrices=6;control(0,&policy,&live);check(2,5,1);
     control(0,nullptr,&live);ok &= live.matrices==4;
@@ -243,9 +248,10 @@ int main() {
     // A same-size replacement needs no extra VRAM, even with <64 MiB spare.
     policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+8;
     control(0,&policy,&live);
-    auto resident_bytes=live.cache_bytes;stats(gpu,&before);
+    auto resident_bytes=live.cache_bytes,reserved_bytes=live.cache_reserved_bytes;stats(gpu,&before);
     check(1,1,1);stats(gpu,&after);control(0,nullptr,&live);
-    ok &= after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes;
+    if(slabs)ok &= after.misses>before.misses && live.cache_reserved_bytes==reserved_bytes;
+    else ok &= after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes;
     // Cancel a partially consumed plan and change residency before a new plan.
     begin(gpu,0,count-1,1);copy(gpu,source,dest,0,0,1);finish(gpu);
     policy.mode=1;policy.matrices=0;control(0,&policy,&live);
@@ -262,6 +268,7 @@ int main() {
     setenv("STRATA_EXPERT_CACHE_POLICY","frequency",1);
 #endif
     auto *frequency_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    decay(0);
     budget(4);policy.mode=1;policy.matrices=3;control(0,&policy,&live);
     auto frequency_copy=[&](int id) {
         begin(frequency_gpu,id,id,1);copy(frequency_gpu,source,dest,id,id,1);finish(frequency_gpu);
@@ -271,6 +278,7 @@ int main() {
     };
     for(int repeat=0;repeat<8;++repeat)for(int id=0;id<3;++id)frequency_copy(id);
     stats(frequency_gpu,&before);
+    ok &= before.frequency_decay==4096;
     for(int id=4;id<10;++id)frequency_copy(id);
     stats(frequency_gpu,&after);
     ok &= after.admission_rejects==before.admission_rejects+6 && after.evictions==before.evictions;
@@ -283,9 +291,21 @@ int main() {
     // Live cache limits remain authoritative even for hot entries.
     policy.matrices=0;control(0,&policy,&live);ok &= live.cache_bytes==0 && live.matrices==0;
     ggml_backend_free(frequency_gpu);
+    // Independent target/draft periods are captured at construction. Selecting
+    // the next graph's policy must not reset the other backend's history.
+    auto *long_history=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    auto *short_history=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+    decay(491520);plan(long_history,nullptr,0);finish(long_history);
+    decay(32768);plan(short_history,nullptr,0);finish(short_history);
+    decay(0);stats(long_history,&before);stats(short_history,&after);
+    ok &= before.frequency_decay==491520 && after.frequency_decay==32768;
+    plan(long_history,nullptr,0);finish(long_history);stats(long_history,&before);
+    ok &= before.frequency_decay==491520;
+    ggml_backend_free(short_history);ggml_backend_free(long_history);
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);
+    control(0,nullptr,&live);ok &= live.cache_reserved_bytes==0 && live.slab_blocks==0 && live.matrices==0;
     std::puts(ok?"Expert cache/staging byte parity passed":"Expert cache/staging byte parity FAILED");
     return ok?0:1;
 }

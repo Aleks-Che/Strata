@@ -30,6 +30,8 @@ struct strata_mm27_stats {
     uint64_t pipeline_scheduler_waits_skipped=0,pipeline_observer_fences=0,pipeline_pending_copy=0;
     uint64_t async_compute_calls=0,graph_exit_fences=0;
     uint64_t router_ids_published=0,router_ids_hits=0,router_ids_misses=0,router_ids_bytes=0;
+    uint64_t sort_table_copies=0,sort_table_bytes=0,sort_table_reuse_waits=0,sort_table_drain_waits=0;
+    uint64_t sort_table_fallbacks=0,sort_table_pinned_bytes=0,sort_table_pending=0,sort_table_peak_pending=0;
     double pipeline_delivery_ms=0;
     double source_ms=0,h2d_ms=0,compute_ms=0;
 };
@@ -41,6 +43,8 @@ using strata_mm27_observer=void (*)(ggml_backend_t,const ggml_tensor *,const ggm
 void strata_mm27_mode(int mode);
 // Opt-in strict Q4_K/Q6_K host route reuse. Exact node, one split, one use.
 void strata_mm27_router_host_ids(bool enabled);
+// Opt-in bounded host-source lifetime for strict routed permutation H2D.
+void strata_mm27_sort_table_async(bool enabled);
 // Mode 2 source: 0 ReadFile->pinned, 1 mmap->pinned, 2 pageable mmap->CUDA,
 // 3 ReadFile for prefill/workspace warmup, then mmap->pinned for serial decode.
 // Mapped readers constrain this process's working set; release restores it.

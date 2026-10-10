@@ -13,11 +13,22 @@
 #include "expert_reuse.hpp"
 #include "expert_frequency.hpp"
 #include "host_copy.hpp"
+#include "expert_tuning.hpp"
+#include "expert_slab.hpp"
+
+// Weak ownership avoids keeping CUDA allocations alive after the last backend.
+// Registry access is covered by strata_expert_transfer_mutex below.
+static std::map<int,std::weak_ptr<strata_ds4::ExpertSlabAllocator>> strata_expert_slabs;
 
 static thread_local int strata_expert_thread_budget=-1;
+static thread_local int strata_expert_thread_decay=0;
 static void strata_cuda_expert_budget(int mib) {
     GGML_ASSERT(mib>=0 && mib<=65536);
     strata_expert_thread_budget=mib;
+}
+static void strata_cuda_expert_decay(int accesses) {
+    GGML_ASSERT(accesses>=0 && accesses<=strata_ds4::max_frequency_decay);
+    strata_expert_thread_decay=accesses;
 }
 
 struct StrataExpertTransfer {
@@ -38,6 +49,7 @@ struct StrataExpertTransfer {
     StrataExpertCounters stats;
     bool managed=false;
     size_t allocated=0;
+    std::shared_ptr<strata_ds4::ExpertSlabAllocator> slab;
     std::unique_ptr<StrataExpertPipeline> pipeline;
     std::unordered_set<const void *> protected_keys;
     StrataExpertReuseFence reuse_fence;
@@ -111,12 +123,22 @@ struct StrataExpertTransfer {
     }
     explicit StrataExpertTransfer(ggml_backend_cuda_context *ctx,bool dynamic=false):device(ctx->device),stream(ctx->stream()),managed(dynamic) {
         ggml_cuda_set_device(device);
+        const auto slab_bytes=env_mib("STRATA_EXPERT_SLAB_MIB");
+        if(slab_bytes) {
+            slab=strata_expert_slabs[device].lock();
+            if(!slab) {
+                slab=std::make_shared<strata_ds4::ExpertSlabAllocator>(slab_bytes);
+                strata_expert_slabs[device]=slab;
+            }
+        }
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
         const char *policy=std::getenv("STRATA_EXPERT_CACHE_POLICY");
         const char *match=std::getenv("STRATA_EXPERT_CACHE_MATCH_SIZE");
         match_size=match && std::strcmp(match,"1")==0;
-        if(policy && std::strcmp(policy,"frequency")==0)
-            frequency=std::make_unique<StrataExpertFrequency>(std::max<size_t>(4096,capacity>>17));
+        if(policy && std::strcmp(policy,"frequency")==0) {
+            stats.frequency_decay=strata_ds4::frequency_decay(capacity,strata_expert_thread_decay);
+            frequency=std::make_unique<StrataExpertFrequency>(stats.frequency_decay);
+        }
         stage_size=env_mib("STRATA_EXPERT_STAGE_MIB");
         const char *wc=std::getenv("STRATA_EXPERT_STAGE_WC");
         bool write_combined=wc && std::strcmp(wc,"1")==0;
@@ -155,6 +177,8 @@ struct StrataExpertTransfer {
         }
         GGML_LOG_INFO("STRATA_EXPERT_TRANSFER cache_mib=%zu stage_mib=%zu buffers=2 policy=%s prefill_bypass=1 stage_wc=%d pipeline=%d pipeline_slots=%zu readers=%d read_mode=%d\n",capacity>>20,stage_size>>20,frequency?"frequency":"lru",int(write_combined),int(bool(pipeline)),pipeline?StrataExpertPipeline::slots:0,n_readers,read_mode);
         GGML_LOG_INFO("STRATA_EXPERT_TUNING host_copy=%s early_refill=%d prefill_cache_hits=%d\n",avx2?"avx2":"crt",int(early_refill),int(prefill_cache_hits));
+        GGML_LOG_INFO("STRATA_EXPERT_FREQUENCY decay=%llu\n",(unsigned long long)stats.frequency_decay);
+        GGML_LOG_INFO("STRATA_EXPERT_SLAB mib=%zu dynamic=%d\n",slab_bytes>>20,int(managed));
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);
@@ -167,7 +191,7 @@ struct StrataExpertTransfer {
             if(stage[i]) CUDA_CHECK(cudaFreeHost(stage[i]));
         }
         if(arena) CUDA_CHECK(cudaFree(arena));
-        for(auto &entry:entries) if(entry.second.allocation) CUDA_CHECK(cudaFree(entry.second.allocation));
+        for(auto &entry:entries) if(entry.second.allocation) free_allocation(entry.second.allocation);
         GGML_LOG_INFO("STRATA_EXPERT_TOTAL hits=%llu misses=%llu bypass=%llu evictions=%llu h2d_bytes=%llu d2d_bytes=%llu stage_us=%llu wait_us=%llu submit_us=%llu pipeline_groups=%llu pipeline_chunks=%llu pipeline_unused=%llu pipeline_fallbacks=%llu\n",
             (unsigned long long)stats.hits,(unsigned long long)stats.misses,(unsigned long long)stats.bypass,(unsigned long long)stats.evictions,
             (unsigned long long)stats.h2d_bytes,(unsigned long long)stats.d2d_bytes,(unsigned long long)stats.stage_us,
@@ -178,6 +202,9 @@ struct StrataExpertTransfer {
             (unsigned long long)stats.file_read_bytes,(unsigned long long)stats.mmap_read_bytes,(unsigned long long)stats.read_peak,
             (unsigned long long)stats.ordered_reuses,(unsigned long long)stats.reuse_events,(unsigned long long)stats.eviction_syncs,
             (unsigned long long)stats.admission_rejects);
+    }
+    void free_allocation(uint8_t *allocation) {
+        CUDA_CHECK(slab?slab->release(allocation):cudaFree(allocation));
     }
     void manage() {
         if(managed)return;
@@ -202,7 +229,7 @@ struct StrataExpertTransfer {
         auto it=entries.find(*candidate);
         auto *ptr=it->second.allocation;
         allocated-=it->second.bytes;
-        if(!reuse) {CUDA_CHECK(cudaFree(ptr));ptr=nullptr;}
+        if(!reuse) {free_allocation(ptr);ptr=nullptr;}
         lru.erase(it->second.lru);entries.erase(it);++stats.evictions;
         return ptr;
     }
@@ -325,11 +352,19 @@ static StrataExpertTransfer &strata_expert_state(ggml_backend_t backend) {
 }
 
 static void strata_cache_totals(int device,StrataVramStatus &out) {
-    out.cache_bytes=out.matrices=0;
+    out.cache_bytes=out.matrices=out.cache_reserved_bytes=out.slab_blocks=out.slab_allocations=0;
+    std::unordered_set<strata_ds4::ExpertSlabAllocator *> pools;
     for(auto &kv:strata_expert_transfers) if(kv.second->device==device) {
         auto &s=*kv.second;
         out.cache_bytes+=s.managed?s.allocated:s.capacity;
         out.matrices+=s.entries.size();
+        if(s.managed && s.slab) {
+            if(pools.insert(s.slab.get()).second) {
+                auto status=s.slab->status();
+                out.cache_reserved_bytes+=status.reserved;
+                out.slab_blocks+=status.blocks;out.slab_allocations+=status.block_allocations;
+            }
+        } else out.cache_reserved_bytes+=s.managed?s.allocated:s.capacity;
     }
 }
 static StrataExpertTransfer *strata_oldest_cache(int device,size_t prefer_bytes=0) {
@@ -379,10 +414,10 @@ static bool strata_cuda_expert_control(int device,const StrataVramPolicy *policy
     }
     if(control.status.telemetry_ok) {
         control.status.free_bytes=free;control.status.total_bytes=total;
-        control.status.limit_bytes=control.policy.byte_limit(free,total,control.status.cache_bytes);
+        control.status.limit_bytes=control.policy.byte_limit(free,total,control.status.cache_reserved_bytes);
         if(control.enabled) {
             const auto max_count=control.policy.mode==1?control.policy.matrices:UINT64_MAX;
-            while(control.status.cache_bytes>control.status.limit_bytes || control.status.matrices>max_count) {
+            while(control.status.cache_reserved_bytes>control.status.limit_bytes || control.status.matrices>max_count) {
                 auto *oldest=strata_oldest_cache(device);
                 if(!oldest)break;
                 oldest->evict();strata_cache_totals(device,control.status);
@@ -401,15 +436,14 @@ static bool strata_cuda_expert_control(int device,const StrataVramPolicy *policy
         control.status.target_unreachable=control.enabled && total-free>ceiling && !control.status.cache_bytes;
     } else {
         // No reliable free-memory reading: keep existing copies, admit no more.
-        control.status.limit_bytes=control.status.cache_bytes;
+        control.status.limit_bytes=control.status.cache_reserved_bytes;
     }
     *out=control.status;
     return true;
 }
 
-// Individually owned allocations allow pressure to release a subset of cached
-// matrices. Equal-sized LRU replacements reuse the allocation after its reads
-// finish; a failed allocation falls back to the normal streaming path.
+// Dynamic matrices use individual allocations or shared slabs. Equal-size LRU
+// replacements retain their slot after ordering its reads against the consumer.
 static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *source,ggml_tensor *dest,int first,int last,int tokens) {
     auto &c=strata_device_cache_controls[s.device];
     const size_t width=source->nb[2];
@@ -445,24 +479,36 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
                     auto candidate=oldest->evictable(prefer);if(candidate==oldest->lru.rend())break;
                     if(!allocation && !s.admits(key,*oldest,*candidate)) {rejected=true;break;}
                     auto old_bytes=oldest->entries.find(*candidate)->second.bytes;
-                    bool reuse=!allocation && old_bytes==bytes;
+                    bool reuse=!allocation && old_bytes==bytes && oldest->slab==s.slab;
                     auto *released=oldest->evict(reuse,s.stream,prefer);
                     if(reuse)allocation=released;
                     strata_cache_totals(s.device,c.status);
                 }
                 fits=!rejected && c.status.cache_bytes+bytes<=c.status.limit_bytes && c.status.matrices<max_count &&
                     (c.policy.mode!=0 || s.allocated+bytes<=s.capacity);
-                if(!fits && allocation) {CUDA_CHECK(cudaFree(allocation));allocation=nullptr;}
+                if(!fits && allocation) {
+                    // A reused slot may still have reads ordered on this stream.
+                    CUDA_CHECK(cudaStreamSynchronize(s.stream));
+                    s.free_allocation(allocation);allocation=nullptr;
+                }
                 ggml_cuda_set_device(s.device);
                 if(fits && !allocation) {
                     // Recheck at allocation time: another process can allocate
                     // after the last periodic sample. Keep a growth margin.
                     size_t free=0,total=0;
-                    bool grow=c.status.cache_bytes+bytes+(64ULL<<20)<=c.status.limit_bytes &&
-                        cudaMemGetInfo(&free,&total)==cudaSuccess &&
-                        c.policy.byte_limit(free,total,c.status.cache_bytes)>=c.status.cache_bytes+bytes+(64ULL<<20);
-                    if(grow && cudaMalloc((void **)&allocation,bytes)!=cudaSuccess) {
-                        cudaGetLastError();++c.status.allocation_failures;allocation=nullptr;
+                    const uint64_t reserved=c.status.cache_reserved_bytes;
+                    uint64_t growth=0;
+                    if(cudaMemGetInfo(&free,&total)==cudaSuccess) {
+                        const auto limit=std::min(c.status.limit_bytes,c.policy.byte_limit(free,total,reserved));
+                        const auto charged=reserved+(64ULL<<20);
+                        growth=limit-std::min<uint64_t>(limit,charged);
+                    }
+                    // Slab holes remain usable even when physical growth stops.
+                    bool growth_denied=false;
+                    const auto error=s.slab?s.slab->allocate((void **)&allocation,bytes,size_t(growth),&growth_denied):
+                        growth>=bytes?cudaMalloc((void **)&allocation,bytes):cudaSuccess;
+                    if(error!=cudaSuccess) {
+                        cudaGetLastError();if(!growth_denied)++c.status.allocation_failures;allocation=nullptr;
                     }
                     if(!allocation) {
                         // Admission headroom can prevent growth before the
@@ -471,7 +517,7 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
                         auto *oldest=strata_oldest_cache(s.device,bytes);
                         if(oldest) {
                             auto candidate=oldest->evictable(bytes);
-                            if(candidate!=oldest->lru.rend() && oldest->entries.find(*candidate)->second.bytes==bytes &&
+                            if(oldest->slab==s.slab && candidate!=oldest->lru.rend() && oldest->entries.find(*candidate)->second.bytes==bytes &&
                                s.admits(key,*oldest,*candidate))
                                 allocation=oldest->evict(true,s.stream,bytes);
                         }

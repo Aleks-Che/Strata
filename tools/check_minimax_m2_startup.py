@@ -15,7 +15,7 @@ import traceback
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from serve.minimax_m2_engine import MiniMaxEngine, EXE_SHA256, EVENTS_EXE_SHA256
+from serve.minimax_m2_engine import MiniMaxEngine, EXE_SHA256, EVENTS_EXE_SHA256, ROUTER_EXE_SHA256
 from serve.winjob import contain
 
 
@@ -25,18 +25,21 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--engine', type=Path, default=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe')
     parser.add_argument('--pipeline-events', type=int, choices=(0, 2), default=0)
+    parser.add_argument('--router-host-ids', action='store_true')
     args = parser.parse_args()
     digest = hashlib.sha256(args.engine.read_bytes()).hexdigest()
-    assert digest in (EXE_SHA256, EVENTS_EXE_SHA256)
-    assert not args.pipeline_events or digest == EVENTS_EXE_SHA256
+    assert digest in (EXE_SHA256, EVENTS_EXE_SHA256, ROUTER_EXE_SHA256)
+    assert not args.pipeline_events or digest in (EVENTS_EXE_SHA256, ROUTER_EXE_SHA256)
+    assert not args.router_host_ids or (digest == ROUTER_EXE_SHA256 and args.pipeline_events == 2)
     args.out.mkdir(parents=True, exist_ok=False)
     key = 'local-minimax-startup-fixture'
     cmd = [sys.executable, '-u', '-m', 'serve.minimax_m2_server', '--gguf', args.gguf, '--port', '0',
            '--api-key', key, '--ctx', '2048', '--batch', '16', '--gpu-cache-mib', '18432',
            '--pipeline-readers', '2', '--pipeline-chunk-mib', '4', '--log', str((args.out/'native.log').resolve())]
     cmd += ['--engine', str(args.engine.resolve()), '--pipeline-events', str(args.pipeline_events)]
+    if args.router_host_ids:cmd += ['--router-host-ids']
     report = {'pass': False, 'cases': [], 'command': cmd, 'sources': {}, 'engine_sha256': digest,
-              'pipeline_events': args.pipeline_events}
+              'pipeline_events': args.pipeline_events, 'router_host_ids': args.router_host_ids}
     for path in ['serve/minimax_m2_server.py', 'serve/minimax_m2_engine.py', 'serve/minimax_m2_worker.py',
                  'tools/check_minimax_m2_startup.py', 'serve/requirements-minimax.txt']:
         data = (ROOT/path).read_bytes()

@@ -45,8 +45,12 @@ Batch16/context2K/4K, prefix/archive, EOS, real RAM94,20%/VRAM94,45%, обе
 отмены/recovery и CLI reload проверены. [Команды и область MM27-34](MINIMAX_M27_COPY_EVENTS_CONTEXT.md).
 Default events0 сохранён; mode1 доступен только в native diagnostics.
 [MM27-35](MINIMAX_M27_ROUTER_IDS.md) добавляет native `--router-host-ids 1`.
-Его новый EXE612354a1… пока не входит в server admission: нужны отдельные
-long-context/session/pressure проверки этой сборки.
+[MM27-36](MINIMAX_M27_ROUTER_IDS_CONTEXT.md) проверил этот EXE на2K/4K,
+sessions/EOS/sampling, real RAM94,180%/VRAM94,430% и обеих отменах/recovery.
+Server CLI принимает boolean `--router-host-ids` с
+`--engine build-local/minimax-m2-router-ids-candidate/engine.exe --pipeline-events 2`.
+Нужны readers; ready header подтверждает режим, несовместимый SHA отвергается.
+Default off сохранён. Драйвер engine.py принимает `router_host_ids=True`.
 
 Используется только проверенный GGUF/header и конкретный EXE. Изменившаяся
 сборка отклоняется до загрузки, пока её SHA не проверен и явно не принят.

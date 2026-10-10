@@ -49,6 +49,8 @@ public:
             <<",\"cache_bytes\":"<<status.cache_bytes<<",\"cached_matrices\":"<<status.matrices
             <<",\"limit_bytes\":"<<status.limit_bytes<<",\"free_bytes\":"<<status.free_bytes<<",\"total_bytes\":"<<status.total_bytes
             <<",\"allocation_failures\":"<<status.allocation_failures
+            <<",\"cache_reserved_bytes\":"<<status.cache_reserved_bytes
+            <<",\"slab_blocks\":"<<status.slab_blocks<<",\"slab_allocations\":"<<status.slab_allocations
             <<",\"enabled\":"<<(status.enabled?"true":"false")
             <<",\"telemetry_ok\":"<<(status.telemetry_ok?"true":"false")
             <<",\"target_unreachable\":"<<(status.target_unreachable?"true":"false")<<"}\n"<<std::flush;

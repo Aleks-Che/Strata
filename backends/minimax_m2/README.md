@@ -721,3 +721,47 @@ Short full-model batch1/8 pairs also match exactly (32 IDs/6402048 logits).
 Final evidence:695 gates/163 hashes pass;2144 independent memory samples,
 RAM22.213%/VRAM84.406% peaks, all10 native processes exited. This preserves
 cache18GiB for an equal comparison; it is not a full-model pressure test.
+
+MM27-36 validates that same router EXE at context4096/batch16 with prefix and
+RAM archive:1150 IDs/230073600 logits match the old reference; six restore
+pairs also match. All19 live pressure scenarios pass (17 HTTP answers/662 IDs,
+EOS414, sampling128,128MiB GPU trim, protected2K restore after4K admission
+rejection, both cancellations/recovery). Peaks:RAM94.180%/VRAM94.430%.
+Six real CLI/auth/unload/reload checks,60 CPU methods and116 evidence gates
+pass. All owned processes exited.
+
+The experimental server accepts exact612354a1… with boolean `--router-host-ids`
+and `--pipeline-events 2` (readers required). Append
+`--engine build-local/minimax-m2-router-ids-candidate/engine.exe --pipeline-events 2 --router-host-ids`
+to its18/2/4/batch16 profile. Legacy98e85e80… and events13a885cc… remain admitted;
+defaults stay off. See [context and pressure](../../docs/minimax-m2.7/MINIMAX_M27_ROUTER_IDS_CONTEXT.md)
+for the validated session profile and evidence. No new speed A/B was performed.
+The next candidate is permutation-table H2D synchronization with bounded host
+buffer lifetime; batch1/8 at2K/4K, shift and quality/oracle gates remain open.
+
+
+MM27-37 implements native `--sort-table-async 0|1` (default 0). Four pinned
+4096-byte host slots retain each permutation table until its CUDA copy event
+completes. Oversized tables fall back; graph-exit and failure cleanup drain the
+sources. Arithmetic, the device pool, CUDA graph policy and expert copies stay
+unchanged. The candidate is `build-local/minimax-m2-sort-table-candidate/engine.exe`
+(SHA `692f2e76d97192c3357d209d2013d92b63735607e6c4eeaeac42b31c71a839ff`).
+
+Three pairs on the same RTX 5090/Q4_K_M A,A,B,A x128 corpus, router IDs on:
+median 4.465481 → 4.482868 tokens/s (+0.3894%); pair changes +0.4450%,
+-0.1769%, +0.1561%. This does not establish a useful speedup. The native option
+stays off and this EXE is not admitted by the server. There were 97,464 uploads
+per workload, 16 KiB pinned memory and zero slot waits/fallbacks. All 3,072 IDs
+and 614,596,608 logits matched the retained reference. Short batch 1/8 pairs
+added 32 exact IDs and 6,402,048 compared logits. 106 native, 236 cache/fault/
+reload checks, 17 Python methods and 4 CLI checks passed; the final validator
+passed 903 gates and retained 178 hashes. Real long/session/pressure validation
+for this candidate is deferred until a useful gain is demonstrated.
+
+During the short batch checks, system-wide physical reads fell to 38–78 MiB
+while engine source reads were 286–418 GiB. Those counters include every disk,
+other processes and model loading; they do not isolate H: or decode. Next:
+profile file-cache → pinned staging → H2D/ring/D2D with separate prefill/decode
+windows and a bounded CUDA timeline on the admitted router EXE. See the
+[MM27-37 report](../../docs/minimax-m2.7/MINIMAX_M27_SORT_TABLE.md) and
+[recomputed evidence](../../docs/minimax-m2.7/MINIMAX_M27_SORT_TABLE_CHECK.json).

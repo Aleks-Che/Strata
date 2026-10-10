@@ -1,10 +1,15 @@
 #include "expert_frequency.hpp"
+#include "expert_tuning.hpp"
 #include <cstdio>
 #include <stdexcept>
 
 static void require(bool value) {if(!value)throw std::runtime_error("frequency history contract failed");}
 int main() {
     try {
+        require(strata_ds4::frequency_decay(15360ULL<<20,0)==122880);
+        require(strata_ds4::frequency_decay(1024ULL<<20,0)==8192);
+        require(strata_ds4::frequency_decay(0,0)==4096);
+        require(strata_ds4::frequency_decay(15360ULL<<20,491520)==491520);
         int hot,cold,other;
         StrataExpertFrequency history(16);
         for(int i=0;i<8;++i)history.record(&hot);

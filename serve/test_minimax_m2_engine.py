@@ -146,6 +146,57 @@ class EngineTests(unittest.TestCase):
                 MiniMaxEngine._validate_ready(e, {**events, key: value})
         with self.assertRaises(ValueError):
             MiniMaxEngine._validate_ready(e, good)
+        e.native_router_ids = True
+        for enabled in (False, True):
+            e.router_host_ids = enabled
+            router = {**events, 'router_host_ids': enabled}
+            MiniMaxEngine._validate_ready(e, router)
+            for value in (not enabled, int(enabled), None, '1'):
+                with self.subTest(router=value), self.assertRaises(ValueError):
+                    MiniMaxEngine._validate_ready(e, {**router, 'router_host_ids': value})
+            with self.assertRaises(ValueError):
+                MiniMaxEngine._validate_ready(e, events)
+
+    def test_router_ids_validate_before_startup(self):
+        for options in ({'router_host_ids': 1}, {'router_host_ids': '1'}, {'router_host_ids': None},
+                        {'router_host_ids': True}, {'router_host_ids': True, 'pipeline_readers': 2}):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                self.engine(**options)
+
+    def test_router_ids_exact_binary_and_legacy_compatibility(self):
+        import hashlib
+        import json
+        from unittest.mock import patch
+        from serve import minimax_m2_engine as module
+        binary = Path(self.tmp.name)/'reviewed-router.exe'
+        legacy, events, router = b'legacy fixture', b'events fixture', b'router fixture'
+        with patch.object(MiniMaxEngine, 'restart'), \
+             patch.object(module, 'EXE_SHA256', hashlib.sha256(legacy).hexdigest()), \
+             patch.object(module, 'EVENTS_EXE_SHA256', hashlib.sha256(events).hexdigest()), \
+             patch.object(module, 'ROUTER_EXE_SHA256', hashlib.sha256(router).hexdigest()), \
+             patch.object(module, 'inspect_model', return_value={'header_sha256': module.HEADER_SHA256}) as inspect, \
+             patch.object(module.subprocess, 'check_output', return_value=json.dumps(
+                 {'architecture': 'minimax-m2', 'source_revision': module.LOADER_SHA}).encode()):
+            e = MiniMaxEngine('unused', binary, ROOT, Path(self.tmp.name)/'unused.log',
+                             pipeline_readers=2, pipeline_events=2, router_host_ids=True)
+            for content in (legacy, events, router+b'changed'):
+                binary.write_bytes(content);inspect.reset_mock()
+                with self.assertRaises(ValueError):e._admit()
+                inspect.assert_not_called()
+            binary.write_bytes(router)
+            for enabled in (True, False):
+                e.router_host_ids = enabled
+                command = e._admit()
+                self.assertEqual(command[command.index('--router-host-ids')+1], str(int(enabled)))
+                self.assertEqual(command[command.index('--pipeline-events')+1], '2')
+                self.assertTrue(e.native_router_ids and e.native_events)
+            binary.write_bytes(events)
+            self.assertNotIn('--router-host-ids', e._admit())
+            self.assertFalse(e.native_router_ids)
+            binary.write_bytes(legacy);e.pipeline_events = 0
+            command = e._admit()
+            self.assertNotIn('--router-host-ids', command)
+            self.assertNotIn('--pipeline-events', command)
 
     def test_pipeline_events_validate_before_startup(self):
         for options in ({'pipeline_events': True}, {'pipeline_events': -1}, {'pipeline_events': 1},

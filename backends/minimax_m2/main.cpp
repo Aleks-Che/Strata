@@ -52,6 +52,10 @@ static json stats() {
         {"pipeline_pending_copy",s.pipeline_pending_copy},{"async_compute_calls",s.async_compute_calls},{"graph_exit_fences",s.graph_exit_fences},
         {"router_ids_published",s.router_ids_published},{"router_ids_hits",s.router_ids_hits},
         {"router_ids_misses",s.router_ids_misses},{"router_ids_bytes",s.router_ids_bytes},
+        {"sort_table_copies",s.sort_table_copies},{"sort_table_bytes",s.sort_table_bytes},
+        {"sort_table_reuse_waits",s.sort_table_reuse_waits},{"sort_table_drain_waits",s.sort_table_drain_waits},
+        {"sort_table_fallbacks",s.sort_table_fallbacks},{"sort_table_pinned_bytes",s.sort_table_pinned_bytes},
+        {"sort_table_pending",s.sort_table_pending},{"sort_table_peak_pending",s.sort_table_peak_pending},
         {"pipeline_groups",s.pipeline_groups},{"pipeline_chunks",s.pipeline_chunks},{"pipeline_h2d_bytes",s.pipeline_h2d_bytes},
         {"pipeline_d2d_bytes",s.pipeline_d2d_bytes},{"pipeline_unused_bytes",s.pipeline_unused_bytes},{"pipeline_device_bytes",s.pipeline_device_bytes},
         {"pipeline_queued_bytes",s.pipeline_queued_bytes},{"pipeline_reader_owned_bytes",s.pipeline_reader_owned_bytes},{"pipeline_read_peak",s.pipeline_read_peak},
@@ -178,6 +182,7 @@ int main(int argc,char **argv) {
         std::string reader="file";
         int pipeline_readers=0,pipeline_chunk=8,pipeline_events=0;bool pipeline_lookahead=false,pipeline_d2d_batch=false,router_host_ids=false;
         std::string pipeline_trace;
+        bool sort_table_async=false;
         for(int i=1;i<argc;++i) {
             const std::string arg=argv[i];
             if(arg=="--version") {std::cout<<json({{"architecture","minimax-m2"},{"source_revision",STRATA_MM27_SOURCE_SHA},
@@ -226,6 +231,7 @@ int main(int argc,char **argv) {
             else if(arg=="--pipeline-d2d-batch") {require(value=="0" || value=="1","invalid pipeline chunk");pipeline_d2d_batch=value=="1";}
             else if(arg=="--pipeline-events") {require(value=="0" || value=="1" || value=="2","invalid pipeline events mode");pipeline_events=std::stoi(value);}
             else if(arg=="--router-host-ids") {require(value=="0" || value=="1","invalid router host IDs flag");router_host_ids=value=="1";}
+            else if(arg=="--sort-table-async") {require(value=="0" || value=="1","invalid sort table async flag");sort_table_async=value=="1";}
             else if(arg=="--pipeline-trace")pipeline_trace=value;
             else throw std::runtime_error("unknown argument: "+arg);
         }
@@ -233,6 +239,7 @@ int main(int argc,char **argv) {
             "usage: --gguf MODEL (--pipe | --request JSON [--output JSON] [--logits F32]) [--ctx 512] [--batch 8] [--mode 2] [--gpu-cache-mib 0]");
         require(size>=256 && size<=4096 && batch>=1 && batch<=16 && (mode==1 || mode==2),"invalid context/batch/mode");
         require(!router_host_ids || mode==2,"router host IDs require mode 2");
+        require(!sort_table_async || mode==2,"sort table async requires mode 2");
         require(!session_cache_mib || prefix_cache,"session cache requires prefix cache");
         require(!pipeline_events || (pipeline_readers && pipeline_d2d_batch),"pipeline events require readers and D2D batch");
         // Parse input and open outputs before loading weights.
@@ -248,6 +255,7 @@ int main(int argc,char **argv) {
         strata_mm27_cache_configure(cache_mib<<20,cache_allocator=="arena",arena_block_mib,arena_growth_reserve_mib,group_experts,cache_decay);
         strata_mm27_pipeline(pipeline_readers,pipeline_chunk,pipeline_lookahead,pipeline_d2d_batch,pipeline_events);
         strata_mm27_router_host_ids(router_host_ids);
+        strata_mm27_sort_table_async(sort_table_async);
         strata_mm27_ram_cache_configure(ram_cache_mib<<20);
         if(!pipeline_trace.empty())strata_mm27_pipeline_trace(true);
 #ifdef _WIN32
@@ -271,7 +279,7 @@ int main(int argc,char **argv) {
             {"expert_reader",reader},{"host_working_set_target_percent",reader=="file" && !ram_cache_mib?0:94},
             {"pipeline_readers",pipeline_readers},{"pipeline_chunk_mib",pipeline_chunk},{"pipeline_lookahead",pipeline_lookahead},{"pipeline_d2d_batch",pipeline_d2d_batch},
             {"pipeline_events",pipeline_events},{"compute_ms_scope",pipeline_events==2?"split CPU submission (async); graph exit drains":"synchronous split completion"},
-            {"pipeline_trace",pipeline_trace},{"router_host_ids",router_host_ids},
+            {"pipeline_trace",pipeline_trace},{"router_host_ids",router_host_ids},{"sort_table_async",sort_table_async},
             {"cache_policy","decode admission after first serial step; prefill hits only; global 95% minus 256 MiB"},
             {"mtp",false},{"load_ms",load_ms},{"memory_before",before},{"memory_loaded",memory()}};
         if(pipe) {

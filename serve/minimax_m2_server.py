@@ -23,6 +23,8 @@ def main():
     p.add_argument('--pipeline-events', type=int, choices=(0, 2), default=0,
                    help='matrix events and async compute (2); requires readers and the reviewed events executable')
     p.add_argument('--prefix-cache', action='store_true', help='reuse complete prefill batches for explicit sessions')
+    p.add_argument('--router-host-ids', action='store_true',
+                   help='reuse scheduler router IDs; requires events2 and the reviewed router executable')
     p.add_argument('--session-cache-mib', type=int, default=0, help='RAM cap for inactive session KV; requires --prefix-cache')
     p.add_argument('--session-cache-slots', type=int, default=4, help='maximum inactive session checkpoints (1..64)')
     p.add_argument('--host', default='127.0.0.1')
@@ -33,6 +35,8 @@ def main():
         p.error('a bind beyond 127.0.0.1 requires --api-key')
     if args.pipeline_events and not args.pipeline_readers:
         p.error('--pipeline-events requires --pipeline-readers')
+    if args.router_host_ids and args.pipeline_events != 2:
+        p.error('--router-host-ids requires --pipeline-events 2')
     # Fail before loading CUDA weights if the isolated tools profile is incomplete.
     _schemas([{'type': 'function', 'function': {'name': 'startup_check',
                'parameters': {'type': 'object', 'properties': {}}}}])
@@ -42,6 +46,7 @@ def main():
     engine = MiniMaxEngine(args.gguf, args.engine, args.cuda_root, args.log, context=args.ctx, batch=args.batch,
                           gpu_cache_mib=args.gpu_cache_mib, pipeline_readers=args.pipeline_readers,
                           pipeline_chunk_mib=args.pipeline_chunk_mib, pipeline_events=args.pipeline_events, prefix_cache=args.prefix_cache,
+                          router_host_ids=args.router_host_ids,
                           session_cache_mib=args.session_cache_mib, session_cache_slots=args.session_cache_slots)
     server = None
     try:

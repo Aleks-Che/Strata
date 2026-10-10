@@ -49,6 +49,7 @@ mm27_replace_once("${anchor}" "    // [TAG_MUL_MAT_ID_CUDA_GRAPHS]
 string(PREPEND mm27_quant_dispatch "#include <cstdlib>\n#include <cstring>\n")
 include(Tokenwise.cmake)
 include(RouterIds.cmake)
+include(SortTable.cmake)
 # Separate output avoids recompiling on each configure after RoutedStrides
 # regenerates its own immutable intermediate.
 set(mm27_quant_generated "${CMAKE_BINARY_DIR}/strata-mm27-quant-f32-cuda.cu")
@@ -65,5 +66,5 @@ list(REMOVE_ITEM sources "${mm27_dispatch_generated}")
 set_property(TARGET ggml-cuda PROPERTY SOURCES "${sources};${mm27_quant_generated}")
 set_source_files_properties("${mm27_quant_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
   INCLUDE_DIRECTORIES "${mm27_source}/ggml/src;${mm27_source}/ggml/src/ggml-cuda;${CMAKE_CURRENT_SOURCE_DIR}"
-  OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/minimax_tokenwise.hpp;${CMAKE_CURRENT_SOURCE_DIR}/router_ids.hpp")
+  OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/minimax_tokenwise.hpp;${CMAKE_CURRENT_SOURCE_DIR}/router_ids.hpp;${CMAKE_CURRENT_SOURCE_DIR}/sort_table.hpp")
 string(APPEND mm27_patch_set ",cuda-minimax-quant-f32-opt-in")

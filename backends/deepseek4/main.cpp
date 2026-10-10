@@ -6,6 +6,8 @@
 #include "vram_control.hpp"
 #include "speculative.hpp"
 #include "host_copy.hpp"
+#include "expert_tuning.hpp"
+#include "activation_probe.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -40,9 +42,11 @@ struct Options {
     int context=8192, batch=512, threads=1, gpu_layers=99, gpu_expert_layers=0, slots=4;
     uint64_t budget=2048ULL<<20, floor=8192ULL<<20;
     uint64_t working_set=0;
-    int expert_cache_mib=0, expert_stage_mib=0;
+    int expert_cache_mib=0, expert_stage_mib=0, expert_slab_mib=0;
+    int mmvq_token_batch=0;
     std::string expert_cache_policy="lru";
     int expert_cache_match_size=0;
+    int expert_frequency_decay=0, draft_expert_frequency_decay=0;
     int expert_pipeline=0;
     int expert_readers=2;
     std::string expert_read_mode="mmap";
@@ -66,8 +70,11 @@ static Options options(int argc, char **argv) {
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
                 "--expert-cache-policy lru|frequency (frequency gates LRU admission using decaying access counts)\n"
+                "--expert-frequency-decay 0 --draft-expert-frequency-decay 0 (matrix accesses; 0 = cache-size default)\n"
                 "--expert-cache-match-size 0 (0/1; prefer same-size victims in the fixed GPU arena)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
+                "--expert-slab-mib 0 (0 disables; 1..256 MiB blocks for dynamic GPU cache only)\n"
+                "--mmvq-token-batch 0 (experimental: 0 upstream, 1 routed, 2 routed+dense; 2..4 tokens)\n"
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
                 "--expert-readers 2 (1..4 bounded readers); --expert-read-mode mmap|file|auto\n"
                 "--expert-host-copy crt|avx2 --expert-early-refill 0 (0/1; both require pipeline)\n"
@@ -102,8 +109,12 @@ static Options options(int argc, char **argv) {
         else if (k=="--gpu-expert-layers") o.gpu_expert_layers=integer(v);
         else if (k=="--expert-cache-mib") o.expert_cache_mib=integer(v);
         else if (k=="--expert-cache-policy") o.expert_cache_policy=v;
+        else if (k=="--expert-frequency-decay") o.expert_frequency_decay=integer(v);
+        else if (k=="--draft-expert-frequency-decay") o.draft_expert_frequency_decay=integer(v);
         else if (k=="--expert-cache-match-size") o.expert_cache_match_size=integer(v);
         else if (k=="--expert-stage-mib") o.expert_stage_mib=integer(v);
+        else if (k=="--expert-slab-mib") o.expert_slab_mib=integer(v);
+        else if (k=="--mmvq-token-batch") o.mmvq_token_batch=integer(v);
         else if (k=="--expert-pipeline") o.expert_pipeline=integer(v);
         else if (k=="--expert-readers") o.expert_readers=integer(v);
         else if (k=="--expert-read-mode") o.expert_read_mode=v;
@@ -120,8 +131,15 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid model/context/batch/thread/cache settings");
     if(o.expert_cache_mib<0 || o.expert_cache_mib>65536 || o.expert_stage_mib<0 || o.expert_stage_mib>256)
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
+    if(o.expert_slab_mib<0 || o.expert_slab_mib>256)
+        throw std::runtime_error("expert-slab-mib must be in [0, 256]");
+    if(o.mmvq_token_batch<0 || o.mmvq_token_batch>2)
+        throw std::runtime_error("mmvq-token-batch must be 0, 1 or 2");
     if(o.expert_cache_policy!="lru" && o.expert_cache_policy!="frequency")
         throw std::runtime_error("expert-cache-policy must be lru/frequency");
+    if(o.expert_frequency_decay<0 || o.expert_frequency_decay>strata_ds4::max_frequency_decay ||
+       o.draft_expert_frequency_decay<0 || o.draft_expert_frequency_decay>strata_ds4::max_frequency_decay)
+        throw std::runtime_error("expert-frequency-decay and draft-expert-frequency-decay must be in [0, 1000000000]");
     if(o.expert_cache_match_size<0 || o.expert_cache_match_size>1)
         throw std::runtime_error("expert-cache-match-size must be 0/1");
     if(o.expert_pipeline<0 || o.expert_pipeline>1 || (o.expert_pipeline && !o.expert_stage_mib))
@@ -224,7 +242,9 @@ class Runner {
     llama_context *draft_ctx;
     std::unique_ptr<DSpark> spec;
     StrataExpertBudget expert_budget;
+    StrataExpertDecay expert_decay;
     VramControl &vram;
+    ActivationProbe &activation_probe;
     const llama_vocab *vocab;
     Options o;
     std::atomic<bool> &stop;
@@ -242,7 +262,11 @@ class Runner {
         if(draft_ctx)llama_memory_clear(llama_get_memory(draft_ctx),true);
         active.clear();active_session.clear();
     }
-    void budget(bool draft) { vram.poll();if(expert_budget)expert_budget(draft?o.draft_expert_cache_mib:o.expert_cache_mib); }
+    void budget(bool draft) {
+        vram.poll();
+        if(expert_budget)expert_budget(draft?o.draft_expert_cache_mib:o.expert_cache_mib);
+        if(expert_decay)expert_decay(draft?o.draft_expert_frequency_decay:o.expert_frequency_decay);
+    }
     void inject(const llama_batch& b) { if(spec) {budget(true);spec->inject(b);} }
     void status(const char *phase,const char *source,double save=0,double restore=0,const char *reason=nullptr) {
         if(!reason)reason=save_reason;
@@ -292,8 +316,8 @@ class Runner {
         return ms(t);
     }
 public:
-    Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,VramControl &vc):
-        ctx(c),draft_ctx(d),expert_budget(b),vram(vc),vocab(v),o(opts),stop(s) {
+    Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,StrataExpertDecay decay,VramControl &vc,ActivationProbe &probe):
+        ctx(c),draft_ctx(d),expert_budget(b),expert_decay(decay),vram(vc),activation_probe(probe),vocab(v),o(opts),stop(s) {
         if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence,o.draft_shared_scratch!=0);
         if(spec)std::cerr<<"STRATA_DSPARK_SCRATCH saved_bytes="<<spec->scratch_saved()<<" shared="<<spec->scratch_shared()<<"\n";
     }
@@ -374,13 +398,15 @@ public:
                     // Diagnostic causality probe: same anchor and batch shape,
                     // different future tokens. Never used in normal execution.
                     std::vector<uint8_t> probe_state;
-                    if(std::getenv("STRATA_SPEC_CHECK_CAUSAL") && rounds<=3 && !draft.empty()) {
+                    const bool check_causal=std::getenv("STRATA_SPEC_CHECK_CAUSAL") && rounds<=3 && !draft.empty();
+                    const bool check_serial=(std::getenv("STRATA_SPEC_CHECK_SERIAL") || activation_probe.enabled()) && rounds<=3 && !draft.empty();
+                    if(check_causal || check_serial) {
                         probe_state.resize(llama_state_get_size(ctx));
                         if(llama_state_get_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
                             throw std::runtime_error("causality probe snapshot failed");
                     }
                     if(llama_decode(ctx,batch.value))throw std::runtime_error("DSpark target verification failed");
-                    if(!probe_state.empty()) {
+                    if(check_causal) {
                         auto restore_probe=[&] {
                             if(llama_state_set_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
                                 throw std::runtime_error("causality probe restore failed");
@@ -397,6 +423,68 @@ public:
                             <<" changed="<<(std::max_element(logits,logits+expected.size())-logits)<<"\n";
                         restore_probe();std::copy(draft.begin(),draft.end(),batch.value.token+1);
                         if(llama_decode(ctx,batch.value))throw std::runtime_error("causality probe replay failed");
+                    }
+                    if(check_serial) {
+                        const size_t nv=llama_vocab_n_tokens(vocab);
+                        std::vector<float> expected(size_t(batch.value.n_tokens)*nv);
+                        for(int row=0;row<batch.value.n_tokens;++row)
+                            std::copy_n(llama_get_logits_ith(ctx,row),nv,expected.data()+size_t(row)*nv);
+                        auto restore_probe=[&] {
+                            if(llama_state_set_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
+                                throw std::runtime_error("serial probe restore failed");
+                        };
+                        struct ResetTrace {ActivationProbe &p;~ResetTrace(){p.idle();}} reset_trace{activation_probe};
+                        float instrumentation_diff=0,serial_instrumentation_diff=0;
+                        if(activation_probe.enabled()) {
+                            restore_probe();activation_probe.batch(base,batch.value.n_tokens);
+                            if(llama_decode(ctx,batch.value))throw std::runtime_error("activation probe batch failed");
+                            activation_probe.idle();
+                            for(int row=0;row<batch.value.n_tokens;++row) {
+                                const auto *actual=llama_get_logits_ith(ctx,row),*want=expected.data()+size_t(row)*nv;
+                                for(size_t i=0;i<nv;++i) {
+                                    if(!std::isfinite(actual[i]))throw std::runtime_error("nonfinite activation probe logits");
+                                    instrumentation_diff=std::max(instrumentation_diff,std::abs(actual[i]-want[i]));
+                                }
+                            }
+                        }
+                        restore_probe();
+                        double sum_sq=0;float diff=0;int changed=0;
+                        for(int row=0;row<batch.value.n_tokens;++row) {
+                            Batch one(1);one.positions(1,base+row,true);one.value.token[0]=batch.value.token[row];
+                            std::vector<float> serial_reference;
+                            if(activation_probe.enabled()) {
+                                std::vector<uint8_t> row_state(llama_state_get_size(ctx));
+                                if(llama_state_get_data(ctx,row_state.data(),row_state.size())!=row_state.size())
+                                    throw std::runtime_error("activation row snapshot failed");
+                                if(llama_decode(ctx,one.value))throw std::runtime_error("activation row control failed");
+                                const auto *logits=llama_get_logits_ith(ctx,0);
+                                serial_reference.assign(logits,logits+nv);
+                                if(llama_state_set_data(ctx,row_state.data(),row_state.size())!=row_state.size())
+                                    throw std::runtime_error("activation row restore failed");
+                                activation_probe.serial(row);
+                            }
+                            if(llama_decode(ctx,one.value))throw std::runtime_error("serial probe decode failed");
+                            activation_probe.idle();
+                            const auto *actual=llama_get_logits_ith(ctx,0),*want=expected.data()+size_t(row)*nv;
+                            for(size_t i=0;i<nv;++i) {
+                                if(!std::isfinite(actual[i]) || !std::isfinite(want[i]))throw std::runtime_error("nonfinite serial probe logits");
+                                if(!serial_reference.empty())serial_instrumentation_diff=std::max(serial_instrumentation_diff,std::abs(actual[i]-serial_reference[i]));
+                                const float delta=std::abs(actual[i]-want[i]);diff=std::max(diff,delta);sum_sq+=double(delta)*delta;
+                            }
+                            changed+=(std::max_element(actual,actual+nv)-actual)!=(std::max_element(want,want+nv)-want);
+                        }
+                        if(activation_probe.enabled())activation_probe.finish(instrumentation_diff,serial_instrumentation_diff);
+                        restore_probe();
+                        if(llama_decode(ctx,batch.value))throw std::runtime_error("serial probe replay failed");
+                        float replay_diff=0;
+                        for(int row=0;row<batch.value.n_tokens;++row) {
+                            const auto *actual=llama_get_logits_ith(ctx,row),*want=expected.data()+size_t(row)*nv;
+                            for(size_t i=0;i<nv;++i)replay_diff=std::max(replay_diff,std::abs(actual[i]-want[i]));
+                        }
+                        if(replay_diff>1e-5f)throw std::runtime_error("serial probe changed replay logits");
+                        std::cerr<<"STRATA_SPEC_SERIAL pos="<<base<<" rows="<<batch.value.n_tokens
+                            <<" values="<<expected.size()<<" max_logit_diff="<<diff<<" rms_logit_diff="<<std::sqrt(sum_sq/expected.size())
+                            <<" changed_argmax="<<changed<<" replay_diff="<<replay_diff<<"\n";
                     }
                     if(stop.load()) {ok=false;break;}
                     auto verified=verify_draft(draft,r.count-generated,
@@ -523,6 +611,8 @@ int main(int argc,char**argv) {
         _putenv_s("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str());
         _putenv_s("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str());
         _putenv_s("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str());
+        _putenv_s("STRATA_EXPERT_SLAB_MIB",std::to_string(o.expert_slab_mib).c_str());
+        _putenv_s("STRATA_DS4_MMVQ_TOKEN_BATCH",std::to_string(o.mmvq_token_batch).c_str());
         _putenv_s("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str());
         _putenv_s("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str());
         _putenv_s("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str());
@@ -535,6 +625,8 @@ int main(int argc,char**argv) {
         setenv("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str(),1);
         setenv("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str(),1);
         setenv("STRATA_EXPERT_STAGE_MIB",std::to_string(o.expert_stage_mib).c_str(),1);
+        setenv("STRATA_EXPERT_SLAB_MIB",std::to_string(o.expert_slab_mib).c_str(),1);
+        setenv("STRATA_DS4_MMVQ_TOKEN_BATCH",std::to_string(o.mmvq_token_batch).c_str(),1);
         setenv("STRATA_EXPERT_PIPELINE",std::to_string(o.expert_pipeline).c_str(),1);
         setenv("STRATA_EXPERT_READERS",std::to_string(o.expert_readers).c_str(),1);
         setenv("STRATA_EXPERT_READ_MODE",o.expert_read_mode.c_str(),1);
@@ -551,6 +643,9 @@ int main(int argc,char**argv) {
                 throw std::runtime_error("this GPU backend does not support the requested expert cache/staging path");
         }
         auto budget_gpu=gpu?reinterpret_cast<StrataExpertBudget>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_budget")):nullptr;
+        auto decay_gpu=gpu?reinterpret_cast<StrataExpertDecay>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_decay")):nullptr;
+        if(!o.vocab_only && (o.expert_frequency_decay || o.draft_expert_frequency_decay) && !decay_gpu)
+            throw std::runtime_error("frequency decay tuning requires CUDA expert support");
         auto control_gpu=gpu?reinterpret_cast<StrataExpertControl>(ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_control")):nullptr;
         if(!o.vocab_only && !o.draft_model.empty() && o.draft_gpu_expert_layers<3 && !budget_gpu)
             throw std::runtime_error("streamed DSpark requires CUDA expert budget support");
@@ -574,6 +669,7 @@ int main(int argc,char**argv) {
         auto*vocab=llama_model_get_vocab(model.get());
         if(o.vocab_only){tokenizer_loop(vocab);return 0;}
         std::atomic<bool> stop{false};
+        ActivationProbe activation_probe;
         auto cp=llama_context_default_params();cp.n_ctx=o.context;cp.n_batch=o.batch;cp.n_ubatch=o.batch;
         cp.n_seq_max=1;cp.n_threads=o.threads;cp.n_threads_batch=o.threads;cp.no_perf=false;
         cp.n_rs_seq=o.draft_model.empty()?0:o.draft_max;
@@ -581,6 +677,7 @@ int main(int argc,char**argv) {
         cp.op_offload=true;cp.offload_kqv=true;
         cp.type_k=GGML_TYPE_F16;cp.type_v=GGML_TYPE_F16;cp.flash_attn_type=LLAMA_FLASH_ATTN_TYPE_ENABLED;
         cp.abort_callback=[](void*p){return static_cast<std::atomic<bool>*>(p)->load();};cp.abort_callback_data=&stop;
+        if(activation_probe.enabled()){cp.cb_eval=ActivationProbe::callback;cp.cb_eval_user_data=&activation_probe;}
         std::unique_ptr<llama_context,decltype(&llama_free)>ctx(llama_init_from_model(model.get(),cp),llama_free);
         if(!ctx)throw std::runtime_error("could not create DeepSeek context");
         // Declare the draft after the target: borrowed embeddings/output tensors
@@ -599,6 +696,7 @@ int main(int argc,char**argv) {
             draft_model.reset(llama_model_load_from_file(o.draft_model.c_str(),dp));
             if(!draft_model)throw std::runtime_error("could not load DSpark model");
             auto dc=cp;dc.n_rs_seq=0;dc.ctx_other=ctx.get();
+            dc.cb_eval=nullptr;dc.cb_eval_user_data=nullptr;
             // Draft noise has at most five tokens. Feature injection is cheap
             // and chunked, so avoid reserving a 4096-token draft MoE graph.
             dc.n_batch=dc.n_ubatch=std::min(o.batch,256);
@@ -615,7 +713,7 @@ int main(int argc,char**argv) {
         }
         // Reserve final graph outputs and optionally share their temporary
         // buffer before checking space for the lazy expert caches.
-        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu,vram);
+        Runner runner(ctx.get(),draft_ctx.get(),vocab,o,stop,budget_gpu,decay_gpu,vram,activation_probe);
         if((o.expert_cache_mib || draft_ctx || o.expert_pipeline) && !vram.configured()) {
             size_t free=0,total=0;ggml_backend_dev_memory(gpu,&free,&total);
             auto draft_cache=draft_ctx && o.draft_gpu_expert_layers<3?o.draft_expert_cache_mib:0;
@@ -644,8 +742,12 @@ int main(int argc,char**argv) {
         std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
             <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
+            <<" expert_slab_mib="<<o.expert_slab_mib
+            <<" mmvq_token_batch="<<o.mmvq_token_batch
             <<" expert_cache_policy="<<o.expert_cache_policy
             <<" expert_cache_match_size="<<o.expert_cache_match_size
+            <<" expert_frequency_decay="<<(o.expert_cache_policy=="frequency"?strata_ds4::frequency_decay(size_t(o.expert_cache_mib)<<20,o.expert_frequency_decay):0)
+            <<" draft_expert_frequency_decay="<<(draft_ctx && o.expert_cache_policy=="frequency"?strata_ds4::frequency_decay(size_t(o.draft_expert_cache_mib)<<20,o.draft_expert_frequency_decay):0)
             <<" expert_pipeline="<<o.expert_pipeline<<" expert_pipeline_slots="<<(o.expert_pipeline?4:0)
             <<" expert_readers="<<(o.expert_pipeline?o.expert_readers:0)<<" expert_read_mode="<<o.expert_read_mode
             <<" expert_host_copy="<<o.expert_host_copy<<" expert_early_refill="<<o.expert_early_refill

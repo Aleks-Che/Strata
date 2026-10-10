@@ -97,8 +97,12 @@ def main():
     ap.add_argument("--gpu-expert-layers", type=int, default=0, help="Keep the last N layers' routed experts in VRAM; size depends on quantization")
     ap.add_argument("--expert-cache-mib", type=int, default=0, help="GPU LRU budget for individual expert matrices")
     ap.add_argument("--expert-cache-policy", choices=("lru", "frequency"), default="lru", help="Frequency admission keeps repeatedly used matrices over one-use weights; access counts decay")
+    ap.add_argument("--expert-frequency-decay", type=int, default=0, help="Target matrix accesses per decay period; 0 keeps the cache-size default")
+    ap.add_argument("--draft-expert-frequency-decay", type=int, default=0, help="DSpark matrix accesses per decay period; 0 keeps the cache-size default")
     ap.add_argument("--expert-cache-match-size", type=int, choices=(0, 1), default=0, help="Prefer same-size victims near the LRU tail of the fixed GPU cache; reduces arena fragmentation")
     ap.add_argument("--expert-stage-mib", type=int, default=0, help="Size of each of two pinned upload buffers")
+    ap.add_argument("--expert-slab-mib", type=int, default=0, help="Dynamic GPU cache block size in MiB; 0 disables, fixed arena unaffected")
+    ap.add_argument("--mmvq-token-batch", type=int, choices=(0, 1, 2), default=0, help="Experimental short MMVQ: 0 upstream, 1 routed, 2 routed+dense")
     ap.add_argument("--expert-pipeline", type=int, choices=(0, 1), default=0, help="Background mmap reads, four staging slots and a separate H2D stream; needs expert-stage-mib > 0")
     ap.add_argument("--expert-readers", type=int, choices=range(1, 5), default=2, help="Bounded reader concurrency; uses the existing four staging slots")
     ap.add_argument("--expert-read-mode", choices=("mmap", "file", "auto"), default="mmap", help="Windows file uses overlapped reads; auto queues nonresident prefill slices and uses mmap for decode")
@@ -115,6 +119,10 @@ def main():
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
+    if not 0 <= args.expert_slab_mib <= 256:
+        ap.error("expert-slab-mib must be in [0, 256]")
+    if not all(0 <= value <= 1000000000 for value in (args.expert_frequency_decay, args.draft_expert_frequency_decay)):
+        ap.error("frequency decay periods must be in [0, 1000000000]")
     if args.draft_shared_scratch and not args.draft_model:
         ap.error("draft-shared-scratch requires --draft-model")
     if args.expert_pipeline and args.expert_stage_mib <= 0:
@@ -155,7 +163,11 @@ def main():
                     "--threads", str(args.threads), "--batch-size", str(args.batch_size),
                     "--gpu-layers", "99", "--gpu-expert-layers", str(args.gpu_expert_layers), "--conversation-cache-mib", "2048",
                     "--expert-cache-mib", str(args.expert_cache_mib), "--expert-stage-mib", str(args.expert_stage_mib),
+                    "--expert-slab-mib", str(args.expert_slab_mib),
+                    "--mmvq-token-batch", str(args.mmvq_token_batch),
                     "--expert-cache-policy", args.expert_cache_policy,
+                    "--expert-frequency-decay", str(args.expert_frequency_decay),
+                    "--draft-expert-frequency-decay", str(args.draft_expert_frequency_decay),
                     "--expert-cache-match-size", str(args.expert_cache_match_size),
                     "--expert-pipeline", str(args.expert_pipeline),
                     "--expert-readers", str(args.expert_readers), "--expert-read-mode", args.expert_read_mode,

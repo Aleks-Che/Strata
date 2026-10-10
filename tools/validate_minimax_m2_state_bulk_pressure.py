@@ -7,13 +7,14 @@ from pathlib import Path
 import sys
 
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
-from serve.minimax_m2_engine import EXE_SHA256, EVENTS_EXE_SHA256
+from serve.minimax_m2_engine import EXE_SHA256, EVENTS_EXE_SHA256, ROUTER_EXE_SHA256
 from tools.check_minimax_m2_prefix import save
 from tools.check_minimax_m2_prefix_context import native_checks
 from tools.check_minimax_m2_sessions import compare_files
 from tools.check_minimax_m2_sessions_context import sha,inspect_case
 from tools.minimax_m2_memory_observer import memory_within_limit
 from tools.check_minimax_m2_copy_events import event_checks
+from tools.check_minimax_m2_router_ids import router_checks
 
 
 def read(path):return json.loads(path.read_text(encoding='utf-8'))
@@ -44,6 +45,7 @@ def main():
     parser.add_argument('--out',type=Path,default=ROOT/'docs/minimax-m2.7/MINIMAX_M27_STATE_BULK_PRESSURE_CHECK.json')
     parser.add_argument('--engine',type=Path,default=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe')
     parser.add_argument('--pipeline-events',type=int,choices=(0,2),default=0)
+    parser.add_argument('--router-host-ids',action='store_true')
     parser.add_argument('--stage',default='MM27-30')
     parser.add_argument('--unit-log',type=Path,default=ROOT/'build-local/minimax-m2-state-bulk-pressure-unit.log')
     parser.add_argument('--python-methods',type=int,default=18)
@@ -57,12 +59,15 @@ def main():
     gate('offline_cases',len(a['cases'])==len(d['results'])==14 and len(a['pairs'])==6)
     gate('pressure_cases',len(h['cases'])==19 and all(c['pass'] for c in h['cases']))
     binary=args.engine.resolve();digest=sha(binary)
-    gate('same_admitted_engine',digest in (EXE_SHA256,EVENTS_EXE_SHA256) and
+    gate('same_admitted_engine',digest in (EXE_SHA256,EVENTS_EXE_SHA256,ROUTER_EXE_SHA256) and
          a['engine_sha256']==h['engine_sha256']==digest==sha(off/'engine.exe')==sha(live/'engine.exe'))
-    if args.pipeline_events or digest==EVENTS_EXE_SHA256:
-        speed_path=ROOT/'docs/minimax-m2.7/MINIMAX_M27_COPY_EVENTS_CHECK.json';speed=read(speed_path)
-        gate('same_short_ab_candidate',speed['pass'] and all(speed['gates'].values()) and digest in speed['engines'])
-        gate('events_identity',digest==EVENTS_EXE_SHA256 and a['pipeline_events']==h['pipeline_events']==
+    if args.pipeline_events or digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256):
+        speed_path=ROOT/'docs/minimax-m2.7'/('MINIMAX_M27_ROUTER_IDS_CHECK.json' if digest==ROUTER_EXE_SHA256 else 'MINIMAX_M27_COPY_EVENTS_CHECK.json');speed=read(speed_path)
+        if digest==ROUTER_EXE_SHA256:
+            gate('same_short_ab_candidate',speed['pass'] and all(g['pass'] for g in speed['gates']) and digest==speed['engine_sha256'])
+        else:
+            gate('same_short_ab_candidate',speed['pass'] and all(speed['gates'].values()) and digest in speed['engines'])
+        gate('events_identity',digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256) and a['pipeline_events']==h['pipeline_events']==
              d['pipeline_events']==h['header']['pipeline_events']==args.pipeline_events and
              d['cache_decay_period']==h['header']['cache_decay_period']==65536)
         profile={'context':4096,'batch':16,'gpu_cache_mib':18432,'gpu_cache_allocator':'arena',
@@ -78,6 +83,13 @@ def main():
         gate('offline_independent_monitor',len(offline_memory)==a['independent_monitor']['samples']>0 and
              not a['independent_monitor']['error'] and a['independent_monitor']['stopped'] and
              all(memory_within_limit(m) for m in offline_memory))
+    gate('router_option_capability',not args.router_host_ids or (digest==ROUTER_EXE_SHA256 and args.pipeline_events==2))
+    if digest==ROUTER_EXE_SHA256:
+        gate('router_identity',all(header.get('router_host_ids') is args.router_host_ids for header in (a,h,d,h['header'])))
+        gate('offline_router_reuse',all(all(router_checks(r,args.router_host_ids).values()) for r in d['results']))
+        gate('live_router_reuse',all(all(router_checks(c['native'],args.router_host_ids).values()) for c in h['cases'] if 'native' in c))
+        gate('current_router_sources',all(sha(ROOT/'backends/minimax_m2'/n)==h['sources']['backends/minimax_m2/'+n] for n in
+             ['router_ids.hpp','RouterIds.cmake','RuntimePatches.cmake','QuantF32.cmake','sync_runtime.inc','sync_runtime.h']))
     gate('bulk_enabled',a['environment']['STRATA_MM27_STATE_BULK']==h['runtime_environment']['STRATA_MM27_STATE_BULK']=='1' and 'mm27-bounded-host-state-bulk' in d['patches'])
     gate('linked_reports',a['reference_report_sha256']==sha(old/'report.json') and h['offline_report_sha256']==sha(off/'report.json'))
     gate('reference_hashes',all(sha(old/name)==baseline['artifacts'][name] for name in ['generation.json','generation.f32','requests.json']))
@@ -147,7 +159,7 @@ def main():
     unit_text=unit.read_text(encoding='utf-8');gate('cpu_evidence',f'Ran {args.python_methods} tests' in unit_text and '\nOK\n' in unit_text)
     if args.startup:
         startup=args.startup.resolve();s=read(startup/'report.json')
-        gate('startup_profile',s['pass'] and s['engine_sha256']==digest and s['pipeline_events']==args.pipeline_events and s['server_stopped'])
+        gate('startup_profile',s['pass'] and s['engine_sha256']==digest and s['pipeline_events']==args.pipeline_events and s.get('router_host_ids',False) is args.router_host_ids and s['server_stopped'])
         expected=[('auth-required',401),('web-assets',200),('prefix-0',200),('unload-0',200),('prefix-1',200),('unload-1',200)]
         gate('startup_cases',[(c['name'],c['status']) for c in s['cases']]==expected)
         answers=[read(startup/('prefix-'+str(i)+'.txt')) for i in range(2)]
@@ -167,7 +179,7 @@ def main():
     for folder in [off,live]+([args.startup.resolve()] if args.startup else []):
         for f in folder.rglob('*'):
             if f.is_file():artifacts[f.relative_to(ROOT).as_posix()]={'sha256':sha(f),'bytes':f.stat().st_size}
-    summary={'pass':all(gates.values()),'stage':args.stage,'engine_sha256':digest,'pipeline_events':args.pipeline_events,
+    summary={'pass':all(gates.values()),'stage':args.stage,'engine_sha256':digest,'pipeline_events':args.pipeline_events,'router_host_ids':args.router_host_ids,
              'gates':gates,'source_checks':sources,'owned_pids_exited':owned,
              'offline_requests':len(a['cases']),'native_generated_tokens':total,
              'old_reference_compared_floats':sum(c['logits']['floats'] for c in a['cases']),
@@ -181,10 +193,15 @@ def main():
              'limitations':['Pressure checks token IDs, not full logits.','GPU batch16 only; no shift or context beyond4096.',
                             'Single pressure pass; not a repeated speed A/B.'],
              'artifacts':artifacts,'unit_log_sha256':sha(unit),'validator_sha256':sha(Path(__file__))}
-    if digest==EVENTS_EXE_SHA256:
+    if digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256):
         summary['short_ab_check_sha256']=sha(speed_path)
         summary['offline_independent_monitor']=a['independent_monitor']
         summary['offline_independent_peak_percent']={k:max(100*(1-m[k+'_free']/m[k+'_total']) for m in offline_memory) for k in ['ram','gpu']}
+    if digest==ROUTER_EXE_SHA256:
+        fields=('router_ids_published','router_ids_hits','router_ids_misses','router_ids_bytes',
+                'pipeline_copy_events','graph_exit_fences')
+        summary['router_counters']={name:{key:sum(r[phase][key] for r in results for phase in ('prefill','decode'))
+             for key in fields} for name,results in [('offline',d['results']),('live_complete',[c['native'] for c in complete])]}
     if args.startup:summary['startup_cases']=len(s['cases'])
     save(args.out,summary)
     print(('PASS' if summary['pass'] else 'FAIL'),len(gates),'gates;',len(sources),'source checks;',len(artifacts),'artifact hashes')

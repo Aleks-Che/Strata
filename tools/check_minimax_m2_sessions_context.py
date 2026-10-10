@@ -11,7 +11,7 @@ import time
 import traceback
 
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
-from serve.minimax_m2_engine import EXE_SHA256, EVENTS_EXE_SHA256
+from serve.minimax_m2_engine import EXE_SHA256, EVENTS_EXE_SHA256, ROUTER_EXE_SHA256
 from serve.winjob import contain
 from tools.check_minimax_m2_prefix import save
 from tools.check_minimax_m2_prefix_context import make_corpus as prefix_corpus, snapshot, native_checks
@@ -19,6 +19,7 @@ from tools.check_minimax_m2_sessions import compare_files
 from tools.run_minimax_m2 import runtime_environment
 from tools.strata_tokenizer import Tokenizer
 from tools.check_minimax_m2_copy_events import event_checks
+from tools.check_minimax_m2_router_ids import router_checks
 from tools.minimax_m2_memory_observer import MemoryObserver
 
 
@@ -71,18 +72,20 @@ def main():
     p.add_argument('--stage',default='MM27-28 offline',help='Evidence label; does not change the corpus')
     p.add_argument('--engine',type=Path,default=ROOT/'build-local/minimax-m2-cuda/bin/strata-minimax-m2-bench.exe')
     p.add_argument('--pipeline-events',type=int,choices=(0,2),default=0)
+    p.add_argument('--router-host-ids',action='store_true')
     args=p.parse_args();binary=args.engine.resolve();digest=sha(binary)
+    assert not args.router_host_ids or (digest==ROUTER_EXE_SHA256 and args.pipeline_events==2)
     old=json.loads((args.reference/'report.json').read_text(encoding='utf-8'))
-    assert old['pass'] and digest in (EXE_SHA256,EVENTS_EXE_SHA256)
-    assert not args.pipeline_events or digest==EVENTS_EXE_SHA256
+    assert old['pass'] and digest in (EXE_SHA256,EVENTS_EXE_SHA256,ROUTER_EXE_SHA256)
+    assert not args.pipeline_events or digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256)
     for name in ['generation.json','generation.f32','requests.json']:
         assert sha(args.reference/name)==old['artifacts'][name],name
     args.out.mkdir(parents=True,exist_ok=False)
-    report={'pass':False,'stage':args.stage,'engine_sha256':digest,'pipeline_events':args.pipeline_events,
+    report={'pass':False,'stage':args.stage,'engine_sha256':digest,'pipeline_events':args.pipeline_events,'router_host_ids':args.router_host_ids,
             'reference_report_sha256':sha(args.reference/'report.json'),'reference_engine_sha256':old['engine_sha256'],
             'model':str(args.gguf.resolve()),'cases':[],'pairs':[]}
     snapshot(args.out,report);shutil.copyfile(binary,args.out/'engine.exe')
-    for source in [Path(__file__),ROOT/'tools/check_minimax_m2_sessions.py',ROOT/'tools/check_minimax_m2_copy_events.py',
+    for source in [Path(__file__),ROOT/'tools/check_minimax_m2_sessions.py',ROOT/'tools/check_minimax_m2_copy_events.py',ROOT/'tools/check_minimax_m2_router_ids.py',
                    ROOT/'tools/minimax_m2_memory_observer.py']:
         dest=args.out/'sources'/source.resolve().relative_to(ROOT);dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(source,dest);report['sources'][source.resolve().relative_to(ROOT).as_posix()]=sha(dest)
@@ -98,7 +101,8 @@ def main():
                  '--pipeline-chunk-mib','4','--pipeline-lookahead','1','--pipeline-d2d-batch','1',
                  '--request',str((args.out/'requests.json').resolve()),'--output',str((args.out/'generation.json').resolve()),
                  '--logits',str((args.out/'generation.f32').resolve())]
-        if digest==EVENTS_EXE_SHA256:command+=['--pipeline-events',str(args.pipeline_events)]
+        if digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256):command+=['--pipeline-events',str(args.pipeline_events)]
+        if digest==ROUTER_EXE_SHA256:command+=['--router-host-ids',str(int(args.router_host_ids))]
         report['command']=command;save(args.out/'report.json',report)
         print('START ctx4096 RAM archive: '+str(len(cases))+' cases',flush=True)
         with (args.out/'stdout.log').open('wb') as out,(args.out/'stderr.log').open('wb') as err:
@@ -120,7 +124,8 @@ def main():
                 if observer:observer.close();report['independent_monitor']=observer.summary()
             assert report['independent_monitor']['samples'] and not report['independent_monitor']['error']
         data=json.loads((args.out/'generation.json').read_text(encoding='utf-8'))
-        if digest==EVENTS_EXE_SHA256:assert data['pipeline_events']==args.pipeline_events
+        if digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256):assert data['pipeline_events']==args.pipeline_events
+        if digest==ROUTER_EXE_SHA256:assert data['router_host_ids']==args.router_host_ids
         reference=json.loads((args.reference/'generation.json').read_text(encoding='utf-8'))['results']
         assert len(data['results'])==len(cases)
         offsets=[];total=0
@@ -129,7 +134,8 @@ def main():
         for case,r in zip(cases,data['results']):
             rows.append(row);idx=case['reference_index'];count=r['generated_tokens']
             case['checks']=inspect_case(r,data,case)
-            if digest==EVENTS_EXE_SHA256:case['checks'].update(event_checks(r,args.pipeline_events))
+            if digest in (EVENTS_EXE_SHA256,ROUTER_EXE_SHA256):case['checks'].update(event_checks(r,args.pipeline_events))
+            if digest==ROUTER_EXE_SHA256:case['checks'].update(router_checks(r,args.router_host_ids))
             case['logits']=compare_files(args.reference/'generation.f32',offsets[idx],args.out/'generation.f32',row,count)
             case['tokens_equal']=r['token_ids']==reference[idx]['token_ids'][:count]
             case['pass']=all(case['checks'].values()) and case['tokens_equal'] and case['logits']['pass']

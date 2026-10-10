@@ -133,3 +133,8 @@ pressure для нового EXE. Tiny pressure/cancel/reload не заменя�
 проверяет parity при том же batch; он не измеряет длинный контекст или sessions.
 Server defaults и его exact-EXE admission не изменены. Качество ответов,
 независимый full-model oracle и старое MM27-06 reload расхождение остаются open.
+
+Последующий [MM27-36](MINIMAX_M27_ROUTER_IDS_CONTEXT.md) закрыл эти
+long/session/real-pressure/EOS/sampling/cancel проверки при batch16/ctx4K
+и подключил тот же EXE к серверу как opt-in. Скоростные числа выше остаются
+измерением MM27-35; defaults off сохранены.

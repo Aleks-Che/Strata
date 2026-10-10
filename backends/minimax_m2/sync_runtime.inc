@@ -2,6 +2,7 @@
 #include "sync_runtime.h"
 #include "sync_test.h"
 #include "router_ids.hpp"
+#include "sort_table.hpp"
 #include "../common/expert_file.hpp"
 #include "../common/device_memory.hpp"
 #include "../glm5next/host_pages.hpp"
@@ -12,6 +13,19 @@ static thread_local int mm27_mode=0;
 static thread_local strata_mm27_stats mm27_stats;
 static thread_local minimax_m2::RouterIds mm27_router_ids;
 static thread_local bool mm27_router_host_ids=false;
+static thread_local bool mm27_sort_table_async=false;
+static thread_local minimax_m2::SortTableRing mm27_sort_table;
+void strata_mm27_sort_table_async(bool enabled) {
+    mm27_sort_table.drain();
+    if(!enabled)mm27_sort_table.close();
+    mm27_sort_table_async=enabled;
+}
+bool strata_mm27_sort_table_copy(void *dst,const void *src,size_t bytes,cudaStream_t stream) {
+    if(!mm27_sort_table_async || mm27_mode!=2)return false;
+    if(!mm27_sort_table.pinned_bytes())strata_mm27_memory(0,minimax_m2::SortTableRing::capacity);
+    if(mm27_sort_table.copy(dst,src,bytes,stream))return true;
+    ++mm27_stats.sort_table_fallbacks;return false;
+}
 void strata_mm27_router_host_ids(bool enabled) {
     mm27_router_ids.clear();mm27_router_host_ids=enabled;
 }
@@ -62,6 +76,7 @@ void strata_mm27_reader(int reader) {
 }
 void strata_mm27_observe(strata_mm27_observer fn,void *owner) {mm27_observer=fn;mm27_owner=owner;}
 void strata_mm27_reset() {
+    mm27_sort_table.reset_counters();
     mm27_router_ids.clear();
     mm27_pipeline_account();
     const auto host_limit=mm27_stats.host_working_set_limit;
@@ -73,8 +88,16 @@ void strata_mm27_reset() {
     if(mm27_arena)mm27_arena->reset_counters();
     mm27_pipeline_account();
 }
-strata_mm27_stats strata_mm27_snapshot() {mm27_pipeline_account();auto s=mm27_stats;s.pipeline_pending_copy=mm27_pending_copy;mm27_cache_snapshot(s);return s;}
+strata_mm27_stats strata_mm27_snapshot() {
+    mm27_pipeline_account();auto s=mm27_stats;s.pipeline_pending_copy=mm27_pending_copy;mm27_cache_snapshot(s);
+    const auto &t=mm27_sort_table.counters();
+    s.sort_table_copies=t.copies;s.sort_table_bytes=t.bytes;s.sort_table_reuse_waits=t.reuse_waits;
+    s.sort_table_drain_waits=t.drain_waits;s.sort_table_peak_pending=t.peak_pending;
+    s.sort_table_pinned_bytes=mm27_sort_table.pinned_bytes();s.sort_table_pending=mm27_sort_table.pending();
+    return s;
+}
 void strata_mm27_release() {
+    strata_mm27_sort_table_async(false);
     strata_mm27_router_host_ids(false);
     mm27_pipeline_dispose();mm27_pipeline_trace.reset();mm27_pipeline_readers=0;mm27_pipeline_lookahead=false;
     mm27_pipeline_d2d_batch=false;mm27_pipeline_events=0;
@@ -279,11 +302,15 @@ static ggml_status mm27_graph_compute(ggml_backend_t backend,ggml_cgraph *graph)
     const auto start=mm27_clock::now();
     if(mm27_pipeline_active && mm27_pipeline_trace)mm27_pipeline_trace->record_compute(backend,true);
     ggml_status rc;
+    try {
     if(mm27_pipeline_events==2 && std::strstr(ggml_backend_name(backend),"CUDA")) {
         if(std::find(mm27_async_backends.begin(),mm27_async_backends.end(),backend)==mm27_async_backends.end())
             mm27_async_backends.push_back(backend);
         ++mm27_stats.async_compute_calls;rc=ggml_backend_graph_compute_async(backend,graph);
     } else rc=ggml_backend_graph_compute(backend,graph);
+    }catch(const std::exception &e) {
+        mm27_error=e.what();GGML_LOG_ERROR("STRATA_MM27 compute: %s\n",e.what());return GGML_STATUS_FAILED;
+    }
     if(mm27_pipeline_active && mm27_pipeline_trace)mm27_pipeline_trace->record_compute(backend,false);
     mm27_stats.compute_ms+=mm27_elapsed(start);
     if(mm27_pipeline_active && mm27_plan_next<mm27_plan.size() && mm27_test_limits.pipeline_compute_failure) {

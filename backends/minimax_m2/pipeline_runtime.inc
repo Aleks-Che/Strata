@@ -29,6 +29,9 @@ struct mm27_pipeline_graph_scope {
         // boundary. No queued kernel may outlive graph/scratch/context storage.
         for(auto *backend:mm27_async_backends) {ggml_backend_synchronize(backend);++mm27_stats.graph_exit_fences;}
         mm27_async_backends.clear();
+        // The existing graph fence has completed the normal copies. Also
+        // retire sources on cancellation/exception before graph/model teardown.
+        try {mm27_sort_table.drain();}catch(...) {GGML_ABORT("MiniMax sort table drain failed");}
         if(mm27_pipeline_active)mm27_pipeline_abort();
     }
 };
