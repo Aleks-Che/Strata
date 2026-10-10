@@ -113,6 +113,15 @@ NVIDIA, IQ3_XXS/MXFP4/Q8_0 и 2–4 токенами. Опция не ускор
 `STRATA_DEEPSEEK_ATTENTION_EXPERIMENT=ON` (default OFF); рабочего ускорения
 пока не даёт. [Результаты и команды](DEEPSEEK4_ATTENTION_FIXTURE.md).
 
+`STRATA_DS4_ROUTER_MMVF=1` — отдельный эксперимент для BF16 router 4096×256
+с batch 2–4: сохраняет F32-активации и арифметику одиночного токена.
+Без переменной используется штатный dispatch. [Проверки и ограничения](DEEPSEEK4_ROUTER_MMVF.md).
+
+`STRATA_DS4_HCA_COMPACT=1` — экспериментальное уплотнение видимых ключей HCA
+для batch ≤4. Требует сборки с `STRATA_DEEPSEEK_ATTENTION_EXPERIMENT=ON` и
+`STRATA_DS4_FA_COMPACT=1` либо `2`; обычная сборка его не включает.
+[Проверки коротких запросов и контекста 4096](DEEPSEEK4_HCA_COMPACT.md).
+
 Кнопка с шестерёнкой справа сверху открывает [настройки GPU-памяти](../VRAM_SETTINGS.md).
 Для DeepSeek CUDA можно менять лимит матриц или целевую общую занятость VRAM во
 время работы. Движок освобождает кеш при нехватке свободной видеопамяти и наполняет

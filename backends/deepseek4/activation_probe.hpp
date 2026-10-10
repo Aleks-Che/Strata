@@ -28,6 +28,36 @@ public:
         std::vector<std::string> sources;
         Json attention=Json::array();
     };
+    // Select by the actual mask input, not by scheduler callback order.
+    static bool attention_mask_matches(const ggml_tensor *t,const std::string &name) {
+        return t->op==GGML_OP_FLASH_ATTN_EXT && t->src[3] && name==t->src[3]->name;
+    }
+    struct Visible {
+        std::vector<uint8_t> data;
+        std::vector<int64_t> indices;
+    };
+    static Visible visible_inputs(const ggml_tensor *k,const ggml_tensor *v,const ggml_tensor *mask,
+            const std::vector<uint8_t> &kr,const std::vector<uint8_t> &vr,const std::vector<uint8_t> &mr,int query) {
+        if(query<0 || query>=mask->ne[1] || mask->ne[0]!=k->ne[1] || v->ne[1]!=k->ne[1])
+            throw std::runtime_error("visible attention mask shape mismatch");
+        Visible visible;
+        auto append=[&](const std::vector<uint8_t>&data,size_t offset,size_t size){
+            if(offset>data.size() || size>data.size()-offset)throw std::runtime_error("visible attention view exceeds backing tensor");
+            visible.data.insert(visible.data.end(),data.begin()+offset,data.begin()+offset+size);
+        };
+        for(int64_t i=0;i<k->ne[1];++i) {
+            ggml_fp16_t m;const size_t offset=query*mask->nb[1]+i*mask->nb[0];
+            if(offset>mr.size() || sizeof(m)>mr.size()-offset)throw std::runtime_error("visible attention mask exceeds backing tensor");
+            std::memcpy(&m,mr.data()+offset,sizeof(m));
+            const float value=ggml_fp16_to_fp32(m);
+            if(std::isinf(value) && value<0)continue;
+            if(!std::isfinite(value))throw std::runtime_error("invalid visible attention mask value");
+            visible.indices.push_back(i);append(mr,offset,sizeof(m));
+            for(const auto &pair:{std::make_pair(k,&kr),std::make_pair(v,&vr)})
+                for(int64_t j=0;j<pair.first->ne[0];++j)append(*pair.second,i*pair.first->nb[1]+j*pair.first->nb[0],2);
+        }
+        return visible;
+    }
     static Json compare(const Value &batch,const Value &one,int tokens,int row) {
         Json r={{"name",batch.name},{"op",batch.op},{"type",batch.type},
             {"batch_shape",batch.shape},{"serial_shape",one.shape},{"sources",batch.sources},{"row",row}};
@@ -60,7 +90,7 @@ public:
         return r;
     }
 private:
-    std::string path;
+    std::string path,attention_mask;
     std::set<std::string> names;
     int layer=0,phase=0,position=0,tokens=0,row=0;
     size_t bytes=0;
@@ -69,8 +99,12 @@ private:
     Json comparisons=Json::array();
     std::string error;
     bool attention_seen=false;
-    std::vector<std::vector<uint8_t>> visible_reference;
-    void attention_inputs(const ggml_tensor *t) {
+    std::vector<Visible> visible_reference;
+    bool attention_selected(const ggml_tensor *t) const {
+        return t->op==GGML_OP_FLASH_ATTN_EXT && !attention_seen &&
+            (names.count("@attention0") || (!attention_mask.empty() && attention_mask_matches(t,attention_mask)));
+    }
+    void attention_inputs(const ggml_tensor *t,const std::string &label) {
         const auto *k=t->src[1],*v=t->src[2],*mask=t->src[3];
         if(!mask || mask->type!=GGML_TYPE_F16 || k->type!=GGML_TYPE_F16 || v->type!=GGML_TYPE_F16 ||
             k->ne[2]!=1 || k->ne[3]!=1 || v->ne[2]!=1 || v->ne[3]!=1 || mask->ne[2]!=1 || mask->ne[3]!=1)
@@ -81,34 +115,28 @@ private:
         ggml_backend_tensor_get(mask,mr.data(),0,mr.size());
         const int count=phase==1?tokens:1;
         for(int query=0;query<count;++query) {
-            std::vector<uint8_t> visible;size_t keys=0;
-            auto append=[&](const std::vector<uint8_t>&data,size_t offset,size_t size){
-                if(offset+size>data.size())throw std::runtime_error("visible attention view exceeds backing tensor");
-                visible.insert(visible.end(),data.begin()+offset,data.begin()+offset+size);
-            };
-            for(int64_t i=0;i<k->ne[1];++i) {
-                ggml_fp16_t m;const size_t offset=query*mask->nb[1]+i*mask->nb[0];
-                if(offset+sizeof(m)>mr.size())throw std::runtime_error("visible attention mask shape mismatch");
-                std::memcpy(&m,mr.data()+offset,sizeof(m));
-                if(!std::isfinite(ggml_fp16_to_fp32(m)))continue;
-                ++keys;append(mr,offset,sizeof(m));
-                for(const auto &pair:{std::make_pair(k,&kr),std::make_pair(v,&vr)})
-                    for(int64_t j=0;j<pair.first->ne[0];++j)append(*pair.second,i*pair.first->nb[1]+j*pair.first->nb[0],2);
+            auto visible=visible_inputs(k,v,mask,kr,vr,mr,query);
+            // Sinks participate in the denominator even when no key is visible.
+            if(const auto *s=t->src[4]) {
+                if(s->type!=GGML_TYPE_F32 || ggml_nbytes(s)>(64ULL<<10))throw std::runtime_error("unsupported attention sinks");
+                const size_t start=visible.data.size();visible.data.resize(start+ggml_nbytes(s));
+                ggml_backend_tensor_get(s,visible.data.data()+start,0,ggml_nbytes(s));
             }
-            if(bytes+visible.size()>(256ULL<<20))throw std::runtime_error("visible attention reference exceeds limit");
-            bytes+=visible.size();
+            if(bytes+visible.data.size()>(256ULL<<20))throw std::runtime_error("visible attention reference exceeds limit");
+            bytes+=visible.data.size();
             if(phase==1)visible_reference.push_back(std::move(visible));
             else {
                 if(size_t(row)>=visible_reference.size())throw std::runtime_error("missing visible attention reference");
-                comparisons.push_back({{"name","strata_fattn0_visible#0"},{"row",row},{"visible_keys",keys},
-                    {"bytes",visible.size()},{"batch_bytes",visible_reference[row].size()},
-                    {"visible_inputs_equal",visible==visible_reference[row]}});
+                comparisons.push_back({{"name",label+"_visible#0"},{"row",row},{"visible_keys",visible.indices.size()},
+                    {"bytes",visible.data.size()},{"batch_bytes",visible_reference[row].data.size()},
+                    {"batch_indices",visible_reference[row].indices},{"serial_indices",visible.indices},
+                    {"visible_inputs_equal",visible.data==visible_reference[row].data}});
             }
         }
     }
     bool selected(const ggml_tensor *t) const {
         if(!phase || t->op==GGML_OP_NONE)return false;
-        if(t->op==GGML_OP_FLASH_ATTN_EXT && names.count("@attention0"))return !attention_seen;
+        if(attention_selected(t))return true;
         if(t->type!=GGML_TYPE_F32 && t->type!=GGML_TYPE_F16 && t->type!=GGML_TYPE_BF16 && t->type!=GGML_TYPE_I32)return false;
         const std::string name=t->name;
         if(!names.empty())return names.count(name)!=0;
@@ -160,7 +188,14 @@ public:
         if(const char *p=std::getenv("STRATA_SPEC_TRACE_LAYER"))layer=std::stoi(p);
         if(const char *p=std::getenv("STRATA_SPEC_TRACE_NODE")) {
             std::stringstream in(p);std::string name;
-            while(std::getline(in,name,','))if(!name.empty())names.insert(name);
+            while(std::getline(in,name,','))if(!name.empty()) {
+                if(name.rfind("@attention:",0)==0) {
+                    if(!attention_mask.empty() || name.size()==11)throw std::runtime_error("specify one attention mask name");
+                    attention_mask=name.substr(11);
+                }
+                names.insert(name);
+            }
+            if(!attention_mask.empty() && names.count("@attention0"))throw std::runtime_error("specify only one attention selector");
         }
         if(layer < -1 || layer>42)throw std::runtime_error("trace layer must be -1 or 0..42");
     }
@@ -176,11 +211,12 @@ public:
         // Do not propagate C++ exceptions through the C backend callback.
         try{
             if(ask)return self.selected(t);
-            if(t->op==GGML_OP_FLASH_ATTN_EXT && self.names.count("@attention0")) {
+            if(self.attention_selected(t)) {
                 self.attention_seen=true;
-                self.capture(t,"strata_fattn0");
-                self.capture(t->src[0],"strata_fattn0_q");
-                self.attention_inputs(t);
+                const std::string label=self.attention_mask.empty()?"strata_fattn0":"strata_fattn_"+self.attention_mask;
+                self.capture(t,label.c_str());
+                self.capture(t->src[0],(label+"_q").c_str());
+                self.attention_inputs(t,label);
             } else self.capture(t);
         }
         catch(const std::exception &e){self.error=e.what();self.idle();return !ask;}
@@ -189,6 +225,8 @@ public:
     void finish(float instrumentation_diff,float serial_instrumentation_diff) {
         idle();
         if(!error.empty())throw std::runtime_error(error);
+        if((!attention_mask.empty() || names.count("@attention0")) && visible_reference.empty())
+            throw std::runtime_error("activation probe did not find selected attention");
         if(reference.empty() || comparisons.empty())throw std::runtime_error("activation probe captured no nodes");
         std::ofstream out(path,std::ios::app);
         if(!out)throw std::runtime_error("cannot open activation probe output");

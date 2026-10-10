@@ -35,12 +35,12 @@ static float half(float x) { return ggml_fp16_to_fp32(ggml_fp32_to_fp16(x)); }
 struct Fixture {
     std::string name;
     int first, max_k, cap;
-    bool alias, analytic, sparse, sinks, strided;
+    bool alias, analytic, sparse, sinks, strided, hca;
     float scale = 1.0f / std::sqrt(float(D));
     Floats q, k, v, sink;
     std::vector<ggml_fp16_t> kh, vh;
-    Fixture(std::string name_, int first_, int max_k_, int cap_, bool alias_, bool analytic_, bool sparse_, bool sinks_, float amplitude, bool strided_=false)
-        : name(name_), first(first_), max_k(max_k_), cap(cap_), alias(alias_), analytic(analytic_), sparse(sparse_), sinks(sinks_), strided(strided_),
+    Fixture(std::string name_, int first_, int max_k_, int cap_, bool alias_, bool analytic_, bool sparse_, bool sinks_, float amplitude, bool strided_=false, bool hca_=false)
+        : name(name_), first(first_), max_k(max_k_), cap(cap_), alias(alias_), analytic(analytic_), sparse(sparse_), sinks(sinks_), strided(strided_), hca(hca_),
           q(D*H*N), k(D*max_k), v(D*max_k), sink(H), kh(D*max_k), vh(D*max_k) {
         // Index-based values keep every visible byte fixed as padding changes.
         for (size_t i=0; i<q.size(); ++i) q[i]=analytic ? 0 : amplitude*value(uint32_t(i),0xd54a);
@@ -53,18 +53,19 @@ struct Fixture {
     }
     float mask(int t, int key) const {
         const int pos=first+t;
-        const bool visible=key<=pos && (key>=std::max(0,pos-127) || (sparse && key%31==0));
+        const bool visible=(key<=pos && (key>=std::max(0,pos-127) || (sparse && key%31==0))) ||
+            (hca && key>=max_k-256 && key<max_k-256+(pos+1)/128);
         return visible ? (sparse ? half(-float(key%7)*0.125f) : 0.0f) : -std::numeric_limits<float>::infinity();
     }
     int visible(int t) const {
-        int n=0; for(int i=0; i<=first+t; ++i) n+=std::isfinite(mask(t,i)); return n;
+        int n=0; for(int i=0; i<(hca?max_k:first+t+1); ++i) n+=std::isfinite(mask(t,i)); return n;
     }
     std::vector<double> reference(bool rounded_q) const {
         std::vector<double> out(size_t(N)*H*D);
         for(int t=0; t<N; ++t) for(int h=0; h<H; ++h) {
             std::vector<int> ids; std::vector<double> scores;
             double maximum=sinks ? double(sink[h]) : -std::numeric_limits<double>::infinity();
-            for(int key=0; key<=first+t; ++key) if(std::isfinite(mask(t,key))) {
+            for(int key=0; key<(hca?max_k:first+t+1); ++key) if(std::isfinite(mask(t,key))) {
                 double dot=0;
                 for(int d=0; d<D; ++d) {
                     const float x=q[(t*H+h)*D+d];
@@ -108,10 +109,17 @@ struct Graph {
         buffer.reset(ggml_backend_alloc_ctx_tensors(ctx.get(),gpu)); require(bool(buffer),"device allocation failed");
         for(int h=0; h<H; ++h) for(int t=0; t<n; ++t)
             ggml_backend_tensor_set(q,f.q.data()+((row+t)*H+h)*D,h*q->nb[2]+t*q->nb[1],D*sizeof(float));
-        ggml_backend_tensor_set(k,f.kh.data(),0,ggml_nbytes(k));
-        if(!f.alias) ggml_backend_tensor_set(v,f.vh.data(),0,ggml_nbytes(v));
+        auto logical_key=[&](int key){return f.hca && key>=length-256?f.max_k-256+key-(length-256):key;};
+        require(!f.hca || (length-256>=f.first+row+n && length-256<=f.max_k-256),"invalid HCA padding");
+        std::vector<ggml_fp16_t> keys(size_t(length)*D),vals(size_t(length)*D);
+        for(int key=0;key<length;++key) {
+            std::copy_n(f.kh.data()+logical_key(key)*D,D,keys.data()+key*D);
+            std::copy_n(f.vh.data()+logical_key(key)*D,D,vals.data()+key*D);
+        }
+        ggml_backend_tensor_set(k,keys.data(),0,ggml_nbytes(k));
+        if(!f.alias) ggml_backend_tensor_set(v,vals.data(),0,ggml_nbytes(v));
         std::vector<ggml_fp16_t> masks(size_t(length)*n);
-        for(int t=0; t<n; ++t) for(int key=0; key<length; ++key) masks[t*length+key]=ggml_fp32_to_fp16(f.mask(row+t,key));
+        for(int t=0; t<n; ++t) for(int key=0; key<length; ++key) masks[t*length+key]=ggml_fp32_to_fp16(f.mask(row+t,logical_key(key)));
         ggml_backend_tensor_set(mask,masks.data(),0,ggml_nbytes(mask));
         if(sinks) ggml_backend_tensor_set(sinks,f.sink.data(),0,ggml_nbytes(sinks));
     }
@@ -175,19 +183,23 @@ int main() {
             {"sharp_bounded",255,8192,128,false,false,false,false,6},
             {"sparse_dense_path",4091,8192,0,true,false,true,true,1},
             {"sparse_gather_path",4091,8192,260,true,false,true,true,1},
-            {"sparse_wide_bound",4091,8192,2048,true,false,true,true,1}}) {
+            {"sparse_wide_bound",4091,8192,2048,true,false,true,true,1},
+            {"hca_prefix",35,8192,384,true,false,false,true,1,true,true},
+            {"hca_boundary",255,8192,384,true,false,false,true,1,true,true},
+            {"hca_block_boundary",127,8192,384,false,false,false,true,1,true,true},
+            {"hca_long",4091,8192,384,true,false,false,true,1,true,true}}) {
             std::cerr<<"Attention fixture "<<f.name<<'\n';
             const auto ref=f.reference(false), rounded=f.reference(true);
             for(int t=0;t<N;++t) require(f.cap==0 || f.visible(t)<=f.cap,"sparse cap truncates visible keys");
             // Serial minimum padded lengths cross 256 -> 512 at position 256.
             Floats natural;
             for(int t=0;t<N;++t) {
-                Graph one(gpu.get(),f,1,((f.first+t+1+255)/256)*256,t);
+                Graph one(gpu.get(),f,1,((f.first+t+1+255)/256)*256+(f.hca?256:0),t);
                 auto output=one.run(gpu.get()); natural.insert(natural.end(),output.begin(),output.end());
             }
             for(int n:{1,2,3,4,5}) {
                 Floats minimal;
-                const int base=((f.first+n+255)/256)*256;
+                const int base=((f.first+n+255)/256)*256+(f.hca?256:0);
                 std::vector<int> lengths={base,512,4096,8192};
                 std::sort(lengths.begin(),lengths.end()); lengths.erase(std::unique(lengths.begin(),lengths.end()),lengths.end());
                 for(int length:lengths) if(length>=base) {

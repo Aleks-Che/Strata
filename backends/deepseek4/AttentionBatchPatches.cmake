@@ -59,7 +59,8 @@ set_property(TARGET ggml-cuda PROPERTY SOURCES "${ds4_cuda_sources};${ds4_fa_gen
 set_source_files_properties("${ds4_fa_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
   INCLUDE_DIRECTORIES "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda")
 
-# Raw SWA has a proven bound. Do not infer a bound for HCA/other attention.
+# Raw SWA has a proven bound. HCA additionally includes at most every slot
+# of its compressed input buffer; this conservative bound never prunes keys.
 set(ds4_model_original "${STRATA_LLAMA_DIR}/src/models/deepseek4.cpp")
 file(SHA256 "${ds4_model_original}" ds4_model_hash)
 if(NOT ds4_model_hash STREQUAL "6bad275618f2b3f6f671fe4e6506c7fcfa06083d4606456222b406792539e943")
@@ -72,6 +73,21 @@ if(ds4_raw_found EQUAL -1)
   message(FATAL_ERROR "Missing DeepSeek raw SWA attention call")
 endif()
 string(REPLACE "${ds4_raw_call}" "build_attn_mha(q, k, k, nullptr, kq_mask, sinks, nullptr, (q->ne[2]<=4 && std::getenv(\"STRATA_DS4_FA_COMPACT\") && (std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"1\")==0 || std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"2\")==0)) ? hparams.n_swa : 0, kq_scale, il)" ds4_model "${ds4_model}")
+set(ds4_hca_call "build_attn_mha(q, k_all, k_all, nullptr, kq_mask, sinks, nullptr, 0, kq_scale, il)")
+string(FIND "${ds4_model}" "${ds4_hca_call}" ds4_hca_found)
+if(ds4_hca_found EQUAL -1)
+  message(FATAL_ERROR "Missing DeepSeek HCA attention call")
+endif()
+set(ds4_hca_bound [=[
+build_attn_mha(q, k_all, k_all, nullptr, kq_mask, sinks, nullptr,
+            (q->ne[2]<=4 && std::getenv("STRATA_DS4_HCA_COMPACT") &&
+             std::strcmp(std::getenv("STRATA_DS4_HCA_COMPACT"), "1")==0 &&
+             std::getenv("STRATA_DS4_FA_COMPACT") &&
+             (std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "1")==0 ||
+              std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "2")==0)) ?
+                int64_t(hparams.n_swa) + n_hca : 0, kq_scale, il)
+]=])
+string(REPLACE "${ds4_hca_call}" "${ds4_hca_bound}" ds4_model "${ds4_model}")
 string(PREPEND ds4_model "#include <cstdlib>\n#include <cstring>\n")
 file(WRITE "${CMAKE_BINARY_DIR}/strata-ds4-attention-model.cpp" "${ds4_model}")
 get_target_property(ds4_llama_sources llama SOURCES)
