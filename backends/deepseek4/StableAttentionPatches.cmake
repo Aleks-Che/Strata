@@ -1,6 +1,6 @@
 # Private launch helper and one explicit MMA instantiation. Renaming the host
 # helpers avoids ODR collisions with launch_fattn instantiations used by other
-# attention kernels. Device kernels and the pinned dependency stay unchanged.
+# attention kernels. Optional variants are private; the pinned dependency stays unchanged.
 set(ds4_cuda_dir "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda")
 file(SHA256 "${ds4_cuda_dir}/fattn-common.cuh" ds4_common_hash)
 file(SHA256 "${ds4_cuda_dir}/fattn-mma-f16.cuh" ds4_mma_hash)
@@ -18,11 +18,15 @@ if(ds4_stable_found EQUAL -1)
 endif()
 string(REPLACE "${ds4_stable_anchor}" "${ds4_stable_code}\n${ds4_stable_anchor}" ds4_common "${ds4_common}")
 string(REPLACE "void launch_fattn(" "void strata_ds4_launch_fattn(" ds4_common "${ds4_common}")
+if(STRATA_DEEPSEEK_COST_EXPERIMENT)
+  include(AttentionStageProfilePatches.cmake)
+endif()
 string(PREPEND ds4_common "#include \"stable_stream_k.hpp\"\n#include <cstdlib>\n#include <cstring>\n#include <cstdio>\n#include <mutex>\n#include <set>\n#include <tuple>\n")
 set(ds4_stable_dir "${CMAKE_BINARY_DIR}/ds4-stable-attention")
 file(MAKE_DIRECTORY "${ds4_stable_dir}")
 file(WRITE "${ds4_stable_dir}/strata-fattn-common.cuh" "${ds4_common}")
 file(READ "${ds4_cuda_dir}/fattn-mma-f16.cuh" ds4_mma)
+include(AttentionEmptyTilePatches.cmake)
 string(REPLACE "#include \"fattn-common.cuh\"" "#include \"strata-fattn-common.cuh\"" ds4_mma "${ds4_mma}")
 string(REPLACE "launch_fattn<DV, ncols1, ncols2>" "strata_ds4_launch_fattn<DV, ncols1, ncols2>" ds4_mma "${ds4_mma}")
 string(REPLACE "ggml_cuda_flash_attn_ext_mma_f16_case" "strata_ds4_mma_case" ds4_mma "${ds4_mma}")

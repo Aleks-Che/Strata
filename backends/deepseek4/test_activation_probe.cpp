@@ -15,13 +15,14 @@ int main(){
             if(permuted){std::swap(t.ne[0],t.ne[3]);std::swap(t.nb[0],t.nb[3]);actual_axis=axis==0?3:axis==3?0:axis;}
             std::vector<uint8_t> backing(ggml_nbytes(&t));
             for(size_t i=0;i<backing.size();++i)backing[i]=uint8_t(i*37+(i>>7));
-            for(int row:{0,2}) {
-                auto s=ActivationProbe::token_slice(&t,3,row);require(s.axis==actual_axis && s.shape[actual_axis]==1);
+            for(const auto window:{std::make_pair(0,1),std::make_pair(2,1),std::make_pair(1,2),std::make_pair(0,3)}) {
+                const int row=window.first,rows=window.second;
+                auto s=ActivationProbe::token_slice(&t,3,row,rows);require(s.axis==actual_axis && s.shape[actual_axis]==rows);
                 std::vector<uint8_t> compact(s.bytes),expected;
                 for(auto span:s.spans)std::memcpy(compact.data()+span.destination,backing.data()+span.source,span.size);
                 for(int64_t n=0;n<ggml_nelements(&t);++n) {
                     int64_t q=n;size_t offset=0;bool take=false;
-                    for(int i=0;i<4;++i){int64_t index=q%t.ne[i];q/=t.ne[i];offset+=index*t.nb[i];if(i==actual_axis)take=index==row;}
+                    for(int i=0;i<4;++i){int64_t index=q%t.ne[i];q/=t.ne[i];offset+=index*t.nb[i];if(i==actual_axis)take=index>=row && index<row+rows;}
                     if(take)expected.insert(expected.end(),backing.begin()+offset,backing.begin()+offset+4);
                 }
                 require(compact==expected);
@@ -33,6 +34,14 @@ int main(){
         require(ActivationProbe::token_slice(&uncertain,5,0).axis==-2);
         bool invalid_row=false;try{ActivationProbe::token_slice(&uncertain,3,3);}catch(const std::exception&){invalid_row=true;}
         require(invalid_row);
+        for(auto window:{std::make_pair(0,0),std::make_pair(0,129),std::make_pair(2,2),std::make_pair(-1,1)}) {
+            bool rejected=false;try{ActivationProbe::token_slice(&uncertain,3,window.first,window.second);}catch(const std::exception&){rejected=true;}
+            require(rejected);
+        }
+        ActivationProbe probe;
+        probe.batch(0,3071,2304,128);probe.serial(2304,258,1);
+        bool cross_batch=false;try{probe.serial(2304,128,1);}catch(const std::exception&){cross_batch=true;}
+        require(cross_batch);probe.idle();
         uncertain.ne[0]=uncertain.ne[1]=4096;uncertain.ne[2]=3;
         bool too_large=false;try{ActivationProbe::token_slice(&uncertain,3,0);}catch(const std::exception&){too_large=true;}
         require(too_large);
@@ -138,6 +147,11 @@ int main(){
             for(int d=0;d<4;++d){size*=one.shape[d];if(d<axis)inner*=one.shape[d];}
             batch.data.resize(size*3);one.data.resize(size);
             for(size_t i=0;i<batch.data.size();++i)batch.data[i]=float(i)*0.5f;
+            // An explicit axis also handles windows as wide as another axis.
+            for(int selected=0;selected<3;++selected) {
+                auto compact=ActivationProbe::compact_row(batch,axis,selected,3);
+                for(size_t i=0;i<size;++i)require(compact.data[i]==batch.data[(i/inner*3+selected)*inner+i%inner]);
+            }
             for(int row=0;row<3;++row) {
                 for(size_t i=0;i<size;++i)one.data[i]=batch.data[(i/inner*3+row)*inner+i%inner];
                 auto exact=ActivationProbe::compare(batch,one,3,row);
@@ -166,6 +180,12 @@ int main(){
             try{ActivationProbe::compare(batch,one,3,3);}catch(const std::runtime_error&){threw=true;}
             require(threw);
         }
+        ActivationProbe::Value ambiguous;ambiguous.shape={2,2,1,1};ambiguous.data={1,2,3,4};
+        require(ActivationProbe::compact_row(ambiguous,0,1,2).data==std::vector<float>({2,4}));
+        require(ActivationProbe::compact_row(ambiguous,1,1,2).data==std::vector<float>({3,4}));
+        ambiguous.data.pop_back();bool short_window=false;
+        try{ActivationProbe::compact_row(ambiguous,1,0,2);}catch(const std::exception&){short_window=true;}
+        require(short_window);
         std::cout<<"PASS visible KV/masks, attention selection, token axes, nonfinite values and bounds\n";
     }catch(const std::exception &e){std::cerr<<e.what()<<'\n';return 1;}
 }

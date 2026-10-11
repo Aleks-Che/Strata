@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--splits', default='')
     parser.add_argument('--nodes', default='@attention0,hc_init,attn_norm-0,qr-0,qr_norm-0,q-0,kv-0,attn_raw-0,l_last-0,result_output', help='Comma-separated tensor names or @weight:, @expert: (MUL_MAT_ID with inputs and IDs), @attention:, @attention-sinks: selectors')
     parser.add_argument('--history-row', type=int, default=-1, help='Read and compare only this token inside its segment and the full prefill, including visible attention inputs')
+    parser.add_argument('--history-rows', type=int, default=1, help='Compare 1..128 tokens starting at history-row; the entire window must fit in one segment')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=480)
     args = parser.parse_args()
@@ -29,8 +30,22 @@ def main():
     if cfg.get('architecture') != 'deepseek4' or '--draft-model' in cfg['args']:
         parser.error('Requires a DeepSeek profile without DSpark')
     tokens = json.loads(args.tokens_json.read_text('utf-8'))
-    if not isinstance(tokens, list) or not 2 <= len(tokens) <= 1024 or any(type(x) is not int or x < 0 for x in tokens):
-        parser.error('tokens-json must contain 2..1024 nonnegative integer IDs')
+    if not isinstance(tokens, list) or not 2 <= len(tokens) <= 4096 or any(type(x) is not int or x < 0 for x in tokens):
+        parser.error('tokens-json must contain 2..4096 nonnegative integer IDs')
+    if not -1 <= args.history_row < len(tokens) - 1:
+        parser.error('history-row must be -1 or a position inside the prefix')
+    if not 1 <= args.history_rows <= 128 or (args.history_row < 0 and args.history_rows != 1):
+        parser.error('history-rows must be 1..128 and requires history-row for a window')
+    try:
+        ends = [int(x) for x in args.splits.split(',')] if args.splits else []
+    except ValueError:
+        parser.error('splits must contain integer endpoints')
+    if any(b <= a or b > len(tokens) - 1 for a, b in zip([0] + ends, ends)):
+        parser.error('splits must increase within prefix')
+    if not ends or ends[-1] < len(tokens) - 1:
+        ends.append(len(tokens) - 1)
+    if args.history_row >= 0 and args.history_row + args.history_rows > next(x for x in ends if x > args.history_row):
+        parser.error('history window crosses a split or the end of the prefix')
     args.output = args.output.resolve()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     trace = args.output.with_suffix('.jsonl')
@@ -40,6 +55,7 @@ def main():
     env.update(STRATA_PREFILL_PROBE=str(args.output), STRATA_PREFILL_PROBE_SPLITS=args.splits,
                STRATA_SPEC_TRACE_NODES=str(trace), STRATA_SPEC_TRACE_NODE=args.nodes)
     env['STRATA_PREFILL_PROBE_HISTORY_ROW'] = str(args.history_row)
+    env['STRATA_PREFILL_PROBE_HISTORY_ROWS'] = str(args.history_rows)
     engine = None
     expired = threading.Event()
 

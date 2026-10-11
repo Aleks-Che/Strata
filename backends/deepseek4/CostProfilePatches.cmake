@@ -1,0 +1,18 @@
+# Events preserve fused dispatch and record on the node's assigned stream.
+set(cost_entry "static void ggml_cuda_graph_evaluate_and_capture(")
+set(cost_begin "                int nodes_to_skip = ggml_cuda_try_fuse(cuda_ctx, cgraph, i);")
+set(cost_fused "                if (nodes_to_skip != 0) {")
+set(cost_end "                bool ok = ggml_cuda_compute_forward(*cuda_ctx, node);")
+set(cost_drain "#ifdef USE_CUDA_GRAPH\n        ggml_cuda_graph * graph = cuda_ctx->cuda_graph(graph_key);\n        if (use_cuda_graph && cuda_graph_update_required)")
+foreach(anchor "${cost_entry}" "${cost_begin}" "${cost_fused}" "${cost_end}" "${cost_drain}")
+  string(FIND "${cuda_source}" "${anchor}" found)
+  if(found EQUAL -1)
+    message(FATAL_ERROR "Pinned CUDA cost profile anchor missing: ${anchor}")
+  endif()
+endforeach()
+string(REPLACE "${cost_entry}" "#include \"cost_profile.cuh\"\n${cost_entry}" cuda_source "${cuda_source}")
+string(REPLACE "${cost_begin}" "                const auto strata_cost_index = strata_cost_profile.begin(node, cuda_ctx->stream(), use_cuda_graph);\n${cost_begin}" cuda_source "${cuda_source}")
+string(REPLACE "${cost_fused}" "${cost_fused}\n                    strata_cost_profile.end(strata_cost_index, cuda_ctx->stream(), nodes_to_skip + 1);" cuda_source "${cuda_source}")
+string(REPLACE "${cost_end}" "${cost_end}\n                strata_cost_profile.end(strata_cost_index, cuda_ctx->stream(), 1);" cuda_source "${cuda_source}")
+# Before graph capture handling, after all events in this scheduler subgraph.
+string(REPLACE "${cost_drain}" "        strata_cuda_expert_profile_drain();\n        strata_cost_profile.drain();\n${cost_drain}" cuda_source "${cuda_source}")

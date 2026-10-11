@@ -35,6 +35,30 @@
         return;
     }
 
+    // Indexer projections affect top-k membership, even when their rounding
+    // difference is small. Opt-in fixed MMQ and per-sample F32 MMVF, with the
+    // same accumulation order for both one-token and long prefill batches.
+    const char * strata_indexer = std::getenv("STRATA_DS4_INDEXER_PROJECTION");
+    if (strata_indexer && std::strcmp(strata_indexer,"1")==0 && GGML_CUDA_CC_IS_NVIDIA(cc) &&
+        src1->type==GGML_TYPE_F32 && dst->type==GGML_TYPE_F32 &&
+        src0->ne[2]==1 && src0->ne[3]==1 && src1->ne[2]==1 && src1->ne[3]==1 &&
+        ne11>=1 && ne11<=4096 && ggml_is_contiguous(src0) && ggml_is_contiguous(src1) && ggml_is_contiguous(dst)) {
+        if (src0->type==GGML_TYPE_Q8_0 && src0->ne[0]==1024 && src0->ne[1]==8192 &&
+            strata_projection_suffix(src0->name,".indexer.attn_q_b.weight") && cc>=GGML_CUDA_CC_AMPERE &&
+            ggml_cuda_should_use_mmq(src0->type,cc,ne11,0)) {
+            strata_projection_trace(src0,src1,dst,"indexer_fixed_mmq");
+            strata_projection_fixed_mmq(ctx,src0,src1,nullptr,dst);
+            return;
+        }
+        if (src0->type==GGML_TYPE_F32 && src0->ne[0]==4096 && src0->ne[1]==64 &&
+            strata_projection_suffix(src0->name,".indexer.proj.weight") &&
+            ggml_cuda_should_use_mmvf(src0->type,cc,src0->ne,src0->nb,1)) {
+            strata_projection_trace(src0,src1,dst,"indexer_sample_mmvf");
+            strata_projection_sample_mmvf(ctx,src0,src1,dst,8);
+            return;
+        }
+    }
+
     // Keep gate/up, and optionally down, on the same Q8 scale and K partition.
     if (strata_shared_mmq_eligible(src0,src1,dst,cc)) {
         strata_projection_trace(src0,src1,dst,"shared_fixed_mmq");

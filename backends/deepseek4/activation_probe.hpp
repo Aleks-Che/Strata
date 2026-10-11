@@ -37,10 +37,12 @@ public:
         size_t bytes=0;
         std::vector<ReadSpan> spans;
     };
-    // Plan a bounded, compact read of one token, including permuted views.
+    static constexpr int MAX_HISTORY_ROWS=128;
+    // Plan a bounded, compact read of a token window, including permuted views.
     // -2 means absent/ambiguous token axis; -1 means an already single token.
-    static TokenSlice token_slice(const ggml_tensor *t,int count,int row) {
-        if(count<1 || row<0 || row>=count)throw std::runtime_error("invalid readback token row");
+    static TokenSlice token_slice(const ggml_tensor *t,int count,int row,int rows=1) {
+        if(count<1 || row<0 || rows<1 || rows>MAX_HISTORY_ROWS || row>count-rows)
+            throw std::runtime_error("invalid readback token window");
         TokenSlice s;std::copy_n(t->ne,4,s.shape.begin());
         if(count==1)s.axis=-1;
         else {
@@ -49,7 +51,7 @@ public:
                 s.axis=i;
             }
             if(s.axis==-2)return s;
-            s.shape[s.axis]=1;
+            s.shape[s.axis]=rows;
         }
         if(t->type!=GGML_TYPE_F32 && t->type!=GGML_TYPE_F16 && t->type!=GGML_TYPE_BF16 && t->type!=GGML_TYPE_I32)
             throw std::runtime_error("unsupported activation slice type");
@@ -74,6 +76,24 @@ public:
             s.spans.push_back({offset,j*element,size});
         }
         return s;
+    }
+    // Keep the axis from the original read plan: the compact window length
+    // may equal a feature dimension, so re-inferring it would be ambiguous.
+    static Value compact_row(const Value &v,int axis,int row,int rows) {
+        if(rows<1 || rows>MAX_HISTORY_ROWS || row<0 || row>=rows || axis<0 || axis>3 || v.shape[axis]!=rows)
+            throw std::runtime_error("invalid compact activation row");
+        size_t size=1,inner=1;
+        for(int i=0;i<4;++i) {
+            if(v.shape[i]<1 || size>v.data.size()/size_t(v.shape[i]))
+                throw std::runtime_error("compact activation storage mismatch");
+            size*=v.shape[i];if(i<axis)inner*=v.shape[i];
+        }
+        if(size!=v.data.size())throw std::runtime_error("compact activation storage mismatch");
+        Value one;one.name=v.name;one.op=v.op;one.type=v.type;one.shape=v.shape;one.shape[axis]=1;
+        one.sources=v.sources;one.attention=v.attention;one.matrix=v.matrix;one.slice=v.slice;
+        one.slice["window_offset"]=row;one.data.resize(size/rows);
+        for(size_t i=0;i<one.data.size();++i)one.data[i]=v.data[(i/inner*rows+row)*inner+i%inner];
+        return one;
     }
     // Select by the actual mask input, not by scheduler callback order.
     static bool attention_mask_matches(const ggml_tensor *t,const std::string &name) {
@@ -229,6 +249,7 @@ private:
     std::string path,attention_mask,attention_sinks;
     std::set<std::string> names;
     int layer=0,phase=0,position=0,tokens=0,row=0,compared_tokens=1,compared_row=0,reference_row=-1;
+    int history_rows=1;
     size_t bytes=0;
     std::vector<Value> reference;
     std::map<std::string,size_t> occurrences,lookup;
@@ -252,7 +273,7 @@ private:
         std::vector<uint8_t> kr(ggml_nbytes(k)),vr(ggml_nbytes(v)),mr(ggml_nbytes(mask));
         ggml_backend_tensor_get(k,kr.data(),0,kr.size());ggml_backend_tensor_get(v,vr.data(),0,vr.size());
         ggml_backend_tensor_get(mask,mr.data(),0,mr.size());
-        const int count=phase==1 && reference_row<0?tokens:1;
+        const int count=reference_row>=0?history_rows:(phase==1?tokens:1);
         const int start=reference_row>=0?(phase==1?reference_row:compared_row):0;
         for(int query=start;query<start+count;++query) {
             auto visible=visible_inputs(k,v,mask,kr,vr,mr,query);
@@ -266,9 +287,9 @@ private:
             bytes+=visible.data.size();
             if(phase==1)visible_reference.push_back(std::move(visible));
             else {
-                const size_t at=reference_row>=0?0:size_t(row);
+                const size_t at=reference_row>=0?size_t(query-start):size_t(row);
                 if(at>=visible_reference.size())throw std::runtime_error("missing visible attention reference");
-                comparisons.push_back({{"name",label+"_visible#0"},{"row",row},{"visible_keys",visible.indices.size()},
+                comparisons.push_back({{"name",label+"_visible#0"},{"row",reference_row>=0?reference_row+query-start:row},{"visible_keys",visible.indices.size()},
                     {"bytes",visible.data.size()},{"batch_bytes",visible_reference[at].data.size()},
                     {"batch_indices",visible_reference[at].indices},{"serial_indices",visible.indices},
                     {"visible_inputs_equal",visible.data==visible_reference[at].data},
@@ -294,7 +315,7 @@ private:
     }
     void capture(ggml_tensor *t,const char *label=nullptr) {
         TokenSlice sliced;
-        if(reference_row>=0)sliced=token_slice(t,phase==1?tokens:compared_tokens,phase==1?reference_row:compared_row);
+        if(reference_row>=0)sliced=token_slice(t,phase==1?tokens:compared_tokens,phase==1?reference_row:compared_row,history_rows);
         const std::string name=label?label:t->name;
         const std::string key=name+"#"+std::to_string(occurrences[name]++);
         if(reference_row>=0 && sliced.axis==-2) {
@@ -308,6 +329,7 @@ private:
         std::copy_n(t->ne,4,v.shape.begin());
         if(reference_row>=0) {
             v.slice={{"shape",v.shape},{"axis",sliced.axis},{"row",phase==1?reference_row:compared_row},
+                {"rows",history_rows},
                 {"strides",std::vector<size_t>(t->nb,t->nb+4)},
                 {"read_bytes",read_bytes},{"spans",sliced.spans.size()}};v.shape=sliced.shape;
         }
@@ -351,8 +373,13 @@ private:
             auto it=lookup.find(key);
             if(it==lookup.end())comparisons.push_back({{"name",key},{"row",row},{"skipped","missing in batch"}});
             else if(reference_row>=0) {
-                auto result=compare(reference[it->second],v,1,0);result["row"]=reference_row;
-                comparisons.push_back(std::move(result));
+                const auto &ref=reference[it->second];
+                for(int r=0;r<history_rows;++r) {
+                    auto result=history_rows==1?compare(ref,v,1,0):
+                        compare(compact_row(ref,ref.slice["axis"].get<int>(),r,history_rows),
+                                compact_row(v,sliced.axis,r,history_rows),1,0);
+                    result["row"]=reference_row+r;comparisons.push_back(std::move(result));
+                }
             } else comparisons.push_back(compare_batches(reference[it->second],v,tokens,row,compared_tokens,compared_row));
         }
     }
@@ -381,13 +408,16 @@ public:
     }
     bool enabled() const {return !path.empty();}
     void idle(){phase=0;}
-    void batch(int pos,int count,int trace_row=-1) {
-        if(trace_row < -1 || trace_row>=count)throw std::runtime_error("invalid historical readback row");
-        reference_row=trace_row;
+    void batch(int pos,int count,int trace_row=-1,int trace_rows=1) {
+        if(trace_rows<1 || trace_rows>MAX_HISTORY_ROWS || trace_row < -1 ||
+           (trace_row<0?trace_rows!=1:trace_row>count-trace_rows))throw std::runtime_error("invalid historical readback window");
+        reference_row=trace_row;history_rows=trace_rows;
         position=pos;tokens=count;phase=1;bytes=0;attention_seen=false;reference.clear();lookup.clear();occurrences.clear();
         comparisons=Json::array();visible_reference.clear();error.clear();
     }
     void serial(int token_row,int count=1,int local_row=0) {
+        if(reference_row>=0 && (local_row<0 || local_row>count-history_rows))
+            throw std::runtime_error("historical window crosses compared batch");
         phase=2;row=token_row;compared_tokens=count;compared_row=local_row;bytes=0;attention_seen=false;occurrences.clear();
     }
     static bool callback(ggml_tensor *t,bool ask,void *user) {

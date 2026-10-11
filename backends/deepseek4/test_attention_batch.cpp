@@ -173,6 +173,46 @@ int main() {
         report["experiment_compiled"]=false;
 #endif
         bool pass=true;
+        if(std::getenv("STRATA_DS4_FA_EMPTY_TEST")) {
+            require(report["experiment_compiled"].get<bool>(),"empty tile comparison requires attention experiment build");
+            require(compact && std::strcmp(compact,"4")==0,"empty tile comparison requires compact mode 4");
+            report["scope"]="empty sparse partitions; full array A/B comparison with identical nonempty reduction";
+            for(int cap:{128,384,640,2048}) for(bool strided:{false,true}) for(bool alias:{false,true}) {
+                Fixture f("empty",0,8192,cap,alias,false,false,true,1,strided,cap>128,4096);
+                for(int n:{1,3,257,4096}) {
+                    Graph batch(gpu.get(),f,n,8192);
+                    env("STRATA_DS4_FA_SKIP_EMPTY","0"); const auto control=batch.run(gpu.get());
+                    env("STRATA_DS4_FA_SKIP_EMPTY","1"); const auto candidate=batch.run(gpu.get());
+                    const auto delta=difference(candidate,control);
+                    bool ok=delta["exact_bits"].get<bool>() && delta["finite"].get<bool>();
+                    pass &= ok;
+                    report["checks"].push_back({{"cap",cap},{"tokens",n},{"strided",strided},{"alias",alias},
+                        {"comparison",delta},{"passed",ok}});
+                }
+            }
+            // Independent oracle and serial parity for an early partial tile,
+            // a tile boundary, and a late HCA query with trailing empty blocks.
+            for(int first:{0,31,32,127,255,3071}) for(bool sinks:{false,true}) {
+                Fixture f("empty-oracle",first,8192,640,true,false,false,sinks,1,true,true);
+                Graph batch(gpu.get(),f,N,8192);
+                env("STRATA_DS4_FA_SKIP_EMPTY","1");const auto candidate=batch.run(gpu.get());
+                const auto oracle=difference(candidate,f.reference(false));
+                Floats serial;
+                for(int row=0;row<N;++row) {Graph one(gpu.get(),f,1,8192,row);auto out=one.run(gpu.get());serial.insert(serial.end(),out.begin(),out.end());}
+                const auto parity=difference(candidate,serial);
+                bool ok=oracle["finite"].get<bool>() && oracle["max_abs"].get<double>()<0.02 && parity["exact_bits"].get<bool>();
+                pass &= ok;report["checks"].push_back({{"first",first},{"sinks",sinks},{"fp64",oracle},{"serial",parity},{"passed",ok}});
+            }
+            for(int cap:{128,384,640,2048}) for(int n:{3,4096}) {
+                Fixture f("empty-timing",0,8192,cap,true,false,false,true,1,true,cap>128,4096);
+                Graph batch(gpu.get(),f,n,8192);
+                for(const char *mode:{"0","1","1","0"}) {
+                    env("STRATA_DS4_FA_SKIP_EMPTY",mode);
+                    report["timings"].push_back({{"cap",cap},{"tokens",n},{"skip_empty",mode},{"wall_us",batch.time(gpu.get())}});
+                }
+            }
+            report["status"]=pass?"pass":"fail";std::cout<<report.dump(2)<<'\n';return pass?0:1;
+        }
         if(std::getenv("STRATA_DS4_FA_LONG_TEST")) {
             report["scope"]="long attention, sampled rows vs independent FP64 and serial CUDA";
             for(bool hca:{false,true})for(bool strided:{false,true}) {

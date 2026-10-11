@@ -77,6 +77,41 @@ static bool mixed_arena(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPla
     return ok;
 }
 
+static bool batch_edges(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPlan plan,
+                        StrataExpertFinish finish,StrataExpertFlush flush,StrataExpertBudget budget) {
+    bool ok=true;
+    for(const size_t width:{size_t(65536),size_t(65537)}) {
+        constexpr int count=70; // crosses two 32-descriptor packet boundaries
+        auto *gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
+        budget(8);
+        auto *hc=ggml_init({ggml_tensor_overhead(),nullptr,true});
+        auto *dc=ggml_init({ggml_tensor_overhead(),nullptr,true});
+        auto *src=ggml_new_tensor_3d(hc,GGML_TYPE_I8,width,1,count);
+        auto *dst=ggml_new_tensor_3d(dc,GGML_TYPE_I8,width,1,count);
+        auto *hb=ggml_backend_alloc_ctx_tensors(hc,cpu);
+        auto *db=ggml_backend_alloc_ctx_tensors(dc,gpu);
+        std::vector<uint8_t> expected(width*count),actual(expected.size());
+        for(size_t i=0;i<expected.size();++i)expected[i]=uint8_t(i*31+(i>>10));
+        ggml_backend_tensor_set(src,expected.data(),0,expected.size());
+        std::vector<StrataExpertSlice> slices;
+        for(int i=0;i<count;++i)slices.push_back({(uint8_t *)src->data+i*width,width+(i<count-1?512:0),true});
+        for(int repeat=0;repeat<3;++repeat) {
+            ggml_backend_buffer_clear(db,0xA5);plan(gpu,slices.data(),slices.size());
+            if(repeat<2)copy(gpu,src,dst,0,count-1,1);
+            else for(int i=count-1;i>=0;--i) { // reverse order, plus duplicate destination
+                copy(gpu,src,dst,i,i,1);copy(gpu,src,dst,i,i,1);
+            }
+            flush(gpu);ggml_backend_synchronize(gpu);
+            // Read before finish: the scheduler flush itself must materialize.
+            ggml_backend_tensor_get(dst,actual.data(),0,actual.size());CHECK(expected==actual);
+            finish(gpu);
+        }
+        ggml_backend_free(gpu);ggml_backend_buffer_free(db);ggml_backend_buffer_free(hb);
+        ggml_free(dc);ggml_free(hc);
+    }
+    budget(4);return ok;
+}
+
 int main() {
     const char *host_copy=std::getenv("STRATA_EXPERT_HOST_COPY");
     if(host_copy && std::strcmp(host_copy,"avx2")==0 && !strata_ds4_host_copy::available()) {
@@ -101,7 +136,9 @@ int main() {
     auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(reg,"strata_expert_control");
     auto plan=(StrataExpertPlan)ggml_backend_reg_get_proc_address(reg,"strata_expert_plan");
     auto finish=(StrataExpertFinish)ggml_backend_reg_get_proc_address(reg,"strata_expert_finish");
-    if(!copy || !stats || !budget || !decay || !control || !plan || !finish)return 1;
+    auto flush=(StrataExpertFlush)ggml_backend_reg_get_proc_address(reg,"strata_expert_flush");
+    if(!copy || !stats || !budget || !decay || !control || !plan || !finish || !flush)return 1;
+    if(!batch_edges(cpu,copy,plan,finish,flush,budget))return 1;
     budget(4);
     constexpr int count=10;
     constexpr size_t width=(1<<20)+(256<<10); // crosses the 1 MiB staging boundary

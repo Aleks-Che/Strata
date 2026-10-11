@@ -9,6 +9,7 @@
 #include "expert_tuning.hpp"
 #include "activation_probe.hpp"
 #include "prefill_probe.hpp"
+#include "fixed_workload.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -253,7 +254,7 @@ class Runner {
     std::vector<llama_token> active;
     std::string active_session;
     uint64_t serial=0,hits=0,misses=0,evictions=0,skips=0;
-    bool prefill_probe_done=false;
+    bool prefill_probe_done=false, fixed_workload_done=false;
     const char *save_reason="not_saved";
     size_t used() const { size_t b=0;for(auto &s:cache)b+=s.bytes();return b; }
     static bool prefix(const std::vector<llama_token>&a,const std::vector<llama_token>&b) {
@@ -355,13 +356,21 @@ public:
         auto dt=Clock::now();
         try {
             r=request(line,o.context,llama_vocab_n_tokens(vocab));
+            if(!fixed_workload_done)if(const char *path=std::getenv("STRATA_FIXED_WORKLOAD");path && *path) {
+                fixed_workload_done=true;
+                if(spec || activation_probe.enabled())throw std::runtime_error("fixed workload requires target only, without activation observers");
+                reset();
+                run_fixed_workload(ctx,vocab,r.tokens,o.batch,path,[&]{budget(false);},stop);
+                std::cout<<"DONE 0 "<<r.tokens.size()<<" 0 0 stop 0 0 0\n"<<std::flush;return;
+            }
             if(!prefill_probe_done)if(const char *path=std::getenv("STRATA_PREFILL_PROBE");path && *path) {
                 prefill_probe_done=true;
                 if(spec)throw std::runtime_error("prefill probe requires a profile without DSpark");
                 const char *splits=std::getenv("STRATA_PREFILL_PROBE_SPLITS");
                 const char *history=std::getenv("STRATA_PREFILL_PROBE_HISTORY_ROW");
+                const char *history_rows=std::getenv("STRATA_PREFILL_PROBE_HISTORY_ROWS");
                 run_prefill_probe(ctx,vocab,activation_probe,r.tokens,o.batch,path,splits?splits:"",
-                    [&]{budget(false);},stop,history?integer(history):-1);
+                    [&]{budget(false);},stop,history?integer(history):-1,history_rows?integer(history_rows):1);
             }
             save_reason="not_saved";
             std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> smpl(sampler(r,llama_vocab_n_tokens(vocab)),llama_sampler_free);

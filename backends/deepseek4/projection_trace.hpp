@@ -39,7 +39,10 @@ static void strata_projection_trace(const ggml_tensor * w, const ggml_tensor * x
         strata_projection_suffix(w->name, ".attn_compressor_gate.weight") ||
         strata_projection_suffix(w->name, ".indexer_compressor_kv.weight") ||
         strata_projection_suffix(w->name, ".indexer_compressor_gate.weight");
-    if (std::strncmp(w->name, "blk.0.", 6) != 0 && !(compressor &&
+    const bool indexer = strata_projection_suffix(w->name,".indexer.attn_q_b.weight") ||
+        strata_projection_suffix(w->name,".indexer.proj.weight");
+    if (std::strncmp(w->name, "blk.0.", 6) != 0 && !(indexer &&
+        (std::strncmp(w->name,"blk.2.",6)==0 || std::strncmp(w->name,"blk.6.",6)==0)) && !(compressor &&
         (std::strncmp(w->name, "blk.2.", 6)==0 || std::strncmp(w->name, "blk.3.", 6)==0))) return;
     if (!strata_projection_qk(w) && !strata_projection_suffix(w->name, ".hc_attn_fn.weight") &&
         !strata_projection_suffix(w->name, ".hc_ffn_fn.weight") &&
@@ -49,7 +52,7 @@ static void strata_projection_trace(const ggml_tensor * w, const ggml_tensor * x
         !strata_projection_suffix(w->name, ".ffn_gate_inp.weight") &&
         !strata_projection_suffix(w->name, ".ffn_gate_shexp.weight") &&
         !strata_projection_suffix(w->name, ".ffn_up_shexp.weight") &&
-        !strata_projection_suffix(w->name, ".ffn_down_shexp.weight") && !compressor) return;
+        !strata_projection_suffix(w->name, ".ffn_down_shexp.weight") && !compressor && !indexer) return;
     std::string key = std::string(w->name) + ":" + ggml_type_name(w->type) + ":" +
         std::to_string(w->ne[0]) + ":" + std::to_string(w->ne[1]) + ":" +
         std::to_string(x->ne[1]) + ":" + std::to_string(dst->op_params[0]) + ":" + path;

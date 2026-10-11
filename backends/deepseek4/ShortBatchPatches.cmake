@@ -29,6 +29,9 @@ string(REPLACE "    GGML_ASSERT(ncols_dst <= MMVQ_MAX_BATCH_SIZE);"
 string(REPLACE "mul_mat_vec_q_switch_fusion<type, c_ncols_dst, c_small_k, c_halve_iters>"
   "mul_mat_vec_q_switch_fusion<type, c_ncols_dst, c_small_k, c_halve_iters, strata_token_batch>"
   ds4_mmvq "${ds4_mmvq}")
+if(STRATA_DEEPSEEK_DIRECT_CACHE_EXPERIMENT)
+  include(DirectMmvqPatches.cmake)
+endif()
 set(ds4_mmvq_generated "${CMAKE_BINARY_DIR}/strata-ds4-mmvq.cu")
 set(ds4_mmvq_old "")
 if(EXISTS "${ds4_mmvq_generated}")
