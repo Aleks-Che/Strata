@@ -27,6 +27,7 @@ def main():
     ap.add_argument('--events', action='store_true')
     ap.add_argument('--attention-stages', action='store_true', help='Also split private stable attention into prepare, MMA and fixup events')
     ap.add_argument('--expert-transport', action='store_true', help='Also record H2D, cache/ring D2D and host pipeline waits')
+    ap.add_argument('--scheduler', action='store_true', help='Host scheduler timings; preserves CUDA graphs and adds no barriers')
     ap.add_argument('--timeout', type=int, default=600)
     args = ap.parse_args()
     if args.attention_stages and not args.events:
@@ -50,7 +51,8 @@ def main():
     log = output.with_suffix('.log')
     stages = output.with_suffix('.attention.tsv')
     transport = output.with_suffix('.transport.tsv')
-    if any(p.exists() for p in [output, trace, log, stages, transport]):
+    scheduler = output.with_suffix('.scheduler.tsv')
+    if any(p.exists() for p in [output, trace, log, stages, transport, scheduler]):
         ap.error('Choose fresh output paths')
     output.parent.mkdir(parents=True, exist_ok=True)
     env = child_env(cfg)
@@ -71,6 +73,10 @@ def main():
         env['STRATA_DS4_TRANSPORT_PROFILE'] = str(transport)
     elif env.get('STRATA_DS4_TRANSPORT_PROFILE'):
         ap.error('Use --expert-transport to enable transfer diagnostics explicitly')
+    if args.scheduler:
+        env['STRATA_DS4_SCHED_PROFILE'] = str(scheduler)
+    elif env.get('STRATA_DS4_SCHED_PROFILE'):
+        ap.error('Use --scheduler to enable host scheduler diagnostics explicitly')
     engine = None
     done = threading.Event()
     expired = threading.Event()
@@ -130,7 +136,14 @@ def main():
             with transport.open('r', encoding='utf-8') as source:
                 if source.readline() != 'phase\towner\tkind\tbytes\tms\n':
                     raise RuntimeError('Invalid expert transport trace header')
+        if args.scheduler:
+            if not scheduler.exists() or scheduler.stat().st_size < 200:
+                raise RuntimeError('No host scheduler timings: rebuild the DeepSeek backend')
+            with scheduler.open('r', encoding='utf-8') as source:
+                if source.readline() != 'phase\tgraph\ttokens\tkind\tcalls\tbytes\tms\n':
+                    raise RuntimeError('Invalid scheduler trace header')
         result.update(config=cfg, events=args.events, attention_stages=args.attention_stages,
+                      scheduler=args.scheduler,
                       expert_transport=args.expert_transport, engine_info=engine.info,
                       elapsed_seconds=time.monotonic()-start, samples=samples,
                       executable_sha256=hashlib.sha256(Path(cfg['exe']).read_bytes()).hexdigest())

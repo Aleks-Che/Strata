@@ -3,7 +3,10 @@
     const char *strata_copy_batch_env=std::getenv("STRATA_DS4_CACHE_COPY_BATCH");
     const bool strata_copy_batch_enabled=strata_copy_batch_env && std::strcmp(strata_copy_batch_env,"1")==0;
     const char *strata_direct_env=std::getenv("STRATA_DS4_DIRECT_CACHE");
-    const bool strata_direct_enabled=strata_direct_env && std::strcmp(strata_direct_env,"1")==0;
+    const bool strata_direct_enabled=strata_direct_env && (std::strcmp(strata_direct_env,"1")==0 || std::strcmp(strata_direct_env,"2")==0);
+    const char *strata_ordered_env=std::getenv("STRATA_DS4_ORDERED_EXPERTS");
+    const bool strata_ordered_enabled=strata_direct_enabled && strata_pipeline_enabled &&
+        strata_ordered_env && std::strcmp(strata_ordered_env,"1")==0;
     struct StrataPipelineScope {
         std::vector<std::pair<ggml_backend_t,StrataExpertFinish>> contexts;
         ~StrataPipelineScope() {

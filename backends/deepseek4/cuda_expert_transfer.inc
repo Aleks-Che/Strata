@@ -79,8 +79,9 @@ struct StrataExpertTransfer {
         direct.clear();
     }
     bool read_direct(const ggml_tensor *dest,int id,const void *key,const void *source,size_t bytes,bool was_hit) {
-        if(!was_hit || !direct.bind(dest,id,key,source,bytes))return false;
-        ++stats.direct_hits;stats.direct_bytes+=bytes;return true;
+        if((!was_hit && !direct.admissions) || !direct.bind(dest,id,key,source,bytes))return false;
+        if(was_hit)++stats.direct_hits;else ++stats.direct_admissions;
+        stats.direct_bytes+=bytes;return true;
     }
     void flush_copies() {
         if(!copy_batch.count)return;
@@ -173,7 +174,7 @@ struct StrataExpertTransfer {
         auto oldest=lru.rend();
         size_t scanned=0;
         for(auto it=lru.rbegin();it!=lru.rend();++it) {
-            if(direct.keys.find(*it)!=direct.keys.end())continue;
+            if(direct.protects(*it))continue;
             if(protected_keys.find(*it)!=protected_keys.end())continue;
             if(oldest==lru.rend())oldest=it;
             if(!prefer_bytes || entries.find(*it)->second.bytes==prefer_bytes)return it;
@@ -255,7 +256,7 @@ struct StrataExpertTransfer {
         GGML_LOG_INFO("STRATA_EXPERT_TUNING host_copy=%s early_refill=%d prefill_cache_hits=%d\n",avx2?"avx2":"crt",int(early_refill),int(prefill_cache_hits));
         GGML_LOG_INFO("STRATA_EXPERT_FREQUENCY decay=%llu\n",(unsigned long long)stats.frequency_decay);
         GGML_LOG_INFO("STRATA_EXPERT_SLAB mib=%zu dynamic=%d\n",slab_bytes>>20,int(managed));
-        GGML_LOG_INFO("STRATA_EXPERT_DIRECT_CONFIG enabled=%d\n",int(direct.enabled));
+        GGML_LOG_INFO("STRATA_EXPERT_DIRECT_CONFIG enabled=%d admissions=%d compact_leases=%d\n",int(direct.enabled),int(direct.admissions),int(direct.compact_leases));
     }
     ~StrataExpertTransfer() {
         ggml_cuda_set_device(device);
@@ -265,9 +266,9 @@ struct StrataExpertTransfer {
         profile_drain();
 #endif
         stats=counters();pipeline.reset();
-        GGML_LOG_INFO("STRATA_EXPERT_DIRECT hits=%llu skipped_d2d_bytes=%llu materialized_bytes=%llu table_updates=%llu\n",
+        GGML_LOG_INFO("STRATA_EXPERT_DIRECT hits=%llu skipped_d2d_bytes=%llu materialized_bytes=%llu table_updates=%llu admissions=%llu\n",
             (unsigned long long)stats.direct_hits,(unsigned long long)stats.direct_bytes,
-            (unsigned long long)stats.direct_materialized_bytes,(unsigned long long)stats.direct_tables);
+            (unsigned long long)stats.direct_materialized_bytes,(unsigned long long)stats.direct_tables,(unsigned long long)stats.direct_admissions);
         GGML_LOG_INFO("STRATA_EXPERT_PREFILL hits=%llu\n",(unsigned long long)stats.prefill_hits);
         for(int i=0;i<2;++i) {
             if(ready[i]) CUDA_CHECK(cudaEventDestroy(ready[i]));
@@ -665,6 +666,23 @@ static void strata_cuda_expert_flush(ggml_backend_t backend) {
         auto &s=*it->second;s.flush_copies();
         if(s.direct.dirty) {ggml_cuda_set_device(s.device);s.direct.publish(s.stream);++s.stats.direct_tables;}
     }
+}
+static bool strata_cuda_expert_ordered(ggml_backend_t backend,const ggml_tensor *node) {
+    auto *ctx=(ggml_backend_cuda_context *)backend->context;
+    if(ctx->curr_stream_no!=0 || !node || node->op!=GGML_OP_MUL_MAT_ID)return false;
+    if(!GGML_CUDA_CC_IS_NVIDIA(ggml_cuda_info().devices[ctx->device].cc))return false;
+    const auto *w=node->src[0],*x=node->src[1],*ids=node->src[2];
+    if(!w || !x || !ids || w->view_src || !w->buffer ||
+       w->buffer->buft!=ggml_backend_cuda_buffer_type(ctx->device))return false;
+    if(w->type!=GGML_TYPE_IQ3_XXS && w->type!=GGML_TYPE_MXFP4 && w->type!=GGML_TYPE_Q8_0)return false;
+    if(!ggml_is_contiguous(w) || w->ne[3]!=1 || w->ne[2]<1 || w->ne[2]>256 ||
+       w->ne[0]%256 || w->ne[1]%128)return false;
+    if(x->type!=GGML_TYPE_F32 || ids->type!=GGML_TYPE_I32 || ids->nb[0]!=sizeof(int32_t) || node->type!=GGML_TYPE_F32)return false;
+    // CUDA graph evaluation joins auxiliary streams back to stream 0. Cached
+    // reads also join their readers explicitly in expert_complete(). Selected
+    // copies, table publication and subsequent consumers use this same stream.
+    // Thus GPU ordering is retained while the host can prepare the next copy.
+    return ids->ne[1]>=1 && ids->ne[1]<=8 && node->ne[2]>=1 && node->ne[2]<=8;
 }
 static bool strata_cuda_expert_prepare(ggml_backend_t backend,const ggml_tensor *node) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);

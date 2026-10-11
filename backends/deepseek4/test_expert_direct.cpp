@@ -71,7 +71,10 @@ struct Graph {
 };
 int main() {
     try {
-        env("STRATA_DS4_DIRECT_CACHE","1");env("STRATA_EXPERT_CACHE_MIB","4");
+        const char *direct_mode=std::getenv("STRATA_DS4_DIRECT_CACHE");
+        const bool admissions=direct_mode && std::strcmp(direct_mode,"2")==0;
+        if(!admissions)env("STRATA_DS4_DIRECT_CACHE","1");
+        env("STRATA_EXPERT_CACHE_MIB","4");
         env("STRATA_EXPERT_STAGE_MIB","1");env("STRATA_DS4_CACHE_COPY_BATCH","1");
         ggml_backend_load_all();
         ggml_backend_ptr cpu(ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU,nullptr));
@@ -111,6 +114,11 @@ int main() {
                         std::vector<uint8_t> interior(64);
                         ggml_backend_tensor_get(candidate.w,interior.data(),1024,interior.size());
                         check(std::all_of(interior.begin(),interior.end(),[](uint8_t b){return b==0xA5;}),"cached matrix was materialized");
+                        if(admissions && turn==0) {
+                            check(after.direct_admissions-before.direct_admissions==4,"new admissions were not bound");
+                            ggml_backend_tensor_get(candidate.w,interior.data(),candidate.w->nb[2]*4+1024,interior.size());
+                            check(std::all_of(interior.begin(),interior.end(),[](uint8_t b){return b==0xA5;}),"new admission was materialized");
+                        }
                         if(turn>0)check(after.d2d_bytes==before.d2d_bytes,"all-hit direct still copied D2D");
                     }
                     auto actual=candidate.run(gpu.get());

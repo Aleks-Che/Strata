@@ -15,6 +15,7 @@ struct StrataExpertCounters {
     uint64_t prefill_hits=0;
     uint64_t frequency_decay=0;
     uint64_t direct_hits=0,direct_bytes=0,direct_materialized_bytes=0,direct_tables=0;
+    uint64_t direct_admissions=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Discard unconsumed lookahead and join the producer at every graph exit,
@@ -25,6 +26,9 @@ using StrataExpertFlush = void (*)(ggml_backend_t);
 // Called once per selected-expert input, before copy(). False retains ordinary
 // materialization. Every graph execution (including replay) needs a new prepare.
 using StrataExpertPrepare = bool (*)(ggml_backend_t,const ggml_tensor *consumer);
+// Whether selected-weight writes can rely on CUDA stream order instead of a
+// host wait. The caller still reads and synchronizes every new routing tensor.
+using StrataExpertOrdered = bool (*)(ggml_backend_t,const ggml_tensor *consumer);
 using StrataExpertCopy = void (*)(ggml_backend_t, const ggml_tensor *, ggml_tensor *, int, int, int);
 using StrataExpertStats = void (*)(ggml_backend_t, StrataExpertCounters *);
 // Set the startup budget on the calling decode thread. Each CUDA backend keeps

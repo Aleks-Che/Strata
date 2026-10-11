@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <bitset>
 #include <unordered_set>
 #include <vector>
 
@@ -9,17 +10,23 @@ struct StrataExpertDirect {
     struct Held { const void *key,*source; void *destination; size_t bytes; };
     std::vector<Held> held;
     std::unordered_set<const void *> keys;
+    std::bitset<max_experts> leased;
+    uintptr_t host_base=0;
+    bool host_base_set=false,compact_leases=false;
     std::vector<cudaStream_t> readers;
     StrataExpertReuseFence fence;
     const ggml_tensor *tensor=nullptr;
     void *data=nullptr;
     size_t width=0,count=0;
     const void **table=nullptr;
-    bool enabled=false,dirty=false,consumed=false;
+    bool enabled=false,admissions=false,dirty=false,consumed=false;
 
     StrataExpertDirect() {
         const char *v=std::getenv("STRATA_DS4_DIRECT_CACHE");
-        enabled=v && std::strcmp(v,"1")==0;
+        admissions=v && std::strcmp(v,"2")==0;
+        enabled=admissions || (v && std::strcmp(v,"1")==0);
+        const char *compact=std::getenv("STRATA_DS4_DIRECT_LEASES");
+        compact_leases=compact && std::strcmp(compact,"1")==0;
 #ifndef STRATA_DS4_DIRECT_CACHE_COMPILED
         if(enabled)GGML_ABORT("STRATA_DS4_DIRECT_CACHE requires STRATA_DEEPSEEK_DIRECT_CACHE_EXPERIMENT=ON");
 #endif
@@ -38,11 +45,23 @@ struct StrataExpertDirect {
     bool bind(const ggml_tensor *weight,int id,const void *key,const void *source,size_t bytes) {
         if(!tensor || tensor!=weight || data!=weight->data)return false;
         GGML_ASSERT(!consumed && id>=0 && size_t(id)<count);
-        packet.pointers[id]=source;keys.insert(key);
+        packet.pointers[id]=source;
+        if(compact_leases) {
+            const auto base=uintptr_t(key)-size_t(id)*width;
+            GGML_ASSERT(!host_base_set || host_base==base);
+            host_base=base;host_base_set=true;leased.set(size_t(id));
+        } else keys.insert(key);
         held.push_back({key,source,(uint8_t *)data+size_t(id)*width,bytes});dirty=true;return true;
     }
     void reader(cudaStream_t stream) {
         if(std::find(readers.begin(),readers.end(),stream)==readers.end())readers.push_back(stream);
+    }
+    bool protects(const void *key) const {
+        if(!compact_leases)return keys.find(key)!=keys.end();
+        if(!host_base_set || uintptr_t(key)<host_base)return false;
+        const size_t offset=uintptr_t(key)-host_base;
+        const size_t id=offset/width;
+        return id<count && offset%width==0 && leased.test(id);
     }
     void complete(cudaStream_t owner,cudaStream_t last) {
         if(!tensor)return;
@@ -51,7 +70,7 @@ struct StrataExpertDirect {
         reader(last);for(auto stream:readers)fence.order(stream,owner);
         readers.clear();consumed=true;
     }
-    void clear() {tensor=nullptr;data=nullptr;held.clear();keys.clear();readers.clear();dirty=false;consumed=false;}
+    void clear() {tensor=nullptr;data=nullptr;held.clear();keys.clear();leased.reset();host_base_set=false;readers.clear();dirty=false;consumed=false;}
     void publish(cudaStream_t stream);
 };
 

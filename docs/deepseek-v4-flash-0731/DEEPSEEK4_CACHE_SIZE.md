@@ -133,3 +133,7 @@ SHA-256 итоговой сборки:
 сохранена. Сборка и патч оставлены в `build-local/deepseek4/ordered-experiment`,
 измерения — `bench/results/ordered-copy-after.json` и
 `bench/results/ordered-copy-same-binary-barrier.json`.
+
+12 октября этот участок [проверен повторно после внедрения прямого GPU-кэша](DEEPSEEK4_ORDERED_EXPERT_COPIES.md).
+Ограниченный путь короткого decode подтвердил +8,62% в B/A/A/B. Результат
+относится к обновлённому механизму передачи и отдельной серии замеров.
