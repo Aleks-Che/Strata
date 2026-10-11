@@ -39,9 +39,9 @@ struct Fixture {
     float scale = 1.0f / std::sqrt(float(D));
     Floats q, k, v, sink;
     std::vector<ggml_fp16_t> kh, vh;
-    Fixture(std::string name_, int first_, int max_k_, int cap_, bool alias_, bool analytic_, bool sparse_, bool sinks_, float amplitude, bool strided_=false, bool hca_=false)
+    Fixture(std::string name_, int first_, int max_k_, int cap_, bool alias_, bool analytic_, bool sparse_, bool sinks_, float amplitude, bool strided_=false, bool hca_=false,int queries=N)
         : name(name_), first(first_), max_k(max_k_), cap(cap_), alias(alias_), analytic(analytic_), sparse(sparse_), sinks(sinks_), strided(strided_), hca(hca_),
-          q(D*H*N), k(D*max_k), v(D*max_k), sink(H), kh(D*max_k), vh(D*max_k) {
+          q(size_t(D)*H*queries), k(D*max_k), v(D*max_k), sink(H), kh(D*max_k), vh(D*max_k) {
         // Index-based values keep every visible byte fixed as padding changes.
         for (size_t i=0; i<q.size(); ++i) q[i]=analytic ? 0 : amplitude*value(uint32_t(i),0xd54a);
         for (size_t i=0; i<k.size(); ++i) {
@@ -60,9 +60,9 @@ struct Fixture {
     int visible(int t) const {
         int n=0; for(int i=0; i<(hca?max_k:first+t+1); ++i) n+=std::isfinite(mask(t,i)); return n;
     }
-    std::vector<double> reference(bool rounded_q) const {
-        std::vector<double> out(size_t(N)*H*D);
-        for(int t=0; t<N; ++t) for(int h=0; h<H; ++h) {
+    std::vector<double> reference(bool rounded_q,int begin=0,int count=N) const {
+        std::vector<double> out(size_t(count)*H*D);
+        for(int t=begin; t<begin+count; ++t) for(int h=0; h<H; ++h) {
             std::vector<int> ids; std::vector<double> scores;
             double maximum=sinks ? double(sink[h]) : -std::numeric_limits<double>::infinity();
             for(int key=0; key<(hca?max_k:first+t+1); ++key) if(std::isfinite(mask(t,key))) {
@@ -77,10 +77,10 @@ struct Fixture {
             for(auto & score:scores) { score=std::exp(score-maximum); sum+=score; }
             for(size_t j=0; j<ids.size(); ++j) {
                 const double p=scores[j]/sum;
-                for(int d=0; d<D; ++d) out[(t*H+h)*D+d]+=p*double(v[ids[j]*D+d]);
+                for(int d=0; d<D; ++d) out[((t-begin)*H+h)*D+d]+=p*double(v[ids[j]*D+d]);
             }
             if(analytic) for(int d=0; d<D; ++d)
-                require(std::abs(out[(t*H+h)*D+d]-0.25*ids.size()/(ids.size()+(sinks?1:0)))<1e-14,"analytic oracle mismatch");
+                require(std::abs(out[((t-begin)*H+h)*D+d]-0.25*ids.size()/(ids.size()+(sinks?1:0)))<1e-14,"analytic oracle mismatch");
         }
         return out;
     }
@@ -107,8 +107,10 @@ struct Graph {
         require(ggml_backend_supports_op(gpu,out),"CUDA attention unsupported");
         graph=ggml_new_graph(ctx.get()); ggml_build_forward_expand(graph,out);
         buffer.reset(ggml_backend_alloc_ctx_tensors(ctx.get(),gpu)); require(bool(buffer),"device allocation failed");
+        Floats queries(size_t(n)*H*D);
         for(int h=0; h<H; ++h) for(int t=0; t<n; ++t)
-            ggml_backend_tensor_set(q,f.q.data()+((row+t)*H+h)*D,h*q->nb[2]+t*q->nb[1],D*sizeof(float));
+            std::copy_n(f.q.data()+((row+t)*H+h)*D,D,queries.data()+(f.strided?(t*H+h):(h*n+t))*D);
+        ggml_backend_tensor_set(q,queries.data(),0,ggml_nbytes(q));
         auto logical_key=[&](int key){return f.hca && key>=length-256?f.max_k-256+key-(length-256):key;};
         require(!f.hca || (length-256>=f.first+row+n && length-256<=f.max_k-256),"invalid HCA padding");
         std::vector<ggml_fp16_t> keys(size_t(length)*D),vals(size_t(length)*D);
@@ -171,6 +173,23 @@ int main() {
         report["experiment_compiled"]=false;
 #endif
         bool pass=true;
+        if(std::getenv("STRATA_DS4_FA_LONG_TEST")) {
+            report["scope"]="long attention, sampled rows vs independent FP64 and serial CUDA";
+            for(bool hca:{false,true})for(bool strided:{false,true}) {
+                Fixture f("long",0,8192,hca?384:128,true,false,false,true,1,strided,hca,4096);
+                for(int n:{5,32,371,409,1024,4096}) {
+                    Graph batch(gpu.get(),f,n,8192);const auto output=batch.run(gpu.get());
+                    for(int row:{0,std::min(282,n-1),n-1}) {
+                        Graph one(gpu.get(),f,1,((row+1+255)/256)*256+(hca?256:0),row);
+                        Floats selected(output.begin()+size_t(row)*H*D,output.begin()+size_t(row+1)*H*D);
+                        auto serial=difference(selected,one.run(gpu.get()));auto oracle=difference(selected,f.reference(false,row,1));
+                        bool ok=serial["exact_bits"].get<bool>() && oracle["finite"].get<bool>() && oracle["max_abs"].get<double>()<0.02;
+                        pass &= ok;report["checks"].push_back({{"tokens",n},{"row",row},{"strided",strided},{"hca",hca},{"serial",serial},{"fp64",oracle},{"passed",ok}});
+                    }
+                }
+            }
+            report["status"]=pass?"pass":"fail";std::cout<<report.dump(2)<<'\n';return pass?0:1;
+        }
         for(const auto & f:std::vector<Fixture>{
             {"analytic",255,8192,0,false,true,false,true,0},
             {"analytic_bounded",255,8192,128,false,true,false,true,0},
@@ -214,10 +233,10 @@ int main() {
                     // and padding invariance are measurements, not assumed properties.
                     bool ok=error["finite"].get<bool>() && error["max_abs"].get<double>()<0.02 &&
                         std::memcmp(output.data(),replay.data(),output.size()*sizeof(float))==0;
-                    // Separate-query compact mode must be invariant on the
-                    // explicitly supported cases, even across the 256 boundary.
+                    // Compact modes preserving the serial partition must be
+                    // invariant on supported cases, even across the 256 boundary.
                     const bool invariant_required=report["experiment_compiled"].get<bool>() && compact &&
-                        std::strcmp(compact,"2")==0 && f.cap>0 && n<=4;
+                        (std::strcmp(compact,"2")==0 || std::strcmp(compact,"3")==0) && f.cap>0 && n<=4;
                     if(invariant_required) ok &= difference(output,serial)["exact_bits"].get<bool>() &&
                         difference(output,natural)["exact_bits"].get<bool>() && difference(output,minimal)["exact_bits"].get<bool>();
                     pass &= ok;

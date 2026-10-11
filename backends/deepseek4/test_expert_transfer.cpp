@@ -8,6 +8,12 @@
 #include <thread>
 #include <exception>
 
+static bool checked(bool value,const char *expression,int line) {
+    if(!value)std::fprintf(stderr,"Expert transfer check failed at line %d: %s\n",line,expression);
+    return value;
+}
+#define CHECK(...) (ok &= checked(bool(__VA_ARGS__),#__VA_ARGS__,__LINE__))
+
 static void stage_size(const char *value) {
 #ifdef _WIN32
     _putenv_s("STRATA_EXPERT_STAGE_MIB",value);
@@ -48,7 +54,7 @@ static bool mixed_arena(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPla
         copy(gpu,source[i],dest[i],0,0,1);finish(gpu);ggml_backend_synchronize(gpu);
         std::vector<uint8_t> actual(widths[i]+512);
         ggml_backend_tensor_get(dest[i],actual.data(),0,actual.size());
-        ok &= std::memcmp(actual.data(),expected[i].data(),actual.size())==0;
+        CHECK(std::memcmp(actual.data(),expected[i].data(),actual.size())==0);
     };
     // A 4 MiB arena: 1 MiB + 1.5 MiB + 0.75 MiB, plus expert-edge padding.
     // The new 1.5 MiB matrix fits with one same-size eviction. Strict LRU
@@ -57,14 +63,14 @@ static bool mixed_arena(ggml_backend_t cpu,StrataExpertCopy copy,StrataExpertPla
     transfer(0);transfer(1);transfer(2);
     StrataExpertCounters before,after;stats(gpu,&before);
     transfer(3,protect);stats(gpu,&after);
-    ok &= after.evictions-before.evictions==uint64_t(match&&!protect?1:2);
-    ok &= after.bypass-before.bypass==uint64_t(protect?1:0);
+    CHECK(after.evictions-before.evictions==uint64_t(match&&!protect?1:2));
+    CHECK(after.bypass-before.bypass==uint64_t(protect?1:0));
     before=after;
     transfer(protect?1:2);stats(gpu,&after);
-    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    CHECK(after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes);
     if(match&&!protect) {
         before=after;transfer(0);stats(gpu,&after);
-        ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+        CHECK(after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes);
     }
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);ggml_backend_free(gpu);
@@ -117,7 +123,7 @@ int main() {
         stage_size("1");
         StrataExpertCounters empty;stats(gpu,&empty);
         StrataVramStatus live;control(0,nullptr,&live);
-        ok &= rejected && empty.pipeline_groups==0 && live.cache_bytes==0 && live.matrices==0;
+        CHECK(rejected && empty.pipeline_groups==0 && live.cache_bytes==0 && live.matrices==0);
     }
     auto begin=[&](ggml_backend_t backend,int first,int last,int tokens) {
         std::vector<StrataExpertSlice> slices;
@@ -140,7 +146,7 @@ int main() {
     StrataExpertCounters before,after;
     stats(gpu,&before);
     check(2,3,1);stats(gpu,&after);
-    ok &= after.hits==before.hits+2 && after.h2d_bytes==before.h2d_bytes;
+    CHECK(after.hits==before.hits+2 && after.h2d_bytes==before.h2d_bytes);
     const char *prefill_env=std::getenv("STRATA_EXPERT_PREFILL_CACHE_HITS");
     const bool prefill_hits=prefill_env && std::strcmp(prefill_env,"1")==0;
     const char *pipeline_env=std::getenv("STRATA_EXPERT_PIPELINE");
@@ -149,13 +155,13 @@ int main() {
     const bool slabs=slab_env && std::atoi(slab_env)>0;
     const uint64_t prefill_copy_bytes=prefill_hits?0:2*width+(pipeline_enabled?1024:512);
     before=after;check(2,3,32);stats(gpu,&after);
-    ok &= after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
+    CHECK(after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
           after.hits-before.hits==uint64_t(prefill_hits?2:0) &&
           after.h2d_bytes-before.h2d_bytes==prefill_copy_bytes &&
-          after.misses==before.misses && after.evictions==before.evictions;
+          after.misses==before.misses && after.evictions==before.evictions);
     // A prefill miss must not create a cache entry or displace either hit.
     before=after;check(0,0,32);stats(gpu,&after);
-    ok &= after.misses==before.misses && after.evictions==before.evictions;
+    CHECK(after.misses==before.misses && after.evictions==before.evictions);
     // Force arena fragmentation, eviction, and reuse while CUDA copies are queued.
     for(int round=0;round<3;++round) {
         begin(gpu,0,count-1,1);
@@ -164,11 +170,11 @@ int main() {
     }
     ggml_backend_synchronize(gpu);
     ggml_backend_tensor_get(dest,actual.data(),0,actual.size());
-    ok &= expected==actual;
-    stats(gpu,&before);ok &= before.evictions>0;
+    CHECK(expected==actual);
+    stats(gpu,&before);CHECK(before.evictions>0);
     check(0,9,32);stats(gpu,&after); // prefill bypass must not populate/evict cache
-    ok &= after.hits-before.hits==after.prefill_hits-before.prefill_hits &&
-          (prefill_hits || before.hits==after.hits) && before.misses==after.misses && before.evictions==after.evictions;
+    CHECK(after.hits-before.hits==after.prefill_hits-before.prefill_hits &&
+          (prefill_hits || before.hits==after.hits) && before.misses==after.misses && before.evictions==after.evictions);
     check(9,9,1); // final expert: no padding beyond tensor end
     // A second context gets a separate smaller arena. It must neither inherit
     // the target's 4 MiB nor clear its entries when the draft context is freed.
@@ -180,43 +186,43 @@ int main() {
     ggml_backend_synchronize(draft_gpu);
     StrataExpertCounters draft_stats;
     stats(draft_gpu,&draft_stats);
-    ok &= draft_stats.bypass==1 && draft_stats.misses==0;
+    CHECK(draft_stats.bypass==1 && draft_stats.misses==0);
     ggml_backend_tensor_get(dest,actual.data(),2*width,width);
-    ok &= std::memcmp(actual.data(),expected.data()+2*width,width)==0;
+    CHECK(std::memcmp(actual.data(),expected.data()+2*width,width)==0);
     ggml_backend_free(draft_gpu);
     budget(4);stats(gpu,&before);check(9,9,1);stats(gpu,&after);
-    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
-    ok &= mixed_arena(cpu,copy,plan,finish,stats,false,false);
-    ok &= mixed_arena(cpu,copy,plan,finish,stats,true,false);
+    CHECK(after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes);
+    CHECK(mixed_arena(cpu,copy,plan,finish,stats,false,false));
+    CHECK(mixed_arena(cpu,copy,plan,finish,stats,true,false));
     // Only the pipeline retains a multi-matrix plan; the synchronous path
     // consumes one matrix at a time and does not need a protected set.
     if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0)
-        ok &= mixed_arena(cpu,copy,plan,finish,stats,true,true);
+        CHECK(mixed_arena(cpu,copy,plan,finish,stats,true,true));
     // Changing policy converts the fixed arena once. Thereafter individual
     // matrices can be freed without discarding the remaining hot entries.
     StrataVramPolicy policy;policy.mode=1;policy.matrices=3;policy.reserve_mib=128;
     StrataVramStatus live;
-    ok &= control(0,&policy,&live);
+    CHECK(control(0,&policy,&live));
     check(2,3,1);check(4,4,1);
-    control(0,nullptr,&live);ok &= live.matrices==3 && live.cache_bytes>3*width;
-    ok &= live.cache_reserved_bytes>=live.cache_bytes && (slabs?live.slab_blocks>0:live.slab_blocks==0);
-    policy.matrices=2;control(0,&policy,&live);ok &= live.matrices==2;
+    control(0,nullptr,&live);CHECK(live.matrices==3 && live.cache_bytes>3*width);
+    CHECK(live.cache_reserved_bytes>=live.cache_bytes && (slabs?live.slab_blocks>0:live.slab_blocks==0));
+    policy.matrices=2;control(0,&policy,&live);CHECK(live.matrices==2);
     stats(gpu,&before);check(3,4,1);stats(gpu,&after);
-    ok &= after.hits==before.hits+2; // only the oldest was released
+    CHECK(after.hits==before.hits+2); // only the oldest was released
     before=after;check(3,4,32);stats(gpu,&after);
-    ok &= after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
+    CHECK(after.prefill_hits-before.prefill_hits==uint64_t(prefill_hits?2:0) &&
           after.h2d_bytes-before.h2d_bytes==prefill_copy_bytes &&
-          after.misses==before.misses && after.evictions==before.evictions;
+          after.misses==before.misses && after.evictions==before.evictions);
     // The matrix cap is shared with a second (DSpark) CUDA context.
     draft_gpu=ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_GPU,nullptr);
     budget(1);begin(draft_gpu,5,5,1);copy(draft_gpu,source,dest,5,5,1);finish(draft_gpu);ggml_backend_synchronize(draft_gpu);
-    control(0,nullptr,&live);ok &= live.matrices==2;
+    control(0,nullptr,&live);CHECK(live.matrices==2);
     ggml_backend_free(draft_gpu);budget(4);
-    policy.matrices=0;control(0,&policy,&live);ok &= live.matrices==0 && live.cache_bytes==0;
-    ok &= live.cache_reserved_bytes==0 && live.slab_blocks==0;
-    check(0,9,1);control(0,nullptr,&live);ok &= live.matrices==0;
+    policy.matrices=0;control(0,&policy,&live);CHECK(live.matrices==0 && live.cache_bytes==0);
+    CHECK(live.cache_reserved_bytes==0 && live.slab_blocks==0);
+    check(0,9,1);control(0,nullptr,&live);CHECK(live.matrices==0);
     policy.matrices=6;control(0,&policy,&live);check(2,5,1);
-    control(0,nullptr,&live);ok &= live.matrices==4;
+    control(0,nullptr,&live);CHECK(live.matrices==4);
     // A separate allocation stands in for another application taking VRAM.
     policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+128;
     control(0,&policy,&live);
@@ -230,7 +236,7 @@ int main() {
             if(!live.matrices)break;
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        control(0,nullptr,&live);ok &= live.matrices==0 && live.target_unreachable;
+        control(0,nullptr,&live);CHECK(live.matrices==0 && live.target_unreachable);
         ggml_backend_buffer_free(pressure);
         for(int i=0;i<30;++i) {
             control(0,nullptr,&live);
@@ -238,27 +244,33 @@ int main() {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         control(0,nullptr,&live);check(2,3,1);
-        control(0,nullptr,&live);ok &= live.matrices==2 && !live.target_unreachable;
+        control(0,nullptr,&live);
+        if(live.matrices!=2 || live.target_unreachable)
+            std::fprintf(stderr,"Pressure recovery: matrices=%llu cache=%llu reserved=%llu limit=%llu used=%llu target_mib=%llu unreachable=%d\n",
+                (unsigned long long)live.matrices,(unsigned long long)live.cache_bytes,
+                (unsigned long long)live.cache_reserved_bytes,(unsigned long long)live.limit_bytes,
+                (unsigned long long)(live.total_bytes-live.free_bytes),(unsigned long long)policy.target_mib,int(live.target_unreachable));
+        CHECK(live.matrices==2 && !live.target_unreachable);
     }
     // Configured budgets can be restored after dynamic use, with byte parity.
     policy.mode=0;control(0,&policy,&live);check(0,9,1);
-    control(0,nullptr,&live);ok &= live.cache_bytes<=(4ULL<<20);
-    stats(gpu,&after);ok &= after.ordered_reuses>0;
+    control(0,nullptr,&live);CHECK(live.cache_bytes<=(4ULL<<20));
+    stats(gpu,&after);CHECK(after.ordered_reuses>0);
     // Growth headroom must not freeze admission below the actual byte limit.
     // A same-size replacement needs no extra VRAM, even with <64 MiB spare.
     policy.mode=2;policy.target_mib=((live.total_bytes-live.free_bytes)>>20)+8;
     control(0,&policy,&live);
     auto resident_bytes=live.cache_bytes,reserved_bytes=live.cache_reserved_bytes;stats(gpu,&before);
     check(1,1,1);stats(gpu,&after);control(0,nullptr,&live);
-    if(slabs)ok &= after.misses>before.misses && live.cache_reserved_bytes==reserved_bytes;
-    else ok &= after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes;
+    if(slabs)CHECK(after.misses>before.misses && live.cache_reserved_bytes==reserved_bytes);
+    else CHECK(after.ordered_reuses>before.ordered_reuses && live.cache_bytes==resident_bytes);
     // Cancel a partially consumed plan and change residency before a new plan.
     begin(gpu,0,count-1,1);copy(gpu,source,dest,0,0,1);finish(gpu);
     policy.mode=1;policy.matrices=0;control(0,&policy,&live);
     check(8,9,1);
     stats(gpu,&after);
     if(const char *p=std::getenv("STRATA_EXPERT_PIPELINE");p && std::strcmp(p,"1")==0)
-        ok &= after.pipeline_groups>0 && after.pipeline_chunks>0 && after.pipeline_fallbacks==0;
+        CHECK(after.pipeline_groups>0 && after.pipeline_chunks>0 && after.pipeline_fallbacks==0);
     // Repeated hot matrices survive a stream of one-use weights. Rejected
     // admissions must still arrive byte-for-byte in the working tensor, and a
     // newly repeated matrix must eventually enter the cache.
@@ -274,22 +286,22 @@ int main() {
         begin(frequency_gpu,id,id,1);copy(frequency_gpu,source,dest,id,id,1);finish(frequency_gpu);
         ggml_backend_synchronize(frequency_gpu);
         ggml_backend_tensor_get(dest,actual.data(),id*width,width);
-        ok &= std::memcmp(actual.data(),expected.data()+id*width,width)==0;
+        CHECK(std::memcmp(actual.data(),expected.data()+id*width,width)==0);
     };
     for(int repeat=0;repeat<8;++repeat)for(int id=0;id<3;++id)frequency_copy(id);
     stats(frequency_gpu,&before);
-    ok &= before.frequency_decay==4096;
+    CHECK(before.frequency_decay==4096);
     for(int id=4;id<10;++id)frequency_copy(id);
     stats(frequency_gpu,&after);
-    ok &= after.admission_rejects==before.admission_rejects+6 && after.evictions==before.evictions;
+    CHECK(after.admission_rejects==before.admission_rejects+6 && after.evictions==before.evictions);
     before=after;
     for(int id=0;id<3;++id)frequency_copy(id);
-    stats(frequency_gpu,&after);ok &= after.hits==before.hits+3;
+    stats(frequency_gpu,&after);CHECK(after.hits==before.hits+3);
     for(int repeat=0;repeat<12;++repeat)frequency_copy(4);
     stats(frequency_gpu,&before);frequency_copy(4);stats(frequency_gpu,&after);
-    ok &= after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes;
+    CHECK(after.hits==before.hits+1 && after.h2d_bytes==before.h2d_bytes);
     // Live cache limits remain authoritative even for hot entries.
-    policy.matrices=0;control(0,&policy,&live);ok &= live.cache_bytes==0 && live.matrices==0;
+    policy.matrices=0;control(0,&policy,&live);CHECK(live.cache_bytes==0 && live.matrices==0);
     ggml_backend_free(frequency_gpu);
     // Independent target/draft periods are captured at construction. Selecting
     // the next graph's policy must not reset the other backend's history.
@@ -298,14 +310,14 @@ int main() {
     decay(491520);plan(long_history,nullptr,0);finish(long_history);
     decay(32768);plan(short_history,nullptr,0);finish(short_history);
     decay(0);stats(long_history,&before);stats(short_history,&after);
-    ok &= before.frequency_decay==491520 && after.frequency_decay==32768;
+    CHECK(before.frequency_decay==491520 && after.frequency_decay==32768);
     plan(long_history,nullptr,0);finish(long_history);stats(long_history,&before);
-    ok &= before.frequency_decay==491520;
+    CHECK(before.frequency_decay==491520);
     ggml_backend_free(short_history);ggml_backend_free(long_history);
     ggml_backend_buffer_free(device);ggml_backend_buffer_free(host);
     ggml_free(dev_ctx);ggml_free(host_ctx);
     ggml_backend_free(gpu);ggml_backend_free(cpu);
-    control(0,nullptr,&live);ok &= live.cache_reserved_bytes==0 && live.slab_blocks==0 && live.matrices==0;
+    control(0,nullptr,&live);CHECK(live.cache_reserved_bytes==0 && live.slab_blocks==0 && live.matrices==0);
     std::puts(ok?"Expert cache/staging byte parity passed":"Expert cache/staging byte parity FAILED");
     return ok?0:1;
 }

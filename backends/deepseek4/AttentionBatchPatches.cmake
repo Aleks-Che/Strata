@@ -1,4 +1,5 @@
 # Research build only. The normal backend does not compile this patch.
+include(StableAttentionPatches.cmake)
 set(ds4_fa_original "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda/fattn.cu")
 file(SHA256 "${ds4_fa_original}" ds4_fa_hash)
 if(NOT ds4_fa_hash STREQUAL "ba15c00dfe95086bee5d021e2b279d3b44089b91934b151023d97ce9bb542ced")
@@ -12,17 +13,17 @@ static bool strata_ds4_compact_attention(const ggml_tensor * dst) {
     float max_bias, softcap;
     std::memcpy(&max_bias, (const float *)dst->op_params+1, sizeof(float));
     std::memcpy(&softcap, (const float *)dst->op_params+2, sizeof(float));
-    return mode && (std::strcmp(mode,"1")==0 || std::strcmp(mode,"2")==0) &&
+    return mode && (std::strcmp(mode,"1")==0 || std::strcmp(mode,"2")==0 || std::strcmp(mode,"3")==0 || std::strcmp(mode,"4")==0) &&
         max_bias==0.0f && softcap==0.0f &&
         q->type==GGML_TYPE_F32 && k->type==GGML_TYPE_F16 && v->type==GGML_TYPE_F16 &&
-        q->ne[0]==512 && v->ne[0]==512 && q->ne[1]>=1 && q->ne[1]<=4 &&
+        q->ne[0]==512 && v->ne[0]==512 && q->ne[1]>=1 && q->ne[1]<=(std::strcmp(mode,"4")==0?4096:4) &&
         q->ne[2]==64 && k->ne[2]==1 && v->ne[2]==1 && q->ne[3]==1 && k->ne[3]==1 && v->ne[3]==1 &&
         mask && mask->type==GGML_TYPE_F16 && mask->ne[0]==k->ne[1] && mask->ne[1]>=q->ne[1] &&
         mask->ne[2]==1 && mask->ne[3]==1 && ggml_get_op_params_i32(dst,4)>0 &&
         ggml_is_contiguous(dst);
 }
 ]=])
-string(PREPEND ds4_fa "#include <cstdlib>\n#include <cstring>\n")
+string(PREPEND ds4_fa "#include <cstdlib>\n#include <cstring>\n#include \"common.cuh\"\nvoid strata_ds4_stable_attention(ggml_backend_cuda_context &,ggml_tensor *);\n")
 string(REPLACE "bool ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(" "${ds4_compact_guard}\nbool ggml_cuda_flash_attn_ext_mma_f16_shall_use_sparse(" ds4_fa "${ds4_fa}")
 string(REPLACE "K->ne[1] >= std::max<int64_t>(4096, 2*n_gather)"
   "(strata_ds4_compact_attention(dst) || K->ne[1] >= std::max<int64_t>(4096, 2*n_gather))" ds4_fa "${ds4_fa}")
@@ -30,6 +31,13 @@ string(REPLACE "void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, g
 void ggml_cuda_flash_attn_ext(ggml_backend_cuda_context & ctx, ggml_tensor * dst) {
     ggml_cuda_set_device(ctx.device);
     const char * mode=std::getenv("STRATA_DS4_FA_COMPACT");
+    if (strata_ds4_compact_attention(dst) && mode && (std::strcmp(mode,"3")==0 || std::strcmp(mode,"4")==0) &&
+        GGML_CUDA_CC_IS_NVIDIA(ggml_cuda_info().devices[ctx.device].cc) &&
+        ggml_cuda_info().devices[ctx.device].cc>=GGML_CUDA_CC_ADA_LOVELACE &&
+        turing_mma_available(ggml_cuda_info().devices[ctx.device].cc)) {
+        strata_ds4_stable_attention(ctx,dst);
+        return;
+    }
     if (strata_ds4_compact_attention(dst) && mode && std::strcmp(mode,"2")==0 &&
         GGML_CUDA_CC_IS_NVIDIA(ggml_cuda_info().devices[ctx.device].cc) &&
         turing_mma_available(ggml_cuda_info().devices[ctx.device].cc) && dst->src[0]->ne[1]>1) {
@@ -72,7 +80,7 @@ string(FIND "${ds4_model}" "${ds4_raw_call}" ds4_raw_found)
 if(ds4_raw_found EQUAL -1)
   message(FATAL_ERROR "Missing DeepSeek raw SWA attention call")
 endif()
-string(REPLACE "${ds4_raw_call}" "build_attn_mha(q, k, k, nullptr, kq_mask, sinks, nullptr, (q->ne[2]<=4 && std::getenv(\"STRATA_DS4_FA_COMPACT\") && (std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"1\")==0 || std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"2\")==0)) ? hparams.n_swa : 0, kq_scale, il)" ds4_model "${ds4_model}")
+string(REPLACE "${ds4_raw_call}" "build_attn_mha(q, k, k, nullptr, kq_mask, sinks, nullptr, ((q->ne[2]<=4 || (q->ne[2]<=4096 && std::getenv(\"STRATA_DS4_FA_COMPACT\") && std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"4\")==0)) && std::getenv(\"STRATA_DS4_FA_COMPACT\") && (std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"1\")==0 || std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"2\")==0 || std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"3\")==0 || std::strcmp(std::getenv(\"STRATA_DS4_FA_COMPACT\"), \"4\")==0)) ? hparams.n_swa : 0, kq_scale, il)" ds4_model "${ds4_model}")
 set(ds4_hca_call "build_attn_mha(q, k_all, k_all, nullptr, kq_mask, sinks, nullptr, 0, kq_scale, il)")
 string(FIND "${ds4_model}" "${ds4_hca_call}" ds4_hca_found)
 if(ds4_hca_found EQUAL -1)
@@ -80,11 +88,13 @@ if(ds4_hca_found EQUAL -1)
 endif()
 set(ds4_hca_bound [=[
 build_attn_mha(q, k_all, k_all, nullptr, kq_mask, sinks, nullptr,
-            (q->ne[2]<=4 && std::getenv("STRATA_DS4_HCA_COMPACT") &&
+            ((q->ne[2]<=4 || (q->ne[2]<=4096 && std::getenv("STRATA_DS4_FA_COMPACT") && std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "4")==0)) && std::getenv("STRATA_DS4_HCA_COMPACT") &&
              std::strcmp(std::getenv("STRATA_DS4_HCA_COMPACT"), "1")==0 &&
              std::getenv("STRATA_DS4_FA_COMPACT") &&
              (std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "1")==0 ||
-              std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "2")==0)) ?
+              std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "2")==0 ||
+              std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "3")==0 ||
+              std::strcmp(std::getenv("STRATA_DS4_FA_COMPACT"), "4")==0)) ?
                 int64_t(hparams.n_swa) + n_hca : 0, kq_scale, il)
 ]=])
 string(REPLACE "${ds4_hca_call}" "${ds4_hca_bound}" ds4_model "${ds4_model}")

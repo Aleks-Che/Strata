@@ -498,7 +498,10 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
                     size_t free=0,total=0;
                     const uint64_t reserved=c.status.cache_reserved_bytes;
                     uint64_t growth=0;
-                    if(cudaMemGetInfo(&free,&total)==cudaSuccess) {
+                    // Use the same memory domain as the controller. Under
+                    // WDDM CUDA's process view can disagree with global NVML
+                    // usage and otherwise deny growth after pressure clears.
+                    if(strata_device_memory(s.device,free,total)) {
                         const auto limit=std::min(c.status.limit_bytes,c.policy.byte_limit(free,total,reserved));
                         const auto charged=reserved+(64ULL<<20);
                         growth=limit-std::min<uint64_t>(limit,charged);

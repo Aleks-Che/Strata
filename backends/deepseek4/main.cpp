@@ -8,6 +8,7 @@
 #include "host_copy.hpp"
 #include "expert_tuning.hpp"
 #include "activation_probe.hpp"
+#include "prefill_probe.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -252,6 +253,7 @@ class Runner {
     std::vector<llama_token> active;
     std::string active_session;
     uint64_t serial=0,hits=0,misses=0,evictions=0,skips=0;
+    bool prefill_probe_done=false;
     const char *save_reason="not_saved";
     size_t used() const { size_t b=0;for(auto &s:cache)b+=s.bytes();return b; }
     static bool prefix(const std::vector<llama_token>&a,const std::vector<llama_token>&b) {
@@ -353,6 +355,14 @@ public:
         auto dt=Clock::now();
         try {
             r=request(line,o.context,llama_vocab_n_tokens(vocab));
+            if(!prefill_probe_done)if(const char *path=std::getenv("STRATA_PREFILL_PROBE");path && *path) {
+                prefill_probe_done=true;
+                if(spec)throw std::runtime_error("prefill probe requires a profile without DSpark");
+                const char *splits=std::getenv("STRATA_PREFILL_PROBE_SPLITS");
+                const char *history=std::getenv("STRATA_PREFILL_PROBE_HISTORY_ROW");
+                run_prefill_probe(ctx,vocab,activation_probe,r.tokens,o.batch,path,splits?splits:"",
+                    [&]{budget(false);},stop,history?integer(history):-1);
+            }
             save_reason="not_saved";
             std::unique_ptr<llama_sampler,decltype(&llama_sampler_free)> smpl(sampler(r,llama_vocab_n_tokens(vocab)),llama_sampler_free);
             auto started=Clock::now();double restore=0,save_ms=0;const char*source="miss";
@@ -381,6 +391,13 @@ public:
             if(ok && !spec)ok=decode(r.tokens,active.size(),r.tokens.size(),true);
             prompt_ms=ms(started);dt=Clock::now();std::string finish="length";
             int rounds=0,proposed=0;double draft_ms=0,verify_ms=0;
+            const char *serial_path=std::getenv("STRATA_SPEC_SERIAL_REPORT");
+            const bool serial_requested=std::getenv("STRATA_SPEC_CHECK_SERIAL") || activation_probe.enabled() || (serial_path && *serial_path);
+            int serial_rounds=3;
+            if(serial_requested)if(const char *value=std::getenv("STRATA_SPEC_CHECK_ROUNDS")) {
+                serial_rounds=integer(value);
+                if(serial_rounds<1 || serial_rounds>64)throw std::runtime_error("serial probe rounds must be 1..64");
+            }
             status("decoding",source,save_ms,restore);
             if(ok && spec) {
                 llama_token pending=r.tokens.back();
@@ -399,7 +416,8 @@ public:
                     // different future tokens. Never used in normal execution.
                     std::vector<uint8_t> probe_state;
                     const bool check_causal=std::getenv("STRATA_SPEC_CHECK_CAUSAL") && rounds<=3 && !draft.empty();
-                    const bool check_serial=(std::getenv("STRATA_SPEC_CHECK_SERIAL") || activation_probe.enabled()) && rounds<=3 && !draft.empty();
+                    const bool check_serial=serial_requested && rounds<=serial_rounds && !draft.empty();
+                    ActivationProbe::Json serial_report;
                     if(check_causal || check_serial) {
                         probe_state.resize(llama_state_get_size(ctx));
                         if(llama_state_get_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
@@ -425,6 +443,9 @@ public:
                         if(llama_decode(ctx,batch.value))throw std::runtime_error("causality probe replay failed");
                     }
                     if(check_serial) {
+                        serial_report={{"session",r.session},{"source",source},{"round",rounds},{"generated",generated},
+                            {"position",base},{"input_ids",std::vector<llama_token>(batch.value.token,batch.value.token+batch.value.n_tokens)},
+                            {"activation_observer",activation_probe.enabled()},{"rows",ActivationProbe::Json::array()}};
                         const size_t nv=llama_vocab_n_tokens(vocab);
                         std::vector<float> expected(size_t(batch.value.n_tokens)*nv);
                         for(int row=0;row<batch.value.n_tokens;++row)
@@ -472,6 +493,17 @@ public:
                                 const float delta=std::abs(actual[i]-want[i]);diff=std::max(diff,delta);sum_sq+=double(delta)*delta;
                             }
                             changed+=(std::max_element(actual,actual+nv)-actual)!=(std::max_element(want,want+nv)-want);
+                            if(serial_path && *serial_path) {
+                                auto row_report=prefill_logit_diff(std::vector<float>(want,want+nv),std::vector<float>(actual,actual+nv));
+                                row_report["row"]=row;row_report["position"]=base+row;
+                                // Only final logits are read here; no internal graph callbacks.
+                                // Retain both winners and their scores to distinguish a close
+                                // greedy decision from a large numerical disagreement.
+                                size_t best_batch=row_report["argmax_a"],best_serial=row_report["argmax_b"];
+                                row_report["batch_winner_scores"]={want[best_batch],actual[best_batch]};
+                                row_report["serial_winner_scores"]={want[best_serial],actual[best_serial]};
+                                serial_report["rows"].push_back(std::move(row_report));
+                            }
                         }
                         if(activation_probe.enabled())activation_probe.finish(instrumentation_diff,serial_instrumentation_diff);
                         restore_probe();
@@ -479,17 +511,30 @@ public:
                         float replay_diff=0;
                         for(int row=0;row<batch.value.n_tokens;++row) {
                             const auto *actual=llama_get_logits_ith(ctx,row),*want=expected.data()+size_t(row)*nv;
-                            for(size_t i=0;i<nv;++i)replay_diff=std::max(replay_diff,std::abs(actual[i]-want[i]));
+                            for(size_t i=0;i<nv;++i) {
+                                if(!std::isfinite(actual[i]))throw std::runtime_error("nonfinite serial replay logits");
+                                replay_diff=std::max(replay_diff,std::abs(actual[i]-want[i]));
+                            }
                         }
                         if(replay_diff>1e-5f)throw std::runtime_error("serial probe changed replay logits");
                         std::cerr<<"STRATA_SPEC_SERIAL pos="<<base<<" rows="<<batch.value.n_tokens
                             <<" values="<<expected.size()<<" max_logit_diff="<<diff<<" rms_logit_diff="<<std::sqrt(sum_sq/expected.size())
                             <<" changed_argmax="<<changed<<" replay_diff="<<replay_diff<<"\n";
+                        serial_report["replay_max_abs"]=replay_diff;
+                        serial_report["batch_observer_max_abs"]=instrumentation_diff;
+                        serial_report["serial_observer_max_abs"]=serial_instrumentation_diff;
                     }
                     if(stop.load()) {ok=false;break;}
                     auto verified=verify_draft(draft,r.count-generated,
                         [&](int row){return llama_sampler_sample(smpl.get(),ctx,row);},
                         [&](llama_token token){return llama_vocab_is_eog(vocab,token);});
+                    if(check_serial && serial_path && *serial_path) {
+                        serial_report["output_ids"]=verified.tokens;
+                        serial_report["accepted"]=verified.accepted;
+                        std::ofstream report(serial_path,std::ios::app);
+                        report<<serial_report.dump()<<'\n';report.flush();
+                        if(!report)throw std::runtime_error("serial probe report write failed");
+                    }
                     if(std::getenv("STRATA_SPEC_TRACE") && rounds<=5) {
                         std::cerr<<"STRATA_SPEC_TRACE source="<<source<<" pos="<<base<<" draft=";
                         for(auto token:draft)std::cerr<<token<<",";

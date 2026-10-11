@@ -17,17 +17,32 @@ from serve.deepseek import DeepSeekTemplate
 from tools.strata_tokenizer import Tokenizer
 
 
+def compare_greedy_results(reference, results):
+    names = ('session_a', 'session_b', 'session_a_restored', 'active_extension',
+             'active_extension_restored', 'fresh_extension', 'single_token', 'after_cancel')
+    return {name: {
+        'same_input_ids': reference[name]['input_ids'] == results[name]['input_ids'],
+        'same_output_ids': reference[name]['token_ids'] == results[name]['token_ids'],
+    } for name in names}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--tokens', type=int, default=64, choices=range(8, 129))
     parser.add_argument('--baseline', action='store_true', help='Run the same state checks without DSpark')
     parser.add_argument('--check-causality', action='store_true', help='Expensive diagnostic: vary future draft tokens, compare anchor logits')
+    parser.add_argument('--check-serial', action='store_true', help='Expensive diagnostic: compare every verification row with the same tokens evaluated one at a time; timings are not benchmarks')
+    parser.add_argument('--serial-rounds', type=int, default=3, choices=range(1, 65), help='Maximum serial-probe rounds per request')
+    parser.add_argument('--greedy-reference', type=Path, help='Require identical input/output IDs in the eight greedy scenarios of a prior --baseline result')
     parser.add_argument('--output', type=Path, default=ROOT / 'bench/results/deepseek4-dspark-validation.json')
     args = parser.parse_args()
     cfg = json.loads(args.config.read_text('utf-8'))
     if cfg.get('architecture') != 'deepseek4' or (not args.baseline and '--draft-model' not in cfg['args']):
         parser.error('Requires a DeepSeek DSpark profile')
+    serial_path = args.output.with_suffix('.serial.jsonl')
+    if args.check_serial and (args.baseline or serial_path.exists()):
+        parser.error('Serial probe requires DSpark and a fresh output .serial.jsonl path')
     tok = Tokenizer.from_gguf(cfg['args'][cfg['args'].index('--native') + 1])
     template = DeepSeekTemplate(Path(cfg['tokenizer']) / 'chat_template.jinja')
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -41,7 +56,7 @@ def main():
         else:
             for child in psutil.Process().children(recursive=True):
                 try:
-                    if child.name() in ('strata-deepseek4.exe', 'strata-deepseek4'):
+                    if Path(child.exe()).resolve() == Path(cfg['exe']).resolve():
                         child.kill()
                 except psutil.Error:
                     pass
@@ -51,6 +66,9 @@ def main():
         env = child_env(cfg)
         if args.check_causality:
             env['STRATA_SPEC_CHECK_CAUSAL'] = '1'
+        if args.check_serial:
+            env['STRATA_SPEC_SERIAL_REPORT'] = str(serial_path.resolve())
+            env['STRATA_SPEC_CHECK_ROUNDS'] = str(args.serial_rounds)
         engine = StrataEngine(cfg['exe'], cfg['args'], cwd=cfg['cwd'], log=str(args.output.with_suffix('.log')), env=env)
         assert engine.info.get('gpu_only') == 1
         assert engine.info.get('speculative') == ('none' if args.baseline else 'dspark')
@@ -77,7 +95,7 @@ def main():
                 if cancel_timer:
                     cancel_timer.cancel()
                     cancel_timer.join()
-            entry = {'token_ids': output, 'timings': dict(engine.last), 'elapsed_seconds': time.monotonic() - start}
+            entry = {'input_ids': list(ids), 'token_ids': output, 'timings': dict(engine.last), 'elapsed_seconds': time.monotonic() - start}
             results[name] = entry
             print(name, json.dumps(entry['timings']), flush=True)
             assert 0 <= entry['timings'].get('drafts_accepted', 0) <= entry['timings'].get('drafts_offered', 0)
@@ -124,9 +142,30 @@ def main():
             diffs = [float(value) for value in re.findall(r'STRATA_SPEC_CAUSAL .*?max_logit_diff=([\d.e+-]+)', log)]
             results['causality_max_logit_diffs'] = diffs
             assert diffs and max(diffs) <= 1e-5, 'Future draft tokens affected anchor logits'
+        if args.check_serial:
+            records = [json.loads(line) for line in serial_path.read_text('utf-8').splitlines()]
+            assert records, 'No serial-probe records'
+            assert all(not x['activation_observer'] for x in records), 'This validation requires final logits only'
+            assert all(x['replay_max_abs'] == 0 for x in records), 'Serial probe changed replay logits'
+            rows = [row for record in records for row in record['rows']]
+            used = [row for record in records for row in record['rows'][:len(record['output_ids'])]]
+            results['serial_probe'] = {
+                'path': str(serial_path), 'packets': len(records), 'rows': len(rows),
+                'max_abs': max(row['max_abs'] for row in rows),
+                'changed_argmax': sum(row['argmax_a'] != row['argmax_b'] for row in rows),
+                'used_rows': len(used),
+                'used_changed_argmax': sum(row['argmax_a'] != row['argmax_b'] for row in used),
+                'replay_max_abs': max(x['replay_max_abs'] for x in records),
+            }
+        if args.greedy_reference:
+            reference = json.loads(args.greedy_reference.read_text('utf-8'))
+            comparisons = compare_greedy_results(reference, results)
+            results['greedy_reference'] = {'path': str(args.greedy_reference), 'comparisons': comparisons}
+            assert all(x['same_input_ids'] and x['same_output_ids'] for x in comparisons.values()), 'Greedy reference input/output IDs differ'
         results['passed'] = True
     finally:
         timer.cancel()
+        timer.join()
         if engine:
             engine.close()
         args.output.write_text(json.dumps(results, ensure_ascii=False, indent=2) + '\n', 'utf-8')
