@@ -19,7 +19,10 @@
     }
     static int strata_previous_nodes = -1;
     if (strata_previous_nodes != strata_gpu_nodes) {
-        GGML_LOG_INFO("STRATA_GPU_AUDIT gpu_nodes=%d cpu_compute_nodes=0 expert_matmuls_gpu=%d\n",
-            strata_gpu_nodes, strata_expert_nodes);
+        const char *lane=std::getenv("STRATA_DS4_CPU_THREADS");
+        const bool hybrid=lane && std::atoi(lane)>0;
+        GGML_LOG_INFO("STRATA_GPU_AUDIT gpu_nodes=%d cpu_compute_nodes=0 expert_matmuls_gpu=%d cpu_lane_enabled=%d\n",
+            strata_gpu_nodes, strata_expert_nodes,int(hybrid));
+        if(hybrid)GGML_LOG_INFO("STRATA_CPU_AUDIT scheduler_cpu_nodes=0 expert_cpu_ops=see_STRATA_CPU_LANE\n");
         strata_previous_nodes = strata_gpu_nodes;
     }

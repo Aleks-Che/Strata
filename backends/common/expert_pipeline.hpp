@@ -21,11 +21,13 @@
 // A bounded reader queue per backend; memory is bounded independently of the
 // model and prompt size. The producer never writes scheduler-owned tensors.
 class StrataExpertPipeline {
-    struct Chunk { const uint8_t *source; size_t bytes; std::shared_ptr<strata_expert_file::Source> file; };
+    struct Chunk { const uint8_t *source; size_t bytes; std::shared_ptr<strata_expert_file::Source> file; bool cacheable,native; };
     struct Slot {
         uint8_t *host=nullptr,*device=nullptr;
         cudaEvent_t ready=nullptr,used=nullptr;
-        bool available=true,submitted=false,has_use=false;
+        bool available=true,submitted=false,has_use=false,retaining=false;
+        // Keep borrowed pinned RAM alive even if submission fails after enqueue.
+        std::shared_ptr<const void> borrowed;
         size_t job=0;
         size_t bytes=0;
     };
@@ -41,10 +43,26 @@ public:
     // producer thread, with its own Request and the pipeline cancellation flag.
     using SourceRead=std::function<bool(const std::shared_ptr<strata_expert_file::Source> &,
         const void *,void *,size_t,const std::atomic<bool> &,strata_expert_file::Request &)>;
+    // Optional cache for both mmap and native-file sources. The final booleans
+    // retain the plan's decode admission hint and the ordinary read decision.
+    using SourceCopy=std::function<bool(const std::shared_ptr<strata_expert_file::Source> &,
+        const void *,void *,size_t,const std::atomic<bool> &,strata_expert_file::Request &,bool,bool)>;
+    // Return immutable, pinned host bytes with shared ownership, or an empty
+    // pointer for ordinary staging. Never perform I/O or wait for a future fill.
+    using SourceBorrow=std::function<std::shared_ptr<const void>(
+        const std::shared_ptr<strata_expert_file::Source> &,const void *,size_t,bool)>;
+    // Optional synchronous retention of immutable, delivered host bytes. The
+    // slot cannot be refilled until this returns. Called only for consumed
+    // cacheable chunks explicitly selected by the consumer, never abandoned work.
+    using SourceRetain=std::function<void(const std::shared_ptr<strata_expert_file::Source> &,
+        const void *,const void *,size_t,const std::atomic<bool> &)>;
     struct Counters {
         uint64_t groups=0,chunks=0,unused=0,h2d_bytes=0,d2d_bytes=0;
         uint64_t read_us=0,wait_us=0,submit_us=0;
         uint64_t file_bytes=0,mmap_bytes=0,read_peak=0;
+        uint64_t borrowed_chunks=0,borrowed_bytes=0;
+        uint64_t retain_chunks=0,retain_bytes=0,retain_us=0;
+        uint64_t retain_queued=0,retain_dropped=0,retain_cancelled=0,retain_pending_peak=0,retain_wait_us=0;
         // CPU wall-time sums, not CUDA execution durations. wait_us retains
         // its existing meaning and equals these two components added together.
         uint64_t slot_wait_us=0,consumer_wait_us=0;
@@ -67,13 +85,21 @@ private:
     std::condition_variable cv;
     bool active=false,quit=false;
     bool early_host_refill=false;
-    std::atomic<bool> cancel_reads{true};
+    std::atomic<bool> cancel_reads{true},cancel_retains{true};
+    struct RetainJob {size_t slot=0;Chunk chunk{};};
+    std::array<RetainJob,slots> retain_queue{};
+    size_t retain_head=0,retain_tail=0,retain_count=0,retain_pending=0;
+    int retain_limit=0;
+    std::thread retainer;
     std::exception_ptr error;
     Counters totals;
     std::vector<std::thread> producers;
     CopyObserver copy_observer;
     HostCopy host_copy;
     SourceRead source_read;
+    SourceCopy source_copy;
+    SourceBorrow source_borrow;
+    SourceRetain source_retain;
 
     static void check(cudaError_t status) {
         if(status!=cudaSuccess)throw std::runtime_error(std::string("expert pipeline: ")+cudaGetErrorString(status));
@@ -107,10 +133,15 @@ private:
                 // slot. Device reuse remains protected by used below.
                 if(has_use)check(cudaEventSynchronize(early_host_refill?slot.ready:slot.used));
                 uint64_t waited=now_us()-started;started=now_us();
-                bool file_read=job.file && (read_mode==1 || !strata_expert_file::resident(job.source,job.bytes));
+                slot.borrowed.reset(); // previous H2D has completed (or finish drained it)
+                std::shared_ptr<const void> borrowed;
+                if(!cancel_reads.load() && source_borrow && job.file)
+                    borrowed=source_borrow(job.file,job.source,job.bytes,job.cacheable);
+                bool file_read=!borrowed && job.file && job.native && (read_mode==1 || !strata_expert_file::resident(job.source,job.bytes));
                 bool read_ok=!cancel_reads.load();
-                if(read_ok) {
-                    if(file_read)read_ok=source_read?source_read(job.file,job.source,slot.host,job.bytes,cancel_reads,request):
+                if(read_ok && !borrowed) {
+                    if(source_copy && job.file)read_ok=source_copy(job.file,job.source,slot.host,job.bytes,cancel_reads,request,job.cacheable,file_read);
+                    else if(file_read)read_ok=source_read?source_read(job.file,job.source,slot.host,job.bytes,cancel_reads,request):
                         request.read(*job.file,job.source,slot.host,job.bytes,cancel_reads);
                     else if(host_copy)host_copy(slot.host,job.source,job.bytes);
                     else std::memcpy(slot.host,job.source,job.bytes);
@@ -118,7 +149,7 @@ private:
                 uint64_t read=now_us()-started;
                 lock.lock();
                 totals.read_us+=read;totals.wait_us+=waited;totals.slot_wait_us+=waited;
-                if(read_ok) (file_read?totals.file_bytes:totals.mmap_bytes)+=job.bytes;
+                if(read_ok && !borrowed) (file_read?totals.file_bytes:totals.mmap_bytes)+=job.bytes;
                 if(!active || !read_ok) {
                     slot.available=true;--busy;claimed=false;totals.reader_owned_bytes-=claimed_bytes;
                     cv.notify_all();continue;
@@ -131,8 +162,9 @@ private:
                     // Keep copy/event pairs together while readers finish in
                     // arbitrary order. Publication follows event recording.
                     std::lock_guard<std::mutex> submit(copy_mutex);
+                    slot.borrowed=std::move(borrowed);
                     if(copy_observer)copy_observer(copy,true,job.bytes);
-                    check(cudaMemcpyAsync(slot.device,slot.host,job.bytes,cudaMemcpyHostToDevice,copy));
+                    check(cudaMemcpyAsync(slot.device,slot.borrowed?slot.borrowed.get():slot.host,job.bytes,cudaMemcpyHostToDevice,copy));
                     if(copy_observer)copy_observer(copy,false,job.bytes);
                     check(cudaEventRecord(slot.ready,copy));
                 }
@@ -141,6 +173,7 @@ private:
                 totals.wait_us+=device_wait;totals.slot_wait_us+=device_wait;
                 totals.queued_bytes+=job.bytes;totals.queued_peak=std::max(totals.queued_peak,totals.queued_bytes);
                 ++totals.chunks;totals.h2d_bytes+=job.bytes;totals.submit_us+=submitted;
+                if(slot.borrowed){++totals.borrowed_chunks;totals.borrowed_bytes+=job.bytes;}
                 --busy;claimed=false;totals.reader_owned_bytes-=claimed_bytes;cv.notify_all();
             }
         } catch(...) {
@@ -149,11 +182,38 @@ private:
             error=std::current_exception();active=false;cancel_reads.store(true);cv.notify_all();
         }
     }
+    void retain_worker() noexcept {
+        // Ring ownership, including the host source, lasts through the callback.
+        // No additional payload allocation is needed for this bounded queue.
+        try {check(cudaSetDevice(device));}
+        catch(...) {
+            std::lock_guard<std::mutex> lock(mutex);error=std::current_exception();
+            active=false;cancel_reads.store(true);cancel_retains.store(true);cv.notify_all();
+        }
+        for(;;) {
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock,[&]{return quit || retain_count;});
+            if(!retain_count && quit)return;
+            auto job=std::move(retain_queue[retain_head]);retain_queue[retain_head]={};
+            retain_head=(retain_head+1)%slots;--retain_count;
+            auto &slot=ring[job.slot];
+            const bool run=!cancel_retains.load() && !error;
+            lock.unlock();const auto started=now_us();std::exception_ptr failure;
+            if(run)try {source_retain(job.chunk.file,job.chunk.source,slot.host,job.chunk.bytes,cancel_retains);}
+            catch(...) {failure=std::current_exception();}
+            lock.lock();
+            if(run){++totals.retain_chunks;totals.retain_bytes+=job.chunk.bytes;totals.retain_us+=now_us()-started;}
+            else ++totals.retain_cancelled;
+            if(failure) {error=failure;active=false;cancel_reads.store(true);cancel_retains.store(true);}
+            slot.retaining=false;slot.available=true;--retain_pending;cv.notify_all();
+        }
+    }
     void free_buffers() noexcept {
         cudaSetDevice(device);
         if(copy)cudaStreamSynchronize(copy);
         for(auto &slot:ring) {
             if(slot.has_use)cudaEventSynchronize(slot.used);
+            slot.borrowed.reset();
             if(slot.ready)cudaEventDestroy(slot.ready);
             if(slot.used)cudaEventDestroy(slot.used);
             if(slot.host)cudaFreeHost(slot.host);
@@ -162,12 +222,15 @@ private:
         if(copy)cudaStreamDestroy(copy);
     }
 public:
-    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1,bool refill_early=false,HostCopy host_copy_fn={},SourceRead source_read_fn={})
-        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),early_host_refill(refill_early),copy_observer(std::move(observer)),host_copy(std::move(host_copy_fn)),source_read(std::move(source_read_fn)) {
+    StrataExpertPipeline(int gpu,size_t bytes,bool write_combined,int readers=2,int mode=0,CopyObserver observer={},int decode_readers=1,bool refill_early=false,HostCopy host_copy_fn={},SourceRead source_read_fn={},SourceCopy source_copy_fn={},SourceBorrow source_borrow_fn={},SourceRetain source_retain_fn={},int retain_queue_limit=0)
+        :device(gpu),chunk_bytes(bytes),read_mode(mode),reader_limit(readers),decode_reader_limit(decode_readers),early_host_refill(refill_early),copy_observer(std::move(observer)),host_copy(std::move(host_copy_fn)),source_read(std::move(source_read_fn)),source_copy(std::move(source_copy_fn)),source_borrow(std::move(source_borrow_fn)),source_retain(std::move(source_retain_fn)) {
+        retain_limit=retain_queue_limit;
         if(!bytes)throw std::runtime_error("expert pipeline requires pinned staging");
         if(bytes>std::numeric_limits<size_t>::max()/slots)throw std::runtime_error("expert staging capacity overflow");
         if(readers<1 || readers>int(slots) || decode_readers<1 || decode_readers>readers || mode<0 || mode>2)
             throw std::runtime_error("invalid expert reader configuration");
+        if(retain_limit<0 || retain_limit>=int(slots) || (retain_limit && !source_retain))
+            throw std::runtime_error("invalid expert retention queue");
         try {
             check(cudaSetDevice(device));
             check(cudaStreamCreateWithFlags(&copy,cudaStreamNonBlocking));
@@ -179,15 +242,18 @@ public:
             }
             totals.pinned_bytes=totals.device_ring_bytes=bytes*slots;
             for(int i=0;i<readers;++i)producers.emplace_back([this,i]{produce(i);});
+            if(retain_limit)retainer=std::thread([this]{retain_worker();});
         } catch(...) {
             {std::lock_guard<std::mutex> lock(mutex);quit=true;cv.notify_all();}
             for(auto &thread:producers)if(thread.joinable())thread.join();
+            if(retainer.joinable())retainer.join();
             free_buffers();throw;
         }
     }
     ~StrataExpertPipeline() {
-        {std::lock_guard<std::mutex> lock(mutex);quit=true;active=false;cancel_reads.store(true);cv.notify_all();}
+        {std::lock_guard<std::mutex> lock(mutex);quit=true;active=false;cancel_reads.store(true);cancel_retains.store(true);cv.notify_all();}
         for(auto &thread:producers)if(thread.joinable())thread.join();
+        if(retainer.joinable())retainer.join();
         free_buffers();
     }
     StrataExpertPipeline(const StrataExpertPipeline&)=delete;
@@ -199,8 +265,16 @@ public:
             if(propagate && error)std::rethrow_exception(error);
             return;
         }
-        active=false;cancel_reads.store(true);cv.notify_all();
-        cv.wait(lock,[&]{return !busy;});
+        active=false;cancel_reads.store(true);
+        // Complete consumed work at a normal plan boundary. An abandoned suffix
+        // or sticky failure cancels optional retention instead. A new plan may
+        // never reuse the host slots or reset cancellation before this drains.
+        if(consumed!=jobs.size() || error)cancel_retains.store(true);
+        cv.notify_all();cv.wait(lock,[&]{return !busy;});
+        const auto retain_started=now_us();const bool waiting=retain_pending!=0;
+        cv.wait(lock,[&]{return !retain_pending;});
+        if(waiting)totals.retain_wait_us+=now_us()-retain_started;
+        cancel_retains.store(true);
         // Consumed slots are protected by their consumer events. A host-side
         // stream drain is needed only for an abandoned, uploaded suffix.
         bool abandoned=false;
@@ -210,6 +284,7 @@ public:
             if(slot.submitted) {
                 ++totals.unused;totals.unused_bytes+=slot.bytes;totals.queued_bytes-=slot.bytes;
             }
+            if(abandoned && status==cudaSuccess)slot.borrowed.reset();
             slot.bytes=0;
             slot.available=true;slot.submitted=false;
         }
@@ -229,16 +304,16 @@ public:
             // forever. Auto queues cold prefill slices and leaves decode on
             // mmap; explicit file mode remains available for measurement.
             bool native=read_mode==1 || (read_mode==2 && !slice.cacheable);
-            auto file=native?strata_expert_file::find(slice.data,slice.bytes):nullptr;
+            auto file=(native || source_copy || source_borrow || source_retain)?strata_expert_file::find(slice.data,slice.bytes):nullptr;
             for(size_t off=0;off<slice.bytes;off+=chunk_bytes)
-                jobs.push_back({(const uint8_t *)slice.data+off,std::min(chunk_bytes,slice.bytes-off),file});
+                jobs.push_back({(const uint8_t *)slice.data+off,std::min(chunk_bytes,slice.bytes-off),file,slice.cacheable,native});
         }
         if(jobs.empty())return;
-        ++totals.groups;cancel_reads.store(false);active=true;cv.notify_all();
+        ++totals.groups;cancel_reads.store(false);cancel_retains.store(false);active=true;cv.notify_all();
     }
     // False means the source was not in the bounded lookahead plan. The
     // caller cancels that plan and uses the original ordered transfer path.
-    bool transfer(void *destination,const void *source,size_t bytes,cudaStream_t consumer,const CopyObserver &delivery_observer={}) {
+    bool transfer(void *destination,const void *source,size_t bytes,cudaStream_t consumer,const CopyObserver &delivery_observer={},bool retain_source=false) {
         std::unique_lock<std::mutex> lock(mutex);
         if(error)std::rethrow_exception(error);
         size_t count=0;
@@ -253,7 +328,7 @@ public:
             cv.wait(lock,[&]{return error || (slot.submitted && slot.job==consumed);});
             if(error)std::rethrow_exception(error);
             const auto waited=now_us()-started;totals.wait_us+=waited;totals.consumer_wait_us+=waited;
-            size_t n=jobs[consumed].bytes;
+            const auto job=jobs[consumed];size_t n=job.bytes;
             lock.unlock();
             // ready is recorded before publication; waiting on an unrecorded
             // CUDA event would otherwise be a no-op.
@@ -262,10 +337,27 @@ public:
             if(destination)check(cudaMemcpyAsync((uint8_t *)destination+off,slot.device,n,cudaMemcpyDeviceToDevice,consumer));
             if(destination && delivery_observer)delivery_observer(consumer,false,n);
             check(cudaEventRecord(slot.used,consumer));
-            lock.lock();
+            lock.lock();slot.has_use=true; // protects queued consumer work even if retention throws
+            if(destination && retain_source && source_retain && job.cacheable && job.file && !slot.borrowed) {
+                if(retain_limit) {
+                    if(retain_pending<size_t(retain_limit)) {
+                        retain_queue[retain_tail]={consumed%slots,job};retain_tail=(retain_tail+1)%slots;
+                        ++retain_count;++retain_pending;slot.retaining=true;++totals.retain_queued;
+                        totals.retain_pending_peak=std::max<uint64_t>(totals.retain_pending_peak,retain_pending);
+                    } else ++totals.retain_dropped; // optional cache fill must have a hard bound
+                } else {
+                    lock.unlock();const auto retain_started=now_us();
+                    try {source_retain(job.file,job.source,slot.host,n,cancel_reads);}
+                    catch(...) {
+                        lock.lock();error=std::current_exception();active=false;cancel_reads.store(true);cv.notify_all();
+                        throw;
+                    }
+                    lock.lock();++totals.retain_chunks;totals.retain_bytes+=n;totals.retain_us+=now_us()-retain_started;
+                }
+            }
             if(destination)totals.d2d_bytes+=n;
             totals.queued_bytes-=n;slot.bytes=0;
-            slot.has_use=true;slot.submitted=false;slot.available=true;
+            slot.has_use=true;slot.submitted=false;slot.available=!slot.retaining;
             ++consumed;off+=n;cv.notify_all();
         }
         return true;

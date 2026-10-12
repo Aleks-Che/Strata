@@ -45,6 +45,9 @@ struct Options {
     uint64_t budget=2048ULL<<20, floor=8192ULL<<20;
     uint64_t working_set=0;
     int expert_cache_mib=0, expert_stage_mib=0, expert_slab_mib=0;
+    int expert_cpu_threads=0, expert_cpu_max_experts=1;
+    int expert_cpu_ram_mib=256;
+    std::string expert_cpu_policy="auto";
     int mmvq_token_batch=0;
     std::string expert_cache_policy="lru";
     int expert_cache_match_size=0;
@@ -68,13 +71,17 @@ static Options options(int argc, char **argv) {
         if (k=="--help") {
             std::cout << "Strata DeepSeek V4 backend (llama.cpp 3cf03257)\n"
                 "--native FIRST.gguf --max-context 8192 --threads 1 --batch-size 512\n"
-                "GPU-only forward; cold expert weights stream from mapped GGUF to GPU\n"
+                "GPU-only by default; experimental CPU lane for whole experts\n"
                 "--gpu-expert-layers 0 (keep the last N layers' routed experts in VRAM)\n"
                 "--expert-cache-mib 0 (GPU LRU of individual expert matrices)\n"
                 "--expert-cache-policy lru|frequency (frequency gates LRU admission using decaying access counts)\n"
                 "--expert-frequency-decay 0 --draft-expert-frequency-decay 0 (matrix accesses; 0 = cache-size default)\n"
                 "--expert-cache-match-size 0 (0/1; prefer same-size victims in the fixed GPU arena)\n"
                 "--expert-stage-mib 0 (size of EACH of two pinned upload buffers)\n"
+                "--expert-cpu-threads 0 (0 disables; 1..16 workers for whole CPU experts in short batches)\n"
+                "--expert-cpu-max-experts 1 (1..6 whole experts per token; automatic cost calibration; changes rounding)\n"
+                "--expert-cpu-policy auto (auto or force; force is for comparative measurements)\n"
+                "--expert-cpu-ram-mib 256 (0..4096 pinned CPU weight-cache MiB per backend)\n"
                 "--expert-slab-mib 0 (0 disables; 1..256 MiB blocks for dynamic GPU cache only)\n"
                 "--mmvq-token-batch 0 (experimental: 0 upstream, 1 routed, 2 routed+dense; 2..4 tokens)\n"
                 "--expert-pipeline 0 (0/1; background staging + separate H2D stream; needs stage > 0)\n"
@@ -110,6 +117,10 @@ static Options options(int argc, char **argv) {
         else if (k=="--gpu-layers") o.gpu_layers=integer(v);
         else if (k=="--gpu-expert-layers") o.gpu_expert_layers=integer(v);
         else if (k=="--expert-cache-mib") o.expert_cache_mib=integer(v);
+        else if (k=="--expert-cpu-threads") o.expert_cpu_threads=integer(v);
+        else if (k=="--expert-cpu-max-experts") o.expert_cpu_max_experts=integer(v);
+        else if (k=="--expert-cpu-policy") o.expert_cpu_policy=v;
+        else if (k=="--expert-cpu-ram-mib") o.expert_cpu_ram_mib=integer(v);
         else if (k=="--expert-cache-policy") o.expert_cache_policy=v;
         else if (k=="--expert-frequency-decay") o.expert_frequency_decay=integer(v);
         else if (k=="--draft-expert-frequency-decay") o.draft_expert_frequency_decay=integer(v);
@@ -133,6 +144,12 @@ static Options options(int argc, char **argv) {
         throw std::runtime_error("invalid model/context/batch/thread/cache settings");
     if(o.expert_cache_mib<0 || o.expert_cache_mib>65536 || o.expert_stage_mib<0 || o.expert_stage_mib>256)
         throw std::runtime_error("invalid expert GPU cache or pinned stage size");
+    if(o.expert_cpu_threads<0 || o.expert_cpu_threads>16 || o.expert_cpu_max_experts<1 || o.expert_cpu_max_experts>6)
+        throw std::runtime_error("CPU lane needs 0..16 threads and 1..6 whole experts per route");
+    if(o.expert_cpu_policy!="auto" && o.expert_cpu_policy!="force")throw std::runtime_error("expert-cpu-policy must be auto or force");
+    if(o.expert_cpu_ram_mib<0 || o.expert_cpu_ram_mib>4096)throw std::runtime_error("expert-cpu-ram-mib must be 0..4096");
+    if(o.expert_cpu_threads && (!o.expert_pipeline || !o.expert_stage_mib))
+        throw std::runtime_error("CPU lane requires --expert-pipeline 1 and pinned staging");
     if(o.expert_slab_mib<0 || o.expert_slab_mib>256)
         throw std::runtime_error("expert-slab-mib must be in [0, 256]");
     if(o.mmvq_token_batch<0 || o.mmvq_token_batch>2)
@@ -245,6 +262,7 @@ class Runner {
     std::unique_ptr<DSpark> spec;
     StrataExpertBudget expert_budget;
     StrataExpertDecay expert_decay;
+    StrataCpuExpertPhase cpu_phase=nullptr;
     VramControl &vram;
     ActivationProbe &activation_probe;
     const llama_vocab *vocab;
@@ -277,6 +295,11 @@ class Runner {
             <<" hits="<<hits<<" misses="<<misses<<" evictions="<<evictions<<" skipped_saves="<<skips<<" save_ms="<<save<<" restore_ms="<<restore<<"\n"<<std::flush;
     }
     bool decode(const std::vector<llama_token> &tokens,size_t begin,size_t end,bool prompt) {
+        struct Phase {
+            StrataCpuExpertPhase set;
+            Phase(StrataCpuExpertPhase f,bool decode):set(f){if(set)set(decode);}
+            ~Phase(){if(set)set(true);}
+        } phase(cpu_phase,!prompt);
         for(size_t i=begin;i<end;) {
             if(stop.load()) return false;
             size_t n=std::min(size_t(o.batch),end-i);
@@ -321,6 +344,8 @@ class Runner {
 public:
     Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,StrataExpertDecay decay,VramControl &vc,ActivationProbe &probe):
         ctx(c),draft_ctx(d),expert_budget(b),expert_decay(decay),vram(vc),activation_probe(probe),vocab(v),o(opts),stop(s) {
+        if(o.expert_cpu_threads)if(auto *gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU))
+            cpu_phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_cpu_expert_phase");
         if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence,o.draft_shared_scratch!=0);
         if(spec)std::cerr<<"STRATA_DSPARK_SCRATCH saved_bytes="<<spec->scratch_saved()<<" shared="<<spec->scratch_shared()<<"\n";
     }
@@ -661,6 +686,13 @@ int main(int argc,char**argv) {
         // Decode is batch=1: explicitly stream selected experts for that path too.
 #ifdef _WIN32
         _putenv_s("GGML_OP_OFFLOAD_MIN_BATCH","1");
+        _putenv_s("STRATA_DS4_CPU_THREADS",std::to_string(o.expert_cpu_threads).c_str());
+        _putenv_s("STRATA_DS4_CPU_MAX_EXPERTS",std::to_string(o.expert_cpu_max_experts).c_str());
+        _putenv_s("STRATA_DS4_CPU_POLICY",o.expert_cpu_policy.c_str());
+        _putenv_s("STRATA_DS4_CPU_RAM_MIB",std::to_string(o.expert_cpu_ram_mib).c_str());
+        if(o.expert_cpu_threads) {
+            _putenv_s("STRATA_DS4_DIRECT_CACHE","1");_putenv_s("STRATA_DS4_ORDERED_EXPERTS","1");
+        }
         _putenv_s("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str());
         _putenv_s("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str());
         _putenv_s("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str());
@@ -675,6 +707,13 @@ int main(int argc,char**argv) {
         _putenv_s("STRATA_EXPERT_PREFILL_CACHE_HITS",std::to_string(o.expert_prefill_cache_hits).c_str());
 #else
         setenv("GGML_OP_OFFLOAD_MIN_BATCH","1",1);
+        setenv("STRATA_DS4_CPU_THREADS",std::to_string(o.expert_cpu_threads).c_str(),1);
+        setenv("STRATA_DS4_CPU_MAX_EXPERTS",std::to_string(o.expert_cpu_max_experts).c_str(),1);
+        setenv("STRATA_DS4_CPU_POLICY",o.expert_cpu_policy.c_str(),1);
+        setenv("STRATA_DS4_CPU_RAM_MIB",std::to_string(o.expert_cpu_ram_mib).c_str(),1);
+        if(o.expert_cpu_threads) {
+            setenv("STRATA_DS4_DIRECT_CACHE","1",1);setenv("STRATA_DS4_ORDERED_EXPERTS","1",1);
+        }
         setenv("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str(),1);
         setenv("STRATA_EXPERT_CACHE_POLICY",o.expert_cache_policy.c_str(),1);
         setenv("STRATA_EXPERT_CACHE_MATCH_SIZE",std::to_string(o.expert_cache_match_size).c_str(),1);
@@ -689,8 +728,16 @@ int main(int argc,char**argv) {
         setenv("STRATA_EXPERT_PREFILL_CACHE_HITS",std::to_string(o.expert_prefill_cache_hits).c_str(),1);
 #endif
         ggml_backend_load_all();llama_backend_init();
+        if(o.expert_cpu_threads) {
+            for(const char *name:{"STRATA_DS4_EARLY_HITS","STRATA_DS4_ROUTED_MMQ","STRATA_DS4_HASH_PREFETCH"})
+                if(const char *value=std::getenv(name))if(std::atoi(value))
+                    throw std::runtime_error(std::string("CPU lane is incompatible with ")+name);
+        }
         auto gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU);
         if(!o.vocab_only && !gpu)throw std::runtime_error("DeepSeek inference requires a GPU backend; CPU fallback is disabled");
+        if(!o.vocab_only && o.expert_cpu_threads &&
+           !ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_cpu_begin"))
+            throw std::runtime_error("CPU lane requires a DeepSeek CUDA build with direct-cache support");
         if(!o.vocab_only && (o.expert_cache_mib || o.expert_stage_mib)) {
             auto reg=ggml_backend_dev_backend_reg(gpu);
             if(!ggml_backend_reg_get_proc_address(reg,"strata_expert_copy"))
@@ -794,7 +841,10 @@ int main(int argc,char**argv) {
         // The raw per-context allocator sizes both include that same buffer.
         if(runner.scratch_shared())draft_memory.compute=0;
         std::cout<<"INFO engine=0.1.35-deepseek4 architecture=deepseek4 backend=llama.cpp mtp=0 spec="<<(draft_ctx?o.draft_max:0)
-            <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute=gpu gpu_only=1"
+            <<" speculative="<<(draft_ctx?"dspark":"none")<<" expert_storage=mmap expert_compute="<<(o.expert_cpu_threads?"hybrid":"gpu")
+            <<" gpu_only="<<(o.expert_cpu_threads?0:1)<<" expert_cpu_threads="<<o.expert_cpu_threads
+            <<" expert_cpu_max_experts="<<o.expert_cpu_max_experts
+            <<" expert_cpu_policy="<<o.expert_cpu_policy<<" expert_cpu_ram_mib="<<o.expert_cpu_ram_mib
             <<" gpu_expert_layers="<<o.gpu_expert_layers<<" expert_cache_mib="<<o.expert_cache_mib<<" expert_stage_mib="<<o.expert_stage_mib
             <<" expert_slab_mib="<<o.expert_slab_mib
             <<" mmvq_token_batch="<<o.mmvq_token_batch

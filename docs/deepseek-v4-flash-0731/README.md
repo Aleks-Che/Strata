@@ -9,6 +9,16 @@
 
 | Документ | Содержание |
 |---|---|
+| [Перенос идей Maya](DEEPSEEK4_MAYA_TRANSFER_REVIEW.md) | Заимствование VRAM для prefill, GPU-план, pinned RAM, история частот, CPU lane и другой lookahead |
+| [Первый прототип CPU lane](DEEPSEEK4_CPU_LANE.md) | Эксперимент с 4/8/12/16 потоками: ускорения нет, точный restore ответа не пройден, по умолчанию выключен |
+| [CPU lane v2](DEEPSEEK4_CPU_LANE_V2.md) | Целые эксперты и CUDA Graphs; fixed 14,09 против GPU 17,10 ток/с; fixed restore прошёл, auto ещё нет |
+| [План и новые испытания CPU lane](DEEPSEEK4_CPU_LANE_EXPERIMENTS.md) | Выбор по токенам, общие RAM-матрицы, контроль корректности и замеры 8/12/16 потоков |
+| [Пул RAM и фоновое сохранение](DEEPSEEK4_RAM_BACKGROUND.md) | Переиспользование allocations в общем бюджете и очередь на два задания: раздельные замеры |
+| [RAM после решения GPU-кэша](DEEPSEEK4_RAM_ADMISSION.md) | Отложенное заполнение RAM: меньше копирования, но GPU-only остаётся быстрее; CPU12 и DSpark |
+| [Прямой H2D из RAM](DEEPSEEK4_RAM_DIRECT_H2D.md) | Защищённые pinned-адреса, удаление RAM-дубликатов после GPU admission, замеры и ограничения |
+| [CPU lane v2: оставшиеся отличия от Maya](DEEPSEEK4_CPU_LANE_V2_MAYA_AUDIT.md) | Раздельный CPU-кэш, общий лимит speculative window, host-планирование и ошибка калибровки |
+| [CPU lane: отличия от Maya](DEEPSEEK4_CPU_LANE_MAYA_AUDIT.md) | Почему матричный прототип теряет преимущества целого CPU-эксперта; что менять и какие измерения нужны |
+| [Компактные матрицы, RAM-кэш и прогноз маршрутов](DEEPSEEK4_COMPACT_RAM_PREDICTOR.md) | Плотные физические слоты, общий ограниченный RAM-кэш, оценка трёх прогнозов без подкачки |
 | [Ранний расчёт готовых экспертов](DEEPSEEK4_EARLY_CACHE_HITS.md) | Основной и отдельный CUDA stream: −0,18% / −1,04% по прогретым повторам, эксперимент выключен |
 | [Ранняя подгрузка hash-слоёв](DEEPSEEK4_HASH_PREFETCH.md) | Два точных режима первых трёх слоёв; +0,22% / +0,13% по прогретым повторам, оставлены выключенными |
 | [Основное руководство](DEEPSEEK4.md) | Архитектура, GPU-only, GGUF Q3/Q8, сборка, запуск, API и ограничения |

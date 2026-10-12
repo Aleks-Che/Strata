@@ -1,4 +1,6 @@
-"""Bounded GPU-only benchmark: prefill, decode, cached repeat and CPU/GPU samples.
+"""Bounded DeepSeek benchmark: prefill, decode, cached repeat and CPU/GPU samples.
+
+Requires GPU-only execution unless --allow-cpu-lane explicitly permits the hybrid lane.
 
 Run while other Strata engines are stopped. OS file cache is not cleared.
 python tools/benchmark_deepseek4.py --config strata-deepseek4-ud-q3-k-xl.json
@@ -35,6 +37,7 @@ def main():
     ap.add_argument('--prefill-repeats', type=int, default=0, help='Repeat full prefill in fresh sessions after decode; preserves expert cache, never restores KV')
     ap.add_argument('--timeout', type=int, default=240, help='Seconds per request, including prefill')
     ap.add_argument('--physical-disk', help='psutil disk name, e.g. PhysicalDrive6; records device-wide physical reads, including other processes')
+    ap.add_argument('--allow-cpu-lane', action='store_true', help='Explicitly benchmark the optional hybrid expert lane; unrelated CPU fallback remains forbidden')
     ap.add_argument('--output', type=Path, default=ROOT / 'bench/results' / f'deepseek4-{time.strftime("%Y%m%d-%H%M%S")}.json')
     args = ap.parse_args()
     if args.prompt_tokens < 64 or args.tokens < 1 or args.timeout < 30 or not 1 <= args.repeats <= 10 or not 0 <= args.prefill_repeats <= 10:
@@ -98,7 +101,9 @@ def main():
         result['load_seconds'] = time.monotonic() - started
         result['engine_info'] = dict(engine.info)
         if engine.info.get('gpu_only') != 1:
-            raise RuntimeError('The backend did not declare enforced GPU-only execution')
+            if not (args.allow_cpu_lane and engine.info.get('expert_compute') == 'hybrid'
+                    and int(engine.info.get('expert_cpu_threads', 0)) > 0):
+                raise RuntimeError('The backend did not declare enforced GPU-only execution; CPU lane requires --allow-cpu-lane')
         if args.prompt_tokens + 16 > engine.max_context:
             raise ValueError('Prefill prompt exceeds configured context')
         prefill = ' '.join(f'Запись {i}: синий квадрат.' for i in range(args.prompt_tokens // 8 + 1))
@@ -181,7 +186,12 @@ def main():
         done.set()
         watcher.join(timeout=8)
         if engine:
-            engine.close()
+            try:
+                engine.close()
+            except OSError as exc:
+                # A timed-out child may close stdin before cleanup. Preserve
+                # the measurements and the original request exception.
+                result['cleanup_error'] = str(exc)
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         print(f'Results: {args.output}', flush=True)
 

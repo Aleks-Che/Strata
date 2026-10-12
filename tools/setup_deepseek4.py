@@ -111,6 +111,10 @@ def main():
     ap.add_argument("--expert-prefill-cache-hits", type=int, choices=(0, 1), default=0, help="Read existing GPU cache entries in prefill without admitting new weights")
     ap.add_argument("--draft-model", type=Path, help="Optional matching 0731 DSpark GGUF")
     ap.add_argument("--draft-shared-scratch", type=int, choices=(0, 1), default=0, help="Use one GPU compute buffer for sequential target/draft execution; KV and expert caches remain separate")
+    ap.add_argument("--expert-cpu-threads", type=int, choices=range(17), default=0, help="Optional CPU lane workers; 0 keeps GPU-only inference")
+    ap.add_argument("--expert-cpu-max-experts", type=int, choices=range(1, 7), default=1, help="Maximum whole experts per token assigned to CPU")
+    ap.add_argument("--expert-cpu-policy", choices=("auto", "force"), default="auto", help="Calibrate CPU/PCIe cost, or force CPU for measurements")
+    ap.add_argument("--expert-cpu-ram-mib", type=int, default=256, metavar="0..4096", help="Pinned CPU weight cache MiB per backend")
     ap.add_argument("--draft-max", type=int, default=3, choices=range(1, 6))
     ap.add_argument("--draft-min-confidence", type=float, default=0, help="0 disables filtering; otherwise keep the draft prefix with predicted acceptance >= this threshold")
     ap.add_argument("--draft-expert-cache-mib", type=int, default=1024)
@@ -119,6 +123,8 @@ def main():
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--check-only", action="store_true")
     args = ap.parse_args()
+    if not 0 <= args.expert_cpu_ram_mib <= 4096:
+        ap.error("expert-cpu-ram-mib must be in [0, 4096]")
     if not 0 <= args.expert_slab_mib <= 256:
         ap.error("expert-slab-mib must be in [0, 256]")
     if not all(0 <= value <= 1000000000 for value in (args.expert_frequency_decay, args.draft_expert_frequency_decay)):
@@ -127,6 +133,8 @@ def main():
         ap.error("draft-shared-scratch requires --draft-model")
     if args.expert_pipeline and args.expert_stage_mib <= 0:
         ap.error("expert-pipeline requires expert-stage-mib > 0")
+    if args.expert_cpu_threads and not args.expert_pipeline:
+        ap.error("expert-cpu-threads requires expert-pipeline")
     if (args.expert_host_copy != "crt" or args.expert_early_refill) and not args.expert_pipeline:
         ap.error("AVX2 host-copy and early-refill require expert-pipeline")
     if args.expert_pipeline and args.expert_read_mode == "file" and sys.platform != "win32":
@@ -170,6 +178,10 @@ def main():
                     "--draft-expert-frequency-decay", str(args.draft_expert_frequency_decay),
                     "--expert-cache-match-size", str(args.expert_cache_match_size),
                     "--expert-pipeline", str(args.expert_pipeline),
+                    "--expert-cpu-threads", str(args.expert_cpu_threads),
+                    "--expert-cpu-max-experts", str(args.expert_cpu_max_experts),
+                    "--expert-cpu-policy", args.expert_cpu_policy,
+                    "--expert-cpu-ram-mib", str(args.expert_cpu_ram_mib),
                     "--expert-readers", str(args.expert_readers), "--expert-read-mode", args.expert_read_mode,
                     "--expert-host-copy", args.expert_host_copy,
                     "--expert-early-refill", str(args.expert_early_refill),

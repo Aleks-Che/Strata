@@ -31,6 +31,7 @@ def main():
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--tokens', type=int, default=64, choices=range(8, 129))
     parser.add_argument('--baseline', action='store_true', help='Run the same state checks without DSpark')
+    parser.add_argument('--allow-cpu-lane', action='store_true', help='Explicitly validate the optional hybrid lane; keep all state/output assertions')
     parser.add_argument('--check-causality', action='store_true', help='Expensive diagnostic: vary future draft tokens, compare anchor logits')
     parser.add_argument('--check-serial', action='store_true', help='Expensive diagnostic: compare every verification row with the same tokens evaluated one at a time; timings are not benchmarks')
     parser.add_argument('--serial-rounds', type=int, default=3, choices=range(1, 65), help='Maximum serial-probe rounds per request')
@@ -70,7 +71,8 @@ def main():
             env['STRATA_SPEC_SERIAL_REPORT'] = str(serial_path.resolve())
             env['STRATA_SPEC_CHECK_ROUNDS'] = str(args.serial_rounds)
         engine = StrataEngine(cfg['exe'], cfg['args'], cwd=cfg['cwd'], log=str(args.output.with_suffix('.log')), env=env)
-        assert engine.info.get('gpu_only') == 1
+        assert engine.info.get('gpu_only') == 1 or (args.allow_cpu_lane and engine.info.get('expert_compute') == 'hybrid'
+                                                   and int(engine.info.get('expert_cpu_threads', 0)) > 0)
         assert engine.info.get('speculative') == ('none' if args.baseline else 'dspark')
         results['engine_info'] = engine.info
         def run(name, ids, count, session, cancel_after=None, sampling=None, cancel_seconds=None):

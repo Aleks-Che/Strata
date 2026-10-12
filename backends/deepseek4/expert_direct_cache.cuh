@@ -3,6 +3,7 @@
 #include <bitset>
 #include <unordered_set>
 #include <vector>
+#include "expert_compact.hpp"
 
 struct StrataExpertDirect {
     static constexpr size_t max_experts=256;
@@ -18,6 +19,8 @@ struct StrataExpertDirect {
     const ggml_tensor *tensor=nullptr;
     void *data=nullptr;
     size_t width=0,count=0;
+    int compact_capacity=0,compact_used=0;
+    std::array<int,max_experts> compact_index{};
     const void **table=nullptr;
     bool enabled=false,admissions=false,dirty=false,consumed=false;
 
@@ -36,11 +39,24 @@ struct StrataExpertDirect {
         GGML_ASSERT(!tensor && held.empty());
         if(!table)CUDA_CHECK(cudaMalloc((void **)&table,sizeof(Packet)));
         tensor=weight;data=weight->data;width=weight->nb[2];count=size_t(weight->ne[2]);
+        compact_capacity=strata_compact_slots(weight);compact_used=0;compact_index.fill(-1);
         consumed=false;readers.clear();fallback_table();
     }
     void fallback_table() {
-        for(size_t i=0;i<max_experts;++i)packet.pointers[i]=i<count?(uint8_t *)data+i*width:nullptr;
+        for(size_t i=0;i<max_experts;++i)packet.pointers[i]=i<count?
+            (compact_capacity?(compact_index[i]>=0?(uint8_t *)data+size_t(compact_index[i])*(width+512):nullptr):
+             (uint8_t *)data+i*width):nullptr;
         dirty=true;
+    }
+    void *destination(const ggml_tensor *weight,int id) {
+        if(!strata_compact_slots(weight))return (uint8_t *)weight->data+size_t(id)*weight->nb[2];
+        GGML_ASSERT(tensor==weight && data==weight->data && id>=0 && size_t(id)<count);
+        if(compact_index[id]<0) {
+            GGML_ASSERT(compact_used<compact_capacity);
+            compact_index[id]=compact_used++;
+            packet.pointers[id]=(uint8_t *)data+size_t(compact_index[id])*(width+512);dirty=true;
+        }
+        return (uint8_t *)data+size_t(compact_index[id])*(width+512);
     }
     bool bind(const ggml_tensor *weight,int id,const void *key,const void *source,size_t bytes) {
         if(!tensor || tensor!=weight || data!=weight->data)return false;
@@ -51,7 +67,7 @@ struct StrataExpertDirect {
             GGML_ASSERT(!host_base_set || host_base==base);
             host_base=base;host_base_set=true;leased.set(size_t(id));
         } else keys.insert(key);
-        held.push_back({key,source,(uint8_t *)data+size_t(id)*width,bytes});dirty=true;return true;
+        held.push_back({key,source,destination(weight,id),bytes});dirty=true;return true;
     }
     void reader(cudaStream_t stream) {
         if(std::find(readers.begin(),readers.end(),stream)==readers.end())readers.push_back(stream);

@@ -18,6 +18,7 @@ struct StrataExpertCounters {
     uint64_t direct_admissions=0;
     uint64_t hash_reads=0, early_plans=0, early_reuses=0, early_mismatches=0;
     uint64_t early_hit_ops=0, early_hit_experts=0, early_miss_experts=0;
+    uint64_t cpu_lane_ops=0,cpu_lane_experts=0,cpu_lane_saved_bytes=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Exact GPU table lookup for at most three hash-routed layers. These are input
@@ -38,6 +39,21 @@ using StrataExpertFlush = void (*)(ggml_backend_t);
 // Called once per selected-expert input, before copy(). False retains ordinary
 // materialization. Every graph execution (including replay) needs a new prepare.
 using StrataExpertPrepare = bool (*)(ggml_backend_t,const ggml_tensor *consumer);
+using StrataExpertCompact = int (*)(ggml_backend_t,const ggml_tensor *consumer);
+using StrataExpertCpuSelect = void (*)(ggml_backend_t,const ggml_tensor *source,
+    const ggml_tensor *consumer,const ggml_tensor *route,const int32_t *ids,size_t ids_bytes,uint8_t *selected);
+using StrataExpertCpuBegin = bool (*)(ggml_backend_t,const ggml_tensor *source,
+    ggml_tensor *consumer,const ggml_tensor *route,const int32_t *ids,size_t ids_bytes);
+// A complete, unfused MoE branch. Nodes and original host weights are ordered
+// up, gate, down. Only this exact branch may share a CPU assignment.
+struct StrataCpuExpertBranch {
+    ggml_tensor *nodes[3]={};
+    const ggml_tensor *weights[3]={};
+    float clamp=0;
+};
+using StrataCpuExpertPlan = bool (*)(ggml_backend_t,const StrataCpuExpertBranch *,
+    const ggml_tensor *route,const int32_t *ids,size_t ids_bytes,uint8_t *selected);
+using StrataCpuExpertPhase = void (*)(bool decode);
 // Whether selected-weight writes can rely on CUDA stream order instead of a
 // host wait. The caller still reads and synchronizes every new routing tensor.
 using StrataExpertOrdered = bool (*)(ggml_backend_t,const ggml_tensor *consumer);

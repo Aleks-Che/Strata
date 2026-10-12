@@ -50,7 +50,7 @@ hyper-connections с Sinkhorn и формат инструментов DSML. Р�
 
 ## Память и вычисления
 
-Все вычисления графа, включая routed experts, выполняются на GPU. Плотные веса,
+По умолчанию все вычисления графа, включая routed experts, выполняются на GPU. Плотные веса,
 embedding и состояния attention размещаются в VRAM. Веса холодных экспертов хранятся
 в отображённых GGUF; scheduler переносит на GPU только экспертов, выбранных router
 для текущего batch. Холодные страницы читает Windows/Linux по мере обращения.
@@ -67,6 +67,16 @@ CPU-инференс. CPU обслуживает ввод, токенизаци�
 Views и узлы без операции не считаются вычислениями. В журнале проверенного запуска:
 `STRATA_GPU_AUDIT ... cpu_compute_nodes=0 expert_matmuls_gpu=129`.
 Отсутствие GPU или неполный offload dense-слоёв также вызывает ошибку.
+
+Доступен экспериментальный [CPU lane](DEEPSEEK4_CPU_LANE_EXPERIMENTS.md):
+`--expert-cpu-threads 1..16` и `--expert-cpu-max-experts 1..6` (по умолчанию
+0 потоков и лимит 1 эксперт на токен). Он считает выбранных экспертов целиком
+на CPU, оставляя prefill на GPU. INFO тогда сообщает `gpu_only=0`,
+`expert_compute=hybrid`. Счётчик `cpu_compute_nodes=0` относится только к
+узлам scheduler; работу отдельного пула отражают `STRATA_CPU_LANE` и
+`STRATA_CPU_WHOLE`. Округление отличается от GPU. Текущий whole-expert
+режим сохраняет CUDA Graphs; прежний matrix-legacy используется только для проверок.
+Рабочий профиль автоматически на гибридный режим не переключается.
 
 Изменение prefetch и проверка scheduler применяются CMake к копиям исходников
 в каталоге сборки. Закреплённая зависимость и сборка Qwen не редактируются.
@@ -129,6 +139,13 @@ hash-слоёв и запускает их подгрузку. Режим `2` т
 с `STRATA_DEEPSEEK_EARLY_HITS_EXPERIMENT=ON` и direct-cache. В двух B/A/A/B
 сериях получены −0,18% / −1,04% по прогретым повторам, поэтому CMake-опция
 и runtime-флаг оставлены выключенными. [Реализация и проверки](DEEPSEEK4_EARLY_CACHE_HITS.md).
+
+Добавлены экспериментальные `STRATA_DS4_COMPACT_EXPERTS=1` для плотных
+физических слотов короткого MMVQ, `STRATA_DS4_RAM_CACHE_MIB=N` для общего
+ограниченного RAM-кэша target/DSpark и `STRATA_DS4_ROUTE_TRACE=путь.jsonl`
+для оценки прогнозов expert ID без подкачки. По умолчанию они выключены.
+При batch 4096 компактный путь не уменьшил общий резерв 2452,06 МиБ:
+его размер определяет полный prefill. [Реализация, границы и замеры](DEEPSEEK4_COMPACT_RAM_PREDICTOR.md).
 
 Периоды затухания истории при политике `frequency` настраиваются отдельно:
 `--expert-frequency-decay` и `--draft-expert-frequency-decay` (0..1000000000).
@@ -335,6 +352,21 @@ tokenizer pack, журнал и SQLite-статистику. Профили Qwen
 на GPU по мере обращения; это не отключает GPU-вычисления. Остаток VRAM нужен
 контексту, вычислительным буферам и другим приложениям.
 
+## Опциональный CPU lane
+
+[CPU lane v2](DEEPSEEK4_CPU_LANE_V2.md) считает выбранного эксперта целиком
+параллельно GPU-ветке и сохраняет CUDA Graphs. По умолчанию
+`--expert-cpu-threads 0`: рабочие профили остаются GPU-only. Prefill остаётся
+на GPU и при включении lane. Параметры CPU-пула, ограниченного pinned RAM-кэша,
+результаты измерений и ограничения воспроизводимости приведены в отдельном отчёте.
+Режим экспериментальный: его включение само по себе не означает ускорение.
+Лимит экспертов теперь применяется к каждому токену. [Текущие испытания](DEEPSEEK4_CPU_LANE_EXPERIMENTS.md)
+добавляют общий pinned RAM-кэш: `STRATA_DS4_CPU_SHARED_RAM=1` вместе с
+`STRATA_DS4_RAM_CACHE_MIB=<МиБ>`. CPU берёт только полностью готовые gate/up/down;
+при отсутствии любой матрицы используется GPU. В этом режиме отдельный
+`--expert-cpu-ram-mib` не расходуется. Общий кэш обслуживает CPU и pipeline,
+а GPU-передача пока проходит через staging.
+
 ## API, чат и архив
 
 Работают текущий web UI, OpenAI Chat Completions, Anthropic Messages, остановка,
@@ -388,8 +420,9 @@ usage/statistics и управление архивами. DeepSeek выбира
 
 Для 0731 добавлен отдельный [DSpark с потоковой загрузкой экспертов](DEEPSEEK4_DSPARK.md).
 Он включается через `--draft-model`; встроенных MTP-весов в локальных GGUF нет.
-Изображения, multi-GPU и управляемый RAM-кэш экспертов в этом backend пока
-не реализованы. У Qwen его MTP и
+Изображения и multi-GPU в этом backend пока не реализованы.
+Управляемый RAM-кэш доступен как [выключенный по умолчанию эксперимент](DEEPSEEK4_COMPACT_RAM_PREDICTOR.md).
+У Qwen его MTP и
 остальные прежние возможности сохраняются. Новому backend нельзя передавать Qwen
 MTP pack, expert profile, PLE или control vectors. Неизвестные CLI-параметры отклоняются.
 
@@ -397,3 +430,11 @@ MTP pack, expert profile, PLE или control vectors. Неизвестные CLI
 [DeepSeek](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731),
 [Unsloth GGUF](https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF),
 [граф llama.cpp на закреплённом commit](https://github.com/ggml-org/llama.cpp/blob/3cf03257f219afbe7334045ff7c6a06ac68c627d/src/models/deepseek4.cpp).
+
+Эксперимент с прямым H2D из общего pinned RAM-кэша и удалением RAM-дубликатов после GPU admission описан в [отчёте](DEEPSEEK4_RAM_DIRECT_H2D.md). Оба переключателя выключены по умолчанию; устойчивого преимущества над рабочим GPU-only на фиксированной истории не получено.
+
+
+[Отложенное заполнение RAM](DEEPSEEK4_RAM_ADMISSION.md) доступно через STRATA_DS4_RAM_ON_BYPASS=1: копия создаётся только после отказа GPU-кэша в размещении. В замере DSpark медиана 13,34 против 16,28 ток/с у GPU-only; режим остаётся выключенным.
+
+
+[Пул RAM-буферов и фоновое сохранение](DEEPSEEK4_RAM_BACKGROUND.md) доступны через STRATA_DS4_RAM_POOL_MIB и STRATA_DS4_RAM_ASYNC_RETAIN. В коротком замере DSpark пул дал 13,21 против 12,38 ток/с у синхронного RAM-режима; GPU-only остался быстрее — 15,81 ток/с. Обе настройки выключены по умолчанию.

@@ -1,0 +1,20 @@
+# Only private generated CUDA units are modified. CPU results are inserted in
+# their original expert/token rows; the graph's weighted reduction stays intact.
+function(strata_cpu_mmvq_replace old new)
+  string(FIND "${ds4_mmvq}" "${old}" pos)
+  if(pos EQUAL -1)
+    message(FATAL_ERROR "Pinned CPU-lane MMVQ anchor missing: ${old}")
+  endif()
+  string(REPLACE "${old}" "${new}" patched "${ds4_mmvq}")
+  set(ds4_mmvq "${patched}" PARENT_SCOPE)
+endfunction()
+set(generic_y "    const block_q8_1 * y = ((const block_q8_1 *) vy) + sample_y*stride_sample_y + channel_y*stride_channel_y;")
+set(moe_y "    const block_q8_1 * y = ((const block_q8_1 *) vy) + channel_y*stride_channel_y + token_idx*stride_col_y;")
+strata_cpu_mmvq_replace("${generic_y}" "    if constexpr (!has_fusion) { if (ids && fusion.cpu_mask && (fusion.cpu_slots ? fusion.cpu_slots[channel_dst]>=0 : fusion.cpu_mask[channel_x])) { ggml_cuda_pdl_lc(); return; } }\n${generic_y}")
+strata_cpu_mmvq_replace("${moe_y}" "    if (fusion.cpu_mask && (fusion.cpu_slots ? fusion.cpu_slots[token_idx*gridDim.y+channel_dst]>=0 : fusion.cpu_mask[channel_x])) { ggml_cuda_pdl_lc(); return; }\n${moe_y}")
+set(padding_anchor "    // If src0 is a temporary compute buffer, clear any potential padding.")
+if(STRATA_DEEPSEEK_EARLY_HITS_EXPERIMENT)
+  set(padding_anchor "    // Early work reads only cache allocations; never write scheduler scratch from its private stream.")
+endif()
+strata_cpu_mmvq_replace("${padding_anchor}"
+ "    StrataCpuResultScope strata_cpu_result{ctx,src0,dst};\n    if(ids && !(fusion && fusion->gate)) {\n        fusion_local.cpu_mask=strata_expert_cpu_mask(ctx,src0,&fusion_local.cpu_slots);\n        strata_cpu_result.active=fusion_local.cpu_mask!=nullptr;\n    }\n${padding_anchor}")
