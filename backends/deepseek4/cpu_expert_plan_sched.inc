@@ -41,6 +41,10 @@
                                         for(int j=input_id;j<split->n_inputs;++j)
                                             if(whole_branch.nodes[0]->src[1]==tensor_copy(split->inputs[j],split_backend_id,sched->cur_copy))safe=false;
                                         auto cpu_plan=(StrataCpuExpertPlan)ggml_backend_reg_get_proc_address(reg,"strata_cpu_expert_plan");
+#ifdef STRATA_CPU_QUEUE_PREPARE
+                                        if(safe && cpu_plan)whole_ready=cpu_plan(split_backend,&whole_branch,ids_tensor,nullptr,ggml_nbytes(ids_tensor),whole_selected);
+#else
                                         if(safe && cpu_plan)whole_ready=cpu_plan(split_backend,&whole_branch,ids_tensor,ids.data(),ids.size()*4,whole_selected);
+#endif
                                     }
                                 }

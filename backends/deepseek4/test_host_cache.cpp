@@ -291,6 +291,92 @@ int main(int argc,char **argv) {
             capped.discard(a,0,8192);s=capped.snapshot();
             check(s.bytes==4096 && s.pool_bytes==4096 && !s.entries,"separate pool cap enforced");
         }
+        // Publication tickets prevent duplicate fills and late admission after
+        // promotion, even when an asynchronous producer already owns its bytes.
+        {
+            Cache tickets(8192,probe,Cache::Policy::Lru,131072,131072,{},8192);
+            check(tickets.read(a,0,dest.data(),4096,cancel,[&](void *p,size_t n){
+                check(tickets.residency(a,0,n).ram==Cache::State::Filling,"in-flight fill visible only as state");
+                check(!tickets.acquire(a,0,n),"pending bytes cannot be acquired");
+                std::vector<uint8_t> other(n);
+                check(tickets.read(a,0,other.data(),n,cancel,request),"concurrent duplicate still delivers bytes");
+                check(tickets.snapshot().pending==n && tickets.snapshot().duplicate_fills==1,"same key reserves once");
+                tickets.discard(a,0,n);std::memcpy(p,original.data(),n);return true;
+            }),"invalidated fill still completes caller delivery");
+            check(!tickets.acquire(a,0,4096) && !tickets.snapshot().pending && tickets.snapshot().stale_fills==1,
+                "discard prevents late producer publication");
+            tickets.retain(a,0,original.data(),4096,cancel);
+            auto lease=tickets.acquire(a,0,4096);const auto generation=lease.generation();const auto pointer=lease.data();
+            check(generation && tickets.residency(a,0,4096).ram==Cache::State::Held,"ready publication has held generation");
+            tickets.discard(a,0,4096);
+            check(tickets.residency(a,0,4096).ram==Cache::State::Retired && lease.generation()==generation,
+                "retirement never changes an existing lease generation");
+            lease={};tickets.snapshot();tickets.retain(b,4096,original.data()+4096,4096,cancel);
+            lease=tickets.acquire(b,4096,4096);
+            check(lease.data()==pointer && lease.generation()>generation,"same pooled address gets a fresh publication generation");
+        }
+        {
+            Cache tiers(16384,probe,Cache::Policy::Lru);
+            tiers.retain(a,0,original.data(),4096,cancel);auto held=tiers.acquire(a,0,4096);
+            auto target=tiers.begin_gpu(a,0,4096,true),draft=tiers.begin_gpu(a,0,4096,true);
+            check(tiers.residency(a,0,4096).gpu==Cache::State::Transferring && bool(tiers.acquire(a,0,4096)),
+                "upload enqueue does not retire ready RAM before event completion");
+            check(tiers.ready_gpu(target),"publish completed GPU generation");
+            check(!tiers.acquire(a,0,4096) && tiers.snapshot().retired_bytes==4096 &&
+                !std::memcmp(held.data(),original.data(),4096),"promotion retires but retains live CPU/DMA data");
+            held={};tiers.snapshot();tiers.end_gpu(target);
+            tiers.retain(a,0,original.data(),4096,cancel);
+            check(!tiers.acquire(a,0,4096) && tiers.snapshot().gpu_bypasses==1,"remaining backend suppresses RAM duplicate");
+            check(!tiers.ready_gpu(target) && tiers.snapshot().gpu_entries==1,"stale GPU completion cannot revive an evicted generation");
+            tiers.end_gpu(draft);tiers.retain(a,0,original.data(),4096,cancel);
+            check(bool(tiers.acquire(a,0,4096)),"last GPU eviction allows demand refill");
+            auto padded=tiers.begin_gpu(a,8192,8192,true);
+            tiers.retain(a,12288,original.data()+12288,4096,cancel);
+            tiers.retain(b,12288,original.data()+12288,4096,cancel);
+            check(!tiers.acquire(a,12288,4096) && bool(tiers.acquire(b,12288,4096)),"coverage includes chunks but keeps file identities separate");
+            tiers.end_gpu(padded);
+            check(tiers.read(a,16384,dest.data(),4096,cancel,[&](void *p,size_t n){
+                auto upload=tiers.begin_gpu(a,16384,n,true);tiers.ready_gpu(upload);tiers.end_gpu(upload);
+                std::memcpy(p,original.data()+16384,n);return true;
+            }) && !tiers.acquire(a,16384,4096),"late fill stays invalid after promote followed by immediate eviction");
+        }
+        {
+            auto tiers=std::make_shared<Cache>(12288,probe,Cache::Policy::Lru,131072,131072,Cache::Storage{},0,8192);
+            auto x=tiers->begin_gpu(a,0,4096,true),y=tiers->begin_gpu(a,4096,4096,true),z=tiers->begin_gpu(a,8192,4096,true);
+            check(!tiers->begin_demotion(x),"unfinished upload cannot be demoted");
+            tiers->ready_gpu(x);tiers->ready_gpu(y);tiers->ready_gpu(z);
+            check(!tiers->begin_demotion(x,true),"prefill cannot evict hot RAM through demotion");
+            auto dx=tiers->begin_demotion(x),dy=tiers->begin_demotion(y);
+            check(dx && dy && !tiers->begin_demotion(z) && tiers->snapshot().pending==8192,
+                "target and draft share two demotions and one byte budget");
+            check(tiers->residency(a,0,4096).ram==Cache::State::Transferring && !tiers->acquire(a,0,4096),"partial D2H is unavailable");
+            std::memcpy(dx->data(),original.data(),4096);tiers->end_gpu(x);dx->complete();
+            check(bool(tiers->acquire(a,0,4096)) && tiers->snapshot().demotion_bytes==4096,"completed D2H publishes exact bytes");
+            tiers->end_gpu(y);dy.reset();check(!tiers->acquire(a,4096,4096) && !tiers->snapshot().pending,"cancelled demotion releases its reservation");
+            auto dz=tiers->begin_demotion(z);check(bool(dz),"demotion slots return after completion and cancellation");
+            std::memcpy(dz->data(),original.data()+8192,4096);tiers->end_gpu(z);
+            auto newer=tiers->begin_gpu(a,8192,4096,true);tiers->ready_gpu(newer);dz->complete();
+            check(!tiers->acquire(a,8192,4096) && tiers->snapshot().stale_fills==1,"new GPU promotion cancels an old in-flight demotion");
+            tiers->end_gpu(newer);
+            auto other=tiers->begin_gpu(a,4096,4096,true);tiers->ready_gpu(other);
+            auto old=tiers->begin_gpu(a,4096,4096,true);tiers->ready_gpu(old);
+            check(!tiers->begin_demotion(old),"another resident GPU copy suppresses demotion duplicate");
+            tiers->end_gpu(other);tiers->end_gpu(old);
+            s=tiers->snapshot();check(!s.pending && !s.gpu_entries && !s.gpu_pending && !s.demotion_jobs,
+                "all reservations and GPU generations drain");
+        }
+        {
+            Cache held(8192,probe,Cache::Policy::Lru);
+            held.retain(a,0,original.data(),4096,cancel);held.retain(a,4096,original.data()+4096,4096,cancel);
+            const auto before=held.snapshot();auto snapshot=held.acquire(a,0,4096,false,false);
+            const auto after=held.snapshot();
+            check(snapshot && after.lease_hits==before.lease_hits && after.reused_payload_bytes==before.reused_payload_bytes,
+                "unselected routing snapshot does not train or count a RAM hit");
+            held.discard(a,0,4096);
+            check(!held.acquire(a,0,4096,false,false) && !std::memcmp(snapshot.data(),original.data(),4096),
+                "snapshot survives retirement but cannot be newly acquired");
+            snapshot={};held.snapshot();check(held.snapshot().retired_bytes==0,"retired snapshot releases its payload");
+        }
         report["status"]="pass";
     } catch(const std::exception &e) {report["error"]=e.what();}
     report["checks"]=checks;std::ofstream(output)<<report.dump(2)<<'\n';

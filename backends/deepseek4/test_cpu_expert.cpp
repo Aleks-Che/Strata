@@ -245,7 +245,12 @@ int main(){try {
         env("STRATA_DS4_CPU_THREADS","4");
         a.run(x,ids);StrataExpertCounters cold;stats(hybrid.get(),&cold);
         check(cold.cpu_lane_ops==0,"unpublished shared RAM used by CPU");
-        phase(false);for(int i=0;i<3;++i)a.run(x,ids);phase(true);
+        phase(false);for(int i=0;i<24;++i)a.run(x,ids);phase(true);
+        const char *fetch_flag=std::getenv("STRATA_DS4_GPU_FETCH_QUEUE");
+        const bool fetch_enabled=fetch_flag && std::atoi(fetch_flag) && !std::getenv("STRATA_DS4_ROUTE_TRACE");
+        // One GPU row has no RAM entry: an eligible CPU branch must also safely
+        // fetch a different expert from its retained native file source.
+        if(fetch_enabled)ids[0]=5;
         for(int change=0;change<10;++change) {
             for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+change*23)*0.031f);
             env("STRATA_DS4_CPU_THREADS","0");auto expected=b.run(x,ids);
@@ -266,7 +271,21 @@ int main(){try {
         }
         StrataExpertCounters warm;stats(hybrid.get(),&warm);
         check(warm.cpu_lane_ops==10 && warm.cpu_lane_experts==30,"shared ready matrices not used by CPU");
+        if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))if(std::atoi(v))
+            check(warm.cpu_queue_jobs==10 && warm.cpu_queue_rows==30,"queue test silently used host callback fallback");
+        if(fetch_enabled) {
+            check(warm.gpu_fetch_branches==10 && warm.gpu_fetch_matrices>0,"GPU fetch silently used host route fallback");
+            check(warm.file_read_bytes>cold.file_read_bytes,"missing native cold-matrix fetch");
+        } else check(!warm.gpu_fetch_branches,"unexpected GPU fetch bypassed the shadow route recorder");
         check(!warm.pipeline_unused && !warm.pipeline_fallbacks,"shared RAM transfer mismatch");
+        for(int transition=0;transition<6;++transition) {
+            env("STRATA_DS4_CPU_THREADS","0");const auto expected=b.run(x,ids);
+            env("STRATA_DS4_CPU_THREADS","4");phase(false);const auto prefill=a.run(x,ids);phase(true);
+            check(prefill==expected,"captured queue graph changed short GPU-only prefill");
+            const auto hybrid_result=a.run(x,ids);
+            for(int t=0;t<3;++t)check(!std::memcmp(hybrid_result.data()+t*K*D,expected.data()+t*K*D,D*4),
+                "graph transport transition corrupted a GPU row");
+        }
     }
     env("STRATA_DS4_CPU_SHARED_RAM","0");env("STRATA_DS4_RAM_CACHE_MIB","0");
     std::printf("Shared pinned CPU/pipeline matrices: %d mixed-placement replay cases\n",shared_cases);

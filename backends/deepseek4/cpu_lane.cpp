@@ -9,8 +9,14 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
+#include <limits>
 
 namespace strata_ds4 {
+static uint64_t cpu_clock_us() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 struct CpuLanePool::Impl {
     struct Batch {
         std::function<void(int)> job;
@@ -19,9 +25,20 @@ struct CpuLanePool::Impl {
         std::mutex mu;
         std::condition_variable done;
         std::exception_ptr error;
-        Batch(int n,std::function<void(int)> f):job(std::move(f)),remaining(n),count(n) {}
-        void work() {
+        bool measure=false;
+        uint64_t issued=0;
+        std::atomic<uint64_t> first{UINT64_MAX}, last{0};
+        std::atomic<int> workers{0};
+        Batch(int n,std::function<void(int)> f,bool trace=false):job(std::move(f)),remaining(n),count(n),measure(trace),issued(trace?cpu_clock_us():0) {}
+        void work(bool worker=false) {
+            bool recorded=false;
             for(int i;(i=next.fetch_add(1,std::memory_order_relaxed))<count;) {
+                if(measure && worker && !recorded) {
+                    const auto t=cpu_clock_us()-issued;
+                    auto lo=first.load();while(t<lo && !first.compare_exchange_weak(lo,t)) {}
+                    auto hi=last.load();while(t>hi && !last.compare_exchange_weak(hi,t)) {}
+                    ++workers;recorded=true;
+                }
                 try {job(i);} catch(...) {std::lock_guard<std::mutex> lock(mu);if(!error)error=std::current_exception();}
                 if(remaining.fetch_sub(1,std::memory_order_acq_rel)==1) {
                     std::lock_guard<std::mutex> lock(mu);done.notify_all();
@@ -52,7 +69,7 @@ struct CpuLanePool::Impl {
                     start.wait(lock,[&]{return stop || (generation!=seen && i<worker_limit);});
                     if(stop)return;
                     seen=generation;auto current=batch;lock.unlock();
-                    current->work();lock.lock();
+                    current->work(true);lock.lock();
                 }
             });
         } catch(...) {shutdown();throw;}
@@ -62,9 +79,9 @@ struct CpuLanePool::Impl {
         for(auto &t:workers)if(t.joinable())t.join();
     }
     ~Impl(){shutdown();}
-    std::shared_ptr<Batch> start_batch(int n,std::function<void(int)> job,bool caller) {
+    std::shared_ptr<Batch> start_batch(int n,std::function<void(int)> job,bool caller,bool measure=false) {
         if(batch)batch->wait();
-        auto current=std::make_shared<Batch>(n,std::move(job));
+        auto current=std::make_shared<Batch>(n,std::move(job),measure);
         {std::lock_guard<std::mutex> lock(mu);batch=current;
          worker_limit=std::min(n,int(workers.size())-(caller?1:0));++generation;}
         start.notify_all();return current;
@@ -78,8 +95,16 @@ void CpuLanePool::wait() {
 void CpuLanePool::submit(int n,std::function<void(int)> job) {
     p->start_batch(n,std::move(job),false);
 }
-void CpuLanePool::run(int n,const std::function<void(int)> &job) {
-    auto batch=p->start_batch(n,job,true);batch->work();batch->wait();
+void CpuLanePool::run(int n,const std::function<void(int)> &job,CpuPoolTiming *timing) {
+    const auto start=timing?cpu_clock_us():0;
+    auto batch=p->start_batch(n,job,true,timing!=nullptr);
+    if(timing)timing->dispatch_us=cpu_clock_us()-start;
+    batch->work();batch->wait();
+    if(timing) {
+        timing->total_us=cpu_clock_us()-start;timing->workers=batch->workers.load();
+        timing->first_worker_us=timing->workers?batch->first.load():0;
+        timing->last_worker_us=batch->last.load();
+    }
 }
 int CpuLanePool::size()const{return int(p->workers.size());}
 bool cpu_lane_format(ggml_type type,int columns) {
@@ -100,8 +125,10 @@ void cpu_lane_rows(ggml_type type,int columns,const void *weight,const void *q,f
     const size_t stride=ggml_row_size(type,columns);
     for(int row=first;row<last;++row)t->vec_dot(columns,out+row,0,(const char *)weight+row*stride,0,q,0,1);
 }
-void CpuExpertWork::compute(CpuLanePool &pool) {
+void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing) {
+    if(timing)*timing={};
     if(experts.empty())return;
+    auto tick=timing?cpu_clock_us():0;
     const size_t gbytes=cpu_lane_activation_bytes(gate_type,columns);
     const size_t ubytes=cpu_lane_activation_bytes(up_type,columns);
     const size_t hbytes=cpu_lane_activation_bytes(down_type,hidden);
@@ -122,6 +149,7 @@ void CpuExpertWork::compute(CpuLanePool &pool) {
         if(it==groups.end())groups.push_back({i});else it->push_back(i);
     }
     const int partitions=std::max(1,2*pool.size()/int(groups.size()));
+    if(timing){timing->prepare_us=cpu_clock_us()-tick;tick=cpu_clock_us();}
     pool.run(int(groups.size())*partitions,[&](int job) {
         const auto &group=groups[job/partitions];const int part=job%partitions;
         for(int r=hidden*part/partitions;r<hidden*(part+1)/partitions;++r)for(size_t i:group) {
@@ -131,12 +159,15 @@ void CpuExpertWork::compute(CpuLanePool &pool) {
             if(clamp>0){g=std::min(g,clamp);u=std::max(-clamp,std::min(u,clamp));}
             hidden_f[i*hidden+r]=(g/(1.0f+std::exp(-g)))*u;
         }
-    });
+    },timing?&timing->gate_up_pool:nullptr);
+    if(timing){timing->gate_up_us=cpu_clock_us()-tick;tick=cpu_clock_us();}
     for(size_t i=0;i<experts.size();++i)cpu_lane_quantize(down_type,hidden,hidden_f.data()+i*hidden,hidden_q.data()+i*hbytes);
+    if(timing){timing->hidden_quant_us=cpu_clock_us()-tick;tick=cpu_clock_us();}
     pool.run(int(groups.size())*partitions,[&](int job) {
         const auto &group=groups[job/partitions];const int part=job%partitions;
         for(int r=columns*part/partitions;r<columns*(part+1)/partitions;++r)for(size_t i:group)
             dt->vec_dot(hidden,output+i*columns+r,0,(const char *)experts[i].down+r*ds,0,hidden_q.data()+i*hbytes,0,1);
-    });
+    },timing?&timing->down_pool:nullptr);
+    if(timing)timing->down_us=cpu_clock_us()-tick;
 }
 }

@@ -11,9 +11,18 @@ namespace strata_ds4 {
 // Immutable routed matrix chunks. Pageable by default; the optional CPU lane
 // supplies pinned storage shared with the transfer pipeline. Keys include a live Source identity, offset and exact length
 // (including MMQ padding); model reload cannot reuse another file's entries.
-class HostCache {
+class HostCache : public std::enable_shared_from_this<HostCache> {
 public:
     enum class Policy { Lru, Frequency };
+    enum class State { Absent, Filling, Ready, Held, Transferring, Retired };
+    // Tokens describe a publication, never ownership of a raw GPU address.
+    // GPU consumers must still hold the cache entry through its stream fence.
+    struct GpuToken { uintptr_t source=0;uint64_t offset=0;size_t bytes=0;uint64_t generation=0; };
+    struct Residency {
+        State ram=State::Absent,gpu=State::Absent;
+        uint64_t ram_generation=0,gpu_generation=0;
+        size_t gpu_copies=0;
+    };
     struct Memory { uint64_t total, available, commit_available; };
     using Probe=std::function<Memory()>;
     struct Storage {
@@ -24,8 +33,10 @@ public:
         friend class HostCache;
         std::shared_ptr<const void> owner;
         const uint8_t *pointer=nullptr;
+        uint64_t publication=0;
     public:
         const void *data()const{return pointer;}
+        uint64_t generation()const{return publication;}
         std::shared_ptr<const void> shared_data()const{return owner?std::shared_ptr<const void>(owner,pointer):nullptr;}
         explicit operator bool()const{return bool(owner);}
     };
@@ -38,6 +49,9 @@ public:
         uint64_t deferred_reads=0,retain_calls=0,retain_hits=0;
         uint64_t pool_bytes=0,pool_peak=0,pool_puts=0,pool_reuses=0,pool_frees=0;
         uint64_t prefill_bypasses=0,frequency_bypasses=0,victim_candidates=0,history_entries=0;
+        uint64_t duplicate_fills=0,stale_fills=0,gpu_bypasses=0;
+        uint64_t gpu_entries=0,gpu_bytes=0,gpu_pending=0,gpu_publications=0;
+        uint64_t demotion_pending=0,demotion_jobs=0,demotion_admitted=0,demotion_published=0,demotion_bytes=0;
     };
     static Memory memory() {
 #ifdef _WIN32
@@ -66,6 +80,7 @@ private:
         std::shared_ptr<strata_expert_file::Source> source;
         uint8_t *data=nullptr;
         size_t bytes;
+        uint64_t generation=0;
         Storage storage;
         Block(std::shared_ptr<strata_expert_file::Source> s,size_t n,const Storage &allocator):source(std::move(s)),bytes(n),storage(allocator) {
             if(storage.allocate)data=storage.allocate(n);else {
@@ -90,10 +105,16 @@ private:
     struct Entry {std::shared_ptr<Block> block;Queue::iterator position;bool reused=false,retired=false;};
     std::mutex mutex;
     std::map<Key,Entry> entries;
+    struct Pending {uint64_t generation;bool valid=true,demotion=false;};
+    std::map<Key,Pending> filling;
+    struct GpuEntry {std::shared_ptr<strata_expert_file::Source> source;uint64_t generation;bool ready=false,drop=false;};
+    std::multimap<Key,GpuEntry> gpu;
+    uint64_t next_generation=0;
+    size_t max_gpu_width=0;
     Queue recent,retired;
     Probe probe;
     Storage storage;
-    uint64_t cap,pool_limit;
+    uint64_t cap,pool_limit,demotion_limit;
     // Free payloads share the same physical budget as ready and retired entries.
     // A bounded vector avoids allocation while returning a promoted block.
     std::vector<std::shared_ptr<Block>> pool;
@@ -111,6 +132,37 @@ private:
     std::map<Key,Frequency> history;
     uint64_t accesses=0,decay_period;
     size_t history_limit;
+    bool gpu_covers_locked(const Key &key,uint64_t except=0) const {
+        const auto offset=std::get<1>(key),bytes=std::get<2>(key),source=std::get<0>(key);
+        const auto start=offset>max_gpu_width?offset-max_gpu_width:0;
+        for(auto it=gpu.lower_bound(Key{source,start,0});it!=gpu.end() &&
+            std::get<0>(it->first)==source && std::get<1>(it->first)<=offset;++it) {
+            const auto width=std::get<2>(it->first),delta=offset-std::get<1>(it->first);
+            if(it->second.drop && it->second.generation!=except && delta<=width && bytes<=width-delta)return true;
+        }
+        return false;
+    }
+    auto gpu_find_locked(const GpuToken &token) {
+        auto range=gpu.equal_range(Key{token.source,token.offset,token.bytes});
+        for(auto it=range.first;it!=range.second;++it)if(it->second.generation==token.generation)return it;
+        return gpu.end();
+    }
+    void invalidate_locked(uintptr_t source,uint64_t offset,size_t bytes) {
+        for(auto it=filling.lower_bound(Key{source,offset,0});it!=filling.end() &&
+            std::get<0>(it->first)==source && std::get<1>(it->first)<offset+bytes;++it)
+            if(std::get<2>(it->first)<=offset+bytes-std::get<1>(it->first))it->second.valid=false;
+    }
+    void discard_locked(uintptr_t source,uint64_t offset,size_t bytes) {
+        invalidate_locked(source,offset,bytes);
+        for(auto it=entries.lower_bound(Key{source,offset,0});it!=entries.end() &&
+            std::get<0>(it->first)==source && std::get<1>(it->first)<offset+bytes;++it) {
+            auto &entry=it->second;
+            if(entry.retired || entry.block->bytes>offset+bytes-std::get<1>(it->first))continue;
+            entry.retired=true;stats.retired_bytes+=entry.block->bytes;
+            retired.splice(retired.end(),recent,entry.position);
+        }
+        reap_locked();
+    }
     unsigned score_locked(const Key &key) const {
         const auto it=history.find(key);
         if(it==history.end() || it->second.source.expired())return 0;
@@ -194,8 +246,8 @@ private:
     }
 public:
     explicit HostCache(uint64_t limit,Probe sample=memory,Policy choice=Policy::Frequency,
-                       uint64_t decay=131072,size_t max_history=131072,Storage allocator={},uint64_t spare_limit=0)
-        :probe(std::move(sample)),storage(std::move(allocator)),cap(limit),pool_limit(std::min(limit,spare_limit)),policy(choice),decay_period(std::max<uint64_t>(1,decay)),
+                       uint64_t decay=131072,size_t max_history=131072,Storage allocator={},uint64_t spare_limit=0,uint64_t demote_limit=0)
+        :probe(std::move(sample)),storage(std::move(allocator)),cap(limit),pool_limit(std::min(limit,spare_limit)),demotion_limit(std::min(limit,demote_limit)),policy(choice),decay_period(std::max<uint64_t>(1,decay)),
          history_limit(std::max<size_t>(1,max_history)) {
         if(bool(storage.allocate)!=bool(storage.release))throw std::runtime_error("incomplete RAM cache allocator");
         // Never grow the cache because Windows paged out earlier cache pages.
@@ -218,37 +270,32 @@ public:
         auto s=stats;stats={};stats.bytes=s.bytes;stats.budget=s.budget;stats.pending=s.pending;stats.peak_bytes=s.bytes;
         stats.reused_payload_bytes=s.reused_payload_bytes;stats.retired_bytes=s.retired_bytes;
         stats.pool_bytes=s.pool_bytes;stats.pool_peak=s.pool_bytes;
+        stats.gpu_entries=s.gpu_entries;stats.gpu_bytes=s.gpu_bytes;stats.gpu_pending=s.gpu_pending;
+        stats.demotion_pending=s.demotion_pending;stats.demotion_jobs=s.demotion_jobs;
     }
-    // Drop ready RAM copies after a full matrix has been uploaded into VRAM.
-    // The caller has finished the associated pipeline reads. This is a one-shot
-    // promotion policy, not a permanent GPU residency registry or D2H demotion.
-    // Held CPU/H2D leases remain charged and immutable until their last reader.
+    // One-shot invalidation also cancels in-flight publications. GPU-backed
+    // callers use begin_gpu/ready_gpu/end_gpu to suppress later duplicates.
     void discard(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes) {
         if(!source || !bytes || !source->contains(offset,bytes))return;
         std::lock_guard<std::mutex> lock(mutex);
-        const auto identity=uintptr_t(source.get());const auto end=offset+bytes;
-        for(auto it=entries.lower_bound(Key{identity,offset,0});it!=entries.end() &&
-            std::get<0>(it->first)==identity && std::get<1>(it->first)<end;++it) {
-            auto &entry=it->second;
-            if(entry.retired || entry.block->bytes>end-std::get<1>(it->first))continue;
-            entry.retired=true;stats.retired_bytes+=entry.block->bytes;
-            retired.splice(retired.end(),recent,entry.position);
-        }
-        reap_locked();
+        discard_locked(uintptr_t(source.get()),offset,bytes);
     }
     // Only return already published data; never read a file or allocate here.
     // A matrix can use a padded pipeline block, but never a partial chunk.
     // The lease prevents eviction/reuse until the CPU job has completed.
-    Lease acquire(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes,bool phase_prefill=false) {
+    Lease acquire(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes,bool phase_prefill=false,bool touch=true) {
         if(!source || !bytes || !source->contains(offset,bytes))return {};
         std::lock_guard<std::mutex> lock(mutex);
-        reap_locked();
+        if(touch)reap_locked();
         auto it=entries.lower_bound(Key{uintptr_t(source.get()),offset,bytes});
         if(it==entries.end() || std::get<0>(it->first)!=uintptr_t(source.get()) || std::get<1>(it->first)!=offset || it->second.retired) {
-            ++stats.lease_misses;return {};
+            if(touch)++stats.lease_misses;return {};
         }
         // The lower bound guarantees a block at least as wide as requested.
-        auto &entry=it->second;Lease result;result.owner=entry.block;result.pointer=entry.block->data;
+        auto &entry=it->second;Lease result;result.owner=entry.block;result.pointer=entry.block->data;result.publication=entry.block->generation;
+        // A GPU routing snapshot holds candidates, but has not used them yet.
+        // Do not train frequency/LRU or count speculative holds as RAM hits.
+        if(!touch)return result;
         if(!entry.reused){entry.reused=true;stats.reused_payload_bytes+=entry.block->bytes;}
         const bool is_prefill=prefill || phase_prefill;
         if(policy==Policy::Lru || !is_prefill)recent.splice(recent.begin(),recent,entry.position);
@@ -260,10 +307,12 @@ private:
     // Called with the mutex held. Training happens at delivery, once only;
     // a later retain decision uses the resulting score without recording again.
     bool reserve_locked(const Key &key,size_t bytes,bool is_prefill,bool tracked,
-                        std::shared_ptr<Block> &block) {
+                        std::shared_ptr<Block> &block,uint64_t &generation,uint64_t gpu_exception=0) {
         refresh_locked();
         const auto found=entries.find(key);
         if(found!=entries.end())return false; // includes retired live leases
+        if(filling.count(key)){++stats.duplicate_fills;return false;}
+        if(gpu_covers_locked(key,gpu_exception)){++stats.gpu_bypasses;return false;}
         bool admitted=false;
         if(policy==Policy::Frequency && is_prefill)++stats.prefill_bypasses;
         else if(policy==Policy::Frequency && (!tracked || score_locked(key)<2))++stats.frequency_bypasses;
@@ -283,13 +332,36 @@ private:
                 if(!admitted)++stats.frequency_bypasses;
             }
         }
-        if(admitted)stats.pending+=bytes;else ++stats.rejected;
+        if(admitted) {
+            try {generation=++next_generation;filling.emplace(key,Pending{generation});stats.pending+=bytes;}
+            catch(const std::bad_alloc &){++stats.oom;admitted=false;generation=0;}
+        } else ++stats.rejected;
         return admitted;
+    }
+    void finish_fill_locked(const Key &key,uint64_t generation,std::shared_ptr<Block> block,bool ready) {
+        auto pending=filling.find(key);
+        if(pending==filling.end() || pending->second.generation!=generation)
+            throw std::runtime_error("DeepSeek RAM publication ticket mismatch");
+        const auto bytes=std::get<2>(key);const bool demotion=pending->second.demotion;
+        const bool valid=pending->second.valid;
+        stats.pending-=bytes;
+        if(demotion){stats.demotion_pending-=bytes;--stats.demotion_jobs;}
+        filling.erase(pending);
+        if(ready && !valid)++stats.stale_fills;
+        if(ready && valid && !gpu_covers_locked(key) && !entries.count(key) && stats.bytes+stats.pending+bytes<=stats.budget) {
+            bool queued=false;
+            try {
+                block->generation=generation;recent.push_front(key);queued=true;
+                entries.emplace(key,Entry{block,recent.begin()});
+                stats.bytes+=bytes;stats.fill_bytes+=bytes;stats.peak_bytes=std::max(stats.peak_bytes,stats.bytes);
+                if(demotion){++stats.demotion_published;stats.demotion_bytes+=bytes;}
+            } catch(const std::bad_alloc &) {if(queued)recent.pop_front();++stats.oom;}
+        }
     }
     // A successful reservation is always released, even if custom allocation
     // fails. Payload is published only after the complete synchronous copy.
     void publish(const Key &key,const std::shared_ptr<strata_expert_file::Source> &source,
-                 const void *payload,size_t bytes,const std::atomic<bool> &cancel,std::shared_ptr<Block> block) {
+                 const void *payload,size_t bytes,const std::atomic<bool> &cancel,std::shared_ptr<Block> block,uint64_t generation) {
         bool ready=false;
         try {
             if(!cancel.load()) {
@@ -303,16 +375,8 @@ private:
                 std::memcpy(block->data,payload,bytes);ready=true;
             }
         } catch(const std::bad_alloc &) {std::lock_guard<std::mutex> lock(mutex);++stats.oom;}
-        catch(...) {std::lock_guard<std::mutex> lock(mutex);stats.pending-=bytes;throw;}
-        std::lock_guard<std::mutex> lock(mutex);stats.pending-=bytes;
-        if(ready && !cancel.load() && !entries.count(key)) {
-            bool queued=false;
-            try {
-                recent.push_front(key);queued=true;
-                entries.emplace(key,Entry{block,recent.begin()});
-                stats.bytes+=bytes;stats.fill_bytes+=bytes;stats.peak_bytes=std::max(stats.peak_bytes,stats.bytes);
-            } catch(const std::bad_alloc &) {if(queued)recent.pop_front();++stats.oom;}
-        }
+        catch(...) {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);throw;}
+        std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,std::move(block),ready && !cancel.load());
     }
 public:
     // Loader finishes all I/O before returning; false/throw never publishes a
@@ -329,6 +393,7 @@ public:
         const Key key{uintptr_t(source.get()),offset,bytes};
         std::shared_ptr<Block> hit,block;
         bool admitted=false;
+        uint64_t generation=0;
         {
             std::lock_guard<std::mutex> lock(mutex);reap_locked();
             const bool is_prefill=prefill || phase_prefill;
@@ -345,19 +410,19 @@ public:
             } else {
                 ++stats.misses;
                 if(defer_admission)++stats.deferred_reads;
-                else admitted=reserve_locked(key,bytes,is_prefill,tracked,block);
+                else admitted=reserve_locked(key,bytes,is_prefill,tracked,block,generation);
             }
         }
         if(hit) {std::memcpy(destination,hit->data,bytes);return !cancel.load();}
         bool ok=false;
         try {ok=load(destination,bytes);} catch(...) {
-            if(admitted) {std::lock_guard<std::mutex> lock(mutex);stats.pending-=bytes;}
+            if(admitted) {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);}
             throw;
         }
         if(ok) {std::lock_guard<std::mutex> lock(mutex);stats.file_bytes+=bytes;}
         if(admitted) {
-            if(ok)publish(key,source,destination,bytes,cancel,std::move(block));
-            else {std::lock_guard<std::mutex> lock(mutex);stats.pending-=bytes;}
+            if(ok)publish(key,source,destination,bytes,cancel,std::move(block),generation);
+            else {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);}
         }
         return ok && !cancel.load();
     }
@@ -369,13 +434,109 @@ public:
             throw std::runtime_error("invalid DeepSeek RAM retain range");
         if(!bytes || cancel.load())return;
         const Key key{uintptr_t(source.get()),offset,bytes};std::shared_ptr<Block> block;
+        uint64_t generation=0;
         {
             std::lock_guard<std::mutex> lock(mutex);++stats.retain_calls;reap_locked();
             if(prefill || phase_prefill){++stats.prefill_bypasses;return;}
             if(entries.count(key)){++stats.retain_hits;return;}
-            if(!reserve_locked(key,bytes,false,true,block))return;
+            if(!reserve_locked(key,bytes,false,true,block,generation))return;
         }
-        publish(key,source,payload,bytes,cancel,std::move(block));
+        publish(key,source,payload,bytes,cancel,std::move(block),generation);
+    }
+
+    // Registration is shared by target/draft. Ready may be published only
+    // after an upload completion event; eviction revokes the exact generation
+    // before its address can be reused, including cross-backend slab reuse.
+    GpuToken begin_gpu(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes,bool drop) {
+        if(!source || !bytes || !source->contains(offset,bytes))throw std::runtime_error("invalid GPU residency range");
+        std::lock_guard<std::mutex> lock(mutex);
+        GpuToken token{uintptr_t(source.get()),offset,bytes,++next_generation};
+        gpu.emplace(Key{token.source,offset,bytes},GpuEntry{source,token.generation,false,drop});
+        max_gpu_width=std::max(max_gpu_width,bytes);
+        ++stats.gpu_entries;stats.gpu_bytes+=bytes;stats.gpu_pending+=bytes;
+        if(drop)invalidate_locked(token.source,offset,bytes);
+        return token;
+    }
+    bool ready_gpu(const GpuToken &token) {
+        std::lock_guard<std::mutex> lock(mutex);auto it=gpu_find_locked(token);
+        if(it==gpu.end())return false;
+        if(!it->second.ready) {
+            it->second.ready=true;stats.gpu_pending-=token.bytes;++stats.gpu_publications;
+            if(it->second.drop)discard_locked(token.source,token.offset,token.bytes);
+        }
+        return true;
+    }
+    void end_gpu(const GpuToken &token) {
+        std::lock_guard<std::mutex> lock(mutex);auto it=gpu_find_locked(token);
+        if(it==gpu.end())return;
+        --stats.gpu_entries;stats.gpu_bytes-=token.bytes;
+        if(!it->second.ready)stats.gpu_pending-=token.bytes;
+        gpu.erase(it);
+    }
+    Residency residency(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes) {
+        std::lock_guard<std::mutex> lock(mutex);Residency result;
+        const Key key{uintptr_t(source.get()),offset,bytes};
+        auto it=entries.lower_bound(key);
+        if(it!=entries.end() && std::get<0>(it->first)==uintptr_t(source.get()) && std::get<1>(it->first)==offset) {
+            result.ram=it->second.retired?State::Retired:it->second.block.use_count()>1?State::Held:State::Ready;
+            result.ram_generation=it->second.block->generation;
+        } else if(auto f=filling.find(key);f!=filling.end()) {
+            result.ram=f->second.demotion?State::Transferring:State::Filling;result.ram_generation=f->second.generation;
+        }
+        auto range=gpu.equal_range(key);
+        for(auto g=range.first;g!=range.second;++g) {
+            ++result.gpu_copies;
+            if(result.gpu!=State::Ready) {
+                result.gpu=g->second.ready?State::Ready:State::Transferring;
+                result.gpu_generation=g->second.generation;
+            }
+        }
+        return result;
+    }
+    class Demotion {
+        friend class HostCache;
+        std::shared_ptr<HostCache> owner;
+        Key key;uint64_t generation=0;
+        std::shared_ptr<Block> block;
+        explicit Demotion(std::shared_ptr<HostCache> cache,const Key &k):owner(std::move(cache)),key(k){}
+    public:
+        Demotion(const Demotion&)=delete;
+        ~Demotion(){if(generation)complete(false);}
+        void *data()const{return block?block->data:nullptr;}
+        // Caller must finish/cancel DMA BEFORE complete or destruction. Until
+        // then this pending allocation is charged and unavailable to readers.
+        void complete(bool success=true) {
+            if(!generation)return;
+            std::lock_guard<std::mutex> lock(owner->mutex);
+            owner->finish_fill_locked(key,generation,std::move(block),success);generation=0;
+        }
+    };
+    std::unique_ptr<Demotion> begin_demotion(const GpuToken &token,bool phase_prefill=false) {
+        if(!demotion_limit)return {};
+        const Key key{token.source,token.offset,token.bytes};
+        auto job=std::unique_ptr<Demotion>(new Demotion(shared_from_this(),key));
+        std::shared_ptr<strata_expert_file::Source> source;
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            auto resident=gpu_find_locked(token);
+            if(resident==gpu.end() || !resident->second.ready || prefill || phase_prefill || stats.demotion_jobs>=2 ||
+                token.bytes>demotion_limit-std::min(demotion_limit,stats.demotion_pending))return {};
+            source=resident->second.source;
+            if(!reserve_locked(key,token.bytes,false,true,job->block,job->generation,token.generation))return {};
+            filling.find(key)->second.demotion=true;
+            ++stats.demotion_jobs;stats.demotion_pending+=token.bytes;++stats.demotion_admitted;
+        }
+        try {
+            const bool reused=bool(job->block);
+            if(reused)job->block->source=source;
+            else job->block=std::make_shared<Block>(source,token.bytes,storage);
+            std::lock_guard<std::mutex> lock(mutex);
+            if(reused)++stats.reuses;else ++stats.allocations;
+        } catch(const std::bad_alloc &) {
+            {std::lock_guard<std::mutex> lock(mutex);++stats.oom;}
+            return {};
+        }
+        return job;
     }
 
     bool read(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,

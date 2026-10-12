@@ -10,6 +10,11 @@
 | Документ | Содержание |
 |---|---|
 | [Перенос идей Maya](DEEPSEEK4_MAYA_TRANSFER_REVIEW.md) | Заимствование VRAM для prefill, GPU-план, pinned RAM, история частот, CPU lane и другой lookahead |
+| [План внедрения CPU lane по архитектуре Maya](DEEPSEEK4_CPU_LANE_IMPLEMENTATION_PLAN.md) | Целевая связка RAM/VRAM, GPU-очередь, многотокенные ядра, калибровка и критерии принятия |
+| [Измерения CPU lane перед переносом](DEEPSEEK4_CPU_LANE_TRACE.md) | Трасса заданий, сохранение весов/активаций и replay; контроль влияния диагностики |
+| [Поколения и общий учёт RAM/VRAM](DEEPSEEK4_RAM_TIERS.md) | Готовность и время жизни матриц, отмена поздних заполнений, ограниченная демоция GPU → RAM |
+| [GPU-очередь и CPU-service](DEEPSEEK4_CPU_GPU_QUEUE.md) | GPU-выбор и mapped ring, постоянный service, проверки протокола и оставшаяся синхронизация подкачки |
+| [GPU-запросы подкачки матриц](DEEPSEEK4_GPU_FETCH_QUEUE.md) | Удаление host-чтения маршрутов на выбранных ветках, отдельный I/O-service, проверки и ограничения кэширования |
 | [Первый прототип CPU lane](DEEPSEEK4_CPU_LANE.md) | Эксперимент с 4/8/12/16 потоками: ускорения нет, точный restore ответа не пройден, по умолчанию выключен |
 | [CPU lane v2](DEEPSEEK4_CPU_LANE_V2.md) | Целые эксперты и CUDA Graphs; fixed 14,09 против GPU 17,10 ток/с; fixed restore прошёл, auto ещё нет |
 | [План и новые испытания CPU lane](DEEPSEEK4_CPU_LANE_EXPERIMENTS.md) | Выбор по токенам, общие RAM-матрицы, контроль корректности и замеры 8/12/16 потоков |

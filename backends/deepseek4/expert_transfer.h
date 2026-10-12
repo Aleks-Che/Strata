@@ -19,6 +19,8 @@ struct StrataExpertCounters {
     uint64_t hash_reads=0, early_plans=0, early_reuses=0, early_mismatches=0;
     uint64_t early_hit_ops=0, early_hit_experts=0, early_miss_experts=0;
     uint64_t cpu_lane_ops=0,cpu_lane_experts=0,cpu_lane_saved_bytes=0;
+    uint64_t cpu_queue_jobs=0,cpu_queue_rows=0;
+    uint64_t gpu_fetch_branches=0,gpu_fetch_matrices=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Exact GPU table lookup for at most three hash-routed layers. These are input
@@ -53,7 +55,13 @@ struct StrataCpuExpertBranch {
 };
 using StrataCpuExpertPlan = bool (*)(ggml_backend_t,const StrataCpuExpertBranch *,
     const ggml_tensor *route,const int32_t *ids,size_t ids_bytes,uint8_t *selected);
+// With CPU_GPU_QUEUE opt-in, null IDs publish a retained table and launch GPU
+// routing before the scheduler reads IDs. A later non-null call adopts that
+// decision only for the legacy transfer planner; it does not choose CPU work.
 using StrataCpuExpertPhase = void (*)(bool decode);
+// Optional GPU-requested weight transfer; returns true only for a prepared
+// branch. The scheduler must skip its host route read and selected copies.
+using StrataExpertGpuFetch = bool (*)(ggml_backend_t,const ggml_tensor *,ggml_tensor *,const ggml_tensor *);
 // Whether selected-weight writes can rely on CUDA stream order instead of a
 // host wait. The caller still reads and synchronizes every new routing tensor.
 using StrataExpertOrdered = bool (*)(ggml_backend_t,const ggml_tensor *consumer);

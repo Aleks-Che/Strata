@@ -1,6 +1,8 @@
 #pragma once
 #include "cpu_lane.hpp"
 #include "host_cache.hpp"
+#include "cpu_lane_trace.cuh"
+#include "cpu_gpu_router.cuh"
 #include <array>
 #include <chrono>
 #include <exception>
@@ -14,7 +16,15 @@ struct StrataCpuExpertLane {
     static constexpr size_t scratch_bytes=2ULL<<20;
     // mask skips transfers only when every occurrence is on CPU. slots skips
     // compute per token, including experts shared with GPU rows in this window.
-    struct Packet { uint8_t mask[256]={}; int slots[64]; } packet{};
+    using Packet=strata_ds4::CpuQueuePacket;
+    Packet packet{};
+    bool gpu_queue_enabled=false,gpu_queue_active=false,queue_adopted=false;
+    uint64_t queue_epoch=0,queue_jobs=0,queue_rows=0,queue_branches=0;
+    cudaStream_t queue_owner=nullptr;
+    std::unique_ptr<strata_ds4::CpuGpuQueue> gpu_queue;
+    strata_ds4::CpuGpuTable queue_table{};
+    strata_ds4::CpuGpuTable *device_queue_table=nullptr;
+    std::array<std::array<strata_ds4::HostCache::Lease,3>,256> queue_leases;
     struct Blob {
         const void *key[3]={}; size_t widths[3]={};
         strata_ds4::HostCache::Lease shared[3];
@@ -41,6 +51,7 @@ struct StrataCpuExpertLane {
     int device=0;
     StrataCpuExpertBranch branch{};
     strata_ds4::CpuExpertWork work;
+    StrataCpuLaneTrace trace;
     std::unique_ptr<strata_ds4::CpuLanePool> pool;
     float *input=nullptr,*output=nullptr,*device_output=nullptr;
     Packet *device_packet=nullptr;
@@ -53,6 +64,7 @@ struct StrataCpuExpertLane {
     StrataCpuExpertLane() {
         if(const char *v=std::getenv("STRATA_DS4_CPU_THREADS"))threads=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_SHARED_RAM"))shared_ram=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))gpu_queue_enabled=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_MAX_EXPERTS"))cap=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_POLICY"))force=std::strcmp(v,"force")==0;
         // Diagnostic only: stable device placement separates numerical changes
@@ -63,7 +75,12 @@ struct StrataCpuExpertLane {
         if(const char *v=std::getenv("STRATA_DS4_CPU_RAM_MIB"))cache_limit=size_t(std::max(0,std::min(4096,std::atoi(v))))<<20;
     }
     ~StrataCpuExpertLane() {
-        clear();cache.clear();
+        const size_t queue_bytes=gpu_queue?sizeof(strata_ds4::CpuQueueSlot)*strata_ds4::cpu_queue_depth:0;
+        clear();cache.clear();gpu_queue.reset();
+        if(device_queue_table)CUDA_CHECK(cudaFree(device_queue_table));
+        if(gpu_queue_enabled)GGML_LOG_INFO("STRATA_CPU_GPU_QUEUE branches=%llu jobs=%llu rows=%llu slots=2 mapped_bytes=%zu\n",
+            (unsigned long long)queue_branches,(unsigned long long)queue_jobs,(unsigned long long)queue_rows,
+            queue_bytes);
         if(stream)CUDA_CHECK(cudaStreamDestroy(stream));
         for(auto e:{input_ready,input_copied,ready,consumed})if(e)CUDA_CHECK(cudaEventDestroy(e));
         if(input)CUDA_CHECK(cudaFreeHost(input));if(output)CUDA_CHECK(cudaFreeHost(output));
@@ -72,10 +89,17 @@ struct StrataCpuExpertLane {
     void allocate(int dev) {
         if(stream)return;device=dev;
         pool=std::make_unique<strata_ds4::CpuLanePool>(threads);
+        trace.allocate();
         CUDA_CHECK(cudaStreamCreateWithFlags(&stream,cudaStreamNonBlocking));
         for(auto p:{&input_ready,&input_copied,&ready,&consumed})CUDA_CHECK(cudaEventCreateWithFlags(p,cudaEventDisableTiming));
         CUDA_CHECK(cudaMallocHost((void **)&input,scratch_bytes));CUDA_CHECK(cudaMallocHost((void **)&output,scratch_bytes));
         CUDA_CHECK(cudaMalloc((void **)&device_output,scratch_bytes));CUDA_CHECK(cudaMalloc((void **)&device_packet,sizeof(Packet)));
+        if(gpu_queue_enabled && shared_ram) {
+            gpu_queue=std::make_unique<strata_ds4::CpuGpuQueue>([this](auto &slot){queue_execute(slot);});
+            CUDA_CHECK(cudaMalloc((void **)&device_queue_table,sizeof(queue_table)));
+            strata_ds4::cpu_queue_reset<<<1,1,0,stream>>>(gpu_queue->mapped,gpu_queue->device);
+            CUDA_CHECK(cudaGetLastError());CUDA_CHECK(cudaStreamSynchronize(stream));
+        }
     }
     Blob *find(const StrataCpuExpertBranch &b,int id) {
         for(auto &p:cache){bool same=true;for(int j=0;j<3;++j)
@@ -84,6 +108,11 @@ struct StrataCpuExpertLane {
         return nullptr;
     }
     Blob *lease(const StrataCpuExpertBranch &b,int id) {
+        const auto t=trace.enabled?now():0;auto *result=lease_impl(b,id);
+        if(trace.enabled){trace.lease_us+=now()-t;++trace.lease_calls;if(!result)++trace.lease_failures;}
+        return result;
+    }
+    Blob *lease_impl(const StrataCpuExpertBranch &b,int id) {
         if(auto *p=find(b,id)){p->held=true;p->stamp=++clock;++ram_hits;return p;}
         if(shared_ram) {
             if(!ram)return nullptr;
@@ -112,11 +141,29 @@ struct StrataCpuExpertLane {
         p->filled=false;p->held=true;p->stamp=++clock;++ram_misses;return p;
     }
     void clear() {
-        if(started){auto t=now();CUDA_CHECK(cudaStreamSynchronize(stream));
+        const auto retirement=trace.enabled?now():0;
+        if(gpu_queue_active) {
+            const auto t=now();
+            if(completion)CUDA_CHECK(cudaEventSynchronize(consumed));
+            else CUDA_CHECK(cudaStreamSynchronize(queue_owner));
+            gpu_queue->drain();
+            if(!completion)gpu_queue->abandon_after_drain();
+            else for(int i=0;i<strata_ds4::cpu_queue_depth;++i) {
+                auto &slot=gpu_queue->host[i];const auto seq=slot.request.load(cuda::memory_order_acquire);
+                if(seq && slot.job.epoch==queue_epoch && slot.consumed.load(cuda::memory_order_acquire)!=seq)
+                    GGML_ABORT("CPU GPU queue consumer missing from graph replay");
+            }
+            const auto failure=gpu_queue->host[0].gpu_failure.load(cuda::memory_order_acquire);
+            if(failure)GGML_ABORT("CPU GPU queue failed: status=%u",failure);
+            if(!queue_adopted) {uint8_t selected[256];queue_adopt(selected);}
+            retire_us+=now()-t;
+        } else if(started){auto t=now();CUDA_CHECK(cudaStreamSynchronize(stream));
             if(completion)CUDA_CHECK(cudaEventSynchronize(consumed));retire_us+=now()-t;}
+        trace.finish(this,work,trace.enabled?now()-retirement:0,started && completion && !error);
         if(error){try{std::rethrow_exception(error);}catch(const std::exception &e){GGML_ABORT("CPU expert failed: %s",e.what());}catch(...){GGML_ABORT("CPU expert failed");}}
         for(auto &p:cache)p->held=false;
         leases.clear();if(shared_ram)cache.clear();work.experts.clear();configured=pending=started=completion=false;branch={};
+        for(auto &row:queue_leases)for(auto &lease:row)lease={};gpu_queue_active=false;queue_adopted=false;
     }
     bool matches(const ggml_tensor *w)const {
         if(!configured)return false;
@@ -133,10 +180,13 @@ struct StrataCpuExpertLane {
     }
     static void CUDART_CB execute(void *arg) noexcept {
         auto &c=*(StrataCpuExpertLane *)arg;
+        if(c.trace.enabled)c.trace.callback_us=now();
         try {
             auto t=now();if(!c.shared_ram){for(auto *p:c.leases)p->fill();c.pack_us+=now()-t;}
-            t=now();c.work.compute(*c.pool);c.compute_us+=now()-t;
+            if(c.trace.enabled)c.trace.pack_us=c.shared_ram?0:now()-t;
+            t=now();c.work.compute(*c.pool,c.trace.enabled?&c.trace.cpu:nullptr);c.compute_us+=now()-t;
         } catch(...) {c.error=std::current_exception();std::fill(c.output,c.output+scratch_bytes/sizeof(float),NAN);}
+        if(c.trace.enabled)c.trace.callback_end_us=now();
     }
     static void CUDART_CB noop(void *) {}
     Cost calibrate(Blob &blob) {
@@ -168,6 +218,74 @@ struct StrataCpuExpertLane {
     }
     void begin(cudaStream_t owner);
     void merge(ggml_tensor *dst,cudaStream_t owner);
+    void queue_execute(strata_ds4::CpuQueueSlot &slot) {
+        const auto &job=slot.job;
+        if(job.backend!=queue_table.backend || job.epoch!=queue_table.epoch || job.layer!=queue_table.layer ||
+           job.columns!=work.columns || job.tokens!=work.tokens || job.topk!=work.topk || job.rows<1 || job.rows>64) {
+            slot.error=strata_ds4::cpu_bad_request;return;
+        }
+        // Validate the retained snapshot before dereferencing any host address.
+        for(int i=0;i<job.rows;++i) {
+            const auto &r=job.row[i];
+            if(r.expert<0 || r.expert>=queue_table.experts || r.token<0 || r.token>=job.tokens ||
+               r.slot<r.token*job.topk || r.slot>=(r.token+1)*job.topk || job.packet.slots[r.slot]!=i) {
+                slot.error=strata_ds4::cpu_bad_request;return;
+            }
+            for(int m=0;m<3;++m) {
+                const auto &lease=queue_leases[r.expert][m];
+                if(!lease || r.matrix[m].address!=uint64_t(uintptr_t(lease.data())) || r.matrix[m].generation!=lease.generation()) {
+                    slot.error=strata_ds4::cpu_bad_request;return;
+                }
+            }
+        }
+        work.input=slot.input;work.output=slot.output;work.experts.clear();
+        for(int i=0;i<job.rows;++i) {
+            const auto &r=job.row[i];work.experts.push_back({(const void *)uintptr_t(r.matrix[1].address),
+                (const void *)uintptr_t(r.matrix[0].address),(const void *)uintptr_t(r.matrix[2].address),r.token,r.slot});
+        }
+        if(trace.enabled)trace.callback_us=now();const auto t=now();
+        work.compute(*pool,trace.enabled?&trace.cpu:nullptr);compute_us+=now()-t;
+        if(trace.enabled)trace.callback_end_us=now();
+    }
+    void queue_publish(const ggml_tensor *route,cudaStream_t owner) {
+        GGML_ASSERT(gpu_queue);
+        if(trace.gpu_events)GGML_ABORT("CPU GPU queue currently supports host trace only");
+        queue_owner=owner;gpu_queue_active=started=true;++queue_branches;
+        // The captured down graph always contains both the external event and
+        // the queue join. This empty event makes that same graph valid for a
+        // queue job, a callback fallback, and a short GPU-only prefill.
+        CUDA_CHECK(cudaEventRecord(ready,stream));
+        CUDA_CHECK(cudaMemcpyAsync(device_queue_table,&queue_table,sizeof(queue_table),cudaMemcpyHostToDevice,owner));
+        if(trace.enabled)trace.queued_us=now();gpu_queue->arm();
+        strata_ds4::cpu_gpu_route<<<1,256,0,owner>>>(gpu_queue->mapped,gpu_queue->device,device_queue_table,
+            (const int32_t *)route->data,int(route->nb[1]/4),(const float *)branch.nodes[0]->src[1]->data,device_packet);
+        CUDA_CHECK(cudaGetLastError());
+    }
+    // Called after the scheduler's existing route fence, solely for the old
+    // transfer planner. CPU compute has already been published independently.
+    void queue_adopt(uint8_t *selected) {
+        if(queue_adopted){std::memcpy(selected,packet.mask,sizeof(packet.mask));return;}queue_adopted=true;
+        std::memset(packet.mask,0,sizeof(packet.mask));std::fill(std::begin(packet.slots),std::end(packet.slots),-1);
+        for(int i=0;i<strata_ds4::cpu_queue_depth;++i) {
+            auto &slot=gpu_queue->host[i];if(!slot.request.load(cuda::memory_order_acquire) || slot.job.epoch!=queue_epoch)continue;
+            packet=slot.job.packet;++queue_jobs;queue_rows+=slot.job.rows;++operations;experts+=slot.job.rows;
+            if(trace.enabled)trace.route.assign(slot.job.route,slot.job.route+slot.job.topk*slot.job.tokens);
+            bool touched[256]={};
+            for(int r=0;r<slot.job.rows;++r) {
+                const int id=slot.job.row[r].expert;if(touched[id])continue;touched[id]=true;++ram_hits;
+                for(auto *w:branch.weights) {
+                    const void *key=(const uint8_t *)w->data+size_t(id)*w->nb[2];
+                    auto file=strata_expert_file::find(key,w->nb[2]);
+                    if(file)ram->acquire(file,file->offset_of(key,w->nb[2]),w->nb[2]);
+                }
+            }
+            const size_t in=size_t(work.columns)*work.tokens*4,out=size_t(work.columns)*slot.job.rows*4;
+            input_bytes+=in;output_bytes+=out;
+            if(trace.enabled){trace.input_bytes=in;trace.output_bytes=out;}
+            break;
+        }
+        std::memcpy(selected,packet.mask,sizeof(packet.mask));
+    }
 };
 
 static __global__ void strata_cpu_publish(StrataCpuExpertLane::Packet *dst,StrataCpuExpertLane::Packet value) {
@@ -180,14 +298,20 @@ static __global__ void strata_cpu_scatter(float *dst,const float *source,const S
 }
 inline void StrataCpuExpertLane::begin(cudaStream_t owner) {
     if(!configured || started)return;
+    if(gpu_queue) {strata_ds4::cpu_queue_reset<<<1,1,0,owner>>>(gpu_queue->mapped,gpu_queue->device);CUDA_CHECK(cudaGetLastError());}
     strata_cpu_publish<<<1,256,0,owner>>>(device_packet,packet);CUDA_CHECK(cudaGetLastError());
     if(!work.experts.empty()) {
         CUDA_CHECK(cudaEventRecord(input_ready,owner));CUDA_CHECK(cudaStreamWaitEvent(stream,input_ready,0));
         const size_t in=size_t(work.tokens)*work.columns*4,out=work.experts.size()*work.columns*4;
+        if(trace.enabled){trace.queued_us=now();trace.input_bytes=in;trace.output_bytes=out;}
+        trace.record(StrataCpuLaneTrace::input_begin,stream);
         CUDA_CHECK(cudaMemcpyAsync(input,branch.nodes[0]->src[1]->data,in,cudaMemcpyDeviceToHost,stream));
+        trace.record(StrataCpuLaneTrace::input_end,stream);
         CUDA_CHECK(cudaEventRecord(input_copied,stream));
         CUDA_CHECK(cudaLaunchHostFunc(stream,execute,this));
+        trace.record(StrataCpuLaneTrace::callback_end,stream);
         CUDA_CHECK(cudaMemcpyAsync(device_output,output,out,cudaMemcpyHostToDevice,stream));
+        trace.record(StrataCpuLaneTrace::output_end,stream);
         CUDA_CHECK(cudaEventRecord(ready,stream));
         // Prevent the allocator from reusing x before its D2H completes. No
         // host synchronization, and no wait for CPU compute at this boundary.
@@ -200,7 +324,13 @@ inline void StrataCpuExpertLane::merge(ggml_tensor *dst,cudaStream_t owner) {
     const bool down=dst==branch.nodes[2];
     if(down) {
         cudaStreamCaptureStatus capture;CUDA_CHECK(cudaStreamIsCapturing(owner,&capture));
+        trace.record(StrataCpuLaneTrace::join_begin,owner);
         CUDA_CHECK(cudaStreamWaitEvent(owner,ready,capture==cudaStreamCaptureStatusActive?cudaEventWaitExternal:0));
+        if(gpu_queue) {
+            strata_ds4::cpu_queue_join<<<1,256,0,owner>>>(gpu_queue->mapped,gpu_queue->device,device_output,500000000ULL);
+            CUDA_CHECK(cudaGetLastError());
+        }
+        trace.record(StrataCpuLaneTrace::join_end,owner);
     }
     const int cols=int(dst->ne[0]),rows=int(dst->ne[1]*dst->ne[2]);
     strata_cpu_scatter<<<dim3((cols+255)/256,rows),256,0,owner>>>((float *)dst->data,device_output,device_packet,cols,rows,down);
