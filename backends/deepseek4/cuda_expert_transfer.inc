@@ -17,6 +17,8 @@
 #include "expert_slab.hpp"
 #include "expert_copy_batch.cuh"
 #include "expert_direct_cache.cuh"
+#include "expert_hash.cuh"
+#include "expert_early_hits.cuh"
 #ifdef STRATA_DS4_COST_EXPERIMENT
 #include "expert_transport_profile.cuh"
 #endif
@@ -64,9 +66,13 @@ struct StrataExpertTransfer {
     bool prefill_cache_hits=false;
     StrataExpertCopyBatch copy_batch;
     StrataExpertDirect direct;
+    StrataHashScratch hash_scratch;
+    StrataExpertEarlyHitScratch early_hits;
+    std::vector<StrataExpertSlice> early_slices;
     void retire_direct() {
         if(!direct.tensor)return;
         ggml_cuda_set_device(device);
+        early_hits.clear(stream);
         // An abandoned prepared tensor may still be consumed by a caller after
         // changing the cache policy. Materialize it before releasing its leases.
         if(!direct.consumed) {
@@ -143,6 +149,7 @@ struct StrataExpertTransfer {
     }
 
     void finish_plan() {
+        early_slices.clear();
         retire_direct();
         flush_copies();
         if(pipeline)pipeline->finish(false);
@@ -160,6 +167,14 @@ struct StrataExpertTransfer {
         return result;
     }
     void plan(const StrataExpertSlice *slices,size_t count) {
+        if(!early_slices.empty()) {
+            bool same=early_slices.size()==count;
+            for(size_t i=0;same && i<count;++i)
+                same=early_slices[i].data==slices[i].data && early_slices[i].bytes==slices[i].bytes &&
+                    early_slices[i].cacheable==slices[i].cacheable;
+            if(same) {early_slices.clear();++stats.early_reuses;return;}
+            ++stats.early_mismatches;
+        }
         finish_plan();
         if(!pipeline)return;
         std::vector<StrataExpertSlice> misses;
@@ -266,6 +281,12 @@ struct StrataExpertTransfer {
         profile_drain();
 #endif
         stats=counters();pipeline.reset();
+        GGML_LOG_INFO("STRATA_EARLY_HITS ops=%llu hits=%llu misses=%llu\n",
+            (unsigned long long)stats.early_hit_ops,(unsigned long long)stats.early_hit_experts,
+            (unsigned long long)stats.early_miss_experts);
+        GGML_LOG_INFO("STRATA_HASH_PREFETCH reads=%llu plans=%llu reused=%llu mismatches=%llu\n",
+            (unsigned long long)stats.hash_reads,(unsigned long long)stats.early_plans,
+            (unsigned long long)stats.early_reuses,(unsigned long long)stats.early_mismatches);
         GGML_LOG_INFO("STRATA_EXPERT_DIRECT hits=%llu skipped_d2d_bytes=%llu materialized_bytes=%llu table_updates=%llu admissions=%llu\n",
             (unsigned long long)stats.direct_hits,(unsigned long long)stats.direct_bytes,
             (unsigned long long)stats.direct_materialized_bytes,(unsigned long long)stats.direct_tables,(unsigned long long)stats.direct_admissions);
@@ -654,6 +675,44 @@ static void strata_cuda_expert_plan(ggml_backend_t backend,const StrataExpertSli
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     strata_expert_state(backend).plan(slices,count);
 }
+static void strata_cuda_expert_early_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {
+    if(!count)return;
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    auto &s=strata_expert_state(backend);
+    // Starting a new early plan never treats an older prediction as validated.
+    s.finish_plan();s.plan(slices,count);
+    if(s.pipeline) {s.early_slices.assign(slices,slices+count);++s.stats.early_plans;}
+}
+static bool strata_cuda_expert_hash_read(ggml_backend_t backend,StrataHashRoutes *routes) {
+    auto *ctx=(ggml_backend_cuda_context *)backend->context;
+    if(!routes || routes->count<1 || routes->count>3 || routes->n_tokens<1 || routes->n_tokens>8 ||
+       ctx->curr_stream_no!=0 || !GGML_CUDA_CC_IS_NVIDIA(ggml_cuda_info().devices[ctx->device].cc))return false;
+    StrataHashLookup args{};args.count=routes->count;args.n_tokens=routes->n_tokens;
+    for(int t=0;t<args.n_tokens;++t)args.tokens[t]=routes->tokens[t];
+    for(int i=0;i<args.count;++i) {
+        const auto *table=routes->tables[i];
+        if(!table || table->op!=GGML_OP_NONE || (table->flags&GGML_TENSOR_FLAG_INPUT) ||
+           table->type!=GGML_TYPE_I32 || table->view_src || !table->data || !table->buffer ||
+           table->buffer->buft!=ggml_backend_cuda_buffer_type(ctx->device) ||
+           ggml_backend_buffer_get_usage(table->buffer)!=GGML_BACKEND_BUFFER_USAGE_WEIGHTS ||
+           !ggml_is_contiguous(table) || table->ne[0]<1 || table->ne[0]>8 ||
+           table->ne[1]<1 || table->ne[2]!=1 || table->ne[3]!=1)return false;
+        for(int t=0;t<args.n_tokens;++t)if(args.tokens[t]<0 || args.tokens[t]>=table->ne[1])return false;
+        args.tables[i]=(const int32_t *)table->data;args.widths[i]=int(table->ne[0]);
+    }
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    auto &s=strata_expert_state(backend);
+    if(!s.pipeline)return false;
+    ggml_cuda_set_device(s.device);
+    if(!s.hash_scratch.allocate())return false;
+    strata_hash_lookup<<<1,192,0,s.stream>>>(args,s.hash_scratch.device);
+    CUDA_CHECK(cudaGetLastError());
+    CUDA_CHECK(cudaMemcpyAsync(s.hash_scratch.host,s.hash_scratch.device,sizeof(routes->ids),cudaMemcpyDeviceToHost,s.stream));
+    CUDA_CHECK(cudaStreamSynchronize(s.stream));
+    for(int i=0;i<args.count;++i)
+        std::memcpy(routes->ids[i],s.hash_scratch.host+i*64,args.widths[i]*args.n_tokens*sizeof(int32_t));
+    ++s.stats.hash_reads;return true;
+}
 static void strata_cuda_expert_finish(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
@@ -663,7 +722,7 @@ static void strata_cuda_expert_flush(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
     if(it!=strata_expert_transfers.end()) {
-        auto &s=*it->second;s.flush_copies();
+        auto &s=*it->second;s.flush_copies();s.early_hits.join(s.stream);
         if(s.direct.dirty) {ggml_cuda_set_device(s.device);s.direct.publish(s.stream);++s.stats.direct_tables;}
     }
 }
@@ -702,7 +761,64 @@ static bool strata_cuda_expert_prepare(ggml_backend_t backend,const ggml_tensor 
     // A separately enabled research dispatch can replace MMVQ with MMQ.
     const char *mmq=std::getenv("STRATA_DS4_ROUTED_MMQ");
     if(mmq && (std::strcmp(mmq,"1")==0 || std::strcmp(mmq,"2")==0))return false;
-    ggml_cuda_set_device(s.device);s.direct.prepare(w);return true;
+    ggml_cuda_set_device(s.device);s.direct.prepare(w);s.early_hits.prepare(s.stream);return true;
+}
+static bool strata_cuda_expert_early_hits(ggml_backend_t backend,const ggml_tensor *source,
+        ggml_tensor *node,const ggml_tensor *route,const int32_t *selected,size_t count) {
+#if !defined(STRATA_DS4_DIRECT_CACHE_COMPILED) || !defined(STRATA_DS4_EARLY_HITS_COMPILED)
+    GGML_UNUSED(backend);GGML_UNUSED(source);GGML_UNUSED(node);GGML_UNUSED(route);GGML_UNUSED(selected);GGML_UNUSED(count);
+    return false;
+#else
+    if(!strata_cuda_expert_ordered(backend,node) || !source || !route || !count || count>256)return false;
+    auto *ctx=(ggml_backend_cuda_context *)backend->context;
+    auto local_gpu=[&](const ggml_tensor *t) {return t && t->buffer && t->data &&
+        t->buffer->buft==ggml_backend_cuda_buffer_type(ctx->device);};
+    if(!local_gpu(node) || !local_gpu(node->src[1]) || !local_gpu(route) ||
+       !ggml_is_contiguous(node) || node->ne[3]!=1 || ggml_nbytes(node)>StrataExpertEarlyHitScratch::output_bytes ||
+       source->ne[2]!=node->src[0]->ne[2] || source->nb[2]!=node->src[0]->nb[2] ||
+       !ggml_are_same_shape(route,node->src[2]) || route->type!=GGML_TYPE_I32 || route->nb[0]!=4)return false;
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    auto &s=strata_expert_state(backend);
+    if(!s.early_hits.enabled || !s.pipeline || s.direct.tensor!=node->src[0] || !s.early_hits.pointers)return false;
+    const auto *x=node->src[1];
+    const size_t quantized_bytes=size_t(x->ne[3])*x->ne[2]*x->ne[1]*
+        GGML_PAD(x->ne[0],MATRIX_ROW_PADDING)*sizeof(block_q8_1)/QK8_1;
+    if(s.early_hits.separate && quantized_bytes>StrataExpertEarlyHitScratch::input_bytes)return false;
+    StrataExpertDirect::Packet packet{};
+    size_t hits=0;
+    for(size_t i=0;i<count;++i) {
+        int id=selected[i];if(id<0 || id>=source->ne[2])return false;
+        const void *key=(const uint8_t *)source->data+size_t(id)*source->nb[2];
+        auto found=s.entries.find(key);
+        if(found==s.entries.end())continue;
+        // The current layer plan retains these allocations throughout all
+        // selected copies. The owner stream joins separate early work before
+        // retirement, so cross-context eviction fences also include its reads.
+        if(s.protected_keys.find(key)==s.protected_keys.end())return false;
+        if(!packet.pointers[id])++hits;
+        packet.pointers[id]=s.managed?found->second.allocation:s.arena+found->second.offset;
+    }
+    if(!hits || hits==count)return false;
+    ggml_cuda_set_device(s.device);s.flush_copies();
+    auto stream=s.early_hits.begin(s.stream);s.early_hits.publish(stream,packet);
+    auto output=*node;output.data=s.early_hits.output;
+    strata_expert_early_matvec(*ctx,node->src[0],node->src[1],route,&output,s.early_hits.pointers,
+        stream,s.early_hits.input);
+    s.early_hits.end();
+    CUDA_CHECK(cudaGetLastError());
+    ++s.stats.early_hit_ops;s.stats.early_hit_experts+=hits;s.stats.early_miss_experts+=count-hits;
+    return true;
+#endif
+}
+void strata_expert_early_result(ggml_backend_cuda_context &ctx,const ggml_tensor *weight,
+        const void *const **pointers,const float **output) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    for(auto &entry:strata_expert_transfers) {
+        auto &s=*entry.second;
+        if(s.context==&ctx && s.direct.tensor==weight && s.direct.data==weight->data && s.early_hits.enabled) {
+            *pointers=s.early_hits.pointers;*output=s.early_hits.output;return;
+        }
+    }
 }
 const void *const *strata_expert_direct_table(ggml_backend_cuda_context &ctx,const ggml_tensor *weight) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);

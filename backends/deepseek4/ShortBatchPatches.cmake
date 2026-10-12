@@ -31,6 +31,9 @@ string(REPLACE "mul_mat_vec_q_switch_fusion<type, c_ncols_dst, c_small_k, c_halv
   ds4_mmvq "${ds4_mmvq}")
 if(STRATA_DEEPSEEK_DIRECT_CACHE_EXPERIMENT)
   include(DirectMmvqPatches.cmake)
+  if(STRATA_DEEPSEEK_EARLY_HITS_EXPERIMENT)
+    include(EarlyHitMmvqPatches.cmake)
+  endif()
 endif()
 set(ds4_mmvq_generated "${CMAKE_BINARY_DIR}/strata-ds4-mmvq.cu")
 set(ds4_mmvq_old "")
@@ -52,4 +55,8 @@ set_property(TARGET ggml-cuda PROPERTY SOURCES "${ds4_cuda_sources};${ds4_mmvq_g
 set_source_files_properties("${ds4_mmvq_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
   INCLUDE_DIRECTORIES "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda;${CMAKE_CURRENT_SOURCE_DIR}"
   OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.inc")
+if(STRATA_DEEPSEEK_EARLY_HITS_EXPERIMENT)
+  set_property(SOURCE "${ds4_mmvq_generated}" TARGET_DIRECTORY ggml-cuda
+    APPEND PROPERTY COMPILE_DEFINITIONS STRATA_DS4_EARLY_HITS_COMPILED)
+endif()
 

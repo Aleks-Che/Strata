@@ -16,8 +16,20 @@ struct StrataExpertCounters {
     uint64_t frequency_decay=0;
     uint64_t direct_hits=0,direct_bytes=0,direct_materialized_bytes=0,direct_tables=0;
     uint64_t direct_admissions=0;
+    uint64_t hash_reads=0, early_plans=0, early_reuses=0, early_mismatches=0;
+    uint64_t early_hit_ops=0, early_hit_experts=0, early_miss_experts=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
+// Exact GPU table lookup for at most three hash-routed layers. These are input
+// token IDs, not predicted expert IDs. The model graph is not rewritten.
+struct StrataHashRoutes {
+    const ggml_tensor *tables[3]={};
+    int32_t tokens[8]={};
+    int count=0, n_tokens=0;
+    int32_t ids[3][64]={};
+};
+using StrataExpertHashRead = bool (*)(ggml_backend_t, StrataHashRoutes *);
+using StrataExpertEarlyPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Discard unconsumed lookahead and join the producer at every graph exit,
 // including errors and cancellation, before model mappings can be released.
 using StrataExpertFinish = void (*)(ggml_backend_t);
@@ -29,6 +41,11 @@ using StrataExpertPrepare = bool (*)(ggml_backend_t,const ggml_tensor *consumer)
 // Whether selected-weight writes can rely on CUDA stream order instead of a
 // host wait. The caller still reads and synchronizes every new routing tensor.
 using StrataExpertOrdered = bool (*)(ggml_backend_t,const ggml_tensor *consumer);
+// Compute cache hits into private scratch before waiting for missing weights.
+// The input activation and the supplied routing tensor must already be queued
+// on this backend. A false return leaves the normal matvec unchanged.
+using StrataExpertEarlyHits = bool (*)(ggml_backend_t,const ggml_tensor *source,
+    ggml_tensor *consumer,const ggml_tensor *route,const int32_t *selected,size_t count);
 using StrataExpertCopy = void (*)(ggml_backend_t, const ggml_tensor *, ggml_tensor *, int, int, int);
 using StrataExpertStats = void (*)(ggml_backend_t, StrataExpertCounters *);
 // Set the startup budget on the calling decode thread. Each CUDA backend keeps
