@@ -5,7 +5,11 @@ if constexpr (!strata_token_batch &&
               (type==GGML_TYPE_IQ3_XXS || type==GGML_TYPE_MXFP4 || type==GGML_TYPE_Q8_0)) {
     const int mode=strata_ds4_mmvq_mode();
     const bool fused=fusion.gate || fusion.x_bias || fusion.gate_bias || fusion.x_scale || fusion.gate_scale;
-    if ((mode==2 || (mode==1 && ids)) && !fused && ncols_dst>=2 && ncols_dst<=4 &&
+    // Numerical mode must use the same reduction as a single CPU/GPU token,
+    // even if the user's performance setting is mode 0 or GLU was fused.
+    // The generic fused kernel already handles one token per sample.
+    const bool compatible=ids && fusion.swiglu_compat;
+    if ((compatible || ((mode==2 || (mode==1 && ids)) && !fused)) && ncols_dst>=2 && ncols_dst<=4 &&
         nsamples_x==1 && nsamples_dst==1 && nrows_x%32==0 &&
         (ids || (nchannels_x==1 && nchannels_y==1 && nchannels_dst==1)) &&
         GGML_CUDA_CC_IS_NVIDIA(ggml_cuda_info().devices[ggml_cuda_get_device()].cc)) {

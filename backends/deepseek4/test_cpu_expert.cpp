@@ -24,7 +24,11 @@ _putenv_s(k,v);
 setenv(k,v,1);
 #endif
 }
+#ifdef STRATA_DS4_TEST_NUMERICS
+constexpr int E=8,D=4096,H=2048,K=2;
+#else
 constexpr int E=8,D=256,H=512,K=2;
+#endif
 struct Weights {
     ggml_context_ptr ctx;
     ggml_backend_buffer_ptr buffer;
@@ -324,6 +328,35 @@ static void snapshot_overlap_test(ggml_backend_t cpu,ggml_backend_dev_t dev,Stra
     throw std::runtime_error("snapshot overlap fixture requires native Windows file registration");
 #endif
 }
+static int numerical_lane_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats,StrataCpuExpertPhase phase) {
+    env("STRATA_DS4_CPU_RAM_MIB","256");
+    env("STRATA_DS4_CPU_MMVQ_REFERENCE","1");env("STRATA_DS4_SWIGLU_COMPAT","1");
+    env("STRATA_DS4_MMVQ_TOKEN_BATCH","0");env("GGML_CUDA_DISABLE_GRAPHS","1");
+    env("STRATA_DS4_CPU_TEST_FIXED","1");env("STRATA_DS4_CPU_MAX_EXPERTS","1");
+    int cases=0;uint64_t operations=0;
+    for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
+        Weights w(cpu,type);
+        for(int threads:{12,16})for(int n:{1,2,3,4})for(float clamp:{0.0f,0.1f}) {
+            ggml_backend_ptr control(ggml_backend_dev_init(dev,nullptr)),hybrid(ggml_backend_dev_init(dev,nullptr));
+            Graph a(w,cpu,control.get(),n,false,clamp),b(w,cpu,hybrid.get(),n,false,clamp);
+            for(int iteration=0;iteration<4;++iteration) {
+                std::vector<float> x(n*D);for(size_t i=0;i<x.size();++i)x[i]=0.5f*std::sin(float(i+iteration*93)*0.033f);
+                std::vector<int32_t> ids(n*E);
+                for(int t=0;t<n;++t) {ids[t*E]=(t+iteration)%E;ids[t*E+1]=(t+iteration+1)%E;}
+                if(n>1) {ids[E]=ids[1];ids[E+1]=ids[0];}
+                env("STRATA_DS4_CPU_THREADS","0");auto expected=a.run(x,ids);
+                env("STRATA_DS4_CPU_THREADS",std::to_string(threads).c_str());phase(iteration!=2);
+                auto actual=b.run(x,ids);phase(true);
+                check(!std::memcmp(expected.data(),actual.data(),expected.size()*4),"numerical lane changed an expert/token row");
+                ++cases;
+            }
+            StrataExpertCounters count;stats(hybrid.get(),&count);
+            check(count.cpu_lane_ops==3,"numerical lane test did not run three CPU jobs");operations+=count.cpu_lane_ops;
+        }
+    }
+    std::printf("Numerical hybrid: %d bit-exact mixed expert/token replays, %llu CPU jobs, 12/16 threads, windows 1..4, mode 0, GPU phase transition\n",cases,(unsigned long long)operations);
+    return 0;
+}
 int main(){try {
     if(std::getenv("STRATA_DS4_TEST_WEIGHT_CAPTURE")) {
         const char *base=std::getenv("STRATA_DS4_CPU_CAPTURE_DIR");check(base && *base,"capture test needs a directory");
@@ -352,6 +385,9 @@ int main(){try {
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_stats");
     auto phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_cpu_expert_phase");
     check(bool(phase),"missing CPU phase control");
+#ifdef STRATA_DS4_TEST_NUMERICS
+    return numerical_lane_test(cpu.get(),dev,stats,phase);
+#endif
     if(std::getenv("STRATA_DS4_TEST_SNAPSHOT_OVERLAP")){snapshot_overlap_test(cpu.get(),dev,stats);return 0;}
     if(std::getenv("STRATA_DS4_TEST_FETCH_CACHE")){fetch_cache_test(cpu.get(),dev,stats);return 0;}
     int cases=0;uint64_t operations=0;double cpu_error=0,gpu_error=0,fallback_error=0;

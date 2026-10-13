@@ -11,6 +11,8 @@
 #include <cmath>
 #include <chrono>
 #include <limits>
+#include <cstdlib>
+#include <cstring>
 
 namespace strata_ds4 {
 static uint64_t cpu_clock_us() {
@@ -107,6 +109,9 @@ void CpuLanePool::run(int n,const std::function<void(int)> &job,CpuPoolTiming *t
     }
 }
 int CpuLanePool::size()const{return int(p->workers.size());}
+bool cpu_mmvq_reference_enabled() {
+    const char *v=std::getenv("STRATA_DS4_CPU_MMVQ_REFERENCE");return v && std::strcmp(v,"1")==0;
+}
 bool cpu_lane_format(ggml_type type,int columns) {
     if(type!=GGML_TYPE_IQ3_XXS && type!=GGML_TYPE_MXFP4 && type!=GGML_TYPE_Q8_0)return false;
     const auto *t=ggml_get_type_traits_cpu(type);
@@ -128,6 +133,7 @@ void cpu_lane_rows(ggml_type type,int columns,const void *weight,const void *q,f
 void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing,const CpuWeightRetire &retire) {
     if(timing)*timing={};
     if(experts.empty())return;
+    if(cpu_mmvq_reference_enabled()){cpu_mmvq_reference_compute(*this,pool,timing,retire);return;}
     auto tick=timing?cpu_clock_us():0;
     const size_t gbytes=cpu_lane_activation_bytes(gate_type,columns);
     const size_t ubytes=cpu_lane_activation_bytes(up_type,columns);

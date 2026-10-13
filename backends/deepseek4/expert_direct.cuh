@@ -4,6 +4,7 @@
 // The GPU table is stable across graph capture/replay; its contents are refreshed
 // before each selected-expert tensor is consumed.
 struct StrataDirectFusion : ggml_cuda_mm_fusion_args_device {
+    bool swiglu_compat=false;
     const void *const *expert_ptrs=nullptr;
     const void *const *gate_ptrs=nullptr;
     const uint8_t *cpu_mask=nullptr;

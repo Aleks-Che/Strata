@@ -10,6 +10,10 @@ static bool strata_cpu_eligible(ggml_backend_t backend,const ggml_tensor *src,
     const auto *x=node->src[1],*w=node->src[0];
     const auto *ctx=(ggml_backend_cuda_context *)backend->context;
     const int cc=ggml_cuda_info().devices[ctx->device].cc;
+    // The scalar numerical oracle mirrors generic NVIDIA four-warp MMVQ.
+    // Other dispatch tables/window sizes retain the GPU arithmetic path.
+    if(strata_ds4::cpu_mmvq_reference_enabled() &&
+       (route->ne[1]>4 || !GGML_CUDA_CC_IS_NVIDIA(cc) || cc<GGML_CUDA_CC_AMPERE || cc==GGML_CUDA_CC_DGX_SPARK))return false;
     if(!ggml_is_contiguous(node) || node->ne[3]!=1 || x->ne[3]!=1 || x->nb[0]!=4 ||
        !x->buffer || x->buffer->buft!=ggml_backend_cuda_buffer_type(ctx->device) ||
        src->type!=w->type || !ggml_are_same_shape(src,w) ||

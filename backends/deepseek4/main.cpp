@@ -10,6 +10,7 @@
 #include "activation_probe.hpp"
 #include "prefill_probe.hpp"
 #include "fixed_workload.hpp"
+#include "cpu_numerics_probe.hpp"
 #include "strata/artifact/gguf_reader.hpp"
 #include "strata/core/conversation_memory.hpp"
 #include <algorithm>
@@ -21,6 +22,7 @@
 #include <cstdio>
 #include <deque>
 #include <iostream>
+#include "swiglu_compat.hpp"
 #include <iomanip>
 #include <map>
 #include <memory>
@@ -273,6 +275,7 @@ class Runner {
     std::string active_session;
     uint64_t serial=0,hits=0,misses=0,evictions=0,skips=0;
     bool prefill_probe_done=false, fixed_workload_done=false;
+    bool cpu_numerics_probe_done=false;
     bool cpu_request_allowed=true;
     const char *save_reason="not_saved";
     size_t used() const { size_t b=0;for(auto &s:cache)b+=s.bytes();return b; }
@@ -466,13 +469,26 @@ public:
                     std::vector<uint8_t> probe_state;
                     const bool check_causal=std::getenv("STRATA_SPEC_CHECK_CAUSAL") && rounds<=3 && !draft.empty();
                     const bool check_serial=serial_requested && rounds<=serial_rounds && !draft.empty();
+                    const char *cpu_numerics_path=std::getenv("STRATA_DS4_CPU_NUMERICS_REPORT");
+                    const bool cpu_probe_requested=cpu_numerics_path && *cpu_numerics_path;
+                    int cpu_probe_round=3;
+                    if(cpu_probe_requested)if(const char *v=std::getenv("STRATA_DS4_CPU_NUMERICS_ROUND")) {
+                        cpu_probe_round=integer(v);if(cpu_probe_round<1 || cpu_probe_round>64)throw std::runtime_error("CPU numerical probe round must be 1..64");
+                    }
+                    const bool check_cpu=cpu_probe_requested && rounds==cpu_probe_round && !cpu_numerics_probe_done && cpu_phase && cpu_request_allowed;
+                    if(check_cpu && (check_causal || check_serial))throw std::runtime_error("run CPU numerical and serial/causality probes separately");
                     ActivationProbe::Json serial_report;
-                    if(check_causal || check_serial) {
+                    if(check_causal || check_serial || check_cpu) {
                         probe_state.resize(llama_state_get_size(ctx));
                         if(llama_state_get_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
                             throw std::runtime_error("causality probe snapshot failed");
                     }
+                    const auto cpu_probe_begin=check_cpu?cpu_numerics_clock_us():0;
                     if(llama_decode(ctx,batch.value))throw std::runtime_error("DSpark target verification failed");
+                    if(check_cpu) {
+                        run_cpu_numerics_probe(ctx,vocab,batch.value,probe_state,cpu_phase,cpu_numerics_path,r.session,base,cpu_probe_begin);
+                        cpu_numerics_probe_done=true;
+                    }
                     if(check_causal) {
                         auto restore_probe=[&] {
                             if(llama_state_set_data(ctx,probe_state.data(),probe_state.size())!=probe_state.size())
@@ -744,10 +760,14 @@ int main(int argc,char**argv) {
 #endif
         ggml_backend_load_all();llama_backend_init();
         if(o.expert_cpu_threads) {
+            if(const char *v=std::getenv("STRATA_DS4_CPU_MMVQ_REFERENCE"))if(std::strcmp(v,"1")==0)
+                std::cerr<<"STRATA_CPU_NUMERICS arithmetic=generic_mmvq_reference diagnostic_only=1\n";
             for(const char *name:{"STRATA_DS4_EARLY_HITS","STRATA_DS4_ROUTED_MMQ","STRATA_DS4_HASH_PREFETCH"})
                 if(const char *value=std::getenv(name))if(std::atoi(value))
                     throw std::runtime_error(std::string("CPU lane is incompatible with ")+name);
         }
+        if(strata_ds4::swiglu_compat_enabled())
+            std::cerr<<"STRATA_CPU_NUMERICS swiglu=common_rn_ftz scope=routed_f32_1_to_4 diagnostic_only=1\n";
         auto gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU);
         if(!o.vocab_only && !gpu)throw std::runtime_error("DeepSeek inference requires a GPU backend; CPU fallback is disabled");
         if(!o.vocab_only && o.expert_cpu_threads &&

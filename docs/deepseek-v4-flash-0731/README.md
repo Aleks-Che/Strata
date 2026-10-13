@@ -11,6 +11,8 @@
 |---|---|
 | [Перенос идей Maya](DEEPSEEK4_MAYA_TRANSFER_REVIEW.md) | Заимствование VRAM для prefill, GPU-план, pinned RAM, история частот, CPU lane и другой lookahead |
 | [План внедрения CPU lane по архитектуре Maya](DEEPSEEK4_CPU_LANE_IMPLEMENTATION_PLAN.md) | Целевая связка RAM/VRAM, GPU-очередь, многотокенные ядра, калибровка и критерии принятия |
+| [Численная совместимость CPU/GPU, начало этапа 3](DEEPSEEK4_CPU_NUMERICS.md) | Исходный аудит Q8_K/Q8_1, эталон MMVQ и выявленные границы округления |
+| [Совместимые SwiGLU, Q8_1 и короткие окна](DEEPSEEK4_SWIGLU_COMPATIBILITY.md) | Общий RN/FTZ-режим, точные граничные тесты, редукция и маска CPU-токенов, гибридные повторы на 12/16 потоках |
 | [Завершение GPU-очередей и два контекста](DEEPSEEK4_CPU_STAGE2_COMPLETION.md) | Холодный GPU-кэш, демоция, RAM-эпохи, target/DSpark и проверки этапа 2; ускорение не подтверждено |
 | [Проверка GPU-потребителя без отдельного ожидания](DEEPSEEK4_CPU_CONSUMER_HANDOFF.md) | Запись статуса в GPU stream, pinned-таблица, защита RAM-политики; 80 CTest, точные logits в допустимом профиле, прирост не подтверждён |
 | [Подготовка контекста до окончания GPU](DEEPSEEK4_CPU_CONTEXT_OVERLAP.md) | Раздельное завершение CPU/GPU, сохранение политики admissions, 66 native-проверок; устойчивого ускорения нет |

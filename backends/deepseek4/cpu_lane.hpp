@@ -29,6 +29,8 @@ public:
     int size() const;
 };
 bool cpu_lane_format(ggml_type type, int columns);
+// Slow diagnostic only; never enabled by the automatic placement policy.
+bool cpu_mmvq_reference_enabled();
 size_t cpu_lane_activation_bytes(ggml_type type, int columns);
 void cpu_lane_quantize(ggml_type type, int columns, const float *x, void *q);
 void cpu_lane_rows(ggml_type type, int columns, const void *weight,
@@ -52,4 +54,5 @@ struct CpuExpertWork {
     // weights again. Output/activations and the work descriptor remain live.
     void compute(CpuLanePool &pool, CpuExpertTiming *timing=nullptr, const CpuWeightRetire &retire={});
 };
+void cpu_mmvq_reference_compute(CpuExpertWork &,CpuLanePool &,CpuExpertTiming *,const CpuWeightRetire &);
 }
