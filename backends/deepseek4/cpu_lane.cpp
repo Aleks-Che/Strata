@@ -125,7 +125,7 @@ void cpu_lane_rows(ggml_type type,int columns,const void *weight,const void *q,f
     const size_t stride=ggml_row_size(type,columns);
     for(int row=first;row<last;++row)t->vec_dot(columns,out+row,0,(const char *)weight+row*stride,0,q,0,1);
 }
-void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing) {
+void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing,const CpuWeightRetire &retire) {
     if(timing)*timing={};
     if(experts.empty())return;
     auto tick=timing?cpu_clock_us():0;
@@ -160,7 +160,9 @@ void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing) {
             hidden_f[i*hidden+r]=(g/(1.0f+std::exp(-g)))*u;
         }
     },timing?&timing->gate_up_pool:nullptr);
-    if(timing){timing->gate_up_us=cpu_clock_us()-tick;tick=cpu_clock_us();}
+    if(timing)timing->gate_up_us=cpu_clock_us()-tick;
+    if(retire)retire(CpuWeightPhase::gate_up);
+    if(timing)tick=cpu_clock_us();
     for(size_t i=0;i<experts.size();++i)cpu_lane_quantize(down_type,hidden,hidden_f.data()+i*hidden,hidden_q.data()+i*hbytes);
     if(timing){timing->hidden_quant_us=cpu_clock_us()-tick;tick=cpu_clock_us();}
     pool.run(int(groups.size())*partitions,[&](int job) {
@@ -169,5 +171,6 @@ void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing) {
             dt->vec_dot(hidden,output+i*columns+r,0,(const char *)experts[i].down+r*ds,0,hidden_q.data()+i*hbytes,0,1);
     },timing?&timing->down_pool:nullptr);
     if(timing)timing->down_us=cpu_clock_us()-tick;
+    if(retire)retire(CpuWeightPhase::down);
 }
 }

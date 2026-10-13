@@ -11,6 +11,9 @@
 |---|---|
 | [Перенос идей Maya](DEEPSEEK4_MAYA_TRANSFER_REVIEW.md) | Заимствование VRAM для prefill, GPU-план, pinned RAM, история частот, CPU lane и другой lookahead |
 | [План внедрения CPU lane по архитектуре Maya](DEEPSEEK4_CPU_LANE_IMPLEMENTATION_PLAN.md) | Целевая связка RAM/VRAM, GPU-очередь, многотокенные ядра, калибровка и критерии принятия |
+| [Завершение GPU-очередей и два контекста](DEEPSEEK4_CPU_STAGE2_COMPLETION.md) | Холодный GPU-кэш, демоция, RAM-эпохи, target/DSpark и проверки этапа 2; ускорение не подтверждено |
+| [Проверка GPU-потребителя без отдельного ожидания](DEEPSEEK4_CPU_CONSUMER_HANDOFF.md) | Запись статуса в GPU stream, pinned-таблица, защита RAM-политики; 80 CTest, точные logits в допустимом профиле, прирост не подтверждён |
+| [Подготовка контекста до окончания GPU](DEEPSEEK4_CPU_CONTEXT_OVERLAP.md) | Раздельное завершение CPU/GPU, сохранение политики admissions, 66 native-проверок; устойчивого ускорения нет |
 | [Измерения CPU lane перед переносом](DEEPSEEK4_CPU_LANE_TRACE.md) | Трасса заданий, сохранение весов/активаций и replay; контроль влияния диагностики |
 | [Поколения и общий учёт RAM/VRAM](DEEPSEEK4_RAM_TIERS.md) | Готовность и время жизни матриц, отмена поздних заполнений, ограниченная демоция GPU → RAM |
 | [GPU-очередь и CPU-service](DEEPSEEK4_CPU_GPU_QUEUE.md) | GPU-выбор и mapped ring, постоянный service, проверки протокола и оставшаяся синхронизация подкачки |
@@ -20,6 +23,8 @@
 | [Размещение RAM-троек и CPU-снимок](DEEPSEEK4_GPU_FETCH_PLACEMENT.md) | Проверка защиты готовых троек, сокращение RAM lookup, точность logits и A/B/B/A этапа 2 |
 | [Раннее освобождение RAM-снимков](DEEPSEEK4_GPU_FETCH_RELEASE.md) | Освобождение невыбранных CPU-кандидатов и источников завершённых GPU-копий без CUDA вызовов на service |
 | [Завершение подкачки и ожидание service](DEEPSEEK4_GPU_FETCH_RETIRE.md) | Обработка кэшей после copy fence, асинхронный disarm очередей, проверки и замеры этапа 2 |
+| [Освобождение CPU-весов по фазам](DEEPSEEK4_CPU_WEIGHT_RELEASE.md) | Gate/up после первой фазы, down после второй, защита GPU-копий и диагностических снимков |
+| [Подготовка следующего CPU-снимка](DEEPSEEK4_CPU_SNAPSHOT_OVERLAP.md) | Отдельная таблица RAM-кандидатов до последнего GPU fence предыдущей ветки, проверки цепочки MoE и замеры |
 | [Первый прототип CPU lane](DEEPSEEK4_CPU_LANE.md) | Эксперимент с 4/8/12/16 потоками: ускорения нет, точный restore ответа не пройден, по умолчанию выключен |
 | [CPU lane v2](DEEPSEEK4_CPU_LANE_V2.md) | Целые эксперты и CUDA Graphs; fixed 14,09 против GPU 17,10 ток/с; fixed restore прошёл, auto ещё нет |
 | [План и новые испытания CPU lane](DEEPSEEK4_CPU_LANE_EXPERIMENTS.md) | Выбор по токенам, общие RAM-матрицы, контроль корректности и замеры 8/12/16 потоков |

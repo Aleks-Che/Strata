@@ -453,6 +453,65 @@ int main(int argc,char **argv) {
             }
             check(allocated==released,"early release leaked payload");
         }
+        {
+            // Simulate a cache owner waiting for CPU completion while holding
+            // its lock. A CPU phase callback must return, not join that cycle.
+            std::atomic<bool> hold{false},entered{false},finished{false},timeout{false};
+            auto locked_probe=[&] {
+                if(hold.load()) {
+                    entered.store(true);
+                    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(1);
+                    while(!finished.load() && std::chrono::steady_clock::now()<deadline)std::this_thread::yield();
+                    if(!finished.load())timeout=true;
+                }
+                return probe();
+            };
+            Cache owned(8192,locked_probe,Cache::Policy::Lru);
+            owned.retain(a,0,original.data(),4096,cancel);
+            auto lease=owned.acquire(a,0,4096,false,false);size_t dropped=0;
+            hold=true;
+            std::thread service([&] {
+                const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+                while(!entered.load() && std::chrono::steady_clock::now()<deadline)std::this_thread::yield();
+                if(!entered.load())timeout=true;
+                else dropped=owned.release_cached(lease,true);
+                finished=true;
+            });
+            owned.refresh();service.join();hold=false;
+            check(!timeout && !dropped && lease && !std::memcmp(lease.data(),original.data(),4096),
+                "CPU phase release waited for owner or lost a deferred lease");
+            check(owned.release_cached(lease,true)==4096 && !lease,"uncontended phase release failed");
+        }
+        {
+            auto bounded=std::make_shared<Cache>(8192,probe,Cache::Policy::Lru);
+            bounded->retain(a,0,original.data(),4096,cancel);
+            bounded->retain(a,4096,original.data()+4096,4096,cancel);
+            auto cpu_weight=bounded->acquire(a,0,4096,false,false);
+            auto window=bounded->reserve_recycling({4096},8192);
+            check(!bounded->acquire(a,4096,4096,false,false),"future snapshot borrowed a reserved victim");
+            bounded->release_cached(cpu_weight);
+            auto first=bounded->make_fill(),second=bounded->make_fill();
+            check(bounded->recycle_fill(*first,a,8192,4096,window.get()),"reserved victim not admitted");
+            check(!bounded->recycle_fill(*second,a,12288,4096,window.get()),"CPU release changed this branch's victim set");
+            std::memcpy(first->data(),original.data()+8192,4096);first->complete(true);
+            window.reset();auto held=bounded->acquire(a,0,4096,false,false);
+            check(held && !std::memcmp(held.data(),original.data(),4096),"CPU weight was overwritten after early release");
+            check(bounded->snapshot().bytes==8192 && !bounded->snapshot().pending,"reservation escaped RAM budget");
+        }
+        {
+            std::weak_ptr<Cache> owner;int released=0;
+            Cache::Storage storage;
+            storage.allocate=[](size_t n){return new uint8_t[n];};
+            storage.release=[&](uint8_t *p) {
+                if(auto cache=owner.lock())cache->snapshot(); // reenter metadata lock
+                ++released;delete[] p;
+            };
+            auto cache=std::make_shared<Cache>(4096,probe,Cache::Policy::Lru,131072,131072,storage);
+            owner=cache;cache->retain(a,0,original.data(),2048,cancel);
+            cache->retain(a,2048,original.data()+2048,2048,cancel);
+            cache->retain(a,4096,original.data()+4096,4096,cancel);
+            check(released==2 && !cache->snapshot().disposal_bytes,"pinned releases retained the metadata mutex or leaked displaced bytes");
+        }
         report["status"]="pass";
     } catch(const std::exception &e) {report["error"]=e.what();}
     report["checks"]=checks;std::ofstream(output)<<report.dump(2)<<'\n';

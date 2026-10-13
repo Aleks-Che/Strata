@@ -273,6 +273,7 @@ class Runner {
     std::string active_session;
     uint64_t serial=0,hits=0,misses=0,evictions=0,skips=0;
     bool prefill_probe_done=false, fixed_workload_done=false;
+    bool cpu_request_allowed=true;
     const char *save_reason="not_saved";
     size_t used() const { size_t b=0;for(auto &s:cache)b+=s.bytes();return b; }
     static bool prefix(const std::vector<llama_token>&a,const std::vector<llama_token>&b) {
@@ -297,9 +298,10 @@ class Runner {
     bool decode(const std::vector<llama_token> &tokens,size_t begin,size_t end,bool prompt) {
         struct Phase {
             StrataCpuExpertPhase set;
-            Phase(StrataCpuExpertPhase f,bool decode):set(f){if(set)set(decode);}
-            ~Phase(){if(set)set(true);}
-        } phase(cpu_phase,!prompt);
+            bool restore;
+            Phase(StrataCpuExpertPhase f,bool decode,bool allowed):set(f),restore(allowed){if(set)set(decode && allowed);}
+            ~Phase(){if(set)set(restore);}
+        } phase(cpu_phase,!prompt,cpu_request_allowed);
         for(size_t i=begin;i<end;) {
             if(stop.load()) return false;
             size_t n=std::min(size_t(o.batch),end-i);
@@ -374,6 +376,10 @@ public:
         std::cout<<"CACHE_DROPPED "<<nonce<<" "<<(found?"removed":"missing")<<"\n"<<std::flush;
     }
     void run(const std::string&line) {
+        struct RequestPolicy {
+            Runner &runner;
+            ~RequestPolicy(){runner.cpu_request_allowed=true;if(runner.cpu_phase)runner.cpu_phase(true);}
+        } request_policy{*this};
         Request r;
         int generated=0,offered=0,accepted=0;
         size_t reused=0;
@@ -381,6 +387,15 @@ public:
         auto dt=Clock::now();
         try {
             r=request(line,o.context,llama_vocab_n_tokens(vocab));
+            // Adaptive residency changes CPU/GPU placement as the caches warm.
+            // Their quantized arithmetic is not bit-identical. An explicit
+            // seed therefore uses one arithmetic path throughout this request,
+            // including DSpark and phase transitions after prompt decoding.
+            const auto seed=r.sampling.find("seed");
+            cpu_request_allowed=!o.expert_cpu_threads || seed==r.sampling.end() || std::stod(seed->second)==LLAMA_DEFAULT_SEED;
+            if(cpu_phase)cpu_phase(cpu_request_allowed);
+            if(!cpu_request_allowed && o.expert_cpu_threads)
+                std::cerr<<"STRATA_CPU_REQUEST lane=GPU reason=explicit_seed\n";
             if(!fixed_workload_done)if(const char *path=std::getenv("STRATA_FIXED_WORKLOAD");path && *path) {
                 fixed_workload_done=true;
                 if(spec || activation_probe.enabled())throw std::runtime_error("fixed workload requires target only, without activation observers");

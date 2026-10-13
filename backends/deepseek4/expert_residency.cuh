@@ -25,8 +25,9 @@ private:
     struct Download {
         std::unique_ptr<strata_ds4::HostCache::Demotion> fill;
         cudaEvent_t event=nullptr;
+        uint64_t retirement=0;
         // Event synchronization protects the pinned destination even during
-        // exception unwinding. Successful publication happens in poll only.
+        // exception unwinding. Publication happens in poll or owning-epoch retirement.
         ~Download(){if(event){cudaEventSynchronize(event);cudaEventDestroy(event);}}
     };
     std::list<std::weak_ptr<Upload>> uploads;
@@ -35,9 +36,10 @@ public:
     std::shared_ptr<strata_ds4::HostCache> cache;
     uint64_t d2h_bytes=0,d2h_jobs=0;
     std::shared_ptr<Upload> uploaded(const std::shared_ptr<strata_expert_file::Source> &source,
-            uint64_t offset,size_t bytes,bool drop,cudaStream_t stream) {
+            uint64_t offset,size_t bytes,bool drop,cudaStream_t stream,bool already_copied=false) {
         auto item=std::make_shared<Upload>();item->cache=cache;
         item->token=cache->begin_gpu(source,offset,bytes,drop);
+        if(already_copied){cache->ready_gpu(item->token);return item;}
         check(cudaEventCreateWithFlags(&item->event,cudaEventDisableTiming));
         check(cudaEventRecord(item->event,stream));uploads.push_back(item);
         return item;
@@ -49,20 +51,29 @@ public:
             if(!item || !item->event)it=uploads.erase(it);else ++it;
         }
         for(auto it=downloads.begin();it!=downloads.end();) {
+            if(it->retirement && !wait){++it;continue;}
             auto status=wait?cudaEventSynchronize(it->event):cudaEventQuery(it->event);
             if(status==cudaErrorNotReady){++it;continue;}
             check(status);it->fill->complete();it=downloads.erase(it);
         }
     }
+    // The owning fetch context has passed its copy fence. Do not let an
+    // unrelated poll publish a younger context's RAM according to GPU timing.
+    void retire(uint64_t epoch) {
+        for(auto it=downloads.begin();it!=downloads.end();) {
+            if(it->retirement!=epoch){++it;continue;}
+            check(cudaEventSynchronize(it->event));it->fill->complete();it=downloads.erase(it);
+        }
+    }
     // Must be called after enqueuing old readers and BEFORE the reuse fence
     // or free. D2H is on the owning stream, so a new owner cannot overwrite the
     // source until DMA completes. No extra GPU allocation is retained.
-    void evict(const std::shared_ptr<Upload> &item,const void *address,cudaStream_t stream,bool prefill) {
+    void evict(const std::shared_ptr<Upload> &item,const void *address,cudaStream_t stream,bool prefill,uint64_t retirement=0) {
         if(!item)return;
         poll();
         auto fill=cache->begin_demotion(item->token,prefill);
         if(!fill)return;
-        downloads.emplace_back();auto &job=downloads.back();job.fill=std::move(fill);
+        downloads.emplace_back();auto &job=downloads.back();job.fill=std::move(fill);job.retirement=retirement;
         try {
             check(cudaEventCreateWithFlags(&job.event,cudaEventDisableTiming));
             check(cudaMemcpyAsync(job.fill->data(),address,item->token.bytes,cudaMemcpyDeviceToHost,stream));

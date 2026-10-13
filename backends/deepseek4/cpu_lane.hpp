@@ -37,6 +37,8 @@ struct CpuExpert {
     const void *gate, *up, *down;
     int token, slot;
 };
+enum class CpuWeightPhase { gate_up, down };
+using CpuWeightRetire = std::function<void(CpuWeightPhase)>;
 struct CpuExpertWork {
     ggml_type gate_type, up_type, down_type;
     int columns=0, hidden=0, tokens=0, topk=0;
@@ -46,6 +48,8 @@ struct CpuExpertWork {
     std::vector<CpuExpert> experts;
     std::vector<uint8_t> gate_q, up_q, hidden_q;
     std::vector<float> hidden_f;
-    void compute(CpuLanePool &pool, CpuExpertTiming *timing=nullptr);
+    // Called after the pool barrier: the completed phase will never read its
+    // weights again. Output/activations and the work descriptor remain live.
+    void compute(CpuLanePool &pool, CpuExpertTiming *timing=nullptr, const CpuWeightRetire &retire={});
 };
 }

@@ -53,6 +53,7 @@ struct StrataExpertTransfer {
         uint8_t *allocation=nullptr;
         uint64_t touched=0;
         std::shared_ptr<StrataExpertResidency::Upload> residency;
+        bool empty=false; // charged allocation reserved by the GPU-demand path
     };
     int device;
     ggml_backend_cuda_context *context;
@@ -68,14 +69,13 @@ struct StrataExpertTransfer {
     // Extracted nodes retain their LRU positions and allocation budget. Their
     // keys are protected, but absent from lookup until the branch is drained.
     struct FetchLoan { Entries::node_type node;const void *replacement=nullptr; };
-    FetchLoan fetch_loans[3][strata_ds4::gpu_fetch_cache_slots];
-    size_t fetch_loan_count=0;
+
     StrataExpertCounters stats;
     bool managed=false;
     size_t allocated=0;
     std::shared_ptr<strata_ds4::ExpertSlabAllocator> slab;
     std::unique_ptr<StrataExpertPipeline> pipeline;
-    std::unordered_set<const void *> protected_keys;
+
     StrataExpertReuseFence reuse_fence;
     std::unique_ptr<StrataExpertFrequency> frequency;
     bool match_size=false;
@@ -85,16 +85,35 @@ struct StrataExpertTransfer {
     StrataHashScratch hash_scratch;
     StrataExpertEarlyHitScratch early_hits;
     StrataCpuLane cpu_lane;
-    StrataCpuExpertLane cpu_whole;
-    StrataGpuFetchLane gpu_fetch;
+    struct BranchContext {
+        StrataCpuExpertLane cpu;
+        StrataGpuFetchLane fetch;
+        FetchLoan loans[3][strata_ds4::gpu_fetch_cache_slots];
+        size_t loan_count=0;
+        std::unordered_set<const void *> protected_keys,deferred_keys;
+    };
+    std::array<BranchContext,2> branch_contexts;
+    size_t current_context=0;
+    uint64_t context_rotations=0,context_reuse_waits=0;
+    uint64_t demotion_clock=0;
+    auto &cpu_whole(){return branch_contexts[current_context].cpu;}
+    auto &gpu_fetch(){return branch_contexts[current_context].fetch;}
+    auto &fetch_loans(){return branch_contexts[current_context].loans;}
+    auto &fetch_loan_count(){return branch_contexts[current_context].loan_count;}
+    auto &protected_keys(){return branch_contexts[current_context].protected_keys;}
+    auto &deferred_keys(){return branch_contexts[current_context].deferred_keys;}
+    bool protected_in_flight(const void *key)const {
+        for(const auto &c:branch_contexts)if(c.protected_keys.count(key) || c.deferred_keys.count(key))return true;
+        return false;
+    }
     std::shared_ptr<strata_ds4::HostCache> host_cache;
     StrataExpertResidency residency;
     bool ram_drop_gpu=false,ram_on_bypass=false;
-    void promoted(const void *key,Entry &entry) {
+    void promoted(const void *key,Entry &entry,bool already_copied=false) {
         if(!residency.cache && !ram_drop_gpu)return;
         if(auto file=strata_expert_file::find(key,entry.bytes)) {
             const auto offset=file->offset_of(key,entry.bytes);
-            if(residency.cache)entry.residency=residency.uploaded(file,offset,entry.bytes,ram_drop_gpu,stream);
+            if(residency.cache)entry.residency=residency.uploaded(file,offset,entry.bytes,ram_drop_gpu,stream,already_copied);
             else host_cache->discard(file,offset,entry.bytes);
         }
     }
@@ -178,35 +197,50 @@ struct StrataExpertTransfer {
         ++stats.admission_rejects;return false;
     }
 
+    Entries::iterator reserve_fetch_slot(size_t bytes);
 #include "gpu_fetch_cache.inc"
 
-    void finish_plan(bool keep_whole=false) {
+    void finish_context(bool keep_whole=false,const std::function<void()> &prepare_next={},bool overlap_context=false) {
+        // A handoff receipt precedes the current fetch on this owner stream.
+        // Reuse its existing copy fence, not an extra wait at the branch entry.
+        const bool receipt_at_fetch=cpu_whole().handoff_pending && gpu_fetch().active;
+        if(!receipt_at_fetch)cpu_whole().finish_consumer();
+        deferred_keys().clear();
+        // Only a complete GPU-fetch branch proves that all route producers
+        // have finished at the copy fence. Cancellation/legacy/demotion retain
+        // the ordinary boundary. The callback owns a separate host snapshot.
+        const bool early_context=!keep_whole && cpu_whole().gpu_queue_active && cpu_whole().completion &&
+            gpu_fetch().active && gpu_fetch().early_retire && gpu_fetch().queue->has_copy_fence() &&
+            !(host_cache && host_cache->demotion_enabled());
+        const bool can_prepare=prepare_next && early_context;
+        const bool defer_consumer=overlap_context && cpu_whole().context_overlap && early_context;
         // Optional copy fence permits RAM/cache bookkeeping during the final
-        // GPU/CPU compute. VRAM protection and branch buffers stay held until
-        // cpu_whole.clear()/retire_direct() below confirm their last reader.
-        gpu_fetch.finish(stream,!keep_whole && cpu_whole.completion,[&](int m,const auto &job) {
-            const auto &p=gpu_fetch.plan[m];
+        // GPU/CPU compute. Deferred retirement retains VRAM keys and the mapped
+        // result through finish_consumer(); otherwise clear() waits here.
+        gpu_fetch().finish(stream,!keep_whole && cpu_whole().completion,[&](int m,const auto &job) {
+            const auto &p=gpu_fetch().plan[m];
             if(!m)for(int i=0;i<job.used_count;++i) {
                 const int id=job.used_ids[i];int hits=0;
-                for(int j=0;j<3;++j)hits+=gpu_fetch.plan[j].cached[id]!=nullptr;
-                if(!hits)++gpu_fetch.route_allmiss;else if(hits==3)++gpu_fetch.route_allgpu;else ++gpu_fetch.route_partial;
-                const auto &e=cpu_whole.queue_table.expert[id];
-                gpu_fetch.route_ready+=e.ready && e.eligible;gpu_fetch.route_cpu_only+=job.cpu_only[i];
+                for(int j=0;j<3;++j)hits+=gpu_fetch().plan[j].cached[id]!=nullptr;
+                if(!hits)++gpu_fetch().route_allmiss;else if(hits==3)++gpu_fetch().route_allgpu;else ++gpu_fetch().route_partial;
+                const auto &e=cpu_whole().queue_table.expert[id];
+                gpu_fetch().route_ready+=e.ready && e.eligible;gpu_fetch().route_cpu_only+=job.cpu_only[i];
             }
-            if(!gpu_fetch.reserve_limit && !gpu_fetch.cache_slots)return; // original untrained mode
+            if(!gpu_fetch().reserve_limit && !gpu_fetch().cache_slots)return; // original untrained mode
             bool admitted[256]={};
-            for(int i=0;i<job.count;++i)if(p.cache_count && p.keep_ram[job.ids[i]])++gpu_fetch.cache_ram_bypasses;
+            for(int i=0;i<job.count;++i)if(p.cache_count && p.keep_ram[job.ids[i]])++gpu_fetch().cache_ram_bypasses;
             for(int i=0;i<job.count;++i)if(job.cache_slots[i]>=0) {
                 const int id=job.ids[i],k=job.cache_slots[i];
-                GGML_ASSERT(k<p.cache_count && !fetch_loans[m][k].node.empty() && !fetch_loans[m][k].replacement);
-                fetch_loans[m][k].replacement=gpu_fetch.weights[m]+size_t(id)*p.width;admitted[id]=true;
+                GGML_ASSERT(k<p.cache_count && !fetch_loans()[m][k].node.empty() && !fetch_loans()[m][k].replacement);
+                fetch_loans()[m][k].replacement=gpu_fetch().weights[m]+size_t(id)*p.width;admitted[id]=true;
             }
             for(int i=0;i<job.used_count;++i) {
-                const int id=job.used_ids[i];const void *key=gpu_fetch.weights[m]+size_t(id)*p.width;
+                const int id=job.used_ids[i];const void *key=gpu_fetch().weights[m]+size_t(id)*p.width;
                 const auto bytes=p.width+(id<p.experts-1?std::min<size_t>(p.width,512):0);
                 if(frequency)frequency->record(key);
-                if(job.cpu_only[i]) {cpu_whole.saved_bytes+=bytes;continue;}
+                if(job.cpu_only[i]) {cpu_whole().saved_bytes+=bytes;continue;}
                 if(p.cached[id]) {
+                    if(host_cache && host_cache->demotion_enabled())host_cache->observe_gpu(gpu_fetch().files[m],gpu_fetch().offsets[m]+size_t(id)*p.width,bytes);
                     const auto it=entries.find(key);GGML_ASSERT(it!=entries.end());
                     lru.splice(lru.begin(),lru,it->second.lru);
                     if(managed)it->second.touched=strata_expert_touch_clock(device);
@@ -214,32 +248,98 @@ struct StrataExpertTransfer {
                 } else {++stats.misses;if(!admitted[id])++stats.bypass;}
             }
         });
+        if(gpu_fetch().demotion_epoch){residency.retire(gpu_fetch().demotion_epoch);gpu_fetch().demotion_epoch=0;}
+        if(receipt_at_fetch)cpu_whole().finish_consumer(true);
         finish_fetch_cache();
+        if(can_prepare) {
+            if(!cpu_whole().queue_adopted){uint8_t selected[256];cpu_whole().queue_adopt(selected);}
+            prepare_next();
+        }
         cpu_lane.clear();cpu_lane.planned.clear();
-        if(!keep_whole)cpu_whole.clear();
+        if(!keep_whole)cpu_whole().clear(defer_consumer);
         early_slices.clear();
         retire_direct();
         flush_copies();
         if(pipeline)pipeline->finish(false);
-        protected_keys.clear();
+        // Keep the previous branch protected while constructing the next
+        // cache-loan plan. Its final fence is checked before next publication.
+        if(cpu_whole().consumer_pending)deferred_keys().swap(protected_keys());
+        else protected_keys().clear();
         if(residency.cache)residency.poll();
+        if(host_cache)host_cache->collect();
+    }
+    // Advance only between complete GPU-fetch branches. Shared GPU scratch,
+    // packet and output reuse is ordered on the owner stream; all mutable host
+    // work/table/trace/leases and service slots belong to the separate context.
+    void next_context(const StrataCpuExpertBranch &next) {
+        auto &old=cpu_whole();auto &fetch=gpu_fetch();
+        if(!old.context_overlap || !old.gpu_queue_active || !old.completion || !fetch.active)return;
+        // A repeated weight set could name an admission not yet retired into
+        // entries. Drain before publishing another snapshot of those keys.
+        for(auto &c:branch_contexts)if(c.cpu.configured)
+            for(auto *w:c.cpu.branch.weights)for(auto *n:next.weights)
+                if(w->data==n->data){finish_plan();return;}
+        retire_direct();flush_copies();
+        const auto next_index=(current_context+1)%branch_contexts.size();
+        current_context=next_index;
+        if(cpu_whole().configured || gpu_fetch().active) {
+            const auto state=cudaEventQuery(cpu_whole().consumed);
+            if(state==cudaErrorNotReady)++context_reuse_waits;else CUDA_CHECK(state);
+            finish_context();
+        }
+        auto &fresh=cpu_whole();fresh.ram=host_cache;
+        fresh.pool=old.pool;fresh.graph_storage=old.graph_storage;fresh.costs=old.costs;
+        ++context_rotations;
+    }
+    void finish_plan(bool keep_whole=false,const std::function<void()> &prepare_next={},bool overlap_context=false) {
+        const auto current=current_context;
+        // FIFO retirement makes frequency/LRU training independent of which
+        // service happens to finish first. Cancellation drains every context.
+        for(size_t i=1;i<branch_contexts.size();++i) {
+            current_context=(current+i)%branch_contexts.size();
+            if(cpu_whole().configured || gpu_fetch().active)finish_context();
+        }
+        current_context=current;finish_context(keep_whole,prepare_next,overlap_context);
     }
     StrataExpertCounters counters() {
         auto result=stats;
-        result.cpu_lane_ops=cpu_lane.operations+cpu_whole.operations;result.cpu_lane_experts=cpu_lane.experts+cpu_whole.experts;
-        result.cpu_lane_saved_bytes=cpu_lane.saved_bytes+cpu_whole.saved_bytes;
-        result.cpu_queue_jobs=cpu_whole.queue_jobs;result.cpu_queue_rows=cpu_whole.queue_rows;
-        result.gpu_fetch_branches=gpu_fetch.branches;result.gpu_fetch_matrices=gpu_fetch.matrices;
-        result.gpu_fetch_ram_reservations=gpu_fetch.reserved;result.gpu_fetch_ram_completed=gpu_fetch.completed;
-        result.gpu_fetch_ram_bytes=gpu_fetch.ram_bytes;
-        result.gpu_fetch_cache_offered=gpu_fetch.cache_offered;result.gpu_fetch_cache_admitted=gpu_fetch.cache_admitted;
-        result.gpu_fetch_cache_restored=gpu_fetch.cache_restored;result.gpu_fetch_cache_bytes=gpu_fetch.cache_bytes;
-        result.gpu_fetch_cache_ram_bypasses=gpu_fetch.cache_ram_bypasses;
-        result.gpu_fetch_ram_released_unused=gpu_fetch.released_unused;result.gpu_fetch_ram_released_used=gpu_fetch.released_used;
-        result.cpu_snapshot_released=cpu_whole.snapshot_released;
-        result.gpu_fetch_early_retire=gpu_fetch.early_retire_branches;result.gpu_fetch_retire_tail_pending=gpu_fetch.retire_tail_pending;
-        result.h2d_bytes+=gpu_fetch.h2d_bytes;
-        result.file_read_bytes+=gpu_fetch.file_bytes;
+        result.cpu_lane_ops=cpu_lane.operations;result.cpu_lane_experts=cpu_lane.experts;
+        result.cpu_lane_saved_bytes=cpu_lane.saved_bytes;
+        const auto current=current_context;
+        for(current_context=0;current_context<branch_contexts.size();++current_context) {
+        result.cpu_lane_ops+=cpu_whole().operations;result.cpu_lane_experts+=cpu_whole().experts;
+        result.cpu_lane_saved_bytes+=cpu_whole().saved_bytes;
+        result.cpu_queue_jobs+=cpu_whole().queue_jobs;result.cpu_queue_rows+=cpu_whole().queue_rows;
+        result.gpu_fetch_branches+=gpu_fetch().branches;result.gpu_fetch_matrices+=gpu_fetch().matrices;
+        result.gpu_fetch_ram_reservations+=gpu_fetch().reserved;result.gpu_fetch_ram_completed+=gpu_fetch().completed;
+        result.gpu_fetch_ram_bytes+=gpu_fetch().ram_bytes;
+        result.gpu_fetch_cache_offered+=gpu_fetch().cache_offered;result.gpu_fetch_cache_admitted+=gpu_fetch().cache_admitted;
+        result.gpu_fetch_cache_restored+=gpu_fetch().cache_restored;result.gpu_fetch_cache_bytes+=gpu_fetch().cache_bytes;
+        result.gpu_fetch_cache_duplicates+=gpu_fetch().cache_duplicates;
+        result.gpu_fetch_cache_ram_bypasses+=gpu_fetch().cache_ram_bypasses;
+        result.gpu_fetch_ram_released_unused+=gpu_fetch().released_unused;result.gpu_fetch_ram_released_used+=gpu_fetch().released_used;
+        result.cpu_snapshot_released+=cpu_whole().snapshot_released;
+        result.gpu_fetch_early_retire+=gpu_fetch().early_retire_branches;result.gpu_fetch_retire_tail_pending+=gpu_fetch().retire_tail_pending;
+        result.cpu_weight_release_gate_up+=cpu_whole().weight_release_gate_up.load(std::memory_order_relaxed);
+        result.cpu_weight_release_down+=cpu_whole().weight_release_down.load(std::memory_order_relaxed);
+        result.cpu_weight_release_deferred+=cpu_whole().weight_release_deferred.load(std::memory_order_relaxed);
+        result.cpu_weight_release_jobs+=cpu_whole().weight_release_jobs.load(std::memory_order_relaxed);
+        result.cpu_weight_capture_jobs+=cpu_whole().weight_capture_jobs.load(std::memory_order_relaxed);
+        result.cpu_snapshot_prepared+=cpu_whole().snapshot_prepared;
+        result.cpu_snapshot_tail_pending+=cpu_whole().snapshot_tail_pending;
+        result.cpu_snapshot_fallbacks+=cpu_whole().snapshot_fallbacks;
+        result.cpu_context_deferred+=cpu_whole().context_deferred;
+        result.cpu_context_tail_pending+=cpu_whole().context_tail_pending;
+        result.cpu_consumer_handoffs+=cpu_whole().handoffs;
+        result.cpu_consumer_handoff_fenced+=cpu_whole().handoff_fenced;
+        result.cpu_consumer_handoff_waits+=cpu_whole().handoff_waits;
+        result.cpu_consumer_handoff_ram_fallbacks+=cpu_whole().handoff_ram_fallbacks;
+        result.h2d_bytes+=gpu_fetch().h2d_bytes;
+        result.file_read_bytes+=gpu_fetch().file_bytes;
+        }
+        current_context=current;
+        result.cpu_context_rotations=context_rotations;result.cpu_context_reuse_waits=context_reuse_waits;
+        result.gpu_demotion_bytes=residency.d2h_bytes;
         if(pipeline) {
             auto p=pipeline->counters();
             result.pipeline_groups=p.groups;result.pipeline_chunks=p.chunks;result.pipeline_unused=p.unused;
@@ -258,14 +358,14 @@ struct StrataExpertTransfer {
             if(same) {early_slices.clear();++stats.early_reuses;return;}
             ++stats.early_mismatches;
         }
-        finish_plan(cpu_whole.pending);cpu_whole.pending=false;
+        finish_plan(cpu_whole().pending);cpu_whole().pending=false;
         if(!pipeline)return;
         if(host_cache)host_cache->refresh();
         std::vector<StrataExpertSlice> misses;
         for(size_t i=0;i<count;++i) {
             if(slices[i].host_compute && cpu_lane.threads) {cpu_lane.planned.insert(slices[i].data);continue;}
             if((slices[i].cacheable || prefill_cache_hits) && entries.find(slices[i].data)!=entries.end())
-                protected_keys.insert(slices[i].data);
+                protected_keys().insert(slices[i].data);
             else misses.push_back(slices[i]);
         }
         pipeline->start(misses);
@@ -275,7 +375,7 @@ struct StrataExpertTransfer {
         size_t scanned=0;
         for(auto it=lru.rbegin();it!=lru.rend();++it) {
             if(direct.protects(*it))continue;
-            if(protected_keys.find(*it)!=protected_keys.end())continue;
+            if(protected_in_flight(*it))continue;
             if(oldest==lru.rend())oldest=it;
             if(!prefer_bytes || entries.find(*it)->second.bytes==prefer_bytes)return it;
             // Keep selection near the LRU tail. Prefer an existing allocation
@@ -352,12 +452,12 @@ struct StrataExpertTransfer {
             const bool ram_residency=ram_drop_gpu || ram_demote || enabled("STRATA_DS4_RAM_RESIDENCY");
             if(ram_async && !ram_on_bypass)throw std::runtime_error("RAM async retention requires STRATA_DS4_RAM_ON_BYPASS=1");
             if(const size_t budget=env_mib("STRATA_DS4_RAM_CACHE_MIB")) {
-                if(gpu_fetch.enabled)ram_pool=std::max(ram_pool,gpu_fetch.reserve_limit);
+                if(gpu_fetch().enabled)ram_pool=std::max(ram_pool,gpu_fetch().reserve_limit);
                 if(!pipe || std::strcmp(pipe,"1"))throw std::runtime_error("DeepSeek RAM cache requires pipeline");
                 host_cache=strata_host_cache.lock();
                 if(!host_cache) {
                     strata_ds4::HostCache::Storage storage;
-                    if(cpu_whole.shared_ram || ram_direct || ram_demote) {
+                    if(cpu_whole().shared_ram || ram_direct || ram_demote) {
                         storage.allocate=[dev=device](size_t n)->uint8_t * {
                             ggml_cuda_set_device(dev);void *p=nullptr;
                             if(cudaMallocHost(&p,n)!=cudaSuccess){cudaGetLastError();return nullptr;}
@@ -368,7 +468,7 @@ struct StrataExpertTransfer {
                     host_cache=std::make_shared<strata_ds4::HostCache>(budget,strata_ds4::HostCache::memory,
                         strata_ds4::HostCache::Policy::Frequency,131072,131072,std::move(storage),ram_pool,ram_demote);strata_host_cache=host_cache;
                 }
-                cpu_whole.ram=host_cache;
+                cpu_whole().ram=host_cache;
                 if(ram_residency)residency.cache=host_cache;
                 if(ram_direct)source_borrow=[cache=host_cache](const auto &file,const void *src,size_t n,bool cacheable) {
                     return cache->acquire(file,file->offset_of(src,n),n,!cacheable).shared_data();
@@ -387,9 +487,9 @@ struct StrataExpertTransfer {
                 };
             }
             if((ram_direct || ram_residency || ram_pool) && !host_cache)throw std::runtime_error("RAM transfer tuning requires STRATA_DS4_RAM_CACHE_MIB > 0");
-            GGML_LOG_INFO("STRATA_RAM_TRANSFER direct_h2d=%d drop_gpu=%d on_bypass=%d pinned=%d async_retain=%d pool_mib=%zu\n",int(ram_direct),int(ram_drop_gpu),int(ram_on_bypass),int(bool(host_cache) && (ram_direct || cpu_whole.shared_ram || ram_demote)),int(ram_async),ram_pool>>20);
+            GGML_LOG_INFO("STRATA_RAM_TRANSFER direct_h2d=%d drop_gpu=%d on_bypass=%d pinned=%d async_retain=%d pool_mib=%zu\n",int(ram_direct),int(ram_drop_gpu),int(ram_on_bypass),int(bool(host_cache) && (ram_direct || cpu_whole().shared_ram || ram_demote)),int(ram_async),ram_pool>>20);
             GGML_LOG_INFO("STRATA_RAM_RESIDENCY enabled=%d demote_mib=%zu\n",int(ram_residency),ram_demote>>20);
-            if(cpu_whole.shared_ram && !host_cache)throw std::runtime_error("CPU shared RAM requires STRATA_DS4_RAM_CACHE_MIB > 0");
+            if(cpu_whole().shared_ram && !host_cache)throw std::runtime_error("CPU shared RAM requires STRATA_DS4_RAM_CACHE_MIB > 0");
             if(pipe && std::strcmp(pipe,"1")==0)pipeline=std::make_unique<StrataExpertPipeline>(device,stage_size,write_combined,n_readers,read_mode,
                 h2d_observer,1,early_refill,
                 avx2?StrataExpertPipeline::HostCopy(strata_ds4_host_copy::copy):StrataExpertPipeline::HostCopy{},
@@ -412,8 +512,8 @@ struct StrataExpertTransfer {
         if(cpu_lane.threads) {
             GGML_ASSERT(direct.enabled && pipeline && !early_hits.enabled);
             GGML_LOG_INFO("STRATA_CPU_LANE_CONFIG threads=%d max_experts=%d prefill=GPU mode=%s policy=%s ram_mib=%zu shared_ram=%d graphs=%s\n",
-                cpu_lane.threads,cpu_lane.max_experts,cpu_whole.legacy?"matrix_legacy":"whole_expert",
-                cpu_whole.force?"force":"auto",cpu_whole.cache_limit>>20,int(cpu_whole.shared_ram),cpu_whole.legacy?"GPU_only_splits":"external_event");
+                cpu_lane.threads,cpu_lane.max_experts,cpu_whole().legacy?"matrix_legacy":"whole_expert",
+                cpu_whole().force?"force":"auto",cpu_whole().cache_limit>>20,int(cpu_whole().shared_ram),cpu_whole().legacy?"GPU_only_splits":"external_event");
         }
     }
     ~StrataExpertTransfer() {
@@ -421,6 +521,7 @@ struct StrataExpertTransfer {
         finish_plan();
         CUDA_CHECK(cudaStreamSynchronize(stream));
         if(residency.cache)residency.poll(true);
+        if(host_cache)host_cache->collect();
 #ifdef STRATA_DS4_COST_EXPERIMENT
         profile_drain();
 #endif
@@ -437,13 +538,16 @@ struct StrataExpertTransfer {
         if(cpu_lane.threads)GGML_LOG_INFO("STRATA_CPU_LANE ops=%llu experts=%llu skipped_weight_bytes=%llu wait_us=%llu input_us=%llu\n",
             (unsigned long long)stats.cpu_lane_ops,(unsigned long long)stats.cpu_lane_experts,
             (unsigned long long)stats.cpu_lane_saved_bytes,(unsigned long long)cpu_lane.wait_us,(unsigned long long)cpu_lane.input_us);
-        if(cpu_whole.threads && !cpu_whole.legacy)GGML_LOG_INFO("STRATA_CPU_WHOLE branches=%llu declined=%llu ops=%llu expert_rows=%llu compute_us=%llu pack_us=%llu select_us=%llu retire_us=%llu input_bytes=%llu output_bytes=%llu ram_hits=%llu ram_misses=%llu ram_bytes=%zu\n",
-            (unsigned long long)cpu_whole.branches,(unsigned long long)cpu_whole.declined,
-            (unsigned long long)cpu_whole.operations,(unsigned long long)cpu_whole.experts,
-            (unsigned long long)cpu_whole.compute_us,(unsigned long long)cpu_whole.pack_us,
-            (unsigned long long)cpu_whole.select_us,(unsigned long long)cpu_whole.retire_us,
-            (unsigned long long)cpu_whole.input_bytes,(unsigned long long)cpu_whole.output_bytes,
-            (unsigned long long)cpu_whole.ram_hits,(unsigned long long)cpu_whole.ram_misses,cpu_whole.cache_bytes);
+        for(size_t index=0;index<branch_contexts.size();++index) {
+            const auto &c=branch_contexts[index].cpu;
+        if(c.threads && !c.legacy)GGML_LOG_INFO("STRATA_CPU_WHOLE branches=%llu declined=%llu ops=%llu expert_rows=%llu compute_us=%llu pack_us=%llu select_us=%llu retire_us=%llu input_bytes=%llu output_bytes=%llu ram_hits=%llu ram_misses=%llu ram_bytes=%zu context=%zu\n",
+            (unsigned long long)c.branches,(unsigned long long)c.declined,
+            (unsigned long long)c.operations,(unsigned long long)c.experts,
+            (unsigned long long)c.compute_us,(unsigned long long)c.pack_us,
+            (unsigned long long)c.select_us,(unsigned long long)c.retire_us,
+            (unsigned long long)c.input_bytes,(unsigned long long)c.output_bytes,
+            (unsigned long long)c.ram_hits,(unsigned long long)c.ram_misses,c.cache_bytes,index);
+        }
         if(host_cache) {
             auto h=host_cache->snapshot();
             GGML_LOG_INFO("STRATA_RAM_TIERS gpu_entries=%llu gpu_bytes=%llu gpu_pending=%llu publications=%llu duplicate_fills=%llu stale_fills=%llu gpu_bypasses=%llu demotion_pending=%llu demotion_jobs=%llu demotion_admitted=%llu demotion_published=%llu demotion_bytes=%llu d2h_bytes=%llu d2h_jobs=%llu\n",
@@ -465,6 +569,8 @@ struct StrataExpertTransfer {
                 (unsigned long long)h.retired_bytes,(unsigned long long)h.gpu_drop_bytes,(unsigned long long)h.gpu_drop_entries,
                 (unsigned long long)h.deferred_reads,(unsigned long long)h.retain_calls,(unsigned long long)h.retain_hits);
         }
+        GGML_LOG_INFO("STRATA_CPU_CONTEXT_RING contexts=2 rotations=%llu reuse_waits=%llu\n",
+            (unsigned long long)context_rotations,(unsigned long long)context_reuse_waits);
         GGML_LOG_INFO("STRATA_EARLY_HITS ops=%llu hits=%llu misses=%llu\n",
             (unsigned long long)stats.early_hit_ops,(unsigned long long)stats.early_hit_experts,
             (unsigned long long)stats.early_miss_experts);
@@ -602,9 +708,9 @@ struct StrataExpertTransfer {
         for(int id=first;id<=last;++id) {
             size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
             const void *key=(const uint8_t *)source->data+offset;
-            if(cpu_lane.selected(dest,id) || cpu_whole.selected(dest,id)) {
+            if(cpu_lane.selected(dest,id) || cpu_whole().selected(dest,id)) {
                 if(frequency)frequency->record(key);
-                if(cpu_whole.selected(dest,id))cpu_whole.saved_bytes+=bytes;else cpu_lane.saved_bytes+=bytes;
+                if(cpu_whole().selected(dest,id))cpu_whole().saved_bytes+=bytes;else cpu_lane.saved_bytes+=bytes;
                 continue;
             }
             void *destination=direct.destination(dest,id);
@@ -671,7 +777,7 @@ static void strata_cache_totals(int device,StrataVramStatus &out) {
     for(auto &kv:strata_expert_transfers) if(kv.second->device==device) {
         auto &s=*kv.second;
         out.cache_bytes+=s.managed?s.allocated:s.capacity;
-        out.matrices+=s.entries.size()+s.fetch_loan_count;
+        out.matrices+=s.entries.size();for(const auto &context:s.branch_contexts)out.matrices+=context.loan_count;
         if(s.managed && s.slab) {
             if(pools.insert(s.slab.get()).second) {
                 auto status=s.slab->status();
@@ -756,6 +862,39 @@ static bool strata_cuda_expert_control(int device,const StrataVramPolicy *policy
     return true;
 }
 
+StrataExpertTransfer::Entries::iterator StrataExpertTransfer::reserve_fetch_slot(size_t bytes) {
+    if(!bytes || bytes>capacity)return entries.end();
+    size_t offset=0;uint8_t *pointer=nullptr;
+    if(!managed) {
+        auto block=free_blocks.begin();
+        while(block!=free_blocks.end() && block->second<bytes)++block;
+        if(block==free_blocks.end())return entries.end();
+        offset=block->first;const auto left=block->second-bytes;free_blocks.erase(block);
+        if(left)free_blocks.emplace(offset+bytes,left);pointer=arena+offset;
+    } else {
+        auto &c=strata_device_cache_controls[device];strata_cache_totals(device,c.status);
+        const uint64_t count=c.policy.mode==1?c.policy.matrices:UINT64_MAX;
+        if(!c.status.telemetry_ok || c.status.matrices>=count ||
+           (c.policy.mode==0 && allocated+bytes>capacity) ||
+           bytes>c.status.limit_bytes-std::min(c.status.limit_bytes,c.status.cache_bytes))return entries.end();
+        size_t free=0,total=0;uint64_t growth=0;
+        if(strata_device_memory(device,free,total)) {
+            const auto limit=std::min(c.status.limit_bytes,c.policy.byte_limit(free,total,c.status.cache_reserved_bytes));
+            growth=limit-std::min<uint64_t>(limit,c.status.cache_reserved_bytes+(64ULL<<20));
+        }
+        bool denied=false;
+        const auto error=slab?slab->allocate((void **)&pointer,bytes,size_t(growth),&denied):
+            growth>=bytes?cudaMalloc((void **)&pointer,bytes):cudaSuccess;
+        if(error!=cudaSuccess){cudaGetLastError();if(!denied)++c.status.allocation_failures;return entries.end();}
+        if(!pointer)return entries.end();allocated+=bytes;
+    }
+    // Empty reservations have an allocation identity, never a model key, and
+    // participate in the same LRU/budget/release mechanism as ordinary entries.
+    lru.push_back(pointer);
+    auto result=entries.emplace(pointer,Entry{offset,bytes,std::prev(lru.end()),managed?pointer:nullptr,0,{},true});
+    GGML_ASSERT(result.second);return result.first;
+}
+
 // Dynamic matrices use individual allocations or shared slabs. Equal-size LRU
 // replacements retain their slot after ordering its reads against the consumer.
 static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *source,ggml_tensor *dest,int first,int last,int tokens) {
@@ -770,9 +909,9 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
     for(int id=first;id<=last;++id) {
         size_t offset=size_t(id)*width,bytes=width+(id<count-1?std::min<size_t>(width,512):0);
         const void *key=(const uint8_t *)source->data+offset;
-        if(s.cpu_lane.selected(dest,id) || s.cpu_whole.selected(dest,id)) {
+        if(s.cpu_lane.selected(dest,id) || s.cpu_whole().selected(dest,id)) {
             if(s.frequency)s.frequency->record(key);
-            if(s.cpu_whole.selected(dest,id))s.cpu_whole.saved_bytes+=bytes;else s.cpu_lane.saved_bytes+=bytes;
+            if(s.cpu_whole().selected(dest,id))s.cpu_whole().saved_bytes+=bytes;else s.cpu_lane.saved_bytes+=bytes;
             continue;
         }
         void *destination=s.direct.destination(dest,id);
@@ -1015,7 +1154,7 @@ static bool strata_cuda_expert_early_hits(ggml_backend_t backend,const ggml_tens
         // The current layer plan retains these allocations throughout all
         // selected copies. The owner stream joins separate early work before
         // retirement, so cross-context eviction fences also include its reads.
-        if(s.protected_keys.find(key)==s.protected_keys.end())return false;
+        if(s.protected_keys().find(key)==s.protected_keys().end())return false;
         if(!packet.pointers[id])++hits;
         packet.pointers[id]=s.managed?found->second.allocation:s.arena+found->second.offset;
     }
@@ -1056,15 +1195,15 @@ static void strata_cuda_expert_complete(ggml_backend_t backend,ggml_backend_cuda
     auto it=strata_expert_transfers.find(backend);
     if(it!=strata_expert_transfers.end()) {
         auto &s=*it->second;s.direct.complete(s.stream,ctx->stream());
-        if(s.cpu_whole.configured && s.direct.tensor==s.cpu_whole.branch.nodes[2]->src[0]) {
-            CUDA_CHECK(cudaEventRecord(s.cpu_whole.consumed,s.stream));s.cpu_whole.completion=true;
+        if(s.cpu_whole().configured && s.direct.tensor==s.cpu_whole().branch.nodes[2]->src[0]) {
+            CUDA_CHECK(cudaEventRecord(s.cpu_whole().consumed,s.stream));s.cpu_whole().completion=true;
         }
     }
 }
 static void strata_cuda_expert_free(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
-    if(it!=strata_expert_transfers.end() && it->second->cpu_whole.stream) {
+    if(it!=strata_expert_transfers.end() && it->second->cpu_whole().stream) {
         auto &s=*it->second;ggml_cuda_set_device(s.device);s.finish_plan();
         CUDA_CHECK(cudaStreamSynchronize(s.stream));
 #ifdef USE_CUDA_GRAPH

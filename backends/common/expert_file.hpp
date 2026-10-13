@@ -115,7 +115,7 @@ public:
     // Explicit 64-bit offsets let GLM's range planner use native reads without
     // constructing or dereferencing a pointer into a still-live mmap view.
     // A Request belongs to one reader thread. Hold Source through completion.
-    bool read_at(const Source &source,uint64_t offset,void *dest,size_t bytes,const std::atomic<bool> &cancel) {
+    bool read_at(const Source &source,uint64_t offset,void *dest,size_t bytes,const std::atomic<bool> &cancel,uint32_t timeout_ms=0) {
         if(!source.contains(offset,bytes))
             throw std::runtime_error("expert read outside registered mapping");
 #ifdef _WIN32
@@ -128,6 +128,7 @@ public:
         ResetEvent(event);
         OVERLAPPED op{};op.hEvent=event;op.Offset=DWORD(offset);op.OffsetHigh=DWORD(offset>>32);
         DWORD done=0;
+        const auto started=GetTickCount64();bool timed_out=false;
         if(!ReadFile(source.file,dest,DWORD(bytes),nullptr,&op)) {
             DWORD error=GetLastError();
             if(error!=ERROR_IO_PENDING)throw std::system_error(error,std::system_category(),"expert ReadFile");
@@ -136,7 +137,8 @@ public:
             const DWORD status=WaitForSingleObject(event,20);
             if(status==WAIT_OBJECT_0)break;
             if(status==WAIT_TIMEOUT) {
-                if(cancel.load()) {CancelIoEx(source.file,&op);break;}
+                timed_out=timeout_ms && GetTickCount64()-started>=timeout_ms;
+                if(cancel.load() || timed_out) {CancelIoEx(source.file,&op);break;}
             } else {
                 const DWORD error=GetLastError();
                 // Even an unexpected wait failure must drain I/O before the
@@ -148,13 +150,13 @@ public:
         }
         if(!GetOverlappedResult(source.file,&op,&done,TRUE)) {
             DWORD error=GetLastError();
-            if(error==ERROR_OPERATION_ABORTED && cancel.load())return false;
+            if(error==ERROR_OPERATION_ABORTED && (cancel.load() || timed_out))return false;
             throw std::system_error(error,std::system_category(),"expert read completion");
         }
         if(done!=bytes)throw std::runtime_error("short expert file read");
-        return !cancel.load();
+        return !cancel.load() && !timed_out;
 #else
-        (void)dest;(void)cancel;
+        (void)dest;(void)cancel;(void)timeout_ms;
         throw std::runtime_error("native expert file queue requires Windows");
 #endif
     }

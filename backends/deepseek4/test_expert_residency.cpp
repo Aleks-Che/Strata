@@ -53,6 +53,19 @@ int main(int argc,char **argv) {
         require(!cache->ready_gpu(old) && replacement->token.generation>old.generation,"reused GPU address cannot revive old token");
         require(target.d2h_bytes==4096 && target.d2h_jobs==1 && cache->snapshot().demotion_published==1,"D2H bytes and publication counted separately");
         replacement.reset();restored={};cache->discard(source,0,4096);cache->snapshot();
+        {
+            cuda_check(cudaMemcpyAsync(device,original.data(),4096,cudaMemcpyHostToDevice,first));
+            cuda_check(cudaStreamSynchronize(first));
+            auto known=target.uploaded(source,16384,4096,false,first,true);
+            require(cache->residency(source,16384,4096).gpu==Cache::State::Ready,"known copy fence created a timing-dependent publication");
+            target.evict(known,device,first,false,41);known.reset();
+            cuda_check(cudaStreamSynchronize(first));target.poll();
+            require(!cache->acquire(source,16384,4096),"completed younger demotion escaped epoch retirement");
+            target.retire(40);require(!cache->acquire(source,16384,4096),"wrong epoch published RAM");
+            target.retire(41);auto bytes=cache->acquire(source,16384,4096);
+            require(bytes && !std::memcmp(bytes.data(),original.data(),4096),"epoch retirement lost copied RAM bytes");
+            bytes={};cache->discard(source,16384,4096);cache->collect();
+        }
         // Same-stream arena reuse and a new promotion invalidate a pending
         // demotion of the same matrix without exposing partial host bytes.
         for(int round=0;round<32;++round) {

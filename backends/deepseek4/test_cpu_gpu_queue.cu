@@ -6,6 +6,15 @@ using namespace strata_ds4;
 static int checks=0;
 static void check(bool ok,const char *message){++checks;if(!ok)throw std::runtime_error(message);}
 static __global__ void activate(CpuQueueDevice *s,uint32_t seq){s->active=seq;}
+struct StreamGate {std::atomic<bool> open{false},expired{false};};
+static void CUDART_CB gate_stream(void *arg) {
+    auto &gate=*(StreamGate *)arg;
+    const auto until=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+    while(!gate.open.load(std::memory_order_acquire)) {
+        if(std::chrono::steady_clock::now()>until){gate.expired=true;return;}
+        std::this_thread::yield();
+    }
+}
 int main()try {
     int count=0;if(cudaGetDeviceCount(&count)!=cudaSuccess || !count)return 77;
     cudaStream_t stream;cpu_queue_check(cudaStreamCreateWithFlags(&stream,cudaStreamNonBlocking));
@@ -16,6 +25,7 @@ int main()try {
         for(int m=0;m<3;++m)e.matrix[m]={uint64_t(100+i*3+m),uint64_t(10+i*3+m)};
     }
     std::atomic<int> calls{0},mode{0};
+    int context_tag=0; // owner rewrites only after acquiring the CPU reply
     CpuGpuQueue queue([&](CpuQueueSlot &s) {
         ++calls;auto &job=s.job;
         if(mode.load()==1)throw std::runtime_error("injected CPU failure");
@@ -23,7 +33,7 @@ int main()try {
         for(int r=0;r<job.rows;++r) {
             const auto &e=job.row[r];
             for(int m=0;m<3;++m)if(e.matrix[m].generation!=uint64_t(10+e.expert*3+m)) {s.error=cpu_bad_request;return;}
-            for(int j=0;j<job.columns;++j)s.output[r*job.columns+j]=s.input[e.token*job.columns+j]+float(e.expert*10+e.slot);
+            for(int j=0;j<job.columns;++j)s.output[r*job.columns+j]=s.input[e.token*job.columns+j]+float(e.expert*10+e.slot+context_tag);
         }
     });
     CpuGpuTable *dt;CpuQueuePacket *packet;int32_t *ids;float *input,*output;
@@ -64,6 +74,66 @@ int main()try {
             check(out[t*32+j]==x[t*32+j]+route[t*2+1]*10+(t*2+1),"asynchronous rearm read an old input");
     }
     check(calls==1500 && queue.async_disarms==300,"asynchronous rearm duplicated or dropped a CPU job");
+    // Deterministic delayed consumer: no join is even submitted until the
+    // callback context has been replaced. Replies must not release GPU slots.
+    for(int run=0;run<80;++run) {
+        queue.drain(false);context_tag=run*100;queue.arm();publish();sync();
+        queue.drain(false);const auto old=state().active;
+        check(old!=0,"delayed-consumer job was not published");
+        auto &slot=queue.host[old%cpu_queue_depth];
+        check(slot.reply.load(cuda::memory_order_acquire)==old && slot.consumed.load(cuda::memory_order_acquire)!=old,
+            "CPU reply incorrectly retired the GPU result");
+        bool rejected=false;try{queue.check_consumed(1);}catch(const std::runtime_error &){rejected=true;}
+        check(rejected,"missing consumer was accepted before result reuse");
+        context_tag=-12345;join();sync();queue.check_consumed(1);
+        cpu_queue_check(cudaMemcpy(out.data(),output,96*4,cudaMemcpyDeviceToHost));
+        for(int t=0;t<3;++t)for(int j=0;j<32;++j)
+            check(out[t*32+j]==x[t*32+j]+float(route[t*2+1]*10+(t*2+1)+run*100),"host context reuse corrupted a pending GPU result");
+    }
+    check(calls==1580,"deferred consumers duplicated or dropped a job");context_tag=0;queue.arm();
+    auto retire=[&]{cpu_queue_retire<<<1,1,0,stream>>>(queue.mapped,1);cpu_queue_check(cudaGetLastError());};
+    CpuGpuTable *upload_table=nullptr;cpu_queue_check(cudaMallocHost((void **)&upload_table,sizeof(table)));
+    std::memcpy(upload_table,&table,sizeof(table));
+    // Hold the old GPU consumer behind a gate. Enqueue its receipt AND a new
+    // route before opening the gate, so a hidden host fence would fail boundedly.
+    for(int run=0;run<80;++run) {
+        context_tag=run*100;publish();sync();queue.drain(false);
+        StreamGate gate;cpu_queue_check(cudaLaunchHostFunc(stream,gate_stream,&gate));
+        join();retire();
+        cpu_queue_check(cudaMemcpyAsync(output+96,output,96*4,cudaMemcpyDeviceToDevice,stream));
+        cpu_queue_check(cudaMemcpyAsync(dt,upload_table,sizeof(table),cudaMemcpyHostToDevice,stream));
+        context_tag=-run*100-7;queue.arm();publish();join();
+        check(!queue.host[0].receipt.ready.load(cuda::memory_order_acquire),"handoff waited for the old GPU consumer");
+        gate.open.store(true,std::memory_order_release);sync();queue.drain(false);
+        check(!gate.expired,"handoff blocked on a host fence");queue.check_receipt(1);
+        cpu_queue_check(cudaMemcpy(out.data(),output+96,96*4,cudaMemcpyDeviceToHost));
+        for(int t=0;t<3;++t)for(int j=0;j<32;++j)
+            check(out[t*32+j]==x[t*32+j]+float(route[t*2+1]*10+(t*2+1)+run*100),"handoff corrupted old output");
+        cpu_queue_check(cudaMemcpy(out.data(),output,96*4,cudaMemcpyDeviceToHost));
+        for(int t=0;t<3;++t)for(int j=0;j<32;++j)
+            check(out[t*32+j]==x[t*32+j]+float(route[t*2+1]*10+(t*2+1)-run*100-7),"handoff corrupted new output");
+        queue.arm();
+    }
+    check(calls==1740,"handoff duplicated or dropped a CPU job");context_tag=0;
+    // An absent consumer and a CPU error must survive the next successful
+    // publication clearing the ordinary GPU failure doorbell.
+    for(bool missing:{true,false}) {
+        mode=missing?0:1;publish();sync();queue.drain(false);
+        if(!missing){join();sync();}
+        retire();if(missing)join();mode=0;queue.arm();publish();join();sync();queue.drain(false);
+        check(!queue.host[0].gpu_failure.load(cuda::memory_order_acquire),"successful publication did not reset its error");
+        bool rejected=false;try{queue.check_receipt(1);}catch(const std::runtime_error &){rejected=true;}
+        check(rejected,"new publication hid an old missing consumer or CPU error");
+        // Test-only recovery after the complete stream/CPU fence; production
+        // errors abort and never clear an unsuccessful receipt.
+        queue.host[0].receipt.ready.store(0,cuda::memory_order_release);queue.arm();
+    }
+    retire();sync();
+    bool stale=false;try{queue.check_receipt(2);}catch(const std::runtime_error &){stale=true;}
+    check(stale,"wrong retirement epoch accepted");queue.check_receipt(1);
+    bool absent=false;try{queue.check_receipt(1);}catch(const std::runtime_error &){absent=true;}
+    check(absent,"missing retirement receipt accepted");
+    cpu_queue_check(cudaFreeHost(upload_table));
     CpuQueuePacket p;cpu_queue_check(cudaMemcpy(&p,packet,sizeof(p),cudaMemcpyDeviceToHost));
     check(!p.mask[0] && !p.mask[1] && !p.mask[2],"mixed CPU/GPU occurrence must retain GPU fetch");
     check(p.slots[1]==0 && p.slots[3]==1 && p.slots[5]==2 && p.slots[0]==-1,"original top-k row order");
@@ -102,10 +172,15 @@ int main()try {
     // No CPU consumer: late join must stop, emit an error, and retain the slot
     // until CPU acknowledges cancellation. Never read its previous output.
     publish();join(2000000);sync();check(state().error==cpu_timeout,"missing service did not time out");
+    retire();sync();
     queue.cancel(1);queue.drain();
     activate<<<1,1,0,stream>>>(queue.device,state().sequence);join();sync();
     check(state().error==cpu_cancelled,"cancelled job returned a stale successful answer");
+    cpu_queue_reset<<<1,1,0,stream>>>(queue.mapped,queue.device);sync();
+    check(queue.host[0].receipt.error==cpu_timeout,"cancellation/reset erased the original timeout receipt");
+    bool timeout_receipt=false;try{queue.check_receipt(1);}catch(const std::runtime_error &){timeout_receipt=true;}
+    check(timeout_receipt,"retirement accepted a timed-out GPU consumer");
     cudaGraphExecDestroy(executable);cudaGraphDestroy(graph);sync();queue.drain();
     cudaFree(dt);cudaFree(packet);cudaFree(ids);cudaFree(input);cudaFree(output);cudaStreamDestroy(stream);
-    std::printf("CPU GPU queue: %d checks, 1500 graph replays (300 async rearms), full/error/cancel/timeout passed\n",checks);return 0;
+    std::printf("CPU GPU queue: %d checks, 1500 graph replays (300 async rearms), 80 deferred consumers, 80 gated handoffs, retained errors, full/error/cancel/timeout passed\n",checks);return 0;
 }catch(const std::exception &e){std::fprintf(stderr,"%s\n",e.what());return 1;}

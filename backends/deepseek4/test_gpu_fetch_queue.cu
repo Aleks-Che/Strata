@@ -137,6 +137,26 @@ int main(){try {
         cudaFree(probe);cudaFree(large);cudaFreeHost(retained);
     }
     {
+        // Slow but progressing native reads must not share a 500 ms whole-job
+        // deadline. A stopped reader must still terminate within the idle cap.
+        bool stalled=false;
+        GpuFetchQueue q([&](int,GpuFetchSlot &slot,GpuFetchQueue &service) {
+            for(int i=0;i<6;++i) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(stalled?180:30));
+                if(slot.failure.load(cuda::memory_order_acquire))return;
+                service.upload(scratch,weights,width);service.finish_uploads();
+            }
+        });
+        GpuFetchPlan slow{};slow.epoch=1;slow.experts=slow.tokens=slow.topk=1;slow.width=width;slow.scratch=scratch;
+        int32_t zero=0;cpu_queue_check(cudaMemcpy(ids,&zero,4,cudaMemcpyHostToDevice));
+        for(int pass=0;pass<2;++pass) {
+            stalled=pass!=0;q.arm();gpu_fetch_publish<<<1,256,0,owner>>>(q.mapped,slow,ids,1,nullptr,table);
+            q.wait(0,owner,120000000ULL);cpu_queue_check(cudaStreamSynchronize(owner));q.drain();
+            check(q.host[0].failure.load(cuda::memory_order_acquire)==(stalled?cpu_timeout:cpu_ok),
+                "progressing read timed out or stopped reader escaped idle deadline");
+        }
+    }
+    {
         // Hold unrelated compute after the copy fence. Retirement must return
         // while this GPU reader is still live, without an owner stream drain.
         CpuDoorbell *gate,*mapped_gate;

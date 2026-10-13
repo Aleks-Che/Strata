@@ -29,9 +29,18 @@ struct CpuQueueRequest {
     CpuQueueRow row[64];
     CpuQueuePacket packet;
 };
+// One outstanding retirement per backend. GPU writes it before the next route
+// resets gpu_failure or reuses a ring slot; host reads it after a later fence
+// on that same stream. Replies release the callback, this receipt checks GPU.
+struct alignas(64) CpuQueueReceipt {
+    CpuDoorbell ready{0};
+    uint32_t error=cpu_ok;
+    uint64_t epoch=0;
+};
 struct alignas(64) CpuQueueSlot {
     CpuDoorbell request{0},reply{0},consumed{0};
     CpuDoorbell gpu_failure{0}; // ring[0], written by the producer/consumer stream
+    CpuQueueReceipt receipt; // ring[0], independent of per-publication resets
     uint32_t error=cpu_ok;
     CpuQueueRequest job;
     float input[cpu_queue_floats],output[cpu_queue_floats];
@@ -40,6 +49,10 @@ struct CpuQueueDevice {
     uint32_t sequence=0,active=0,error=cpu_ok;
     uint64_t full=0,published=0;
 };
+struct CpuQueueBinding { CpuQueueSlot *ring;CpuQueueDevice *state; };
+static __global__ void cpu_queue_bind(CpuQueueBinding *binding,CpuQueueSlot *ring,CpuQueueDevice *state) {
+    binding->ring=ring;binding->state=state;
+}
 inline void cpu_queue_check(cudaError_t error) {
     if(error!=cudaSuccess)throw std::runtime_error(cudaGetErrorString(error));
 }
@@ -65,7 +78,8 @@ class CpuGpuQueue {
                 if(!slot.job.epoch || slot.job.epoch<=cancelled_epoch.load())slot.error=cpu_cancelled;
                 else try {compute(slot);}catch(...) {slot.error=cpu_exception;}
                 slot.reply.store(seq,cuda::memory_order_release);
-                // No CUDA calls, cache changes or lease destruction here.
+                // No CUDA calls or last-payload destruction on this service.
+                // The callback may drop cache-owned read leases after pool barriers.
             }
             if(!found)std::this_thread::yield();
         }
@@ -97,6 +111,26 @@ public:
     }
     void arm() {{std::lock_guard<std::mutex> lock(mutex);armed.store(true);}wake.notify_one();}
     void cancel(uint64_t epoch) {cancelled_epoch.store(epoch);arm();}
+    // Owner only, after the GPU consumer fence. Replies alone release the
+    // callback context, but never authorize reuse/reset of a live GPU result.
+    void check_consumed(uint64_t epoch) const {
+        for(int i=0;i<cpu_queue_depth;++i) {
+            const auto &slot=host[i];const auto seq=slot.request.load(cuda::memory_order_acquire);
+            if(seq && slot.job.epoch==epoch && slot.consumed.load(cuda::memory_order_acquire)!=seq)
+                throw std::runtime_error("CPU GPU queue consumer missing from graph replay");
+        }
+        if(host[0].gpu_failure.load(cuda::memory_order_acquire))
+            throw std::runtime_error("CPU GPU queue GPU consumer failed");
+    }
+    // A stream fence must precede this call. Never erase a failed receipt;
+    // next successful publication must not hide an older GPU error.
+    void check_receipt(uint64_t epoch) {
+        auto &r=host[0].receipt;
+        if(!r.ready.load(cuda::memory_order_acquire) || r.epoch!=epoch)
+            throw std::runtime_error("CPU GPU queue retirement receipt missing or stale");
+        if(r.error)throw std::runtime_error("CPU GPU queue deferred GPU consumer failed");
+        r.ready.store(0,cuda::memory_order_release);
+    }
     // Cancellation may skip the down graph. Only after both stream and CPU
     // drain may the host acknowledge that no GPU reader remains for these slots.
     void abandon_after_drain() {
@@ -145,9 +179,23 @@ static __device__ inline uint32_t cpu_queue_reserve(CpuQueueSlot *ring,CpuQueueD
 static __global__ void cpu_queue_reset(CpuQueueSlot *ring,CpuQueueDevice *state) {
     state->active=0;state->error=cpu_ok;ring[0].gpu_failure.store(cpu_ok,cuda::memory_order_release);
 }
+// Ordered after the old join/scatter and before any new publication. No host
+// wait and no changes to arithmetic, route choice, slot ownership or timeouts.
+static __global__ void cpu_queue_retire(CpuQueueSlot *ring,uint64_t epoch) {
+    auto &r=ring[0].receipt;
+    // Preserve the first unacknowledged receipt (including its error).
+    if(r.ready.load(cuda::memory_order_acquire))return;
+    uint32_t error=ring[0].gpu_failure.load(cuda::memory_order_acquire);
+    for(int i=0;i<cpu_queue_depth;++i) {
+        const auto &slot=ring[i];const auto seq=slot.request.load(cuda::memory_order_acquire);
+        if(seq && slot.job.epoch==epoch && slot.consumed.load(cuda::memory_order_acquire)!=seq)
+            error=cpu_bad_request;
+    }
+    r.epoch=epoch;r.error=error;r.ready.store(1,cuda::memory_order_release);
+}
 // Late join copies the complete CPU output into ordinary device memory. No
 // weighted reduction here: the existing scatter preserves original top-k rows.
-static __global__ void cpu_queue_join(CpuQueueSlot *ring,CpuQueueDevice *state,float *out,uint64_t timeout_ns) {
+static __device__ void cpu_queue_join_impl(CpuQueueSlot *ring,CpuQueueDevice *state,float *out,uint64_t timeout_ns) {
     __shared__ uint32_t seq,error;
     if(threadIdx.x==0) {
         seq=state->active;error=cpu_ok;
@@ -169,5 +217,11 @@ static __global__ void cpu_queue_join(CpuQueueSlot *ring,CpuQueueDevice *state,f
     __syncthreads();
     // A timed-out CPU still owns its output; reserve also checks reply.
     if(threadIdx.x==0)s.consumed.store(seq,cuda::memory_order_release);
+}
+static __global__ void cpu_queue_join(CpuQueueSlot *ring,CpuQueueDevice *state,float *out,uint64_t timeout_ns) {
+    cpu_queue_join_impl(ring,state,out,timeout_ns);
+}
+static __global__ void cpu_queue_join_bound(const CpuQueueBinding *binding,float *out,uint64_t timeout_ns) {
+    cpu_queue_join_impl(binding->ring,binding->state,out,timeout_ns);
 }
 }

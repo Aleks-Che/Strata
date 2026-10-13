@@ -44,7 +44,7 @@ struct alignas(64) GpuFetchSlot {
     uint32_t error=0;
     GpuFetchRequest job;
 };
-struct GpuFetchConsumer {uint32_t sequence,chunk,error,done;uint64_t start;};
+struct GpuFetchConsumer {uint32_t sequence,chunk,error,done;uint64_t start,progress;};
 
 class GpuFetchQueue {
     std::thread service;
@@ -124,6 +124,7 @@ public:
         for(int i=0;i<2;++i)if(stage[i])cudaFreeHost(stage[i]);
         if(host)cudaFreeHost(host);
     }
+    bool has_copy_fence() const {return copies_recorded;}
     void arm() {
         copies_recorded=false;
         {std::lock_guard<std::mutex> lock(mutex);cancelled.store(false);armed.store(true);}wake.notify_one();
@@ -144,7 +145,7 @@ public:
         } else cpu_queue_check(cudaStreamSynchronize(owner));
         drain(wait_idle);return result;
     }
-    void wait(int matrix,cudaStream_t owner,uint64_t timeout_ns=500000000ULL);
+    void wait(int matrix,cudaStream_t owner,uint64_t timeout_ns=2000000000ULL);
     // The GPU must acknowledge the final mapped RAM read before its lease can
     // be released. This is a service-side doorbell wait, never a CUDA API call.
     void finish_uploads() {wait_chunk();}
@@ -236,7 +237,7 @@ static __global__ void gpu_fetch_wait(GpuFetchSlot *slot,GpuFetchConsumer *s,uin
     if(!rank) {
         s->sequence=slot->request.load(cuda::memory_order_acquire);
         s->error=slot->failure.load(cuda::memory_order_acquire);
-        uint64_t start;asm volatile("mov.u64 %0, %%globaltimer;":"=l"(start));s->start=start;
+        uint64_t start;asm volatile("mov.u64 %0, %%globaltimer;":"=l"(start));s->start=s->progress=start;
     }
     gpu_fetch_barrier();if(s->error)return;
     for(;;) {
@@ -245,7 +246,7 @@ static __global__ void gpu_fetch_wait(GpuFetchSlot *slot,GpuFetchConsumer *s,uin
             if(s->chunk==slot->chunk_done.load(cuda::memory_order_relaxed))s->chunk=0;
             s->done=!s->chunk && slot->reply.load(cuda::memory_order_acquire)==s->sequence;
             uint64_t now;asm volatile("mov.u64 %0, %%globaltimer;":"=l"(now));
-            if(now-s->start>timeout_ns)s->error=cpu_timeout;
+            if(!s->done && (now-s->progress>timeout_ns || now-s->start>8*timeout_ns))s->error=cpu_timeout;
         }
         gpu_fetch_barrier();if(s->error || s->done)break;
         if(s->chunk) {
@@ -258,7 +259,10 @@ static __global__ void gpu_fetch_wait(GpuFetchSlot *slot,GpuFetchConsumer *s,uin
                 for(size_t i=n/16*16+rank;i<n;i+=threads)slot->destination[i]=slot->source[i];
             } else for(size_t i=rank;i<n;i+=threads)slot->destination[i]=slot->source[i];
             __threadfence_system();gpu_fetch_barrier();
-            if(!rank)slot->chunk_done.store(s->chunk,cuda::memory_order_release);
+            if(!rank) {
+                slot->chunk_done.store(s->chunk,cuda::memory_order_release);
+                uint64_t now;asm volatile("mov.u64 %0, %%globaltimer;":"=l"(now));s->progress=now;
+            }
         } else __nanosleep(256);
         gpu_fetch_barrier();
     }

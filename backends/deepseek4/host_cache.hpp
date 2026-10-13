@@ -52,6 +52,7 @@ public:
         uint64_t duplicate_fills=0,stale_fills=0,gpu_bypasses=0;
         uint64_t gpu_entries=0,gpu_bytes=0,gpu_pending=0,gpu_publications=0;
         uint64_t demotion_pending=0,demotion_jobs=0,demotion_admitted=0,demotion_published=0,demotion_bytes=0;
+        uint64_t disposal_bytes=0;
     };
     static Memory memory() {
 #ifdef _WIN32
@@ -81,6 +82,7 @@ private:
         uint8_t *data=nullptr;
         size_t bytes;
         uint64_t generation=0;
+        uint64_t reservation=0;
         Storage storage;
         Block(std::shared_ptr<strata_expert_file::Source> s,size_t n,const Storage &allocator):source(std::move(s)),bytes(n),storage(allocator) {
             if(storage.allocate)data=storage.allocate(n);else {
@@ -118,6 +120,14 @@ private:
     // Free payloads share the same physical budget as ready and retired entries.
     // A bounded vector avoids allocation while returning a promoted block.
     std::vector<std::shared_ptr<Block>> pool;
+    std::vector<std::shared_ptr<Block>> disposal;
+    // CUDA-backed destructors must never run with the RAM metadata lock held:
+    // another context's GPU can be awaiting an I/O service needing that lock.
+    void dispose_locked(std::shared_ptr<Block> block) {
+        if(!block)return;
+        const auto bytes=block->bytes;disposal.push_back(std::move(block));
+        stats.disposal_bytes+=bytes;
+    }
     static constexpr size_t pool_entries=128;
     Stats stats;
     Policy policy;
@@ -197,19 +207,22 @@ private:
             if(!reuse && found->second.block->bytes==bytes)reuse=found->second.block;
             if(found->second.reused)stats.reused_payload_bytes-=found->second.block->bytes;
             stats.bytes-=found->second.block->bytes;++stats.evictions;
+            if(!reuse || reuse!=found->second.block)dispose_locked(std::move(found->second.block));
             entries.erase(found);recent.erase(position);
         }
         return true;
     }
     void trim_pool_locked(uint64_t target) {
-        while(!pool.empty() && stats.bytes+stats.pending>target) {
-            const auto n=pool.back()->bytes;stats.pool_bytes-=n;stats.bytes-=n;++stats.pool_frees;
-            pool.pop_back();
+        for(auto it=pool.begin();it!=pool.end() && stats.bytes+stats.pending>target;) {
+            if((*it).use_count()!=1){++it;continue;}
+            const auto n=(*it)->bytes;stats.pool_bytes-=n;stats.bytes-=n;++stats.pool_frees;
+            dispose_locked(std::move(*it));
+            it=pool.erase(it);
         }
     }
     void pool_locked(std::shared_ptr<Block> block) {
         if(!pool_limit || block.use_count()!=1 || pool.size()>=pool_entries ||
-           block->bytes>pool_limit-stats.pool_bytes || stats.bytes+stats.pending+block->bytes>stats.budget)return;
+           block->bytes>pool_limit-stats.pool_bytes || stats.bytes+stats.pending+block->bytes>stats.budget) {dispose_locked(std::move(block));return;}
         const auto n=block->bytes;block->source.reset();pool.push_back(std::move(block));
         stats.bytes+=n;stats.pool_bytes+=n;++stats.pool_puts;stats.pool_peak=std::max(stats.pool_peak,stats.pool_bytes);
     }
@@ -225,6 +238,7 @@ private:
             if(reuse && !*reuse && found->second.block->bytes==bytes)*reuse=found->second.block;
             if(found->second.reused)stats.reused_payload_bytes-=found->second.block->bytes;
             stats.bytes-=found->second.block->bytes;++stats.evictions;
+            if(!reuse || *reuse!=found->second.block)dispose_locked(std::move(found->second.block));
             entries.erase(found);it=recent.erase(it);
         }
     }
@@ -241,10 +255,18 @@ private:
     }
     void refresh_locked() {
         reap_locked();
-        stats.budget=allowance(probe(),stats.bytes+stats.pending,cap);
+        stats.budget=allowance(probe(),stats.bytes+stats.pending+stats.disposal_bytes,cap);
         trim_locked(stats.budget);
     }
 public:
+    void collect() {
+        std::vector<std::shared_ptr<Block>> pending;
+        {
+            std::lock_guard<std::mutex> lock(mutex);pending.swap(disposal);
+            stats.disposal_bytes=0;
+        }
+        // Owner only. pending destructs with the mutex unlocked.
+    }
     explicit HostCache(uint64_t limit,Probe sample=memory,Policy choice=Policy::Frequency,
                        uint64_t decay=131072,size_t max_history=131072,Storage allocator={},uint64_t spare_limit=0,uint64_t demote_limit=0)
         :probe(std::move(sample)),storage(std::move(allocator)),cap(limit),pool_limit(std::min(limit,spare_limit)),demotion_limit(std::min(limit,demote_limit)),policy(choice),decay_period(std::max<uint64_t>(1,decay)),
@@ -261,7 +283,7 @@ public:
     // The owner changes phase only after draining the route pipeline. Batched
     // MTP verification is decode, irrespective of its token count.
     void set_prefill(bool enabled) {std::lock_guard<std::mutex> lock(mutex);prefill=enabled;}
-    void refresh() {std::lock_guard<std::mutex> lock(mutex);refresh_locked();}
+    void refresh() {{std::lock_guard<std::mutex> lock(mutex);refresh_locked();}collect();}
     Stats snapshot() {
         std::lock_guard<std::mutex> lock(mutex);reap_locked();auto s=stats;s.entries=entries.size();s.history_entries=history.size();return s;
     }
@@ -270,6 +292,7 @@ public:
         auto s=stats;stats={};stats.bytes=s.bytes;stats.budget=s.budget;stats.pending=s.pending;stats.peak_bytes=s.bytes;
         stats.reused_payload_bytes=s.reused_payload_bytes;stats.retired_bytes=s.retired_bytes;
         stats.pool_bytes=s.pool_bytes;stats.pool_peak=s.pool_bytes;
+        stats.disposal_bytes=s.disposal_bytes;
         stats.gpu_entries=s.gpu_entries;stats.gpu_bytes=s.gpu_bytes;stats.gpu_pending=s.gpu_pending;
         stats.demotion_pending=s.demotion_pending;stats.demotion_jobs=s.demotion_jobs;
     }
@@ -292,7 +315,8 @@ public:
             if(touch)++stats.lease_misses;return {};
         }
         // The lower bound guarantees a block at least as wide as requested.
-        auto &entry=it->second;Lease result;result.owner=entry.block;result.pointer=entry.block->data;result.publication=entry.block->generation;result.source_offset=offset;
+        auto &entry=it->second;if(entry.block->reservation)return {};
+        Lease result;result.owner=entry.block;result.pointer=entry.block->data;result.publication=entry.block->generation;result.source_offset=offset;
         // A GPU routing snapshot holds candidates, but has not used them yet.
         // Do not train frequency/LRU or count speculative holds as RAM hits.
         if(!touch)return result;
@@ -307,9 +331,12 @@ public:
     // Keep that ownership under the lock while dropping the lease, so the last
     // reference (and a possible cudaFreeHost) cannot run on the I/O service.
     // A detached lease stays with the caller until ordinary owner retirement.
-    size_t release_cached(Lease &lease) {
+    // CPU completion must not wait for a cache owner which may itself be in a
+    // CUDA allocation/free waiting for the GPU's CPU-result join. Defer instead.
+    size_t release_cached(Lease &lease,bool nonblocking=false) {
         if(!lease)return 0;
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex,std::defer_lock);
+        if(nonblocking){if(!lock.try_lock())return 0;}else lock.lock();
         const auto *block=static_cast<const Block *>(lease.owner.get());
         const auto it=entries.find(Key{uintptr_t(block->source.get()),lease.source_offset,block->bytes});
         if(it==entries.end() || it->second.block.get()!=block || block->generation!=lease.publication)return 0;
@@ -348,7 +375,7 @@ private:
         else if(bytes<=stats.budget) {
             // Prefer an exact-size spare, then release other free blocks before
             // considering eviction of useful cached payloads.
-            for(auto it=pool.begin();it!=pool.end();++it)if((*it)->bytes==bytes) {
+            for(auto it=pool.begin();it!=pool.end();++it)if((*it)->bytes==bytes && (*it).use_count()==1) {
                 block=std::move(*it);pool.erase(it);stats.pool_bytes-=bytes;stats.bytes-=bytes;++stats.pool_reuses;break;
             }
             trim_pool_locked(stats.budget-bytes);
@@ -386,11 +413,13 @@ private:
                 if(demotion){++stats.demotion_published;stats.demotion_bytes+=bytes;}
             } catch(const std::bad_alloc &) {if(queued)recent.pop_front();++stats.oom;}
         }
+        if(block && block.use_count()==1)dispose_locked(std::move(block));
     }
     // A successful reservation is always released, even if custom allocation
     // fails. Payload is published only after the complete synchronous copy.
     void publish(const Key &key,const std::shared_ptr<strata_expert_file::Source> &source,
                  const void *payload,size_t bytes,const std::atomic<bool> &cancel,std::shared_ptr<Block> block,uint64_t generation) {
+        collect(); // release displaced allocations outside the metadata lock
         bool ready=false;
         try {
             if(!cancel.load()) {
@@ -444,6 +473,40 @@ public:
         ++stats.misses;stats.file_bytes+=bytes;
     }
     std::unique_ptr<Fill> make_fill(){return std::unique_ptr<Fill>(new Fill(shared_from_this(),Key{}));}
+    void observe_gpu(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if(policy==Policy::Frequency && !prefill)
+            try{record_locked(Key{uintptr_t(source.get()),offset,bytes},source);}catch(const std::bad_alloc &){++stats.oom;}
+    }
+    // Owner reserves a bounded set before GPU publication. CPU phase releases
+    // cannot add victims mid-branch; subsequent snapshots cannot borrow these
+    // addresses while an older I/O request may overwrite them. Payloads remain
+    // charged to this cache. Only the owner destroys the reservation.
+    class RecycleWindow {
+        friend class HostCache;
+        std::shared_ptr<HostCache> owner;
+        uint64_t id=0;
+        std::vector<std::shared_ptr<Block>> blocks;
+    public:
+        ~RecycleWindow() {
+            std::lock_guard<std::mutex> lock(owner->mutex);
+            for(auto &b:blocks)if(b && b->reservation==id)b->reservation=0;
+        }
+    };
+    std::unique_ptr<RecycleWindow> reserve_recycling(const std::vector<size_t> &sizes,size_t limit) {
+        auto w=std::make_unique<RecycleWindow>();w->owner=shared_from_this();
+        std::lock_guard<std::mutex> lock(mutex);w->id=++next_generation;
+        auto take=[&](const std::shared_ptr<Block> &b) {
+            if(b.use_count()!=1 || b->reservation || b->bytes>limit ||
+               std::find(sizes.begin(),sizes.end(),b->bytes)==sizes.end())return;
+            w->blocks.push_back(b);b->reservation=w->id;limit-=b->bytes;
+        };
+        for(auto &b:pool)take(b);
+        size_t examined=0;
+        if(stats.bytes+stats.pending+limit>stats.budget)
+            for(auto it=recent.rbegin();it!=recent.rend() && examined++<64;++it)take(entries.find(*it)->second.block);
+        return w;
+    }
     // Owner only, before arming a GPU consumer. Create at most one idle spare
     // of this size, inside the existing pool/cache budget. Never evict a ready
     // matrix just to speculate on a future request.
@@ -458,6 +521,7 @@ public:
         }
         std::shared_ptr<Block> block;
         try {
+            collect();
             block=std::make_shared<Block>(source,bytes,storage);
             std::lock_guard<std::mutex> lock(mutex);++stats.allocations;
         } catch(const std::bad_alloc &) {
@@ -473,7 +537,7 @@ public:
     // both cache contents and ticket unchanged. The owner has refreshed the
     // budget before GPU publication and does not run CUDA cache mutations while
     // this service is armed.
-    bool recycle_fill(Fill &job,const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes) {
+    bool recycle_fill(Fill &job,const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes,RecycleWindow *window=nullptr) {
         if(job.owner.get()!=this || job.generation || job.block)throw std::runtime_error("busy RAM fill ticket");
         if(!source || !bytes || !source->contains(offset,bytes))return false;
         const Key key{uintptr_t(source.get()),offset,bytes};
@@ -482,13 +546,17 @@ public:
         // The current file request will train exactly once at retirement.
         const auto incoming=std::min(255u,score_locked(key)+1);
         if(policy==Policy::Frequency && incoming<2)return false;
-        auto spare=pool.end();for(auto it=pool.begin();it!=pool.end();++it)if((*it)->bytes==bytes){spare=it;break;}
+        auto eligible=[&](const std::shared_ptr<Block> &b) {
+            return b->bytes==bytes && (window?b->reservation==window->id && b.use_count()==2:
+                !b->reservation && b.use_count()==1);
+        };
+        auto spare=pool.end();for(auto it=pool.begin();it!=pool.end();++it)if(eligible(*it)){spare=it;break;}
         auto victim=entries.end();
         if(spare==pool.end()) {
             unsigned best=256;size_t examined=0;
             for(auto it=recent.rbegin();it!=recent.rend() && examined++<64;++it) {
                 auto entry=entries.find(*it);const auto score=score_locked(*it);
-                if(entry->second.block->bytes!=bytes || entry->second.block.use_count()!=1)continue;
+                if(!eligible(entry->second.block))continue;
                 if(policy==Policy::Lru){victim=entry;break;}
                 if(score<incoming && score<best){victim=entry;best=score;}
             }
@@ -504,6 +572,7 @@ public:
             recent.erase(entry.position);entries.erase(victim);++stats.evictions;
         }
         stats.bytes-=bytes;stats.pending+=bytes;++stats.reuses;
+        if(window)for(auto &b:window->blocks)if(b==job.block){b->reservation=0;b.reset();break;}
         job.key=key;job.generation=generation;job.block->source=source;return true;
     }
     // Loader finishes all I/O before returning; false/throw never publishes a
@@ -529,7 +598,7 @@ public:
                 try {record_locked(key,source);}catch(const std::bad_alloc &) {tracked=false;++stats.oom;}
             }
             auto found=entries.find(key);
-            if(found!=entries.end() && !found->second.retired) {
+            if(found!=entries.end() && !found->second.retired && !found->second.block->reservation) {
                 hit=found->second.block;
                 if(!found->second.reused) {found->second.reused=true;stats.reused_payload_bytes+=bytes;}
                 if(policy==Policy::Lru || !is_prefill)recent.splice(recent.begin(),recent,found->second.position);
@@ -655,6 +724,7 @@ public:
             ++stats.demotion_jobs;stats.demotion_pending+=token.bytes;++stats.demotion_admitted;
         }
         try {
+            collect();
             const bool reused=bool(job->block);
             if(reused)job->block->source=source;
             else job->block=std::make_shared<Block>(source,token.bytes,storage);

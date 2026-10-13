@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -35,7 +36,9 @@ struct Weights {
 #ifdef _WIN32
         std::filesystem::create_directories("cpu-shared-test");
         for(int j=0;j<3;++j) {
-            auto path=std::filesystem::path("cpu-shared-test")/("weight-"+std::to_string(j)+".bin");
+            // Concurrent weight sets must not overwrite each other's backing
+            // files (the two-branch fixture deliberately uses different bytes).
+            auto path=std::filesystem::path("cpu-shared-test")/("weight-"+std::to_string(uintptr_t(this))+"-"+std::to_string(j)+".bin");
             {std::ofstream f(path,std::ios::binary);f.write((const char *)data[j].data(),data[j].size());}
             int fd=_wopen(path.c_str(),_O_RDONLY|_O_BINARY);check(fd>=0,"open shared weight source");
             strata_expert_file::add(w[j]->data,data[j].size(),fd);_close(fd);
@@ -45,14 +48,14 @@ struct Weights {
     }
     ~Weights(){if(registered)for(auto *v:w)strata_expert_file::remove(v->data);}
 
-    Weights(ggml_backend_t cpu,ggml_type type):ctx(ggml_init({3*ggml_tensor_overhead(),nullptr,true})) {
+    Weights(ggml_backend_t cpu,ggml_type type,int variant=0):ctx(ggml_init({3*ggml_tensor_overhead(),nullptr,true})) {
         for(int j=0;j<3;++j)w[j]=ggml_new_tensor_3d(ctx.get(),j==1?GGML_TYPE_Q8_0:type,j==2?H:D,j==2?D:H,E);
         buffer.reset(ggml_backend_alloc_ctx_tensors(ctx.get(),cpu));check(bool(buffer),"weights allocation");
         ggml_backend_buffer_set_usage(buffer.get(),GGML_BACKEND_BUFFER_USAGE_WEIGHTS);
         for(int j=0;j<3;++j) {
             std::vector<float> f(ggml_nelements(w[j])),importance(w[j]->ne[0],1);
             for(size_t i=0;i<f.size();++i) {
-                uint32_t v=uint32_t(i)+uint32_t(j*991+1)*0x9e3779b9u;
+                uint32_t v=uint32_t(i)+uint32_t(j*991+1+variant*997)*0x9e3779b9u;
                 v^=v>>16;v*=0x7feb352du;v^=v>>15;v*=0x846ca68bu;v^=v>>16;
                 f[i]=0.03f*(float(v>>8)/8388608.0f-1.0f);
             }
@@ -70,7 +73,7 @@ struct Graph {
     ggml_tensor *x,*ids,*up,*gate,*act,*down,*weights,*out;
     ggml_cgraph *graph;
     int tokens;
-    Graph(Weights &w,ggml_backend_t cpu,ggml_backend_t gpu,int n,bool parallel,float clamp):ctx(ggml_init({48*ggml_tensor_overhead()+ggml_graph_overhead(),nullptr,true})),tokens(n) {
+    Graph(Weights &w,ggml_backend_t cpu,ggml_backend_t gpu,int n,bool parallel,float clamp,Weights *next=nullptr,Weights *third=nullptr):ctx(ggml_init({128*ggml_tensor_overhead()+ggml_graph_overhead(),nullptr,true})),tokens(n) {
         x=ggml_new_tensor_3d(ctx.get(),GGML_TYPE_F32,D,1,n);ggml_set_input(x);
         ids=ggml_new_tensor_2d(ctx.get(),GGML_TYPE_I32,K,n);
         ids->nb[1]=E*4;ids->nb[2]=ids->nb[3]=E*n*4;ggml_set_input(ids);
@@ -83,6 +86,20 @@ struct Graph {
         auto *first=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],0);
         auto *second=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],weighted->nb[1]);
         out=ggml_add(ctx.get(),first,second);ggml_set_output(out);
+        for(auto *following:{next,third})if(following) {
+            // A second branch in the SAME graph exercises preparation while
+            // the preceding GPU consumer can still be running. Separate run()
+            // calls drain at graph exit and cannot test this boundary.
+            auto *input=ggml_reshape_3d(ctx.get(),out,D,1,n);
+            up=ggml_mul_mat_id(ctx.get(),following->w[0],input,ids);
+            gate=ggml_mul_mat_id(ctx.get(),following->w[1],input,ids);
+            act=clamp>0?ggml_swiglu_clamp(ctx.get(),gate,up,clamp):ggml_swiglu_split(ctx.get(),gate,up);
+            down=ggml_mul_mat_id(ctx.get(),following->w[2],act,ids);ggml_set_output(down);
+            weighted=ggml_mul(ctx.get(),down,weights);
+            first=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],0);
+            second=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],weighted->nb[1]);
+            out=ggml_add(ctx.get(),first,second);ggml_set_output(out);
+        }
         graph=ggml_new_graph(ctx.get());ggml_build_forward_expand(graph,out);
         ggml_backend_t backends[]={gpu,cpu};sched=ggml_backend_sched_new(backends,nullptr,2,GGML_DEFAULT_GRAPH_SIZE,parallel,true);
         for(auto *v:{x,ids,weights})ggml_backend_sched_set_tensor_backend(sched,v,gpu);
@@ -119,6 +136,42 @@ static double scalar_error(const Weights &w,const float *x,int id,float clamp,co
     }
     return std::sqrt(error/std::max(norm,1e-20));
 }
+static void phase_release_test(ggml_backend_t cpu) {
+    using Phase=strata_ds4::CpuWeightPhase;int cases=0;
+    for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
+        Weights w(cpu,type);
+        for(int threads:{1,4,12,16})for(int tokens:{1,3,8})for(bool repeated:{false,true}) {
+            strata_ds4::CpuLanePool pool(threads);
+            std::vector<uint8_t> live[3]={w.data[0],w.data[1],w.data[2]};
+            std::vector<float> x(tokens*D),expected(tokens*K*D),actual(tokens*K*D,NAN);
+            for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
+            strata_ds4::CpuExpertWork work;work.columns=D;work.hidden=H;work.tokens=tokens;work.topk=K;work.clamp=0.1f;
+            work.up_type=w.w[0]->type;work.gate_type=w.w[1]->type;work.down_type=w.w[2]->type;
+            work.input=x.data();work.output=expected.data();
+            for(int t=0;t<tokens;++t)for(int j=0;j<K;++j) {
+                const int id=repeated?j:(t+j)%E;
+                work.experts.push_back({live[1].data()+id*w.w[1]->nb[2],live[0].data()+id*w.w[0]->nb[2],
+                    live[2].data()+id*w.w[2]->nb[2],t,t*K+j});
+            }
+            work.compute(pool);work.output=actual.data();int phases=0;
+            work.compute(pool,nullptr,[&](Phase phase) {
+                if(phase==Phase::gate_up) {
+                    check(phases++==0,"gate/up retired twice or after down");
+                    for(float v:actual)check(std::isnan(v),"down started before gate/up retirement");
+                    // Reuse storage immediately, while down still has to run.
+                    std::fill(live[0].begin(),live[0].end(),0xa5);
+                    std::fill(live[1].begin(),live[1].end(),0x5a);
+                } else {
+                    check(phases++==1,"down retirement lost its predecessor");
+                    check(actual==expected,"weight reuse raced a pool reader");
+                    std::fill(live[2].begin(),live[2].end(),0xa5);
+                }
+            });
+            check(phases==2 && actual==expected,"phase retirement changed CPU arithmetic");++cases;
+        }
+    }
+    std::printf("CPU weight retirement: %d cases, phase poisoning, mixed formats, repeated rows, 1/4/12/16 threads\n",cases);
+}
 static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats) {
 #ifdef _WIN32
     env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","16");
@@ -144,13 +197,14 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
         Graph actual(target,cpu,hybrid.get(),3,false,0.1f),old(victim,cpu,hybrid.get(),3,false,0.1f);
         if(managed){StrataVramPolicy policy;StrataVramStatus status;check(control(0,&policy,&status),"enable managed loans");}
         env("STRATA_DS4_CPU_THREADS","4");const auto old_result=old.run(x,old_ids);
+        if(demote)for(int i=0;i<3;++i)check(old.run(x,old_ids)==old_result,"warm GPU demand changed output");
         StrataExpertCounters before;stats(hybrid.get(),&before);
         check(before.misses>=6,"victim cache not populated");
         strata_ds4::CpuLanePool pool(4);
         for(int iteration=0;iteration<12;++iteration) {
             if(iteration==6) {
                 StrataExpertCounters partial;stats(hybrid.get(),&partial);
-                if(keep_ram && !demote)check(!partial.gpu_fetch_cache_admitted && partial.gpu_fetch_cache_ram_bypasses>0,
+                if(keep_ram && !demote)check(partial.gpu_fetch_cache_admitted==before.gpu_fetch_cache_admitted && partial.gpu_fetch_cache_ram_bypasses>0,
                     "ready RAM triple was split by a GPU admission");
                 // Keep the CPU expert hot, but demand a GPU expert whose RAM
                 // triple is absent: protection must not disable all admissions.
@@ -170,7 +224,18 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
             }
         }
         StrataExpertCounters after;stats(hybrid.get(),&after);
-        check(after.gpu_fetch_branches==12,"loan test fell back to host routing");
+        check(before.gpu_fetch_branches==uint64_t(demote?4:1) && after.gpu_fetch_branches-before.gpu_fetch_branches==12,"cold or warm loan test fell back to host routing");
+        if(demote)check(after.gpu_demotion_bytes>before.gpu_demotion_bytes,"new GPU queue did not demote old weights");
+        if(const auto *v=std::getenv("STRATA_DS4_CPU_RELEASE_WEIGHTS"))if(std::atoi(v)) {
+            const bool capture=std::getenv("STRATA_DS4_CPU_CAPTURE_DIR") && *std::getenv("STRATA_DS4_CPU_CAPTURE_DIR");
+            if(capture)check(after.cpu_weight_capture_jobs==after.cpu_queue_jobs &&
+                !after.cpu_weight_release_gate_up && !after.cpu_weight_release_down,"capture lost retained weights");
+            else check(after.cpu_weight_release_jobs==after.cpu_queue_jobs && after.cpu_weight_release_jobs>0 &&
+                after.cpu_weight_release_gate_up>0 && after.cpu_weight_release_down>0 &&
+                after.cpu_weight_release_gate_up<=2*after.cpu_queue_jobs && after.cpu_weight_release_down<=after.cpu_queue_jobs &&
+                after.cpu_weight_release_gate_up+after.cpu_weight_release_down+after.cpu_weight_release_deferred==3*after.cpu_queue_jobs,
+                "selected CPU weights not retired or safely deferred exactly once per phase");
+        }
         if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_EARLY_RETIRE"))if(std::atoi(v))
             check(after.gpu_fetch_early_retire==after.gpu_fetch_branches,"branch copies were not retired before the final consumer fence");
         if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_RELEASE_RAM"))if(std::atoi(v)) {
@@ -178,8 +243,7 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
             check(after.gpu_fetch_ram_released_unused>0 && after.gpu_fetch_ram_released_used>0,
                 "transfer snapshots were not released after route/copy acknowledgement");
         }
-        if(demote)check(!after.gpu_fetch_cache_offered && !after.gpu_fetch_cache_admitted,"loans bypassed demotion policy");
-        else {
+        {
             check(after.gpu_fetch_cache_admitted>0 && after.gpu_fetch_cache_bytes>0,"no GPU cache admissions");
             check(after.gpu_fetch_cache_restored>0,"unused loans never restored");
             check(after.gpu_fetch_cache_offered==after.gpu_fetch_cache_restored+after.gpu_fetch_cache_admitted,"loan ownership leaked");
@@ -193,12 +257,82 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
             StrataVramPolicy restore;check(control(0,&restore,&status),"restore cache policy");
         }
     }
-    std::puts("GPU fetch cache: arena/managed, three quantizations, 72 mixed replays, unused restoration, demotion guard and explicit release");
+    std::puts("GPU fetch cache: cold growth, arena/managed, three quantizations, 72 mixed replays, unused restoration, demotion and explicit release");
 #else
     throw std::runtime_error("GPU fetch cache fixture requires native Windows file registration");
 #endif
 }
+static void snapshot_overlap_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats) {
+#ifdef _WIN32
+    const bool context=std::getenv("STRATA_DS4_TEST_CONTEXT_OVERLAP")!=nullptr;
+    const bool handoff=std::getenv("STRATA_DS4_TEST_CONSUMER_HANDOFF")!=nullptr;
+    const bool combined=std::getenv("STRATA_DS4_TEST_COMBINED_OVERLAP")!=nullptr;
+    const bool cache_only=std::getenv("STRATA_DS4_TEST_RING_CACHE_CPU0")!=nullptr;
+    env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","16");
+    env("STRATA_DS4_RAM_RESIDENCY","1");env("STRATA_DS4_CPU_RAM_MIB","0");
+    env("STRATA_DS4_CPU_TEST_FIXED","1");env("STRATA_DS4_CPU_MAX_EXPERTS","1");
+    if(cache_only)env("STRATA_DS4_GPU_FETCH_RAM_MIB","0");
+    const bool early=std::getenv("STRATA_DS4_GPU_FETCH_EARLY_RETIRE") && std::atoi(std::getenv("STRATA_DS4_GPU_FETCH_EARLY_RETIRE"));
+    const bool demote=std::getenv("STRATA_DS4_RAM_DEMOTE_MIB") && std::atoi(std::getenv("STRATA_DS4_RAM_DEMOTE_MIB"));
+    const bool ram_guard=std::getenv("STRATA_DS4_GPU_FETCH_RAM_MIB") && std::atoi(std::getenv("STRATA_DS4_GPU_FETCH_RAM_MIB")) &&
+        std::getenv("STRATA_DS4_CPU_RELEASE_WEIGHTS") && std::atoi(std::getenv("STRATA_DS4_CPU_RELEASE_WEIGHTS"));
+    int cases=0;
+    for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0})for(int tokens:{1,3,8}) {
+        env("STRATA_EXPERT_CACHE_MIB","0");
+        Weights first(cpu,type),second(cpu,type,7),third(cpu,type,11);first.register_files();second.register_files();third.register_files();
+        env("STRATA_DS4_CPU_THREADS","0");env("STRATA_DS4_CPU_SNAPSHOT_OVERLAP","0");
+        env("STRATA_DS4_CPU_CONTEXT_OVERLAP","0");
+        env("STRATA_DS4_CPU_CONSUMER_HANDOFF","0");
+        ggml_backend_ptr warmer(ggml_backend_dev_init(dev,nullptr));
+        Graph warm(first,cpu,warmer.get(),tokens,false,0.1f,&second,&third);
+        std::vector<float> x(tokens*D);std::vector<int32_t> ids(tokens*E);
+        for(int t=0;t<tokens;++t){ids[t*E]=1;ids[t*E+1]=2;}
+        for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
+        if(!cache_only)for(int i=0;i<16;++i)warm.run(x,ids);
+        env("STRATA_DS4_CPU_THREADS","4");
+        ggml_backend_ptr reference(ggml_backend_dev_init(dev,nullptr));
+        Graph ref(first,cpu,reference.get(),tokens,false,0.1f,&second,&third);
+        ref.run(x,ids); // Initialize its opt-out context before changing the env.
+        env("STRATA_DS4_CPU_SNAPSHOT_OVERLAP",!context || combined?"1":"0");
+        env("STRATA_DS4_CPU_CONTEXT_OVERLAP",context?"1":"0");
+        env("STRATA_DS4_CPU_CONSUMER_HANDOFF",handoff?"1":"0");
+        if(cache_only)env("STRATA_EXPERT_CACHE_MIB","8");
+        ggml_backend_ptr hybrid(ggml_backend_dev_init(dev,nullptr));
+        Graph actual(first,cpu,hybrid.get(),tokens,false,0.1f,&second,&third);
+        for(int iteration=0;iteration<12;++iteration) {
+            for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+iteration*23)*0.031f);
+            check(actual.run(x,ids)==ref.run(x,ids),"overlapped snapshot changed chained output");++cases;
+        }
+        StrataExpertCounters a,b;stats(reference.get(),&a);stats(hybrid.get(),&b);
+        check(!a.cpu_snapshot_prepared,"opt-out prepared an early snapshot");
+        check(b.gpu_fetch_branches==36 && b.cpu_queue_jobs==uint64_t(cache_only?0:36),"chained branches bypassed GPU/CPU queues");
+        if(cache_only)check(b.gpu_fetch_cache_duplicates>0,"pending restoration/admission collision was not exercised");
+        const uint64_t eligible=early && !demote?24:0;
+        check(b.cpu_snapshot_prepared==(!context?eligible:0),"wrong snapshot overlap/fallback boundary");
+        check(b.cpu_snapshot_prepared+b.cpu_snapshot_fallbacks==uint64_t(!context?36:0),"snapshot preparation counted twice or lost");
+        check(b.cpu_snapshot_tail_pending<=b.cpu_snapshot_prepared,"invalid pending-tail counter");
+        check(!a.cpu_context_deferred,"opt-out deferred a GPU consumer");
+        check(!b.cpu_context_deferred && b.cpu_context_rotations==uint64_t(context?24:0),"independent contexts did not replace the shared boundary");
+        check(b.cpu_context_tail_pending<=b.cpu_context_deferred,"invalid context pending-tail counter");
+        check(!a.cpu_consumer_handoffs,"opt-out handed off a GPU consumer");
+        check(!b.cpu_consumer_handoffs && !b.cpu_consumer_handoff_ram_fallbacks,"ring retained old handoff/guard");
+        check(b.cpu_consumer_handoff_fenced==b.cpu_consumer_handoffs && !b.cpu_consumer_handoff_waits,
+            "handoff introduced an extra host wait or lost a receipt");
+    }
+    std::printf("CPU overlap: %d exact chained replays, context=%d combined=%d, three formats, windows 1/3/8, guarded fallback\n",cases,int(context),int(combined));
+#else
+    throw std::runtime_error("snapshot overlap fixture requires native Windows file registration");
+#endif
+}
 int main(){try {
+    if(std::getenv("STRATA_DS4_TEST_WEIGHT_CAPTURE")) {
+        const char *base=std::getenv("STRATA_DS4_CPU_CAPTURE_DIR");check(base && *base,"capture test needs a directory");
+        // Production fixtures refuse overwrite. Repeated CTest runs must use
+        // fresh output without deleting or replacing a previous diagnostic.
+        const auto id=std::chrono::steady_clock::now().time_since_epoch().count();
+        const auto dir=std::filesystem::path(base)/("run-"+std::to_string(id));
+        env("STRATA_DS4_CPU_CAPTURE_DIR",dir.string().c_str());
+    }
     for(int threads:{1,4,12,16}) {
         strata_ds4::CpuLanePool pool(threads);std::array<std::atomic<int>,32> hits{};
         for(int generation=0;generation<128;++generation) {
@@ -213,10 +347,12 @@ int main(){try {
     env("STRATA_DS4_DIRECT_CACHE","1");env("STRATA_DS4_ORDERED_EXPERTS","1");
     env("STRATA_DS4_CPU_MATRIX_LEGACY","0");env("STRATA_DS4_CPU_POLICY","force");env("STRATA_DS4_CPU_RAM_MIB","16");
     ggml_backend_load_all();ggml_backend_ptr cpu(ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU,nullptr));
+    if(std::getenv("STRATA_DS4_TEST_CPU_PHASES")){check(bool(cpu),"CPU backend unavailable");phase_release_test(cpu.get());return 0;}
     auto *dev=ggml_backend_dev_by_name("CUDA0");if(!dev || !cpu)return 77;
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_stats");
     auto phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_cpu_expert_phase");
     check(bool(phase),"missing CPU phase control");
+    if(std::getenv("STRATA_DS4_TEST_SNAPSHOT_OVERLAP")){snapshot_overlap_test(cpu.get(),dev,stats);return 0;}
     if(std::getenv("STRATA_DS4_TEST_FETCH_CACHE")){fetch_cache_test(cpu.get(),dev,stats);return 0;}
     int cases=0;uint64_t operations=0;double cpu_error=0,gpu_error=0,fallback_error=0;
     strata_ds4::CpuLanePool ref_pool(4);
@@ -359,7 +495,7 @@ int main(){try {
         if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))if(std::atoi(v))
             check(warm.cpu_queue_jobs==10 && warm.cpu_queue_rows==30,"queue test silently used host callback fallback");
         if(fetch_enabled) {
-            check(warm.gpu_fetch_branches==10 && warm.gpu_fetch_matrices>0,"GPU fetch silently used host route fallback");
+            check(warm.gpu_fetch_branches==11 && warm.gpu_fetch_matrices>0,"GPU fetch silently used host route fallback");
             check(warm.file_read_bytes>cold.file_read_bytes,"missing native cold-matrix fetch");
             if(const char *v=std::getenv("STRATA_DS4_GPU_FETCH_RAM_MIB"))if(std::atoi(v)) {
                 check(warm.gpu_fetch_ram_reservations>=3 && warm.gpu_fetch_ram_completed>=3,"native fetch never admitted cold matrices");

@@ -28,7 +28,7 @@ static void strata_cuda_expert_cpu_select(ggml_backend_t backend,const ggml_tens
     if(!strata_cpu_eligible(backend,src,node,route,ids_bytes))return;
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto &s=strata_expert_state(backend);auto &c=s.cpu_lane;
-    if(!s.cpu_whole.legacy || !c.threads || !s.pipeline || !s.direct.enabled || s.early_hits.enabled)return;
+    if(!s.cpu_whole().legacy || !c.threads || !s.pipeline || !s.direct.enabled || s.early_hits.enabled)return;
     int count=0;
     for(int t=0;t<route->ne[1];++t)for(int j=0;j<route->ne[0];++j) {
         int id=ids[size_t(t)*route->nb[1]/4+j];
@@ -43,11 +43,11 @@ static bool strata_cuda_expert_cpu_begin(ggml_backend_t backend,const ggml_tenso
     if(!strata_cpu_eligible(backend,src,node,route,ids_bytes))return false;
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto &s=strata_expert_state(backend);auto &c=s.cpu_lane;
-    if(s.cpu_whole.configured) {
-        if(node==s.cpu_whole.branch.nodes[0] || node==s.cpu_whole.branch.nodes[1])s.cpu_whole.begin(s.stream);
+    if(s.cpu_whole().configured) {
+        if(node==s.cpu_whole().branch.nodes[0] || node==s.cpu_whole().branch.nodes[1])s.cpu_whole().begin(s.stream);
         return true;
     }
-    if(!s.cpu_whole.legacy)return false;
+    if(!s.cpu_whole().legacy)return false;
     if(!c.threads || s.direct.tensor!=node->src[0])return false;
     c.clear();
     for(int t=0;t<route->ne[1];++t)for(int j=0;j<route->ne[0];++j) {
@@ -77,7 +77,7 @@ const uint8_t *strata_expert_cpu_mask(ggml_backend_cuda_context &ctx,const ggml_
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     for(auto &entry:strata_expert_transfers) {
         auto &s=*entry.second;if(s.context!=&ctx)continue;
-        if(s.cpu_whole.matches(weight)){*slots=s.cpu_whole.device_packet->slots;return s.cpu_whole.device_packet->mask;}
+        if(s.cpu_whole().matches(weight)){*slots=s.cpu_whole().device_packet->slots;return s.cpu_whole().device_packet->mask;}
         if(s.cpu_lane.weight==weight)return s.cpu_lane.device_mask;
     }
     return nullptr;
@@ -92,7 +92,7 @@ void strata_expert_cpu_join(ggml_backend_cuda_context &ctx,const ggml_tensor *we
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     for(auto &entry:strata_expert_transfers) {
         auto &s=*entry.second;if(s.context!=&ctx)continue;
-        if(s.cpu_whole.matches(weight)){s.cpu_whole.merge(dst,ctx.stream());return;}
+        if(s.cpu_whole().matches(weight)){s.cpu_whole().merge(dst,ctx.stream());return;}
         if(s.cpu_lane.weight==weight) {s.cpu_lane.join(dst,ctx.stream());return;}
     }
 }
@@ -109,7 +109,9 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
        (ggml_get_glu_op(act)!=GGML_GLU_OP_SWIGLU && ggml_get_glu_op(act)!=GGML_GLU_OP_SWIGLU_CLAMP) ||
        act->op_params[1]!=0)return false;
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
-    auto &s=strata_expert_state(backend);auto &c=s.cpu_whole;
+    auto &s=strata_expert_state(backend);
+    if(!ids)s.next_context(*branch);
+    auto &c=s.cpu_whole();
     if(!c.threads || c.legacy || !s.pipeline || !s.direct.enabled || s.early_hits.enabled)return false;
     if(ids && c.gpu_queue_active && c.branch.nodes[0]==branch->nodes[0]) {
         c.queue_adopt(selected);
@@ -123,22 +125,15 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
     }
     if(!ids && (!c.gpu_queue_enabled || !c.shared_ram || !c.ram || !strata_cpu_decode || c.cap<1 ||
         !route->buffer || route->buffer->buft!=ggml_backend_cuda_buffer_type(s.device)))return false;
-    s.finish_plan();ggml_cuda_set_device(s.device);c.allocate(s.device);
-    c.branch=*branch;c.configured=true;c.pending=true;c.prepare_work();++c.branches;
-    c.trace.begin(branch->weights[0]->name,route);
-    if(!ids) {
-        const auto start=StrataCpuExpertLane::now();
-        c.queue_table={};auto &table=c.queue_table;
-        table.backend=uint64_t(uintptr_t(&c));table.epoch=++c.queue_epoch;
-        table.layer=uint64_t(uintptr_t(branch->weights[0]));table.experts=int(branch->weights[0]->ne[2]);
-        table.columns=c.work.columns;table.tokens=c.work.tokens;table.topk=c.work.topk;
-        table.cap=std::min(8,c.cap);table.force=c.force;
-        std::shared_ptr<strata_expert_file::Source> files[3];uint64_t offsets[3]={};
+    std::shared_ptr<strata_expert_file::Source> files[3];uint64_t offsets[3]={};
+    int first_ready=-1;uint64_t snapshot_time=0;bool prepared=false;
+    auto prepare_snapshot=[&](strata_ds4::CpuGpuTable &table,StrataCpuExpertLane::QueueLeases &leases) {
+        const auto start=StrataCpuExpertLane::now();table={};
+        table.experts=int(branch->weights[0]->ne[2]);
         for(int m=0;m<3;++m) {
             auto *w=branch->weights[m];files[m]=strata_expert_file::find(w->data,ggml_nbytes(w));
             if(files[m])offsets[m]=files[m]->offset_of(w->data,ggml_nbytes(w));
         }
-        int first_ready=-1;
         for(int id=0;id<table.experts;++id) {
             auto &e=table.expert[id];e.ready=true;bool all_miss=true;
             for(int m=0;m<3;++m) {
@@ -153,25 +148,56 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
             int queried=0;
             if(!c.snapshot_prune || e.eligible)for(int m=0;m<3;++m) {
                 auto *w=branch->weights[m];++queried;
-                auto &lease=c.queue_leases[id][m];
+                auto &lease=leases[id][m];
                 lease=c.ram->acquire(files[m],offsets[m]+size_t(id)*w->nb[2],w->nb[2],false,false);
                 e.ready&=bool(lease);e.matrix[m]={uint64_t(uintptr_t(lease.data())),lease.generation()};
                 if(c.snapshot_prune && !e.ready)break;
             }
             if(!queried)e.ready=false;
             c.snapshot_queries+=queried;c.snapshot_skipped+=3-queried;
-            if(!e.ready || !e.eligible)for(auto &lease:c.queue_leases[id])lease={};
+            if(!e.ready || !e.eligible)for(auto &lease:leases[id])lease={};
             else if(first_ready<0)first_ready=id;
         }
-        c.snapshot_us+=StrataCpuExpertLane::now()-start;
-        auto &fetch=s.gpu_fetch;
-        const bool fetch_ready=fetch.enabled && first_ready>=0 && fetch.epoch<UINT32_MAX && files[0] && files[1] && files[2];
-        // The GPU CPU-router requires a ready RAM triple. Keep cold-layer
-        // warming on the ordinary path; optional fetch admission can then
-        // recycle RAM for actual misses without allocating on the service.
-        if(first_ready<0) {c.clear();return false;}
+        snapshot_time=StrataCpuExpertLane::now()-start;c.snapshot_us+=snapshot_time;
+    };
+    if(!ids && c.snapshot_overlap && !c.context_overlap) {
+        s.finish_context(false,[&] {
+            if(!c.next_snapshot)c.next_snapshot=std::make_unique<StrataCpuExpertLane::NextSnapshot>();
+            const auto before=cudaEventQuery(c.consumed);
+            if(before!=cudaErrorNotReady)CUDA_CHECK(before);
+            prepare_snapshot(c.next_snapshot->table,c.next_snapshot->leases);
+            prepared=true;++c.snapshot_prepared;c.snapshot_prepare_us+=snapshot_time;
+            if(before==cudaErrorNotReady) {
+                ++c.snapshot_tail_pending;c.snapshot_candidate_us+=snapshot_time;
+                const auto after=cudaEventQuery(c.consumed);
+                if(after!=cudaErrorNotReady){CUDA_CHECK(after);++c.snapshot_tail_finished;}
+            }
+        },false);
+        if(!prepared)++c.snapshot_fallbacks;
+    } else s.finish_context();
+    ggml_cuda_set_device(s.device);c.allocate(s.device);
+    c.branch=*branch;c.configured=true;c.pending=true;c.prepare_work();++c.branches;
+    c.trace.begin(branch->weights[0]->name,route);
+    if(!ids) {
+        const auto start=StrataCpuExpertLane::now();auto &table=c.queue_table;
+        if(prepared) {
+            table=c.next_snapshot->table;c.queue_leases.swap(c.next_snapshot->leases);
+            // clear() drained the old branch and left the receiving leases empty.
+        } else prepare_snapshot(table,c.queue_leases);
+        table.backend=uint64_t(uintptr_t(&c));table.epoch=++c.queue_epoch;
+        table.layer=uint64_t(uintptr_t(branch->weights[0]));
+        table.columns=c.work.columns;table.tokens=c.work.tokens;table.topk=c.work.topk;
+        table.cap=std::min(8,c.cap);table.force=c.force;
+        auto &fetch=s.gpu_fetch();
+        const bool fetch_ready=fetch.enabled && fetch.epoch<UINT32_MAX && files[0] && files[1] && files[2];
+        // An empty CPU snapshot is valid: publish an all-GPU decision and let
+        // actual GPU demand warm RAM/VRAM without reading route IDs on host.
+        if(first_ready<0 && !fetch_ready) {c.clear();return false;}
         if(first_ready>=0 && !c.force) {
             // Keep the old arithmetic/cost formula; broader calibration is stage 4.
+            const auto key=std::make_tuple(int(c.work.gate_type),int(c.work.up_type),int(c.work.down_type),c.work.columns,c.work.hidden,1);
+            if(!c.costs.count(key))for(auto &other:s.branch_contexts)
+                if(&other.cpu!=&c && other.cpu.started && other.cpu.completion)CUDA_CHECK(cudaEventSynchronize(other.cpu.consumed));
             if(auto *blob=c.lease(*branch,first_ready)) {
                 const auto cost=c.calibrate(*blob);table.compute_us=cost.compute_us;
                 table.copy_us_per_byte=cost.bytes?cost.copy_us/cost.bytes:0;table.overhead_us=cost.overhead_us;
@@ -194,16 +220,19 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
                     const auto it=s.entries.find(key);
                     if(it!=s.entries.end() && it->second.bytes==bytes) {
                         p.cached[id]=s.managed?it->second.allocation:s.arena+it->second.offset;
-                        s.protected_keys.insert(key);
+                        s.protected_keys().insert(key);
                     } else fetch.leases[m][id]=c.ram->acquire(files[m],offsets[m]+size_t(id)*p.width,bytes,false,false);
                     fetch.ram_hit[m][id]=bool(fetch.leases[m][id]);
                 }
             }
+
+            if(c.context_overlap)fetch.epoch_leases=fetch.leases;
             s.prepare_fetch_cache();fetch.prepare_fills();
             fetch.active=true;fetch.queue->arm();
         }
-        c.select_us+=StrataCpuExpertLane::now()-start;if(c.trace.enabled)c.trace.select_us=StrataCpuExpertLane::now()-start;
-        c.queue_publish(route,s.stream);return true;
+        const auto selection=StrataCpuExpertLane::now()-start+(prepared?snapshot_time:0);
+        c.select_us+=selection;if(c.trace.enabled)c.trace.select_us=selection;
+        c.queue_publish(route,s.stream);s.deferred_keys().clear();return true;
     }
     if(c.trace.enabled) {
         c.trace.route.resize(size_t(route->ne[0]*route->ne[1]));
@@ -298,7 +327,7 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
 static bool strata_cuda_expert_gpu_fetch(ggml_backend_t backend,const ggml_tensor *source,
         ggml_tensor *node,const ggml_tensor *route) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
-    auto &s=strata_expert_state(backend);auto &f=s.gpu_fetch;auto &c=s.cpu_whole;
+    auto &s=strata_expert_state(backend);auto &f=s.gpu_fetch();auto &c=s.cpu_whole();
     if(!f.active || !c.gpu_queue_active)return false;
     int m=0;while(m<3 && c.branch.nodes[m]!=node)++m;
     if(m==3 || c.branch.weights[m]!=source || route!=node->src[2])return false;
