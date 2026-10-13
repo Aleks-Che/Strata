@@ -25,6 +25,9 @@ struct CpuQueuePacket { uint8_t mask[256];int slots[64]; };
 struct CpuQueueRequest {
     uint64_t backend,epoch,layer;
     int columns,tokens,topk,rows;
+    float predicted_cpu_us,predicted_gpu_us,predicted_boundary_us;
+    float predicted_gpu_compute_us,predicted_gpu_branch_us;
+    uint64_t predicted_saved_bytes;
     int32_t route[64];
     CpuQueueRow row[64];
     CpuQueuePacket packet;

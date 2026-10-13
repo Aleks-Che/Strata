@@ -10,10 +10,13 @@ static bool strata_cpu_eligible(ggml_backend_t backend,const ggml_tensor *src,
     const auto *x=node->src[1],*w=node->src[0];
     const auto *ctx=(ggml_backend_cuda_context *)backend->context;
     const int cc=ggml_cuda_info().devices[ctx->device].cc;
-    // The scalar numerical oracle mirrors generic NVIDIA four-warp MMVQ.
+    // Both compatible CPU paths mirror generic NVIDIA four-warp MMVQ.
     // Other dispatch tables/window sizes retain the GPU arithmetic path.
-    if(strata_ds4::cpu_mmvq_reference_enabled() &&
-       (route->ne[1]>4 || !GGML_CUDA_CC_IS_NVIDIA(cc) || cc<GGML_CUDA_CC_AMPERE || cc==GGML_CUDA_CC_DGX_SPARK))return false;
+    if(strata_ds4::cpu_mmvq_compatible_enabled() &&
+       (route->ne[1]>4 || w->ne[0]%256 || !GGML_CUDA_CC_IS_NVIDIA(cc) || cc<GGML_CUDA_CC_AMPERE || cc==GGML_CUDA_CC_DGX_SPARK))return false;
+    // The old partial-matrix lane uses ggml's Q8_K dots, not this contract.
+    if(strata_ds4::cpu_mmvq_compatible_enabled())
+        if(const char *v=std::getenv("STRATA_DS4_CPU_MATRIX_LEGACY"))if(std::atoi(v))return false;
     if(!ggml_is_contiguous(node) || node->ne[3]!=1 || x->ne[3]!=1 || x->nb[0]!=4 ||
        !x->buffer || x->buffer->buft!=ggml_backend_cuda_buffer_type(ctx->device) ||
        src->type!=w->type || !ggml_are_same_shape(src,w) ||
@@ -91,6 +94,41 @@ static bool strata_expert_cpu_active(ggml_backend_cuda_context *ctx) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     for(auto &entry:strata_expert_transfers)if(entry.second->context==ctx && entry.second->cpu_lane.weight)return true;
     return false;
+}
+static bool strata_expert_cpu_graph_changed(ggml_backend_cuda_context *ctx,ggml_cgraph *graph) {
+    const char *v=std::getenv("STRATA_DS4_CPU_THREADS");const bool enabled=v && std::atoi(v);
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    for(auto &entry:strata_expert_transfers) {
+        auto &s=*entry.second;if(s.context!=ctx)continue;
+        StrataExpertTransfer::CpuGraphSignature signature;
+        auto &c=s.cpu_whole();
+        if(enabled && c.configured)for(int i=0;i<graph->n_nodes;++i) {
+            auto *node=graph->nodes[i];
+            if(node->op!=GGML_OP_MUL_MAT_ID || !c.matches(node->src[0]))continue;
+            const bool down=node==c.branch.nodes[2];
+            signature.push_back({uintptr_t(i),uintptr_t(c.device_packet),uintptr_t(c.device_output),
+                down?uintptr_t(c.ready):0,down && c.gpu_queue?uintptr_t(c.graph_storage->binding):0,uintptr_t(down)});
+        }
+        const void *key=graph->nodes[0];auto old=s.cpu_graph_signatures.find(key);
+        if(old==s.cpu_graph_signatures.end()) {
+            // An unseen GPU-only split needs no entry until it has a CPU path.
+            if(signature.empty())return false;
+            s.cpu_graph_signatures.emplace(key,std::move(signature));
+        } else {
+            if(old->second==signature)return false;
+            old->second=std::move(signature);
+        }
+        ++s.stats.cpu_graph_changes;return true;
+    }
+    return false;
+}
+static void strata_expert_cpu_graph_record(ggml_backend_cuda_context *ctx,bool capture) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    for(auto &entry:strata_expert_transfers)if(entry.second->context==ctx) {
+        if(capture)++entry.second->stats.cuda_graph_captures;
+        else ++entry.second->stats.cuda_graph_replays;
+        return;
+    }
 }
 void strata_expert_cpu_join(ggml_backend_cuda_context &ctx,const ggml_tensor *weight,ggml_tensor *dst) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
@@ -197,7 +235,10 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
         // An empty CPU snapshot is valid: publish an all-GPU decision and let
         // actual GPU demand warm RAM/VRAM without reading route IDs on host.
         if(first_ready<0 && !fetch_ready) {c.clear();return false;}
-        if(first_ready>=0 && !c.force) {
+        if(c.calibrated_request()) {
+            // Force keeps its assignments, but can audit the same frozen costs.
+            table.calibrated=c.calibration();if(!table.calibrated.enabled && !c.force)table.cap=0;
+        } else if(first_ready>=0 && !c.force) {
             // Keep the old arithmetic/cost formula; broader calibration is stage 4.
             const auto key=std::make_tuple(int(c.work.gate_type),int(c.work.up_type),int(c.work.down_type),c.work.columns,c.work.hidden,1);
             if(!c.costs.count(key))for(auto &other:s.branch_contexts)
@@ -238,6 +279,9 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
         c.select_us+=selection;if(c.trace.enabled)c.trace.select_us=selection;
         c.queue_publish(route,s.stream);s.deferred_keys().clear();return true;
     }
+    // Calibrated auto is defined for the mapped GPU queue. Do not silently
+    // return to the old callback timing/placement when that transport is off.
+    if(c.calibrated_request() && !c.force) {c.clear();return false;}
     if(c.trace.enabled) {
         c.trace.route.resize(size_t(route->ne[0]*route->ne[1]));
         for(int t=0;t<route->ne[1];++t)for(int j=0;j<route->ne[0];++j)

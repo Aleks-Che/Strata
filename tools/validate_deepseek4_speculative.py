@@ -32,6 +32,8 @@ def main():
     parser.add_argument('--tokens', type=int, default=64, choices=range(8, 129))
     parser.add_argument('--baseline', action='store_true', help='Run the same state checks without DSpark')
     parser.add_argument('--allow-cpu-lane', action='store_true', help='Explicitly validate the optional hybrid lane; keep all state/output assertions')
+    parser.add_argument('--warmup-requests', type=int, default=0, choices=range(9),
+                        help='Fresh 16-token requests before state checks, e.g. to exercise runtime cost updates')
     parser.add_argument('--check-causality', action='store_true', help='Expensive diagnostic: vary future draft tokens, compare anchor logits')
     parser.add_argument('--check-serial', action='store_true', help='Expensive diagnostic: compare every verification row with the same tokens evaluated one at a time; timings are not benchmarks')
     parser.add_argument('--serial-rounds', type=int, default=3, choices=range(1, 65), help='Maximum serial-probe rounds per request')
@@ -107,6 +109,8 @@ def main():
             return tok.encode(template.render([{'role': 'user', 'content': text}], enable_thinking=False), parse_special=True)
         ids = prompt(' '.join(f'Запись {i}: синий квадрат.' for i in range(32)) + '\nОбъясни подробно, как работает оперативная память компьютера.')
         assert len(ids) > 128  # exercise compressed-attention state, not just SWA
+        for i in range(args.warmup_requests):
+            run(f'warmup_{i}', ids, 16, f'validation-warmup-{i}')
         a = run('session_a', ids, args.tokens, 'validation-a')
         run('session_b', prompt('Напиши несколько предложений про океан.'), 16, 'validation-b')
         b = run('session_a_restored', ids, args.tokens, 'validation-a')

@@ -78,6 +78,7 @@ void finish_fetch_cache() {
             lru.splice(lru.begin(),lru,e.lru);
             if(managed)e.touched=strata_expert_touch_clock(device);
             if(!was_empty)++stats.evictions;e.empty=duplicate;
+            if(!duplicate)++stats.gpu_admissions;
             ++stats.direct_admissions;stats.direct_bytes+=e.bytes;
             ++gpu_fetch().cache_admitted;gpu_fetch().cache_bytes+=e.bytes;
         } else {

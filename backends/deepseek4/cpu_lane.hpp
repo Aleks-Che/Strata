@@ -9,6 +9,9 @@
 // Sleeping persistent workers; only the optional routed-matrix lane uses them.
 // The graph scheduler still rejects unrelated CPU operations.
 namespace strata_ds4 {
+struct CpuPoolOptions { int spin_us=0, partitions=2; };
+// Read once when a pool is created; tuning never changes an active batch.
+CpuPoolOptions cpu_pool_options();
 struct CpuPoolTiming {
     uint64_t dispatch_us=0, total_us=0, first_worker_us=0, last_worker_us=0;
     int workers=0;
@@ -21,16 +24,18 @@ class CpuLanePool {
     struct Impl;
     std::unique_ptr<Impl> p;
 public:
-    explicit CpuLanePool(int threads);
+    explicit CpuLanePool(int threads, CpuPoolOptions options=cpu_pool_options());
     ~CpuLanePool();
     void submit(int jobs, std::function<void(int)> job);
     void wait();
     void run(int jobs, const std::function<void(int)> &job, CpuPoolTiming *timing=nullptr);
     int size() const;
+    CpuPoolOptions options() const;
 };
 bool cpu_lane_format(ggml_type type, int columns);
 // Slow diagnostic only; never enabled by the automatic placement policy.
 bool cpu_mmvq_reference_enabled();
+bool cpu_mmvq_compatible_enabled();
 size_t cpu_lane_activation_bytes(ggml_type type, int columns);
 void cpu_lane_quantize(ggml_type type, int columns, const float *x, void *q);
 void cpu_lane_rows(ggml_type type, int columns, const void *weight,

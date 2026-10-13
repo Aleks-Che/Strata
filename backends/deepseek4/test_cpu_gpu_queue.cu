@@ -140,6 +140,39 @@ int main()try {
     const auto prior=state().published;table.force=false;table.compute_us=100;table.copy_us_per_byte=0.001;
     upload();publish();join();sync();check(state().active==0 && state().published==prior,"unprofitable work was published");
     table.compute_us=0.1;upload();publish();join();sync();check(state().published==prior+1,"profitable prefix was not published");
+    // Measured model: GPU executes the same prefix-only decision as the host
+    // model tests, including repeat discounts and unique cancelled transfers.
+    table.calibrated.enabled=true;table.calibrated.copy_us_per_byte=0.1f;
+    table.calibrated.gpu_enabled=true;table.calibrated.contention=true;table.calibrated.gpu_topk=2;
+    table.calibrated.loaded_copy_us_per_byte=0.11f;
+    for(int n=0;n<4;++n) {
+        for(int a=0;a<=4;++a)for(int b=0;b<=2;++b)for(int c=0;c<=1;++c)for(int d=0;d<=1;++d)
+            if(a+2*b+3*c+4*d<=4 && a+b+c+d) {
+                const int key=a+9*b+45*c+135*d;
+                table.calibrated.compute[n][key]=20+60*a+75*b+85*c+95*d;
+                table.calibrated.loaded_compute[n][key]=table.calibrated.compute[n][key]*1.05f;
+            }
+        for(int r=1;r<=8;++r)table.calibrated.boundary[n][r]=2;
+        for(int r=0;r<=8;++r)table.calibrated.gpu_compute[n][r]=25;
+    }
+    table.tokens=1;upload();publish();join();sync();
+    CpuQueuePacket calibrated_first;cpu_queue_check(cudaMemcpy(&calibrated_first,packet,sizeof(calibrated_first),cudaMemcpyDeviceToHost));
+    check(calibrated_first.slots[1]==0 && calibrated_first.slots[0]==-1,"calibrated first-token placement");
+    table.tokens=3;upload();
+    for(int variant=0;variant<8;++variant) {
+        int32_t future[6]={0,1,variant%4,(variant+1)%4,(variant+2)%4,(variant+3)%4};
+        cpu_queue_check(cudaMemcpyAsync(ids,future,sizeof(future),cudaMemcpyHostToDevice,stream));publish();join();sync();
+        cpu_queue_check(cudaMemcpy(&p,packet,sizeof(p),cudaMemcpyDeviceToHost));
+        check(p.slots[0]==calibrated_first.slots[0] && p.slots[1]==calibrated_first.slots[1],"future routes changed calibrated prefix");
+    }
+    cpu_queue_check(cudaMemcpyAsync(ids,route,sizeof(route),cudaMemcpyHostToDevice,stream));publish();join();sync();
+    const auto calibrated_seq=state().active;check(calibrated_seq>0,"calibrated group not published");
+    const auto &cost_job=queue.host[calibrated_seq%cpu_queue_depth].job;
+    check(cost_job.rows==3 && cost_job.row[0].expert==1 && cost_job.row[1].expert==1 && cost_job.row[2].expert==1,"calibrated repeat grouping");
+    check(cost_job.predicted_saved_bytes==1024,"repeated expert saved H2D more than once");
+    check(cost_job.predicted_gpu_compute_us==25 && cost_job.predicted_gpu_branch_us>=25,"GPU compute prediction missing");
+    table.calibrated.budget_us_per_token=1;upload();publish();join();sync();check(!state().active,"calibrated CPU budget ignored on GPU");
+    table.calibrated={};
     table.force=true;table.tokens=1;upload();publish();join();sync();
     std::vector<float> first(32);cpu_queue_check(cudaMemcpy(first.data(),output,32*4,cudaMemcpyDeviceToHost));
     table.tokens=3;upload();

@@ -15,6 +15,10 @@
 #endif
 namespace strata_ds4 {
 inline bool swiglu_compat_enabled() {
+    // The fast CPU executor always uses this contract; do not permit a GPU
+    // override to silently select incompatible arithmetic in a hybrid graph.
+    const char *fast=std::getenv("STRATA_DS4_CPU_MMVQ_FAST");
+    if(fast && fast[0]=='1' && fast[1]==0)return true;
     const char *p=std::getenv("STRATA_DS4_SWIGLU_COMPAT");
     if(!p)p=std::getenv("STRATA_DS4_CPU_MMVQ_REFERENCE");
     return p && p[0]=='1' && p[1]==0;

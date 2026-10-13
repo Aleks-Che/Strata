@@ -37,6 +37,9 @@ if(STRATA_DEEPSEEK_DIRECT_CACHE_EXPERIMENT)
   include(CpuLanePatches.cmake)
 endif()
 include(SwigluCompatPatches.cmake)
+if(STRATA_DEEPSEEK_DIRECT_CACHE_EXPERIMENT)
+  string(APPEND ds4_mmvq "\n#include \"cpu_cost_gpu_probe.inc\"\n")
+endif()
 set(ds4_mmvq_generated "${CMAKE_BINARY_DIR}/strata-ds4-mmvq.cu")
 set(ds4_mmvq_old "")
 if(EXISTS "${ds4_mmvq_generated}")
@@ -56,7 +59,7 @@ list(REMOVE_ITEM ds4_cuda_sources ${ds4_mmvq_matches})
 set_property(TARGET ggml-cuda PROPERTY SOURCES "${ds4_cuda_sources};${ds4_mmvq_generated}")
 set_source_files_properties("${ds4_mmvq_generated}" TARGET_DIRECTORY ggml-cuda PROPERTIES
   INCLUDE_DIRECTORIES "${STRATA_LLAMA_DIR}/ggml/src/ggml-cuda;${CMAKE_CURRENT_SOURCE_DIR}"
-  OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.inc")
+  OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.hpp;${CMAKE_CURRENT_SOURCE_DIR}/mmvq_token_batch.inc;${CMAKE_CURRENT_SOURCE_DIR}/cpu_cost_gpu_probe.inc;${CMAKE_CURRENT_SOURCE_DIR}/cpu_cost_gpu_probe.hpp")
 if(STRATA_DEEPSEEK_EARLY_HITS_EXPERIMENT)
   set_property(SOURCE "${ds4_mmvq_generated}" TARGET_DIRECTORY ggml-cuda
     APPEND PROPERTY COMPILE_DEFINITIONS STRATA_DS4_EARLY_HITS_COMPILED)

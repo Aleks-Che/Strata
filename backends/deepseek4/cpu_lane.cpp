@@ -1,4 +1,5 @@
 #include "cpu_lane.hpp"
+#include "cpu_mmvq_fast.hpp"
 #include "ggml-cpu.h"
 #include <atomic>
 #include <condition_variable>
@@ -13,8 +14,30 @@
 #include <limits>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
+#include <intrin.h>
+#elif defined(__x86_64__) || defined(__i386__)
+#include <immintrin.h>
+#endif
 
 namespace strata_ds4 {
+CpuPoolOptions cpu_pool_options() {
+    auto read=[](const char *key,int fallback,int low,int high) {
+        const char *value=std::getenv(key);if(!value || !*value)return fallback;
+        char *end=nullptr;const long n=std::strtol(value,&end,10);
+        if(!end || *end || n<low || n>high)throw std::invalid_argument(std::string("invalid ")+key);
+        return int(n);
+    };
+    return {read("STRATA_DS4_CPU_POOL_SPIN_US",0,0,2000),read("STRATA_DS4_CPU_POOL_PARTITIONS",2,1,8)};
+}
+static void cpu_pool_pause() {
+#if defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)
+    _mm_pause();
+#else
+    std::this_thread::yield();
+#endif
+}
 static uint64_t cpu_clock_us() {
     return std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -60,24 +83,39 @@ struct CpuLanePool::Impl {
     int worker_limit=0;
     uint64_t generation=0;
     bool stop=false;
-    explicit Impl(int n) {
+    CpuPoolOptions options;
+    std::atomic<uint64_t> published{0};
+    std::atomic<bool> stopping{false};
+    explicit Impl(int n,CpuPoolOptions opts):options(opts) {
         if(n<1 || n>16)throw std::invalid_argument("CPU lane pool needs 1..16 workers");
+        if(opts.spin_us<0 || opts.spin_us>2000 || opts.partitions<1 || opts.partitions>8)
+            throw std::invalid_argument("invalid CPU pool options");
         ggml_cpu_init();
         try {
             for(int i=0;i<n;++i) workers.emplace_back([this,i] {
-                uint64_t seen=0;
-                std::unique_lock<std::mutex> lock(mu);
+                uint64_t seen=0;bool worked=false;
                 for(;;) {
-                    start.wait(lock,[&]{return stop || (generation!=seen && i<worker_limit);});
+                    // Only a worker that just ran a batch spins. Idle workers
+                    // sleep after a bounded interval; publication still takes
+                    // the mutex before accessing the shared batch descriptor.
+                    if(worked && options.spin_us) {
+                        const auto until=cpu_clock_us()+options.spin_us;
+                        while(published.load(std::memory_order_acquire)==seen && !stopping.load(std::memory_order_relaxed)) {
+                            for(int k=0;k<16;++k)cpu_pool_pause();
+                            if(cpu_clock_us()>=until)break;
+                        }
+                    }
+                    std::unique_lock<std::mutex> lock(mu);
+                    start.wait(lock,[&]{return stop || generation!=seen;});
                     if(stop)return;
-                    seen=generation;auto current=batch;lock.unlock();
-                    current->work(true);lock.lock();
+                    seen=generation;worked=i<worker_limit;if(!worked)continue;
+                    auto current=batch;lock.unlock();current->work(true);
                 }
             });
         } catch(...) {shutdown();throw;}
     }
     void shutdown() {
-        {std::lock_guard<std::mutex> lock(mu);stop=true;start.notify_all();}
+        {std::lock_guard<std::mutex> lock(mu);stop=true;stopping.store(true,std::memory_order_relaxed);start.notify_all();}
         for(auto &t:workers)if(t.joinable())t.join();
     }
     ~Impl(){shutdown();}
@@ -85,11 +123,12 @@ struct CpuLanePool::Impl {
         if(batch)batch->wait();
         auto current=std::make_shared<Batch>(n,std::move(job),measure);
         {std::lock_guard<std::mutex> lock(mu);batch=current;
-         worker_limit=std::min(n,int(workers.size())-(caller?1:0));++generation;}
+         worker_limit=std::min(n,int(workers.size())-(caller?1:0));++generation;
+         published.store(generation,std::memory_order_release);}
         start.notify_all();return current;
     }
 };
-CpuLanePool::CpuLanePool(int n):p(std::make_unique<Impl>(n)){}
+CpuLanePool::CpuLanePool(int n,CpuPoolOptions options):p(std::make_unique<Impl>(n,options)){}
 CpuLanePool::~CpuLanePool(){try{wait();}catch(...) {}}
 void CpuLanePool::wait() {
     if(p->batch)p->batch->wait();
@@ -109,9 +148,11 @@ void CpuLanePool::run(int n,const std::function<void(int)> &job,CpuPoolTiming *t
     }
 }
 int CpuLanePool::size()const{return int(p->workers.size());}
+CpuPoolOptions CpuLanePool::options()const{return p->options;}
 bool cpu_mmvq_reference_enabled() {
     const char *v=std::getenv("STRATA_DS4_CPU_MMVQ_REFERENCE");return v && std::strcmp(v,"1")==0;
 }
+bool cpu_mmvq_compatible_enabled() {return cpu_mmvq_reference_enabled() || cpu_mmvq_fast_enabled();}
 bool cpu_lane_format(ggml_type type,int columns) {
     if(type!=GGML_TYPE_IQ3_XXS && type!=GGML_TYPE_MXFP4 && type!=GGML_TYPE_Q8_0)return false;
     const auto *t=ggml_get_type_traits_cpu(type);
@@ -133,6 +174,7 @@ void cpu_lane_rows(ggml_type type,int columns,const void *weight,const void *q,f
 void CpuExpertWork::compute(CpuLanePool &pool,CpuExpertTiming *timing,const CpuWeightRetire &retire) {
     if(timing)*timing={};
     if(experts.empty())return;
+    if(cpu_mmvq_fast_enabled()){cpu_mmvq_fast_compute(*this,pool,timing,retire);return;}
     if(cpu_mmvq_reference_enabled()){cpu_mmvq_reference_compute(*this,pool,timing,retire);return;}
     auto tick=timing?cpu_clock_us():0;
     const size_t gbytes=cpu_lane_activation_bytes(gate_type,columns);

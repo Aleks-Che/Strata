@@ -71,6 +71,10 @@ struct StrataExpertTransfer {
     struct FetchLoan { Entries::node_type node;const void *replacement=nullptr; };
 
     StrataExpertCounters stats;
+    // Tensor properties do not include the optional mask/scatter/join kernels.
+    // Track their captured addresses separately for each GGML split graph.
+    using CpuGraphSignature=std::vector<std::array<uintptr_t,6>>;
+    std::map<const void *,CpuGraphSignature> cpu_graph_signatures;
     bool managed=false;
     size_t allocated=0;
     std::shared_ptr<strata_ds4::ExpertSlabAllocator> slab;
@@ -730,6 +734,7 @@ struct StrataExpertTransfer {
                 upload(arena+slot,key,bytes);
                 lru.push_front(key);
                 found=entries.emplace(key,Entry{slot,bytes,lru.begin()}).first;
+                ++stats.gpu_admissions;
                 promoted(key,found->second);
             }
             if(!read_direct(dest,id,key,arena+found->second.offset,bytes,was_hit)) {
@@ -990,6 +995,7 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
             if(!allocation) {++s.stats.bypass;s.upload(destination,key,bytes,true);continue;}
             ++s.stats.misses;s.upload(allocation,key,bytes);s.lru.push_front(key);
             found=s.entries.emplace(key,StrataExpertTransfer::Entry{0,bytes,s.lru.begin(),allocation,0}).first;
+            ++s.stats.gpu_admissions;
             s.allocated+=bytes;s.promoted(key,found->second);
         }
         found->second.touched=++c.clock;
@@ -1012,6 +1018,24 @@ static void strata_cuda_expert_stats(ggml_backend_t backend,StrataExpertCounters
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
     *out=it==strata_expert_transfers.end()?StrataExpertCounters{}:it->second->counters();
+}
+static void strata_cuda_expert_snapshot(uint64_t request,const char *phase) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    GGML_LOG_INFO("STRATA_EXPERT_BOUNDARY request=%llu phase=%s\n",(unsigned long long)request,phase);
+    for(auto &entry:strata_expert_transfers) {
+        auto &s=*entry.second;const auto c=s.counters();
+        uint64_t ram_hits=0,branches=0;
+        for(auto &b:s.branch_contexts){ram_hits+=b.cpu.ram_hits;branches+=b.cpu.queue_branches;}
+        const auto borrowed=s.pipeline?s.pipeline->counters().borrowed_bytes:0;
+        GGML_LOG_INFO("STRATA_EXPERT_SNAPSHOT request=%llu phase=%s backend=%llu cache_bytes=%llu hits=%llu misses=%llu admissions=%llu h2d_bytes=%llu d2d_bytes=%llu d2h_bytes=%llu file_bytes=%llu mmap_bytes=%llu ram_cpu_hits=%llu ram_gpu_bytes=%llu cpu_branches=%llu cpu_jobs=%llu cpu_rows=%llu fetch_branches=%llu graph_changes=%llu graph_captures=%llu graph_replays=%llu\n",
+            (unsigned long long)request,phase,(unsigned long long)uintptr_t(entry.first),(unsigned long long)s.capacity,
+            (unsigned long long)c.hits,(unsigned long long)c.misses,(unsigned long long)c.gpu_admissions,
+            (unsigned long long)c.h2d_bytes,(unsigned long long)c.d2d_bytes,(unsigned long long)c.gpu_demotion_bytes,
+            (unsigned long long)c.file_read_bytes,(unsigned long long)c.mmap_read_bytes,(unsigned long long)ram_hits,
+            (unsigned long long)(c.gpu_fetch_ram_bytes+borrowed),(unsigned long long)branches,
+            (unsigned long long)c.cpu_queue_jobs,(unsigned long long)c.cpu_queue_rows,(unsigned long long)c.gpu_fetch_branches,
+            (unsigned long long)c.cpu_graph_changes,(unsigned long long)c.cuda_graph_captures,(unsigned long long)c.cuda_graph_replays);
+    }
 }
 static void strata_cuda_expert_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
@@ -1059,6 +1083,17 @@ static void strata_cuda_expert_finish(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto it=strata_expert_transfers.find(backend);
     if(it!=strata_expert_transfers.end())it->second->finish_plan();
+}
+static void strata_cuda_cpu_cost_boundary(int operation) {
+    if(!strata_ds4::cpu_cost_auto_enabled())return;
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    // All backend instances share one request generation. Retire target and
+    // draft rings (including service replies and deferred GPU consumers) before
+    // the registry can publish any successor tables.
+    for(auto &entry:strata_expert_transfers) {
+        auto &s=*entry.second;ggml_cuda_set_device(s.device);s.finish_plan();
+    }
+    strata_ds4::cpu_cost_request_boundary(operation);
 }
 static void strata_cuda_expert_flush(ggml_backend_t backend) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);

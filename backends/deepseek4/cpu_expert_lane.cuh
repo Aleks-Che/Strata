@@ -3,6 +3,9 @@
 #include "host_cache.hpp"
 #include "cpu_lane_trace.cuh"
 #include "cpu_gpu_router.cuh"
+#include "cpu_cost_profile.hpp"
+#include "cpu_cost_refresh.hpp"
+#include "cpu_cost_device.cuh"
 #include <array>
 #include <chrono>
 #include <exception>
@@ -63,6 +66,32 @@ struct StrataCpuExpertLane {
     };
     struct Cost {double compute_us=0,copy_us=0,overhead_us=0,pack_us=0;size_t bytes=0;};
     std::map<std::tuple<int,int,int,int,int,int>,Cost> costs;
+    struct Calibration {strata_ds4::CpuCostModel model;std::shared_ptr<strata_ds4::CpuCostRefresh> refresh;};
+    std::map<std::tuple<int,int,int,int,int,float>,Calibration> calibrated_costs;
+    std::shared_ptr<strata_ds4::CpuCostRefresh> active_refresh;
+    std::string calibration_path;
+    // Owner publishes immutable profiles; service records observations only.
+    uint64_t calibrated_jobs=0,calibrated_outliers=0;
+    double predicted_compute_us=0,observed_compute_us=0;
+    bool calibrated_request()const{return !calibration_path.empty();}
+    strata_ds4::CpuCostModel calibration() {
+        const auto key=std::make_tuple(int(work.gate_type),int(work.up_type),int(work.down_type),work.columns,work.hidden,work.clamp);
+        auto it=calibrated_costs.find(key);
+        if(it!=calibrated_costs.end()) {
+            active_refresh=it->second.refresh;
+            return active_refresh?active_refresh->snapshot():it->second.model;
+        }
+        std::string reason;auto model=strata_ds4::cpu_cost_load(calibration_path,work,threads,strata_cpu_cost_gpu(device),reason);
+        if(const char *v=std::getenv("STRATA_DS4_CPU_BUDGET_US")) {
+            const float budget=std::strtof(v,nullptr);if(std::isfinite(budget) && budget>0)model.budget_us_per_token=budget;
+            else {model.enabled=false;reason="invalid CPU budget";}
+        }
+        GGML_LOG_INFO("STRATA_CPU_COST_PROFILE enabled=%d threads=%d types=%s/%s/%s shape=%d/%d clamp=%g budget_us=%.1f build=%s reason=%s revision=%d contention=%d gpu_compute=%d burst=%d mode=%s\n",
+            int(model.enabled),threads,ggml_type_name(work.gate_type),ggml_type_name(work.up_type),ggml_type_name(work.down_type),
+            work.columns,work.hidden,work.clamp,model.budget_us_per_token,strata_ds4::cpu_cost_build_id().c_str(),reason.c_str(),model.revision,int(model.contention),int(model.gpu_enabled),int(model.burst),strata_ds4::cpu_cost_mode().c_str());
+        active_refresh=force?nullptr:strata_ds4::cpu_cost_refresh_for(calibration_path,work,threads,strata_cpu_cost_gpu(device),model);
+        calibrated_costs[key]={model,active_refresh};return active_refresh?active_refresh->snapshot():model;
+    }
     std::vector<std::unique_ptr<Blob>> cache;
     std::vector<Blob *> leases;
     std::shared_ptr<strata_ds4::HostCache> ram;
@@ -94,6 +123,7 @@ struct StrataCpuExpertLane {
     uint64_t input_bytes=0,output_bytes=0,ram_hits=0,ram_misses=0,declined=0,branches=0;
     static int64_t now(){return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
     StrataCpuExpertLane() {
+        if(const char *v=std::getenv("STRATA_DS4_CPU_COST_PROFILE"))calibration_path=v;
         if(const char *v=std::getenv("STRATA_DS4_CPU_THREADS"))threads=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_SHARED_RAM"))shared_ram=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))gpu_queue_enabled=std::atoi(v)!=0;
@@ -124,6 +154,9 @@ struct StrataCpuExpertLane {
         if(gpu_queue)GGML_LOG_INFO("STRATA_CPU_QUEUE_PARK enabled=%d async_disarms=%llu waits=%llu wait_us=%llu\n",
             int(async_park),(unsigned long long)gpu_queue->async_disarms,(unsigned long long)gpu_queue->park_waits,(unsigned long long)gpu_queue->park_us);
         gpu_queue.reset();
+        if(calibrated_jobs)GGML_LOG_INFO("STRATA_CPU_COST_OBS jobs=%llu predicted_compute_us=%.1f actual_compute_us=%.1f ratio=%.3f outliers=%llu recalibration_required=%d frozen=1\n",
+            (unsigned long long)calibrated_jobs,predicted_compute_us,observed_compute_us,observed_compute_us/predicted_compute_us,
+            (unsigned long long)calibrated_outliers,int(calibrated_jobs>=8 && calibrated_outliers*2>calibrated_jobs));
         if(device_queue_table)CUDA_CHECK(cudaFree(device_queue_table));
         if(upload_queue_table)CUDA_CHECK(cudaFreeHost(upload_queue_table));
         if(gpu_queue_enabled)GGML_LOG_INFO("STRATA_CPU_GPU_QUEUE branches=%llu jobs=%llu rows=%llu slots=2 mapped_bytes=%zu\n",
@@ -413,6 +446,17 @@ struct StrataCpuExpertLane {
         }
         if(trace.enabled)trace.callback_us=now();const auto t=now();
         work.compute(*pool,trace.enabled?&trace.cpu:nullptr,retire);compute_us+=now()-t;
+        if(job.predicted_cpu_us>0) {
+            const double actual=now()-t;++calibrated_jobs;predicted_compute_us+=job.predicted_cpu_us;observed_compute_us+=actual;
+            if(active_refresh) {
+                int counts[256]={};for(int i=0;i<job.rows;++i)++counts[job.row[i].expert];
+                active_refresh->observe(queue_table.calibrated.generation,job.tokens,strata_ds4::cpu_cost_key(counts,256),job.predicted_gpu_us>0,actual);
+            }
+            calibrated_outliers+=actual>job.predicted_cpu_us*1.5 || actual<job.predicted_cpu_us*0.5;
+            if(trace.enabled) {trace.cost_generation=queue_table.calibrated.generation;trace.predicted_cpu_us=job.predicted_cpu_us;trace.predicted_gpu_us=job.predicted_gpu_us;
+                trace.predicted_gpu_compute_us=job.predicted_gpu_compute_us;trace.predicted_gpu_branch_us=job.predicted_gpu_branch_us;
+                trace.predicted_boundary_us=job.predicted_boundary_us;trace.predicted_saved_bytes=job.predicted_saved_bytes;}
+        }
         if(trace.enabled)trace.callback_end_us=now();
     }
     void queue_publish(const ggml_tensor *route,cudaStream_t owner) {

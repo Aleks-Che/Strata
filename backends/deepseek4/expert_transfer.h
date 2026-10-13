@@ -5,6 +5,8 @@
 #include "../common/expert_slice.hpp"
 
 struct StrataExpertCounters {
+    uint64_t cpu_graph_changes=0,cuda_graph_captures=0,cuda_graph_replays=0;
+    uint64_t gpu_admissions=0;
     uint64_t hits=0, misses=0, bypass=0, evictions=0;
     uint64_t h2d_bytes=0, d2d_bytes=0, stage_bytes=0;
     uint64_t stage_us=0, wait_us=0, submit_us=0;
@@ -73,6 +75,7 @@ using StrataCpuExpertPlan = bool (*)(ggml_backend_t,const StrataCpuExpertBranch 
 // routing before the scheduler reads IDs. A later non-null call adopts that
 // decision only for the legacy transfer planner; it does not choose CPU work.
 using StrataCpuExpertPhase = void (*)(bool decode);
+using StrataCpuCostBoundary = void (*)(int operation); // begin, excluded begin, commit, discard
 // Optional GPU-requested weight transfer; returns true only for a prepared
 // branch. The scheduler must skip its host route read and selected copies.
 using StrataExpertGpuFetch = bool (*)(ggml_backend_t,const ggml_tensor *,ggml_tensor *,const ggml_tensor *);
@@ -86,6 +89,8 @@ using StrataExpertEarlyHits = bool (*)(ggml_backend_t,const ggml_tensor *source,
     ggml_tensor *consumer,const ggml_tensor *route,const int32_t *selected,size_t count);
 using StrataExpertCopy = void (*)(ggml_backend_t, const ggml_tensor *, ggml_tensor *, int, int, int);
 using StrataExpertStats = void (*)(ggml_backend_t, StrataExpertCounters *);
+// Opt-in cumulative counters at already completed request/phase boundaries.
+using StrataExpertSnapshot = void (*)(uint64_t request,const char *phase);
 // Set the startup budget on the calling decode thread. Each CUDA backend keeps
 // this budget for config mode; live policies can override its residency.
 using StrataExpertBudget = void (*)(int cache_mib);

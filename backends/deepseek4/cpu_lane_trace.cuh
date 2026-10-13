@@ -31,7 +31,7 @@ struct StrataCpuLaneTrace {
             if(!path || !*path)return;
             file=std::fopen(path,"w");if(!file)GGML_ABORT("cannot open CPU trace");
             std::setvbuf(file,nullptr,_IOFBF,1<<20);
-            std::fputs("phase\towner\tjob\tlayer\ttokens\trows\tunique_experts\tinput_bytes\toutput_bytes\tselect_us\tlease_us\tlease_calls\tlease_failures\tqueued_us\tcallback_us\tcallback_end_us\tpack_us\tprepare_us\tgate_up_us\thidden_quant_us\tdown_us\tgu_dispatch_us\tgu_first_worker_us\tgu_last_worker_us\tgu_workers\tdown_dispatch_us\tdown_first_worker_us\tdown_last_worker_us\tdown_workers\tretire_us\tinput_ms\tcallback_stream_ms\toutput_ms\tjoin_ms\tcompleted\tgpu_events\troute_get_us\troute_wait_us\troute_reused\troute_measured\n",file);
+            std::fputs("phase\towner\tjob\tlayer\ttokens\trows\tunique_experts\tinput_bytes\toutput_bytes\tselect_us\tlease_us\tlease_calls\tlease_failures\tqueued_us\tcallback_us\tcallback_end_us\tpack_us\tprepare_us\tgate_up_us\thidden_quant_us\tdown_us\tgu_dispatch_us\tgu_first_worker_us\tgu_last_worker_us\tgu_workers\tdown_dispatch_us\tdown_first_worker_us\tdown_last_worker_us\tdown_workers\tretire_us\tinput_ms\tcallback_stream_ms\toutput_ms\tjoin_ms\tcompleted\tgpu_events\troute_get_us\troute_wait_us\troute_reused\troute_measured\tpredicted_cpu_us\tpredicted_gpu_transfer_us\tpredicted_boundary_us\tpredicted_saved_bytes\tpredicted_gpu_compute_us\tpredicted_gpu_branch_us\tcost_generation\n",file);
         }
         ~Sink(){if(file)std::fclose(file);}
     };
@@ -45,6 +45,9 @@ struct StrataCpuLaneTrace {
     uint64_t job=0,select_us=0,lease_us=0,lease_calls=0,lease_failures=0;
     uint64_t queued_us=0,callback_us=0,callback_end_us=0,pack_us=0;
     size_t input_bytes=0,output_bytes=0;
+    float predicted_cpu_us=0,predicted_gpu_us=0,predicted_boundary_us=0;
+    float predicted_gpu_compute_us=0,predicted_gpu_branch_us=0;
+    uint64_t predicted_saved_bytes=0,cost_generation=0;
     strata_ds4::CpuExpertTiming cpu;
     std::string phase,layer;
     strata_ds4::CpuRouteProfile route_timing;
@@ -69,6 +72,9 @@ struct StrataCpuLaneTrace {
         {std::lock_guard<std::mutex> lock(sink().mutex);job=++sink().sequence;}
         select_us=lease_us=lease_calls=lease_failures=queued_us=callback_us=callback_end_us=pack_us=0;
         input_bytes=output_bytes=0;cpu={};
+        predicted_cpu_us=predicted_gpu_us=predicted_boundary_us=0;predicted_saved_bytes=0;
+        predicted_gpu_compute_us=predicted_gpu_branch_us=0;
+        cost_generation=0;
     }
     void record(Event e,cudaStream_t stream) {
         if(!gpu_events)return;
@@ -96,8 +102,9 @@ struct StrataCpuLaneTrace {
             cpu.gate_up_pool.first_worker_us,cpu.gate_up_pool.last_worker_us,uint64_t(cpu.gate_up_pool.workers),
             cpu.down_pool.dispatch_us,cpu.down_pool.first_worker_us,cpu.down_pool.last_worker_us,uint64_t(cpu.down_pool.workers),retire};
         for(auto v:fields)std::fprintf(s.file,"\t%llu",(unsigned long long)v);
-        std::fprintf(s.file,"\t%.6f\t%.6f\t%.6f\t%.6f\t%d\t%d\t%llu\t%llu\t%d\t%d\n",in,callback,out,join,int(completed),int(gpu_events),
-            (unsigned long long)route_timing.get_us,(unsigned long long)route_timing.wait_us,int(route_timing.reused),int(route_measured));
+        std::fprintf(s.file,"\t%.6f\t%.6f\t%.6f\t%.6f\t%d\t%d\t%llu\t%llu\t%d\t%d\t%.3f\t%.3f\t%.3f\t%llu\t%.3f\t%.3f\t%llu\n",in,callback,out,join,int(completed),int(gpu_events),
+            (unsigned long long)route_timing.get_us,(unsigned long long)route_timing.wait_us,int(route_timing.reused),int(route_measured),
+            predicted_cpu_us,predicted_gpu_us,predicted_boundary_us,(unsigned long long)predicted_saved_bytes,predicted_gpu_compute_us,predicted_gpu_branch_us,(unsigned long long)cost_generation);
         if(std::ferror(s.file))GGML_ABORT("cannot write CPU trace");active=false;
         if(completed && !work.experts.empty() && s.captures<s.capture_limit &&
            (!s.capture_tokens || work.tokens==s.capture_tokens) && strata_ds4::CpuExpertFixture::bytes(work)<=strata_ds4::CpuExpertFixture::limit) {

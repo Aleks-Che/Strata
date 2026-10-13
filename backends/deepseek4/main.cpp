@@ -265,6 +265,9 @@ class Runner {
     StrataExpertBudget expert_budget;
     StrataExpertDecay expert_decay;
     StrataCpuExpertPhase cpu_phase=nullptr;
+    StrataCpuCostBoundary cpu_cost_boundary=nullptr;
+    StrataExpertSnapshot expert_snapshot=nullptr;
+    uint64_t diagnostic_request=0;
     VramControl &vram;
     ActivationProbe &activation_probe;
     const llama_vocab *vocab;
@@ -349,8 +352,13 @@ class Runner {
 public:
     Runner(llama_context*c,llama_context*d,const llama_vocab*v,Options opts,std::atomic<bool>&s,StrataExpertBudget b,StrataExpertDecay decay,VramControl &vc,ActivationProbe &probe):
         ctx(c),draft_ctx(d),expert_budget(b),expert_decay(decay),vram(vc),activation_probe(probe),vocab(v),o(opts),stop(s) {
-        if(o.expert_cpu_threads)if(auto *gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU))
+        if(o.expert_cpu_threads)if(auto *gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU)) {
             cpu_phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_cpu_expert_phase");
+            cpu_cost_boundary=(StrataCpuCostBoundary)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_cpu_cost_boundary");
+        }
+        if(const char *v=std::getenv("STRATA_DS4_EXPERT_SNAPSHOTS"))if(std::atoi(v))
+            if(auto *gpu=ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_GPU))
+                expert_snapshot=(StrataExpertSnapshot)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(gpu),"strata_expert_snapshot");
         if(draft_ctx)spec=std::make_unique<DSpark>(ctx,draft_ctx,o.draft_max,o.draft_min_confidence,o.draft_shared_scratch!=0);
         if(spec)std::cerr<<"STRATA_DSPARK_SCRATCH saved_bytes="<<spec->scratch_saved()<<" shared="<<spec->scratch_shared()<<"\n";
     }
@@ -381,13 +389,21 @@ public:
     void run(const std::string&line) {
         struct RequestPolicy {
             Runner &runner;
-            ~RequestPolicy(){runner.cpu_request_allowed=true;if(runner.cpu_phase)runner.cpu_phase(true);}
+            bool started=false;
+            void begin() {if(runner.cpu_cost_boundary){runner.cpu_cost_boundary(runner.cpu_request_allowed?0:1);started=true;}}
+            void finish(bool success) {if(started){started=false;runner.cpu_cost_boundary(success?2:3);}}
+            ~RequestPolicy(){
+                try {finish(false);}catch(const std::exception &e){std::cerr<<"STRATA_CPU_COST_ABORT error="<<e.what()<<"\n";}
+                runner.cpu_request_allowed=true;if(runner.cpu_phase)runner.cpu_phase(true);
+            }
         } request_policy{*this};
         Request r;
         int generated=0,offered=0,accepted=0;
         size_t reused=0;
         double prompt_ms=0;
         auto dt=Clock::now();
+        ++diagnostic_request;
+        if(expert_snapshot)expert_snapshot(diagnostic_request,"begin");
         try {
             r=request(line,o.context,llama_vocab_n_tokens(vocab));
             // Adaptive residency changes CPU/GPU placement as the caches warm.
@@ -396,6 +412,7 @@ public:
             // including DSpark and phase transitions after prompt decoding.
             const auto seed=r.sampling.find("seed");
             cpu_request_allowed=!o.expert_cpu_threads || seed==r.sampling.end() || std::stod(seed->second)==LLAMA_DEFAULT_SEED;
+            request_policy.begin();
             if(cpu_phase)cpu_phase(cpu_request_allowed);
             if(!cpu_request_allowed && o.expert_cpu_threads)
                 std::cerr<<"STRATA_CPU_REQUEST lane=GPU reason=explicit_seed\n";
@@ -403,7 +420,9 @@ public:
                 fixed_workload_done=true;
                 if(spec || activation_probe.enabled())throw std::runtime_error("fixed workload requires target only, without activation observers");
                 reset();
-                run_fixed_workload(ctx,vocab,r.tokens,o.batch,path,[&]{budget(false);},stop);
+                run_fixed_workload(ctx,vocab,r.tokens,o.batch,path,[&]{budget(false);},stop,
+                    [&](bool decode){if(cpu_phase)cpu_phase(decode && cpu_request_allowed);});
+                request_policy.finish(false);
                 std::cout<<"DONE 0 "<<r.tokens.size()<<" 0 0 stop 0 0 0\n"<<std::flush;return;
             }
             if(!prefill_probe_done)if(const char *path=std::getenv("STRATA_PREFILL_PROBE");path && *path) {
@@ -441,6 +460,7 @@ public:
             bool ok=decode(r.tokens,reused,r.tokens.size()-1,true);
             if(ok && !stop.load())save_ms=save(r);
             if(ok && !spec)ok=decode(r.tokens,active.size(),r.tokens.size(),true);
+            if(expert_snapshot)expert_snapshot(diagnostic_request,"prefill_end");
             prompt_ms=ms(started);dt=Clock::now();std::string finish="length";
             int rounds=0,proposed=0;double draft_ms=0,verify_ms=0;
             const char *serial_path=std::getenv("STRATA_SPEC_SERIAL_REPORT");
@@ -643,10 +663,14 @@ public:
             if(spec)std::cerr<<"STRATA_SPEC type=dspark rounds="<<rounds<<" offered="<<offered<<" accepted="<<accepted
                 <<" draft_ms="<<draft_ms<<" verify_ms="<<verify_ms<<" proposed="<<proposed<<" filtered="<<proposed-offered
                 <<" shared_scratch="<<spec->scratch_shared()<<"\n";
+            request_policy.finish(finish!="cancel");
+            if(expert_snapshot)expert_snapshot(diagnostic_request,"end");
             inventory();status("idle",source,save_ms,restore);
             std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" "<<finish<<" "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
         } catch(const std::exception&e) {
             reset();
+            request_policy.finish(false);
+            if(expert_snapshot)expert_snapshot(diagnostic_request,"error");
             if(stop.load()) {
                 inventory();status("idle","none",0,0,"cancelled");
                 std::cout<<"DONE "<<generated<<" "<<r.tokens.size()<<" "<<prompt_ms<<" "<<ms(dt)<<" cancel "<<accepted<<" "<<offered<<" "<<reused<<"\n"<<std::flush;
@@ -722,6 +746,8 @@ int main(int argc,char**argv) {
         _putenv_s("STRATA_DS4_CPU_POLICY",o.expert_cpu_policy.c_str());
         _putenv_s("STRATA_DS4_CPU_RAM_MIB",std::to_string(o.expert_cpu_ram_mib).c_str());
         if(o.expert_cpu_threads) {
+            if(const char *v=std::getenv("STRATA_DS4_CPU_MMVQ_FAST"))if(std::strcmp(v,"1")==0)
+                std::cerr<<"STRATA_CPU_NUMERICS arithmetic=generic_mmvq_multitoken experimental=1\n";
             _putenv_s("STRATA_DS4_DIRECT_CACHE","1");_putenv_s("STRATA_DS4_ORDERED_EXPERTS","1");
         }
         _putenv_s("STRATA_EXPERT_CACHE_MIB",std::to_string(o.expert_cache_mib).c_str());

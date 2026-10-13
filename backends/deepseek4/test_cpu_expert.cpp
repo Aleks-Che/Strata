@@ -354,8 +354,81 @@ static int numerical_lane_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataE
             check(count.cpu_lane_ops==3,"numerical lane test did not run three CPU jobs");operations+=count.cpu_lane_ops;
         }
     }
+    if(const char *fast=std::getenv("STRATA_DS4_CPU_MMVQ_FAST"))if(std::strcmp(fast,"1")==0) {
+        for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0})for(int guard=0;guard<2;++guard) {
+            const int n=guard?1:8;
+            env("STRATA_DS4_CPU_MATRIX_LEGACY",guard?"1":"0");
+            Weights w(cpu,type);
+            ggml_backend_ptr control(ggml_backend_dev_init(dev,nullptr)),hybrid(ggml_backend_dev_init(dev,nullptr));
+            Graph a(w,cpu,control.get(),n,false,0.1f),b(w,cpu,hybrid.get(),n,false,0.1f);
+            std::vector<float> x(n*D,0.25f);std::vector<int32_t> ids(n*E);
+            for(int t=0;t<n;++t){ids[t*E]=1;ids[t*E+1]=2;}
+            env("STRATA_DS4_CPU_THREADS","0");auto expected=a.run(x,ids);
+            env("STRATA_DS4_CPU_THREADS","16");auto actual=b.run(x,ids);
+            check(!std::memcmp(expected.data(),actual.data(),actual.size()*4),"fast GPU fallback changed output");
+            StrataExpertCounters count;stats(hybrid.get(),&count);check(!count.cpu_lane_ops,"unsupported fast window/legacy lane ran on CPU");
+        }
+        env("STRATA_DS4_CPU_MATRIX_LEGACY","0");
+        std::printf("Fast guards: six exact GPU fallbacks, window 8 and legacy matrix lane\n");
+    }
     std::printf("Numerical hybrid: %d bit-exact mixed expert/token replays, %llu CPU jobs, 12/16 threads, windows 1..4, mode 0, GPU phase transition\n",cases,(unsigned long long)operations);
     return 0;
+}
+// Keep tensor addresses unchanged while the CPU branch disappears and returns.
+// The ordinary tensor-property check cannot see this change in captured kernels.
+static void graph_transition_test(ggml_backend_t cpu,ggml_backend_dev_t dev,
+        StrataExpertStats stats,StrataCpuExpertPhase phase) {
+#ifdef _WIN32
+    env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","4");
+    env("STRATA_DS4_CPU_RAM_MIB","0");env("STRATA_DS4_CPU_MAX_EXPERTS","1");
+    env("STRATA_DS4_CPU_POLICY","force");env("STRATA_DS4_GPU_FETCH_QUEUE","0");
+    strata_ds4::CpuLanePool pool(4);int cases=0;
+    for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0})for(int n:{1,3,4}) {
+        Weights w(cpu,type);w.register_files();
+        ggml_backend_ptr hybrid(ggml_backend_dev_init(dev,nullptr)),gpu(ggml_backend_dev_init(dev,nullptr));
+        Graph a(w,cpu,hybrid.get(),n,false,0.1f),b(w,cpu,gpu.get(),n,false,0.1f);
+        std::vector<float> x(n*D);std::vector<int32_t> ids(n*E);
+        for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
+        for(int t=0;t<n;++t){ids[t*E]=1;ids[t*E+1]=2;}
+        env("STRATA_DS4_CPU_THREADS","4");a.run(x,ids);
+        phase(false);for(int i=0;i<24;++i)a.run(x,ids);phase(true);
+        for(int transition=0;transition<4;++transition) {
+            for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+23*transition)*0.031f);
+            env("STRATA_DS4_CPU_THREADS","0");const auto expected=b.run(x,ids);
+            for(int i=0;i<6;++i)check(a.run(x,ids)==expected,"GPU replay retained a CPU mask or join");
+            StrataExpertCounters before;stats(hybrid.get(),&before);
+            strata_ds4::CpuExpertWork ref;ref.columns=D;ref.hidden=H;ref.tokens=n;ref.topk=K;ref.clamp=0.1f;
+            ref.up_type=w.w[0]->type;ref.gate_type=w.w[1]->type;ref.down_type=w.w[2]->type;ref.input=x.data();
+            std::vector<float> native(n*D);ref.output=native.data();
+            for(int t=0;t<n;++t)ref.experts.push_back({w.data[1].data()+2*w.w[1]->nb[2],
+                w.data[0].data()+2*w.w[0]->nb[2],w.data[2].data()+2*w.w[2]->nb[2],t,t*K+1});
+            ref.compute(pool);
+            env("STRATA_DS4_CPU_THREADS","4");
+            for(int i=0;i<6;++i) {
+                const auto actual=a.run(x,ids);
+                for(int t=0;t<n;++t) {
+                    check(!std::memcmp(actual.data()+t*K*D,expected.data()+t*K*D,D*4),"transition changed GPU row");
+                    check(!std::memcmp(actual.data()+(t*K+1)*D,native.data()+t*D,D*4),"transition lost CPU row");
+                }
+                ++cases;
+            }
+            StrataExpertCounters after;stats(hybrid.get(),&after);
+            check(after.cpu_queue_jobs-before.cpu_queue_jobs==6 && after.cpu_queue_rows-before.cpu_queue_rows==uint64_t(6*n),
+                "transition test did not schedule real CPU queue jobs");
+        }
+        StrataExpertCounters end;stats(hybrid.get(),&end);
+        if(!std::getenv("GGML_CUDA_DISABLE_GRAPHS"))
+            check(end.cpu_graph_changes>0 && end.cuda_graph_captures>0 && end.cuda_graph_replays>0,
+                "transition test must capture AND replay real CUDA graphs");
+        else check(!end.cuda_graph_captures && !end.cuda_graph_replays,"disabled graph control used graphs");
+        std::printf("TRANSITIONS type=%s tokens=%d changes=%llu captures=%llu replays=%llu jobs=%llu\n",
+            ggml_type_name(type),n,(unsigned long long)end.cpu_graph_changes,(unsigned long long)end.cuda_graph_captures,
+            (unsigned long long)end.cuda_graph_replays,(unsigned long long)end.cpu_queue_jobs);
+    }
+    std::printf("CPU graph transitions: %d hybrid replays, GPU-only/CPU, 1/3/4 tokens, IQ3/MXFP4/Q8\n",cases);
+#else
+    throw std::runtime_error("graph transition fixture requires native Windows file registration");
+#endif
 }
 int main(){try {
     if(std::getenv("STRATA_DS4_TEST_WEIGHT_CAPTURE")) {
@@ -385,6 +458,7 @@ int main(){try {
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_stats");
     auto phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_cpu_expert_phase");
     check(bool(phase),"missing CPU phase control");
+    if(std::getenv("STRATA_DS4_TEST_GRAPH_TRANSITIONS")){graph_transition_test(cpu.get(),dev,stats,phase);return 0;}
 #ifdef STRATA_DS4_TEST_NUMERICS
     return numerical_lane_test(cpu.get(),dev,stats,phase);
 #endif
