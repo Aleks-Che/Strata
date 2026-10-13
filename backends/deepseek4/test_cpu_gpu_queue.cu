@@ -52,6 +52,18 @@ int main()try {
             check(out[t*32+j]==x[t*32+j]+route[t*2+1]*10+(t*2+1),"mapped input/output visibility");
     }
     check(calls==1200,"duplicate or dropped service job");
+    // Reuse owner state immediately after replies, without waiting for the
+    // service's condition-variable sleep. Each rearm must read the new input.
+    for(int run=0;run<300;++run) {
+        queue.drain(false);queue.arm();
+        for(int i=0;i<96;++i)x[i]=float((run+2000)*128+i);
+        cpu_queue_check(cudaMemcpyAsync(input,x.data(),96*4,cudaMemcpyHostToDevice,stream));
+        cpu_queue_check(cudaGraphLaunch(executable,stream));sync();
+        cpu_queue_check(cudaMemcpy(out.data(),output,96*4,cudaMemcpyDeviceToHost));
+        for(int t=0;t<3;++t)for(int j=0;j<32;++j)
+            check(out[t*32+j]==x[t*32+j]+route[t*2+1]*10+(t*2+1),"asynchronous rearm read an old input");
+    }
+    check(calls==1500 && queue.async_disarms==300,"asynchronous rearm duplicated or dropped a CPU job");
     CpuQueuePacket p;cpu_queue_check(cudaMemcpy(&p,packet,sizeof(p),cudaMemcpyDeviceToHost));
     check(!p.mask[0] && !p.mask[1] && !p.mask[2],"mixed CPU/GPU occurrence must retain GPU fetch");
     check(p.slots[1]==0 && p.slots[3]==1 && p.slots[5]==2 && p.slots[0]==-1,"original top-k row order");
@@ -95,5 +107,5 @@ int main()try {
     check(state().error==cpu_cancelled,"cancelled job returned a stale successful answer");
     cudaGraphExecDestroy(executable);cudaGraphDestroy(graph);sync();queue.drain();
     cudaFree(dt);cudaFree(packet);cudaFree(ids);cudaFree(input);cudaFree(output);cudaStreamDestroy(stream);
-    std::printf("CPU GPU queue: %d checks, 1200 graph replays, full/error/cancel/timeout passed\n",checks);return 0;
+    std::printf("CPU GPU queue: %d checks, 1500 graph replays (300 async rearms), full/error/cancel/timeout passed\n",checks);return 0;
 }catch(const std::exception &e){std::fprintf(stderr,"%s\n",e.what());return 1;}

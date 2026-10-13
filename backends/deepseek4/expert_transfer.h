@@ -21,6 +21,11 @@ struct StrataExpertCounters {
     uint64_t cpu_lane_ops=0,cpu_lane_experts=0,cpu_lane_saved_bytes=0;
     uint64_t cpu_queue_jobs=0,cpu_queue_rows=0;
     uint64_t gpu_fetch_branches=0,gpu_fetch_matrices=0;
+    uint64_t gpu_fetch_ram_reservations=0,gpu_fetch_ram_completed=0,gpu_fetch_ram_bytes=0;
+    uint64_t gpu_fetch_cache_offered=0,gpu_fetch_cache_admitted=0,gpu_fetch_cache_restored=0,gpu_fetch_cache_bytes=0;
+    uint64_t gpu_fetch_cache_ram_bypasses=0;
+    uint64_t gpu_fetch_ram_released_unused=0,gpu_fetch_ram_released_used=0,cpu_snapshot_released=0;
+    uint64_t gpu_fetch_early_retire=0,gpu_fetch_retire_tail_pending=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Exact GPU table lookup for at most three hash-routed layers. These are input

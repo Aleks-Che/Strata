@@ -19,6 +19,10 @@ struct StrataCpuExpertLane {
     using Packet=strata_ds4::CpuQueuePacket;
     Packet packet{};
     bool gpu_queue_enabled=false,gpu_queue_active=false,queue_adopted=false;
+    bool snapshot_prune=false;
+    bool async_park=false;
+    uint64_t snapshot_queries=0,snapshot_skipped=0,snapshot_us=0;
+    uint64_t snapshot_released=0,snapshot_release_bytes=0,snapshot_release_deferred=0;
     uint64_t queue_epoch=0,queue_jobs=0,queue_rows=0,queue_branches=0;
     cudaStream_t queue_owner=nullptr;
     std::unique_ptr<strata_ds4::CpuGpuQueue> gpu_queue;
@@ -65,6 +69,8 @@ struct StrataCpuExpertLane {
         if(const char *v=std::getenv("STRATA_DS4_CPU_THREADS"))threads=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_SHARED_RAM"))shared_ram=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))gpu_queue_enabled=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_SNAPSHOT_PRUNE"))snapshot_prune=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_QUEUE_ASYNC_PARK"))async_park=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_MAX_EXPERTS"))cap=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_POLICY"))force=std::strcmp(v,"force")==0;
         // Diagnostic only: stable device placement separates numerical changes
@@ -76,11 +82,18 @@ struct StrataCpuExpertLane {
     }
     ~StrataCpuExpertLane() {
         const size_t queue_bytes=gpu_queue?sizeof(strata_ds4::CpuQueueSlot)*strata_ds4::cpu_queue_depth:0;
-        clear();cache.clear();gpu_queue.reset();
+        clear();cache.clear();
+        if(gpu_queue)GGML_LOG_INFO("STRATA_CPU_QUEUE_PARK enabled=%d async_disarms=%llu waits=%llu wait_us=%llu\n",
+            int(async_park),(unsigned long long)gpu_queue->async_disarms,(unsigned long long)gpu_queue->park_waits,(unsigned long long)gpu_queue->park_us);
+        gpu_queue.reset();
         if(device_queue_table)CUDA_CHECK(cudaFree(device_queue_table));
         if(gpu_queue_enabled)GGML_LOG_INFO("STRATA_CPU_GPU_QUEUE branches=%llu jobs=%llu rows=%llu slots=2 mapped_bytes=%zu\n",
             (unsigned long long)queue_branches,(unsigned long long)queue_jobs,(unsigned long long)queue_rows,
             queue_bytes);
+        if(gpu_queue_enabled)GGML_LOG_INFO("STRATA_CPU_SNAPSHOT prune=%d queries=%llu skipped=%llu snapshot_us=%llu select_us=%llu\n",
+            int(snapshot_prune),(unsigned long long)snapshot_queries,(unsigned long long)snapshot_skipped,(unsigned long long)snapshot_us,(unsigned long long)select_us);
+        if(gpu_queue_enabled)GGML_LOG_INFO("STRATA_CPU_SNAPSHOT_RELEASE matrices=%llu lease_bytes=%llu deferred=%llu\n",
+            (unsigned long long)snapshot_released,(unsigned long long)snapshot_release_bytes,(unsigned long long)snapshot_release_deferred);
         if(stream)CUDA_CHECK(cudaStreamDestroy(stream));
         for(auto e:{input_ready,input_copied,ready,consumed})if(e)CUDA_CHECK(cudaEventDestroy(e));
         if(input)CUDA_CHECK(cudaFreeHost(input));if(output)CUDA_CHECK(cudaFreeHost(output));
@@ -146,7 +159,7 @@ struct StrataCpuExpertLane {
             const auto t=now();
             if(completion)CUDA_CHECK(cudaEventSynchronize(consumed));
             else CUDA_CHECK(cudaStreamSynchronize(queue_owner));
-            gpu_queue->drain();
+            gpu_queue->drain(!async_park || !completion);
             if(!completion)gpu_queue->abandon_after_drain();
             else for(int i=0;i<strata_ds4::cpu_queue_depth;++i) {
                 auto &slot=gpu_queue->host[i];const auto seq=slot.request.load(cuda::memory_order_acquire);
@@ -218,6 +231,15 @@ struct StrataCpuExpertLane {
     }
     void begin(cudaStream_t owner);
     void merge(ggml_tensor *dst,cudaStream_t owner);
+    // I/O service, after the GPU has published all token placements. The CPU
+    // service reads only selected rows; never touch their leases here. The
+    // owner drains both services before reusing this table or these counters.
+    void queue_release_unused(const bool *selected) {
+        for(int id=0;id<queue_table.experts;++id)if(!selected[id])for(auto &lease:queue_leases[id])if(lease) {
+            if(const auto bytes=ram->release_cached(lease)){++snapshot_released;snapshot_release_bytes+=bytes;}
+            else ++snapshot_release_deferred;
+        }
+    }
     void queue_execute(strata_ds4::CpuQueueSlot &slot) {
         const auto &job=slot.job;
         if(job.backend!=queue_table.backend || job.epoch!=queue_table.epoch || job.layer!=queue_table.layer ||

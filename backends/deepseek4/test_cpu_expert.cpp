@@ -119,6 +119,85 @@ static double scalar_error(const Weights &w,const float *x,int id,float clamp,co
     }
     return std::sqrt(error/std::max(norm,1e-20));
 }
+static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats) {
+#ifdef _WIN32
+    env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","16");
+    env("STRATA_DS4_RAM_RESIDENCY","1");env("STRATA_DS4_CPU_RAM_MIB","0");
+    // Exercise the ordinary all-miss eligibility rule, including a RAM-ready
+    // expert becoming GPU-resident. LRU ties still choose the second top-k row.
+    env("STRATA_DS4_CPU_TEST_FIXED","0");env("STRATA_DS4_CPU_MAX_EXPERTS","1");
+    auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_control");
+    check(bool(control),"missing cache controller");
+    const bool demote=std::getenv("STRATA_DS4_RAM_DEMOTE_MIB") && std::atoi(std::getenv("STRATA_DS4_RAM_DEMOTE_MIB"));
+    const bool keep_ram=std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM") && std::atoi(std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM"));
+    for(bool managed:{false,true})for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
+        Weights target(cpu,type),victim(cpu,type);target.register_files();victim.register_files();
+        env("STRATA_EXPERT_CACHE_MIB","0");env("STRATA_DS4_CPU_THREADS","0");
+        ggml_backend_ptr warmer(ggml_backend_dev_init(dev,nullptr)),reference(ggml_backend_dev_init(dev,nullptr));
+        Graph warm(target,cpu,warmer.get(),3,false,0.1f),ref(target,cpu,reference.get(),3,false,0.1f);
+        std::vector<float> x(3*D);for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
+        std::vector<int32_t> ids(3*E),old_ids(3*E);
+        for(int t=0;t<3;++t){ids[t*E]=1;ids[t*E+1]=2;old_ids[t*E]=3;old_ids[t*E+1]=4;}
+        for(int i=0;i<16;++i)warm.run(x,ids);
+        env("STRATA_EXPERT_CACHE_MIB","8");
+        ggml_backend_ptr hybrid(ggml_backend_dev_init(dev,nullptr));
+        Graph actual(target,cpu,hybrid.get(),3,false,0.1f),old(victim,cpu,hybrid.get(),3,false,0.1f);
+        if(managed){StrataVramPolicy policy;StrataVramStatus status;check(control(0,&policy,&status),"enable managed loans");}
+        env("STRATA_DS4_CPU_THREADS","4");const auto old_result=old.run(x,old_ids);
+        StrataExpertCounters before;stats(hybrid.get(),&before);
+        check(before.misses>=6,"victim cache not populated");
+        strata_ds4::CpuLanePool pool(4);
+        for(int iteration=0;iteration<12;++iteration) {
+            if(iteration==6) {
+                StrataExpertCounters partial;stats(hybrid.get(),&partial);
+                if(keep_ram && !demote)check(!partial.gpu_fetch_cache_admitted && partial.gpu_fetch_cache_ram_bypasses>0,
+                    "ready RAM triple was split by a GPU admission");
+                // Keep the CPU expert hot, but demand a GPU expert whose RAM
+                // triple is absent: protection must not disable all admissions.
+                for(int t=0;t<3;++t)ids[t*E]=5;
+            }
+            for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+iteration*23)*0.031f);
+            env("STRATA_EXPERT_CACHE_MIB","0");env("STRATA_DS4_CPU_THREADS","0");const auto expected=ref.run(x,ids);
+            env("STRATA_EXPERT_CACHE_MIB","8");env("STRATA_DS4_CPU_THREADS","4");const auto result=actual.run(x,ids);
+            strata_ds4::CpuExpertWork work;work.columns=D;work.hidden=H;work.tokens=3;work.topk=K;work.clamp=0.1f;
+            work.up_type=target.w[0]->type;work.gate_type=target.w[1]->type;work.down_type=target.w[2]->type;work.input=x.data();
+            std::vector<float> native(3*D);work.output=native.data();
+            for(int t=0;t<3;++t)work.experts.push_back({target.data[1].data()+2*target.w[1]->nb[2],target.data[0].data()+2*target.w[0]->nb[2],target.data[2].data()+2*target.w[2]->nb[2],t,t*K+1});
+            work.compute(pool);
+            for(int t=0;t<3;++t) {
+                check(!std::memcmp(result.data()+t*K*D,expected.data()+t*K*D,D*4),"loan GPU row corrupted");
+                check(!std::memcmp(result.data()+(t*K+1)*D,native.data()+t*D,D*4),"loan changed CPU row");
+            }
+        }
+        StrataExpertCounters after;stats(hybrid.get(),&after);
+        check(after.gpu_fetch_branches==12,"loan test fell back to host routing");
+        if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_EARLY_RETIRE"))if(std::atoi(v))
+            check(after.gpu_fetch_early_retire==after.gpu_fetch_branches,"branch copies were not retired before the final consumer fence");
+        if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_RELEASE_RAM"))if(std::atoi(v)) {
+            check(after.cpu_snapshot_released>0,"unused CPU snapshots were retained");
+            check(after.gpu_fetch_ram_released_unused>0 && after.gpu_fetch_ram_released_used>0,
+                "transfer snapshots were not released after route/copy acknowledgement");
+        }
+        if(demote)check(!after.gpu_fetch_cache_offered && !after.gpu_fetch_cache_admitted,"loans bypassed demotion policy");
+        else {
+            check(after.gpu_fetch_cache_admitted>0 && after.gpu_fetch_cache_bytes>0,"no GPU cache admissions");
+            check(after.gpu_fetch_cache_restored>0,"unused loans never restored");
+            check(after.gpu_fetch_cache_offered==after.gpu_fetch_cache_restored+after.gpu_fetch_cache_admitted,"loan ownership leaked");
+            check(after.direct_hits>before.direct_hits,"admitted matrix not reused");
+        }
+        env("STRATA_DS4_CPU_THREADS","0");for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
+        check(old.run(x,old_ids)==old_result,"restored victim cache contains new weights");
+        if(managed || type==GGML_TYPE_Q8_0) {
+            StrataVramPolicy release;release.mode=1;StrataVramStatus status;
+            check(control(0,&release,&status) && !status.matrices && !status.cache_bytes,"cache loans prevent explicit release");
+            StrataVramPolicy restore;check(control(0,&restore,&status),"restore cache policy");
+        }
+    }
+    std::puts("GPU fetch cache: arena/managed, three quantizations, 72 mixed replays, unused restoration, demotion guard and explicit release");
+#else
+    throw std::runtime_error("GPU fetch cache fixture requires native Windows file registration");
+#endif
+}
 int main(){try {
     for(int threads:{1,4,12,16}) {
         strata_ds4::CpuLanePool pool(threads);std::array<std::atomic<int>,32> hits{};
@@ -138,6 +217,7 @@ int main(){try {
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_stats");
     auto phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_cpu_expert_phase");
     check(bool(phase),"missing CPU phase control");
+    if(std::getenv("STRATA_DS4_TEST_FETCH_CACHE")){fetch_cache_test(cpu.get(),dev,stats);return 0;}
     int cases=0;uint64_t operations=0;double cpu_error=0,gpu_error=0,fallback_error=0;
     strata_ds4::CpuLanePool ref_pool(4);
     for(const char *policy:{"force","auto","no_ram"})for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
@@ -251,9 +331,13 @@ int main(){try {
         // One GPU row has no RAM entry: an eligible CPU branch must also safely
         // fetch a different expert from its retained native file source.
         if(fetch_enabled)ids[0]=5;
+        uint64_t warm_file_bytes=0;
         for(int change=0;change<10;++change) {
             for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+change*23)*0.031f);
+            // The GPU-only reference must not warm the tested shared cache.
+            env("STRATA_DS4_CPU_SHARED_RAM","0");env("STRATA_DS4_RAM_CACHE_MIB","0");
             env("STRATA_DS4_CPU_THREADS","0");auto expected=b.run(x,ids);
+            env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","4");
             env("STRATA_DS4_CPU_THREADS","4");auto actual=a.run(x,ids);
             strata_ds4::CpuExpertWork ref;ref.columns=D;ref.hidden=H;ref.tokens=3;ref.topk=K;ref.clamp=0.1f;
             ref.up_type=w.w[0]->type;ref.gate_type=w.w[1]->type;ref.down_type=w.w[2]->type;ref.input=x.data();
@@ -268,6 +352,7 @@ int main(){try {
                 check(!std::memcmp(expected.data()+t*K*D,actual.data()+t*K*D,D*4),"shared mixed GPU row stale");
             }
             ++shared_cases;
+            if(change==5) {StrataExpertCounters partial;stats(hybrid.get(),&partial);warm_file_bytes=partial.file_read_bytes;}
         }
         StrataExpertCounters warm;stats(hybrid.get(),&warm);
         check(warm.cpu_lane_ops==10 && warm.cpu_lane_experts==30,"shared ready matrices not used by CPU");
@@ -276,6 +361,11 @@ int main(){try {
         if(fetch_enabled) {
             check(warm.gpu_fetch_branches==10 && warm.gpu_fetch_matrices>0,"GPU fetch silently used host route fallback");
             check(warm.file_read_bytes>cold.file_read_bytes,"missing native cold-matrix fetch");
+            if(const char *v=std::getenv("STRATA_DS4_GPU_FETCH_RAM_MIB"))if(std::atoi(v)) {
+                check(warm.gpu_fetch_ram_reservations>=3 && warm.gpu_fetch_ram_completed>=3,"native fetch never admitted cold matrices");
+                check(warm.gpu_fetch_ram_bytes>0,"native fetch never reused pinned RAM");
+                check(warm.file_read_bytes==warm_file_bytes,"native fetch reread already admitted matrices");
+            }
         } else check(!warm.gpu_fetch_branches,"unexpected GPU fetch bypassed the shadow route recorder");
         check(!warm.pipeline_unused && !warm.pipeline_fallbacks,"shared RAM transfer mismatch");
         for(int transition=0;transition<6;++transition) {

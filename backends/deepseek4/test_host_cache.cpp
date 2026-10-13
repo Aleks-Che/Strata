@@ -377,6 +377,82 @@ int main(int argc,char **argv) {
                 "snapshot survives retirement but cannot be newly acquired");
             snapshot={};held.snapshot();check(held.snapshot().retired_bytes==0,"retired snapshot releases its payload");
         }
+        {
+            const auto owner=std::this_thread::get_id();int allocated=0,released=0;
+            Cache::Storage storage;
+            storage.allocate=[&](size_t n){check(std::this_thread::get_id()==owner,"fill allocated from service");++allocated;return new uint8_t[n];};
+            storage.release=[&](uint8_t *p){check(std::this_thread::get_id()==owner,"fill released from service");++released;delete[] p;};
+            {
+                auto fills=std::make_shared<Cache>(8192,probe,Cache::Policy::Frequency,131072,131072,storage,8192);
+                auto job=fills->make_fill(),other=fills->make_fill();fills->prime_spare(a,4096);
+                check(fills->snapshot().pool_bytes==4096 && allocated==1,"spare not charged");
+                fills->prime_spare(a,4096);check(allocated==1,"spare allocated twice");
+                check(!fills->recycle_fill(*job,a,0,4096),"unobserved candidate admitted");
+                fills->observe_file(a,0,4096);
+                bool accepted=false;
+                auto writer=std::thread([&]{accepted=fills->recycle_fill(*job,a,0,4096);if(accepted)std::memcpy(job->data(),original.data(),4096);});writer.join();
+                check(accepted && fills->snapshot().pending==4096 && !fills->acquire(a,0,4096,false,false),"reserved fill visible too early");
+                check(!fills->recycle_fill(*other,a,0,4096),"duplicate reservation admitted");
+                fills->observe_file(a,0,4096);job->complete(true);auto lease=fills->acquire(a,0,4096,false,false);
+                check(lease && !std::memcmp(lease.data(),original.data(),4096) && !fills->snapshot().pending,"fill payload not published exactly");
+                const auto generation=lease.generation();const auto address=lease.data();
+                for(int i=0;i<3;++i)fills->observe_file(a,4096,4096);
+                check(!fills->recycle_fill(*job,a,4096,4096),"held victim reused");lease={};
+                writer=std::thread([&]{accepted=fills->recycle_fill(*job,a,4096,4096);if(accepted)std::memcpy(job->data(),original.data()+4096,4096);});writer.join();
+                check(accepted && job->data()==address && allocated==1,"service did not reuse exact victim");
+                job->complete(true);lease=fills->acquire(a,4096,4096,false,false);
+                check(lease.generation()>generation && !std::memcmp(lease.data(),original.data()+4096,4096),"recycled generation/payload stale");lease={};
+                fills->discard(a,4096,4096);check(fills->recycle_fill(*job,a,0,4096),"pooled reservation rejected");
+                job->complete(false);check(!fills->snapshot().pending && fills->snapshot().pool_bytes==4096,"unused fill not returned to charged pool");
+                check(fills->recycle_fill(*job,a,0,4096),"reuse after cancellation rejected");std::memcpy(job->data(),original.data(),4096);
+                auto promoted=fills->begin_gpu(a,0,4096,true);fills->ready_gpu(promoted);fills->end_gpu(promoted);job->complete(true);
+                check(!fills->acquire(a,0,4096) && fills->snapshot().stale_fills==1,"invalidated fill published");
+                fills->prime_spare(a,4096);fills->set_prefill(true);check(!fills->recycle_fill(*job,a,4096,4096),"prefill took a fill");fills->set_prefill(false);
+                check(fills->recycle_fill(*job,a,4096,4096),"second fill missing");
+                pressure=true;fills->refresh();std::memcpy(job->data(),original.data(),4096);job->complete(true);
+                check(!fills->snapshot().pending && !fills->acquire(a,4096,4096),"memory pressure admitted reserved payload");pressure=false;
+            }
+            check(allocated==released,"reserved fill leaked allocation");
+            Cache::Storage fail;
+            fail.allocate=[](size_t)->uint8_t *{throw std::bad_alloc();};fail.release=[](uint8_t *){};
+            auto cache=std::make_shared<Cache>(4096,probe,Cache::Policy::Lru,131072,131072,fail,4096);
+            cache->prime_spare(a,4096);auto job=cache->make_fill();
+            check(!cache->recycle_fill(*job,a,0,4096) && !cache->snapshot().pending && cache->snapshot().oom==1,"failed spare allocation leaked pending bytes");
+        }
+        {
+            const auto owner=std::this_thread::get_id();int allocated=0,released=0;
+            Cache::Storage storage;
+            storage.allocate=[&](size_t n){check(std::this_thread::get_id()==owner,"release test allocation on service");++allocated;return new uint8_t[n];};
+            storage.release=[&](uint8_t *p){check(std::this_thread::get_id()==owner,"early lease release freed payload on service");++released;delete[] p;};
+            {
+                auto cache=std::make_shared<Cache>(8192,probe,Cache::Policy::Lru,131072,131072,storage,8192);
+                auto unrelated=std::make_shared<Cache>(8192,probe,Cache::Policy::Lru);
+                cache->retain(a,0,original.data(),4096,cancel);
+                auto candidate=cache->acquire(a,0,2048,false,false); // covering padded block
+                auto selected=cache->acquire(a,0,4096,false,false);
+                auto fill=cache->make_fill();const auto address=selected.data();const auto generation=selected.generation();
+                size_t dropped=0;bool stolen=false,foreign=false;
+                std::thread service([&]{
+                    foreign=unrelated->release_cached(candidate)!=0;
+                    dropped=cache->release_cached(candidate);
+                    stolen=cache->recycle_fill(*fill,a,4096,4096);
+                });service.join();
+                check(!foreign && dropped==4096 && !candidate && !stolen && released==0,
+                    "release must match its cache and keep selected reader protected");
+                check(selected.generation()==generation && !std::memcmp(selected.data(),original.data(),4096),"selected CPU payload changed");
+                service=std::thread([&]{dropped=cache->release_cached(selected);stolen=cache->recycle_fill(*fill,a,4096,4096);});service.join();
+                check(dropped==4096 && !selected && stolen && fill->data()==address && released==0,"last read did not make payload reusable without freeing");
+                std::memcpy(fill->data(),original.data()+4096,4096);fill->complete(true);
+                const auto before=cache->snapshot();cache->observe_ram(a,0,4096);const auto after=cache->snapshot();
+                check(after.lease_hits==before.lease_hits+1 && after.lease_bytes==before.lease_bytes+4096 && !cache->acquire(a,0,4096,false,false),
+                    "retired RAM delivery changed to file demand or resurrected recycled data");
+                auto retired=cache->acquire(a,4096,4096,false,false);cache->discard(a,4096,4096);
+                service=std::thread([&]{dropped=cache->release_cached(retired);});service.join();
+                check(dropped==4096 && !retired && released==0,"retired lease was freed on service");
+                cache->snapshot();check(!cache->snapshot().retired_bytes,"owner did not reap retired payload");
+            }
+            check(allocated==released,"early release leaked payload");
+        }
         report["status"]="pass";
     } catch(const std::exception &e) {report["error"]=e.what();}
     report["checks"]=checks;std::ofstream(output)<<report.dump(2)<<'\n';

@@ -71,6 +71,7 @@ class CpuGpuQueue {
         }
     }
 public:
+    uint64_t async_disarms=0,park_waits=0,park_us=0; // owner counters
     CpuQueueSlot *host=nullptr,*mapped=nullptr;
     CpuQueueDevice *device=nullptr;
     explicit CpuGpuQueue(std::function<void(CpuQueueSlot &)> fn):compute(std::move(fn)) {
@@ -107,7 +108,11 @@ public:
     }
     // Producer must have finished before this call (including cancellation).
     // A timeout never releases a live snapshot or silently accepts stale data.
-    void drain() {
+    // Once all replies are acquired, callbacks no longer access backend state.
+    // The owner may request sleep without waiting for the worker to enter it.
+    // Next publication MUST follow arm(); full drain remains the default for
+    // cancellation, tests which publish while disarmed, and explicit teardown.
+    void drain(bool wait_idle=true) {
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
         for(;;) {
             bool done=true;
@@ -118,7 +123,10 @@ public:
             std::this_thread::yield();
         }
         std::unique_lock<std::mutex> lock(mutex);armed.store(false);
+        if(!wait_idle){++async_disarms;return;}
+        ++park_waits;const auto start=std::chrono::steady_clock::now();
         if(!wake.wait_until(lock,deadline,[&]{return idle;}))throw std::runtime_error("CPU service did not park");
+        park_us+=std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-start).count();
     }
 };
 

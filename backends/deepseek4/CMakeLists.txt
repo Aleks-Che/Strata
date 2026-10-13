@@ -398,6 +398,25 @@ if(BUILD_TESTING)
         add_test(NAME deepseek4_cpu_expert_fetch_g${queue_graphs} COMMAND deepseek4_cpu_expert_test)
         set_tests_properties(deepseek4_cpu_expert_fetch_g${queue_graphs} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 240
           ENVIRONMENT "STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+        add_test(NAME deepseek4_cpu_expert_fetch_ram_g${queue_graphs} COMMAND deepseek4_cpu_expert_test)
+        set_tests_properties(deepseek4_cpu_expert_fetch_ram_g${queue_graphs} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 240
+          ENVIRONMENT "STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_GPU_FETCH_RAM_MIB=1;STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+        if(WIN32)
+          add_test(NAME deepseek4_cpu_expert_fetch_keep_ram_g${queue_graphs} COMMAND deepseek4_cpu_expert_test)
+          set_tests_properties(deepseek4_cpu_expert_fetch_keep_ram_g${queue_graphs} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60
+            ENVIRONMENT "STRATA_DS4_TEST_FETCH_CACHE=1;STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_GPU_FETCH_RAM_MIB=1;STRATA_DS4_GPU_FETCH_CACHE_SLOTS=4;STRATA_DS4_GPU_FETCH_KEEP_RAM=1;STRATA_DS4_CPU_SNAPSHOT_PRUNE=1;STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+          add_test(NAME deepseek4_cpu_expert_fetch_release_ram_g${queue_graphs} COMMAND deepseek4_cpu_expert_test)
+          set_tests_properties(deepseek4_cpu_expert_fetch_release_ram_g${queue_graphs} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60
+            ENVIRONMENT "STRATA_DS4_TEST_FETCH_CACHE=1;STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_GPU_FETCH_RAM_MIB=1;STRATA_DS4_GPU_FETCH_CACHE_SLOTS=4;STRATA_DS4_GPU_FETCH_RELEASE_RAM=1;STRATA_DS4_CPU_SNAPSHOT_PRUNE=1;STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+          add_test(NAME deepseek4_cpu_expert_fetch_retire_g${queue_graphs} COMMAND deepseek4_cpu_expert_test)
+          set_tests_properties(deepseek4_cpu_expert_fetch_retire_g${queue_graphs} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60
+            ENVIRONMENT "STRATA_DS4_TEST_FETCH_CACHE=1;STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_GPU_FETCH_RAM_MIB=1;STRATA_DS4_GPU_FETCH_CACHE_SLOTS=4;STRATA_DS4_GPU_FETCH_EARLY_RETIRE=1;STRATA_DS4_QUEUE_ASYNC_PARK=1;STRATA_DS4_CPU_SNAPSHOT_PRUNE=1;STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+          foreach(fetch_demote 0 4)
+            add_test(NAME deepseek4_cpu_expert_fetch_cache_g${queue_graphs}_d${fetch_demote} COMMAND deepseek4_cpu_expert_test)
+            set_tests_properties(deepseek4_cpu_expert_fetch_cache_g${queue_graphs}_d${fetch_demote} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60
+              ENVIRONMENT "STRATA_DS4_TEST_FETCH_CACHE=1;STRATA_DS4_GPU_FETCH_QUEUE=1;STRATA_DS4_GPU_FETCH_RAM_MIB=1;STRATA_DS4_GPU_FETCH_CACHE_SLOTS=4;STRATA_DS4_RAM_DEMOTE_MIB=${fetch_demote};STRATA_DS4_CPU_GPU_QUEUE=1;GGML_CUDA_DISABLE_GRAPHS=${queue_graphs}")
+          endforeach()
+        endif()
       endforeach()
       add_test(NAME deepseek4_cpu_expert_fetch_shadow COMMAND deepseek4_cpu_expert_test)
       set_tests_properties(deepseek4_cpu_expert_fetch_shadow PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 240

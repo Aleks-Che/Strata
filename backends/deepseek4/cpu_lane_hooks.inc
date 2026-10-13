@@ -145,19 +145,30 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
                 auto *w=branch->weights[m];const void *key=(const uint8_t *)w->data+size_t(id)*w->nb[2];
                 const bool miss=s.entries.find(key)==s.entries.end();all_miss&=miss;if(miss)e.missing+=w->nb[2];
                 if(s.frequency && !c.fixed)e.score+=s.frequency->score(key);
+            }
+            e.eligible=c.fixed || all_miss;
+            // Ineligible GPU residents cannot be sent to the CPU. Nor can an
+            // incomplete RAM triple. Avoid speculative locks/refcounts for
+            // addresses which the router is guaranteed never to consume.
+            int queried=0;
+            if(!c.snapshot_prune || e.eligible)for(int m=0;m<3;++m) {
+                auto *w=branch->weights[m];++queried;
                 auto &lease=c.queue_leases[id][m];
                 lease=c.ram->acquire(files[m],offsets[m]+size_t(id)*w->nb[2],w->nb[2],false,false);
                 e.ready&=bool(lease);e.matrix[m]={uint64_t(uintptr_t(lease.data())),lease.generation()};
+                if(c.snapshot_prune && !e.ready)break;
             }
-            e.eligible=c.fixed || all_miss;
+            if(!queried)e.ready=false;
+            c.snapshot_queries+=queried;c.snapshot_skipped+=3-queried;
             if(!e.ready || !e.eligible)for(auto &lease:c.queue_leases[id])lease={};
             else if(first_ready<0)first_ready=id;
         }
+        c.snapshot_us+=StrataCpuExpertLane::now()-start;
         auto &fetch=s.gpu_fetch;
         const bool fetch_ready=fetch.enabled && first_ready>=0 && fetch.epoch<UINT32_MAX && files[0] && files[1] && files[2];
-        // The experimental fetch path does not admit new cache entries. A cold
-        // layer must retain ordinary warming, otherwise RAM stays empty forever
-        // and the CPU service never receives any work.
+        // The GPU CPU-router requires a ready RAM triple. Keep cold-layer
+        // warming on the ordinary path; optional fetch admission can then
+        // recycle RAM for actual misses without allocating on the service.
         if(first_ready<0) {c.clear();return false;}
         if(first_ready>=0 && !c.force) {
             // Keep the old arithmetic/cost formula; broader calibration is stage 4.
@@ -168,12 +179,16 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
         }
         if(fetch_ready) {
             fetch.allocate();++fetch.epoch;++fetch.branches;
+            fetch.ram=c.ram;
+            if(fetch.release_ram)fetch.release_cpu_candidates=[&c](const bool *selected){c.queue_release_unused(selected);};
             for(int m=0;m<3;++m) {
                 auto *w=branch->weights[m];auto *dst=branch->nodes[m]->src[0];auto &p=fetch.plan[m];p={};
                 fetch.files[m]=files[m];fetch.offsets[m]=offsets[m];fetch.submitted[m]=false;
+                fetch.weights[m]=(const uint8_t *)w->data;
                 p.epoch=fetch.epoch;p.width=w->nb[2];p.experts=int(w->ne[2]);p.topk=int(route->ne[0]);p.tokens=int(route->ne[1]);
                 p.scratch=dst->data;p.compact=strata_compact_slots(dst);
                 for(int id=0;id<p.experts;++id) {
+                    p.keep_ram[id]=fetch.cache_keep_ram && fetch.cache_slots && table.expert[id].ready && table.expert[id].eligible;
                     const size_t bytes=p.width+(id<p.experts-1?std::min<size_t>(p.width,512):0);
                     const void *key=(const uint8_t *)w->data+size_t(id)*p.width;
                     const auto it=s.entries.find(key);
@@ -181,8 +196,10 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
                         p.cached[id]=s.managed?it->second.allocation:s.arena+it->second.offset;
                         s.protected_keys.insert(key);
                     } else fetch.leases[m][id]=c.ram->acquire(files[m],offsets[m]+size_t(id)*p.width,bytes,false,false);
+                    fetch.ram_hit[m][id]=bool(fetch.leases[m][id]);
                 }
             }
+            s.prepare_fetch_cache();fetch.prepare_fills();
             fetch.active=true;fetch.queue->arm();
         }
         c.select_us+=StrataCpuExpertLane::now()-start;if(c.trace.enabled)c.trace.select_us=StrataCpuExpertLane::now()-start;
@@ -293,5 +310,7 @@ static bool strata_cuda_expert_gpu_fetch(ggml_backend_t backend,const ggml_tenso
     strata_ds4::gpu_fetch_publish<<<1,256,0,s.stream>>>(f.queue->mapped+m,f.plan[m],
         (const int32_t *)route->data,int(route->nb[1]/4),c.device_packet,s.direct.table);
     CUDA_CHECK(cudaGetLastError());
-    f.queue->wait(m,s.stream);return true;
+    f.queue->wait(m,s.stream);
+    if(f.early_retire && f.submitted[0] && f.submitted[1] && f.submitted[2])f.queue->mark_copies(s.stream);
+    return true;
 }
