@@ -11,7 +11,7 @@
 // not a measurement of synchronization overhead or of D2H bandwidth.
 struct StrataSchedulerProfile {
     using Clock = std::chrono::steady_clock;
-    enum Kind { route_get, route_wait, plan, copy, graph_submit, destination_wait, ordered_experts, hash_reuses, gpu_fetch, count };
+    enum Kind { route_get, route_wait, plan, copy, graph_submit, destination_wait, ordered_experts, hash_reuses, gpu_fetch, cpu_lookahead, slice_plan, count };
     struct Sample { uint64_t calls=0, bytes=0; double ms=0; };
     struct Output {
         std::mutex mutex;
@@ -49,7 +49,7 @@ struct StrataSchedulerProfile {
         if(!phase)phase="init";
         std::lock_guard<std::mutex> lock(output().mutex);
         const auto graph=++output().graph;
-        const char *names[]={"route_get","route_wait","plan","copy","graph_submit","destination_wait","ordered_experts","hash_reuses","gpu_fetch"};
+        const char *names[]={"route_get","route_wait","plan","copy","graph_submit","destination_wait","ordered_experts","hash_reuses","gpu_fetch","cpu_lookahead","slice_plan"};
         for(size_t i=0;i<samples.size();++i) {
             const auto &s=samples[i];
             std::fprintf(file,"%s\t%llu\t%lld\t%s\t%llu\t%llu\t%.6f\n",phase,

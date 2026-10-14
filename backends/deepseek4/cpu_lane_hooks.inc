@@ -1,7 +1,15 @@
 // Called only for sole, unfused, short MUL_MAT_ID consumers. The ordinary
 // scheduler CPU audit remains active; this is an explicit partial-matrix lane.
+struct StrataCpuEligibilityOptions {
+    bool compatible,legacy,mmq;
+    StrataCpuEligibilityOptions():compatible(strata_ds4::cpu_mmvq_compatible_enabled()) {
+        const char *v=std::getenv("STRATA_DS4_CPU_MATRIX_LEGACY");legacy=v && std::atoi(v);
+        v=std::getenv("STRATA_DS4_ROUTED_MMQ");mmq=v && std::strcmp(v,"0");
+    }
+};
 static bool strata_cpu_eligible(ggml_backend_t backend,const ggml_tensor *src,
-        const ggml_tensor *node,const ggml_tensor *route,size_t ids_bytes) {
+        const ggml_tensor *node,const ggml_tensor *route,size_t ids_bytes,
+        const StrataCpuEligibilityOptions *options=nullptr) {
 #ifndef STRATA_DS4_CPU_LANE_COMPILED
     return false;
 #else
@@ -12,10 +20,12 @@ static bool strata_cpu_eligible(ggml_backend_t backend,const ggml_tensor *src,
     const int cc=ggml_cuda_info().devices[ctx->device].cc;
     // Both compatible CPU paths mirror generic NVIDIA four-warp MMVQ.
     // Other dispatch tables/window sizes retain the GPU arithmetic path.
-    if(strata_ds4::cpu_mmvq_compatible_enabled() &&
+    const bool compatible=options?options->compatible:strata_ds4::cpu_mmvq_compatible_enabled();
+    if(compatible &&
        (route->ne[1]>4 || w->ne[0]%256 || !GGML_CUDA_CC_IS_NVIDIA(cc) || cc<GGML_CUDA_CC_AMPERE || cc==GGML_CUDA_CC_DGX_SPARK))return false;
     // The old partial-matrix lane uses ggml's Q8_K dots, not this contract.
-    if(strata_ds4::cpu_mmvq_compatible_enabled())
+    if(options) {if(compatible && options->legacy)return false;}
+    else if(strata_ds4::cpu_mmvq_compatible_enabled())
         if(const char *v=std::getenv("STRATA_DS4_CPU_MATRIX_LEGACY"))if(std::atoi(v))return false;
     if(!ggml_is_contiguous(node) || node->ne[3]!=1 || x->ne[3]!=1 || x->nb[0]!=4 ||
        !x->buffer || x->buffer->buft!=ggml_backend_cuda_buffer_type(ctx->device) ||
@@ -26,7 +36,8 @@ static bool strata_cpu_eligible(ggml_backend_t backend,const ggml_tensor *src,
        node->ne[2]>get_mmvq_mmid_max_batch(w->type,cc) ||
        ggml_nbytes(x)>(2ULL<<20) || ggml_nbytes(node)>(2ULL<<20) ||
        !strata_ds4::cpu_lane_format(w->type,int(w->ne[0])))return false;
-    if(const char *v=std::getenv("STRATA_DS4_ROUTED_MMQ"))if(std::strcmp(v,"0"))return false;
+    if(options) {if(options->mmq)return false;}
+    else if(const char *v=std::getenv("STRATA_DS4_ROUTED_MMQ"))if(std::strcmp(v,"0"))return false;
     return true;
 #endif
 }
@@ -141,8 +152,14 @@ void strata_expert_cpu_join(ggml_backend_cuda_context &ctx,const ggml_tensor *we
 
 static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuExpertBranch *branch,
         const ggml_tensor *route,const int32_t *ids,size_t ids_bytes,uint8_t *selected) {
+    strata_ds4::PrepTimer prep_timer(nullptr);
+    // Read policy once for this attempt, not twice for each of three matrices.
+    // Keep it request-local: tests and runtime configuration may change flags.
+    const char *fast=std::getenv("STRATA_DS4_CPU_PREP_FAST");
+    std::optional<StrataCpuEligibilityOptions> options;
+    if(fast && std::atoi(fast))options.emplace();
     for(int i=0;i<3;++i)if(!branch->nodes[i] || !branch->weights[i] ||
-        !strata_cpu_eligible(backend,branch->weights[i],branch->nodes[i],route,ids_bytes))return false;
+        !strata_cpu_eligible(backend,branch->weights[i],branch->nodes[i],route,ids_bytes,options?&*options:nullptr))return false;
     auto *up=branch->nodes[0],*gate=branch->nodes[1],*down=branch->nodes[2],*x=up->src[1];
     auto *act=down->src[1];
     if(gate->src[1]!=x || x->ne[1]!=1 || !ggml_is_contiguous(x) || act->op!=GGML_OP_GLU ||
@@ -152,6 +169,10 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
        act->op_params[1]!=0)return false;
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     auto &s=strata_expert_state(backend);
+    // Publish the measurement before releasing the transfer lock, just like
+    // the other counters. Include eligibility work from before the lock.
+    strata_ds4::PrepTimer locked_prep_timer(&s.stats.prep_cpu_hook_ns);
+    locked_prep_timer.start=prep_timer.start;
     if(!ids)s.next_context(*branch);
     auto &c=s.cpu_whole();
     if(!c.threads || c.legacy || !s.pipeline || !s.direct.enabled || s.early_hits.enabled)return false;
@@ -169,7 +190,10 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
         // Calibrated auto never uses the legacy host-ID selector below.
         // After a queue decline, do not allocate its pool, pinned buffers or
         // mapped queue just to reject that second planning attempt again.
-        s.finish_plan();return false;
+        // The ordinary plan below retires every context before publishing
+        // scratch/cache work. No CPU state is bound by this rejected retry.
+        if(!c.empty_cleanup_fast || c.configured || c.pending || c.gpu_queue_active)s.finish_plan();
+        return false;
     }
     if(!ids && (!c.gpu_queue_enabled || !c.shared_ram || !c.ram || !strata_cpu_decode || c.cap<1 ||
         !route->buffer || route->buffer->buft!=ggml_backend_cuda_buffer_type(s.device)))return false;
@@ -177,8 +201,7 @@ static bool strata_cuda_cpu_expert_plan(ggml_backend_t backend,const StrataCpuEx
         const auto candidate=StrataCpuExpertLane::branch_work(*branch);
         // A preceding context may still execute CPU work. Inspect the new
         // shape without rebinding its refresh observer or changing its work.
-        const auto model=c.calibration(candidate,s.device,false);
-        if(model.enabled && !strata_ds4::cpu_cost_budget_possible(model,candidate.tokens)) {
+        if(!c.budget_possible(candidate,s.device)) {
             // The ordinary transport reuses scratch/cache entries: retire ALL
             // outstanding contexts before handing ownership back to it.
             // No RAM snapshot, mapped queue or CPU graph binding is published.

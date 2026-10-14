@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
+#include <limits>
 using namespace strata_ds4;
 using json=nlohmann::json;
 static void check(bool ok,const char *s){if(!ok)throw std::runtime_error(s);}
@@ -33,6 +34,18 @@ int main()try {
         proof.budget_us_per_token=30;
         check(cpu_cost_budget_possible(proof,1),"budget equality discarded");
         proof.enabled=false;check(cpu_cost_budget_possible(proof,1),"uncalibrated routing incorrectly rejected");
+        for(int variant=0;variant<7;++variant)for(float budget:{0.f,0.01f,20.f,30.f,1000.f}) {
+            auto source=m;source.budget_us_per_token=budget;
+            if(variant==1)source.enabled=false;
+            if(variant==2)source.compute[1][404]=std::numeric_limits<float>::quiet_NaN();
+            if(variant==3)source.boundary[2][8]=-1;
+            if(variant==4)source.boundary[0][1]=std::numeric_limits<float>::quiet_NaN();
+            if(variant==5)source.budget_us_per_token=std::numeric_limits<float>::quiet_NaN();
+            if(variant==6)source.compute[0][1]=std::numeric_limits<float>::infinity();
+            const CpuCostBudgetProof cached(source);
+            for(int t=1;t<=4;++t)check(cached.possible(t)==cpu_cost_budget_possible(source,t),"cached budget proof changed prefix decision");
+            check(cached.possible(0) && cached.possible(5),"unsupported shape was rejected by cached proof");
+        }
     }
     check(choose(1,1,200,0).mask==1,"deterministic equal-cost tie");
     check(choose(1,2,200,0).mask==3,"parallel cost must be max, not a sum");

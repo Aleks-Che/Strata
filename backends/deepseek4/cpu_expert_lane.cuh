@@ -24,6 +24,8 @@ struct StrataCpuExpertLane {
     bool gpu_queue_enabled=false,gpu_queue_active=false,queue_adopted=false;
     bool fast_empty=false,empty_gpu_fallback=false,lazy_service=false,queue_empty=false,queue_lazy=false,service_armed=false;
     uint64_t gpu_fallback_branches=0;
+    bool budget_proof_cache=false,empty_cleanup_fast=false;
+    uint64_t budget_proof_checks=0,budget_proof_us=0,empty_cleanup_skips=0;
     uint64_t empty_branches=0,lazy_branches=0,service_wakes=0,service_skips=0;
     bool snapshot_prune=false;
     bool snapshot_overlap=false;
@@ -69,7 +71,11 @@ struct StrataCpuExpertLane {
     };
     struct Cost {double compute_us=0,copy_us=0,overhead_us=0,pack_us=0;size_t bytes=0;};
     std::map<std::tuple<int,int,int,int,int,int>,Cost> costs;
-    struct Calibration {strata_ds4::CpuCostModel model;std::shared_ptr<strata_ds4::CpuCostRefresh> refresh;};
+    struct Calibration {
+        strata_ds4::CpuCostModel model;
+        std::shared_ptr<strata_ds4::CpuCostRefresh> refresh;
+        strata_ds4::CpuCostBudgetProof budget;
+    };
     std::map<std::tuple<int,int,int,int,int,float>,Calibration> calibrated_costs;
     std::shared_ptr<strata_ds4::CpuCostRefresh> active_refresh;
     std::string calibration_path;
@@ -77,14 +83,10 @@ struct StrataCpuExpertLane {
     uint64_t calibrated_jobs=0,calibrated_outliers=0;
     double predicted_compute_us=0,observed_compute_us=0;
     bool calibrated_request()const{return !calibration_path.empty();}
-    strata_ds4::CpuCostModel calibration(const strata_ds4::CpuExpertWork &work,int device,bool bind_refresh=true) {
+    Calibration &calibration_entry(const strata_ds4::CpuExpertWork &work,int device) {
         const auto key=std::make_tuple(int(work.gate_type),int(work.up_type),int(work.down_type),work.columns,work.hidden,work.clamp);
         auto it=calibrated_costs.find(key);
-        if(it!=calibrated_costs.end()) {
-            const auto &refresh=it->second.refresh;
-            if(bind_refresh)active_refresh=refresh;
-            return refresh?refresh->snapshot():it->second.model;
-        }
+        if(it!=calibrated_costs.end())return it->second;
         std::string reason;auto model=strata_ds4::cpu_cost_load(calibration_path,work,threads,strata_cpu_cost_gpu(device),reason);
         if(const char *v=std::getenv("STRATA_DS4_CPU_BUDGET_US")) {
             const float budget=std::strtof(v,nullptr);if(std::isfinite(budget) && budget>0)model.budget_us_per_token=budget;
@@ -94,8 +96,24 @@ struct StrataCpuExpertLane {
             int(model.enabled),threads,ggml_type_name(work.gate_type),ggml_type_name(work.up_type),ggml_type_name(work.down_type),
             work.columns,work.hidden,work.clamp,model.budget_us_per_token,strata_ds4::cpu_cost_build_id().c_str(),reason.c_str(),model.revision,int(model.contention),int(model.gpu_enabled),int(model.burst),strata_ds4::cpu_cost_mode().c_str());
         auto refresh=force?nullptr:strata_ds4::cpu_cost_refresh_for(calibration_path,work,threads,strata_cpu_cost_gpu(device),model);
-        calibrated_costs[key]={model,refresh};if(bind_refresh)active_refresh=refresh;
-        return refresh?refresh->snapshot():model;
+        return calibrated_costs.emplace(key,Calibration{model,refresh,strata_ds4::CpuCostBudgetProof(model)}).first->second;
+    }
+    strata_ds4::CpuCostModel calibration(const strata_ds4::CpuExpertWork &work,int device,bool bind_refresh=true) {
+        auto &entry=calibration_entry(work,device);
+        if(bind_refresh)active_refresh=entry.refresh;
+        return entry.refresh?entry.refresh->snapshot():entry.model;
+    }
+    bool budget_possible(const strata_ds4::CpuExpertWork &candidate,int device) {
+        const auto start=now();++budget_proof_checks;
+        bool possible;
+        if(budget_proof_cache) {
+            auto &entry=calibration_entry(candidate,device);
+            possible=entry.refresh?entry.refresh->budget_possible(candidate.tokens):entry.budget.possible(candidate.tokens);
+        } else {
+            const auto model=calibration(candidate,device,false);
+            possible=strata_ds4::cpu_cost_budget_possible(model,candidate.tokens);
+        }
+        budget_proof_us+=now()-start;return possible;
     }
     strata_ds4::CpuCostModel calibration(){return calibration(work,device);}
     std::vector<std::unique_ptr<Blob>> cache;
@@ -135,6 +153,8 @@ struct StrataCpuExpertLane {
         if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))gpu_queue_enabled=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_EMPTY_FAST"))fast_empty=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_EMPTY_GPU_FALLBACK"))empty_gpu_fallback=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_BUDGET_PROOF_CACHE"))budget_proof_cache=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_EMPTY_CLEANUP_FAST"))empty_cleanup_fast=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_SERVICE_LAZY"))lazy_service=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_SNAPSHOT_PRUNE"))snapshot_prune=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_SNAPSHOT_OVERLAP"))snapshot_overlap=std::atoi(v)!=0;
@@ -285,6 +305,13 @@ struct StrataCpuExpertLane {
     // by the GPU. Its event or stream-ordered receipt validates the consumer.
     void clear(bool defer_consumer=false) {
         finish_consumer();
+        // All queue leases/work are published only after configured=true and
+        // released by the full clear below. Keep consumer retirement above:
+        // configured may already be false after a deferred queue retirement.
+        if(empty_cleanup_fast && !configured && !started && !gpu_queue_active && !error) {
+            GGML_ASSERT(!pending && leases.empty() && work.experts.empty());
+            ++empty_cleanup_skips;return;
+        }
         const auto retirement=trace.enabled?now():0;
         if(gpu_queue_active) {
             const auto t=now();

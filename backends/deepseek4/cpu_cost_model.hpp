@@ -69,6 +69,17 @@ inline bool cpu_cost_budget_possible(const CpuCostModel &m,int tokens) {
     }
     return false;
 }
+// Derived once per immutable profile; preserve the conservative prefix proof.
+struct CpuCostBudgetProof {
+    uint8_t possible_mask=15;
+    explicit CpuCostBudgetProof(const CpuCostModel &m) : possible_mask(0) {
+        for(int t=1;t<=cpu_cost_tokens;++t)
+            if(cpu_cost_budget_possible(m,t))possible_mask|=uint8_t(1u<<(t-1));
+    }
+    bool possible(int tokens)const {
+        return tokens<1 || tokens>cpu_cost_tokens || (possible_mask&(1u<<(tokens-1)));
+    }
+};
 // Prefix-only: counts/gpu_required describe already committed tokens. No later
 // route IDs or total window length are consulted. Exhaustively compare the
 // <=8 ready candidates, including the empty assignment, within the row budget.

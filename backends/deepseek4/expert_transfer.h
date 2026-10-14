@@ -27,6 +27,9 @@ struct StrataExpertCounters {
     uint64_t gpu_fetch_cache_offered=0,gpu_fetch_cache_admitted=0,gpu_fetch_cache_restored=0,gpu_fetch_cache_bytes=0;
     uint64_t gpu_fetch_cache_ram_bypasses=0;
     uint64_t ordinary_cache_branches=0;
+    uint64_t cpu_budget_proof_checks=0,cpu_budget_proof_us=0,cpu_empty_cleanup_skips=0;
+    uint64_t prep_plan_ns=0,prep_finish_ns=0,prep_ordinary_ns=0,prep_ram_refresh_ns=0;
+    uint64_t prep_pipeline_start_ns=0,prep_ram_collect_ns=0,prep_ram_promote_ns=0,prep_cpu_hook_ns=0;
     uint64_t cpu_empty_branches=0,cpu_gpu_fallback_branches=0,cpu_service_wakes=0,cpu_service_skips=0,gpu_fetch_empty_requests=0;
     uint64_t gpu_fetch_service_wakes=0,gpu_fetch_service_skips=0;
     uint64_t cpu_snapshot_us=0,cpu_select_us=0,gpu_fetch_read_us=0;

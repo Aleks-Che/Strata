@@ -3,6 +3,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -20,6 +21,7 @@
 #include "expert_hash.cuh"
 #include "expert_early_hits.cuh"
 #include "host_cache.hpp"
+#include "prep_profile.hpp"
 #include "expert_residency.cuh"
 #include "cpu_lane.cuh"
 #include "cpu_expert_lane.cuh"
@@ -142,6 +144,7 @@ struct StrataExpertTransfer {
     StrataExpertResidency residency;
     bool ram_drop_gpu=false,ram_on_bypass=false;
     void promoted(const void *key,Entry &entry,bool already_copied=false) {
+        strata_ds4::PrepTimer timer(&stats.prep_ram_promote_ns);
         if(!residency.cache && !ram_drop_gpu)return;
         if(auto file=strata_expert_file::find(key,entry.bytes)) {
             const auto offset=file->offset_of(key,entry.bytes);
@@ -234,6 +237,7 @@ struct StrataExpertTransfer {
 #include "ordinary_cache.inc"
 
     void finish_context(bool keep_whole=false,const std::function<void()> &prepare_next={},bool overlap_context=false) {
+        strata_ds4::PrepTimer timer(&stats.prep_finish_ns);
         // A handoff receipt precedes the current fetch on this owner stream.
         // Reuse its existing copy fence, not an extra wait at the branch entry.
         const bool receipt_at_fetch=cpu_whole().handoff_pending && gpu_fetch().active;
@@ -304,8 +308,11 @@ struct StrataExpertTransfer {
         // cache-loan plan. Its final fence is checked before next publication.
         if(cpu_whole().consumer_pending)deferred_keys().swap(protected_keys());
         else protected_keys().clear();
-        if(residency.cache)residency.poll();
-        if(host_cache)host_cache->collect();
+        {
+            strata_ds4::PrepTimer ram_timer(&stats.prep_ram_collect_ns);
+            if(residency.cache)residency.poll();
+            if(host_cache)host_cache->collect();
+        }
     }
     // Advance only between complete GPU-fetch branches. Shared GPU scratch,
     // packet and output reuse is ordered on the owner stream; all mutable host
@@ -351,6 +358,9 @@ struct StrataExpertTransfer {
         result.cpu_queue_jobs+=cpu_whole().queue_jobs;result.cpu_queue_rows+=cpu_whole().queue_rows;
         result.cpu_empty_branches+=cpu_whole().empty_branches;
         result.cpu_gpu_fallback_branches+=cpu_whole().gpu_fallback_branches;
+        result.cpu_budget_proof_checks+=cpu_whole().budget_proof_checks;
+        result.cpu_budget_proof_us+=cpu_whole().budget_proof_us;
+        result.cpu_empty_cleanup_skips+=cpu_whole().empty_cleanup_skips;
         result.cpu_snapshot_us+=cpu_whole().snapshot_us;result.cpu_select_us+=cpu_whole().select_us;
         result.gpu_fetch_read_us+=gpu_fetch().read_us;
         result.cpu_service_wakes+=cpu_whole().service_wakes;result.cpu_service_skips+=cpu_whole().service_skips;
@@ -420,6 +430,7 @@ struct StrataExpertTransfer {
     }
     void plan(const StrataExpertSlice *slices,size_t count,const StrataCpuExpertBranch *branch=nullptr,
               const ggml_tensor *route=nullptr,const int32_t *ids=nullptr) {
+        strata_ds4::PrepTimer timer(&stats.prep_plan_ns);
         if(!early_slices.empty()) {
             bool same=early_slices.size()==count;
             for(size_t i=0;same && i<count;++i)
@@ -430,8 +441,8 @@ struct StrataExpertTransfer {
         }
         finish_plan(cpu_whole().pending);cpu_whole().pending=false;
         if(!pipeline)return;
-        if(host_cache)host_cache->refresh();
-        if(branch)prepare_ordinary_cache(*branch,route,ids);
+        {strata_ds4::PrepTimer ram_timer(&stats.prep_ram_refresh_ns);if(host_cache)host_cache->refresh();}
+        {strata_ds4::PrepTimer cache_timer(&stats.prep_ordinary_ns);if(branch)prepare_ordinary_cache(*branch,route,ids);}
         std::vector<StrataExpertSlice> misses;
         for(size_t i=0;i<count;++i) {
             if(slices[i].host_compute && cpu_lane.threads) {cpu_lane.planned.insert(slices[i].data);continue;}
@@ -439,7 +450,7 @@ struct StrataExpertTransfer {
                 protected_keys().insert(slices[i].data);
             else misses.push_back(slices[i]);
         }
-        pipeline->start(misses);
+        {strata_ds4::PrepTimer pipeline_timer(&stats.prep_pipeline_start_ns);pipeline->start(misses);}
     }
     auto evictable(size_t prefer_bytes=0) {
         auto oldest=lru.rend();
@@ -1115,11 +1126,25 @@ static void strata_cuda_expert_snapshot(uint64_t request,const char *phase) {
             (unsigned long long)c.gpu_fetch_replaced_bytes,(unsigned long long)c.gpu_fetch_refaults,(unsigned long long)c.gpu_fetch_refault_bytes,
             (unsigned long long)c.gpu_fetch_cache_ram_bypasses,(unsigned long long)c.gpu_fetch_cache_ram_unblocked,(unsigned long long)c.gpu_fetch_cache_ram_promoted,
             (unsigned long long)c.cpu_empty_branches,(unsigned long long)c.cpu_service_wakes,(unsigned long long)c.cpu_service_skips,(unsigned long long)c.gpu_fetch_empty_requests,(unsigned long long)c.gpu_fetch_service_wakes,(unsigned long long)c.gpu_fetch_service_skips);
-        GGML_LOG_INFO("STRATA_EXPERT_TIMING request=%llu phase=%s backend=%llu cpu_snapshot_us=%llu cpu_select_us=%llu fetch_read_us=%llu fetch_route_wait_us=%llu fetch_dma_wait_us=%llu fetch_service_waits=%llu fetch_service_wait_us=%llu cpu_gpu_fallback=%llu ordinary_cache_branches=%llu\n",
+        GGML_LOG_INFO("STRATA_EXPERT_TIMING request=%llu phase=%s backend=%llu cpu_snapshot_us=%llu cpu_select_us=%llu fetch_read_us=%llu fetch_route_wait_us=%llu fetch_dma_wait_us=%llu fetch_service_waits=%llu fetch_service_wait_us=%llu cpu_gpu_fallback=%llu ordinary_cache_branches=%llu cpu_budget_proof_checks=%llu cpu_budget_proof_us=%llu cpu_empty_cleanup_skips=%llu\n",
             (unsigned long long)request,phase,(unsigned long long)uintptr_t(entry.first),
             (unsigned long long)c.cpu_snapshot_us,(unsigned long long)c.cpu_select_us,(unsigned long long)c.gpu_fetch_read_us,
             (unsigned long long)c.gpu_fetch_route_wait_us,(unsigned long long)c.gpu_fetch_dma_wait_us,
-            (unsigned long long)c.gpu_fetch_service_waits,(unsigned long long)c.gpu_fetch_service_wait_us,(unsigned long long)c.cpu_gpu_fallback_branches,(unsigned long long)c.ordinary_cache_branches);
+            (unsigned long long)c.gpu_fetch_service_waits,(unsigned long long)c.gpu_fetch_service_wait_us,(unsigned long long)c.cpu_gpu_fallback_branches,(unsigned long long)c.ordinary_cache_branches,
+            (unsigned long long)c.cpu_budget_proof_checks,(unsigned long long)c.cpu_budget_proof_us,(unsigned long long)c.cpu_empty_cleanup_skips);
+        if(strata_ds4::prep_profile_enabled())GGML_LOG_INFO("STRATA_EXPERT_TIMING request=%llu phase=%s backend=%llu prep_plan_ns=%llu prep_finish_ns=%llu prep_ordinary_ns=%llu prep_ram_refresh_ns=%llu prep_pipeline_start_ns=%llu prep_ram_collect_ns=%llu prep_ram_promote_ns=%llu prep_cpu_hook_ns=%llu\n",
+            (unsigned long long)request,phase,(unsigned long long)uintptr_t(entry.first),
+            (unsigned long long)c.prep_plan_ns,(unsigned long long)c.prep_finish_ns,(unsigned long long)c.prep_ordinary_ns,
+            (unsigned long long)c.prep_ram_refresh_ns,(unsigned long long)c.prep_pipeline_start_ns,
+            (unsigned long long)c.prep_ram_collect_ns,(unsigned long long)c.prep_ram_promote_ns,(unsigned long long)c.prep_cpu_hook_ns);
+    }
+    if(strata_ds4::prep_profile_enabled())if(auto ram=strata_host_cache.lock()) {
+        const auto h=ram->snapshot();
+        GGML_LOG_INFO("STRATA_RAM_TIMING request=%llu phase=%s probe_ns=%llu probes=%llu read_meta_ns=%llu read_lock_ns=%llu read_load_ns=%llu publish_ns=%llu gpu_book_ns=%llu hits=%llu misses=%llu fill_bytes=%llu evictions=%llu bytes=%llu\n",
+            (unsigned long long)request,phase,(unsigned long long)h.probe_ns,(unsigned long long)h.probes,
+            (unsigned long long)h.read_meta_ns,(unsigned long long)h.read_lock_ns,(unsigned long long)h.read_load_ns,
+            (unsigned long long)h.publish_ns,(unsigned long long)h.gpu_book_ns,(unsigned long long)h.hits,(unsigned long long)h.misses,
+            (unsigned long long)h.fill_bytes,(unsigned long long)h.evictions,(unsigned long long)h.bytes);
     }
 }
 static void strata_cuda_expert_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {

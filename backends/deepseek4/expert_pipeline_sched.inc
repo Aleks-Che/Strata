@@ -6,9 +6,16 @@
 #include "cpu_expert_plan_sched.inc"
                                 int matrices=0;
                                 StrataCpuExpertBranch cache_branch{};
+                                const char *cpu_fast=std::getenv("STRATA_DS4_CPU_PREP_FAST");
+                                bool matrix_cpu_enabled=true;
+                                if(cpu_fast && std::atoi(cpu_fast)) {
+                                    const char *legacy=std::getenv("STRATA_DS4_CPU_MATRIX_LEGACY");
+                                    matrix_cpu_enabled=legacy && std::atoi(legacy);
+                                }
                                 // Routing IDs are already known. Look ahead only
                                 // through matrices using these exact IDs. Never
                                 // guess the next layer's route or touch its inputs.
+                                { StrataSchedulerProfile::Timer slice_timer(strata_sched_profile,StrataSchedulerProfile::slice_plan);
                                 for(int next=split_id;next<sched->n_splits;++next) {
                                     auto &future=splits[next];
                                     if(future.backend_id!=split_backend_id || future.graph.n_nodes==0)continue;
@@ -31,7 +38,7 @@
                                         ++matrices;
                                         uint8_t cpu_selected[256]={};
                                         if(whole_ready)for(auto *w:whole_branch.weights)if(w==weight)std::memcpy(cpu_selected,whole_selected,sizeof(cpu_selected));
-                                        if(strata_ordered_enabled && sched->n_copies==1 && !sched->callback_eval &&
+                                        if(matrix_cpu_enabled && strata_ordered_enabled && sched->n_copies==1 && !sched->callback_eval &&
                                            n_expert<=256 && std::getenv("STRATA_DS4_CPU_THREADS") &&
                                            std::atoi(std::getenv("STRATA_DS4_CPU_THREADS"))) {
                                             bool eligible=true;
@@ -53,6 +60,7 @@
                                             slices.push_back({(const uint8_t *)weight->data+size_t(e)*width,bytes,ids_tensor->ne[1]<=8,e<256 && cpu_selected[e]!=0});
                                         }
                                     }
+                                }
                                 }
                                 auto plan_routes=(StrataExpertPlanRoutes)ggml_backend_reg_get_proc_address(reg,"strata_expert_plan_routes");
                                 const char *demand=std::getenv("STRATA_DS4_ORDINARY_DEMAND_CACHE");

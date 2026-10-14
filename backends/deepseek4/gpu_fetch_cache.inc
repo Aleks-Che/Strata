@@ -1,6 +1,6 @@
 // Members of StrataExpertTransfer. Only the owning scheduler thread enters
 // here, under the transfer mutex. The I/O service sees addresses, never Entries.
-void prepare_fetch_cache() {
+void prepare_fetch_cache(const strata_ds4::GpuFetchRequest *selected=nullptr) {
     auto &f=gpu_fetch();
     GGML_ASSERT(!fetch_loan_count());
     if(!f.cache_slots)return;
@@ -14,8 +14,11 @@ void prepare_fetch_cache() {
     const auto start=std::chrono::steady_clock::now();
     for(int m=0;m<3;++m) {
         auto &p=f.plan[m];
-        for(int id=0;id<p.experts;++id)
+        const int count=selected?selected[m].used_count:p.experts;
+        for(int i=0;i<count;++i) {
+            const int id=selected?selected[m].used_ids[i]:i;
             p.scores[id]=uint8_t(frequency?std::min(255u,frequency->score(f.weights[m]+size_t(id)*p.width)+1):255u);
+        }
         if(f.cache_demand)continue; // route publisher starts with scratch destinations
         size_t scanned=0;
         for(auto it=lru.rbegin();it!=lru.rend() && p.cache_count<f.cache_slots && scanned<64;++it,++scanned) {

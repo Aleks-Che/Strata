@@ -11,6 +11,9 @@ namespace strata_ds4 {
 CpuCostModel CpuCostRefresh::snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);return current_;
 }
+bool CpuCostRefresh::budget_possible(int tokens) const {
+    std::lock_guard<std::mutex> lock(mutex_);return budget_.possible(tokens);
+}
 void CpuCostRefresh::begin(bool eligible) {
     std::lock_guard<std::mutex> lock(mutex_);
     // A missing end, excluded request or abort breaks the drift streak.
@@ -57,7 +60,7 @@ CpuCostRefresh::Result CpuCostRefresh::finish(bool success,const Writer &write) 
     active_=false;
     if(result.changed) {
         next.generation=current_.generation+1;
-        try {if(write)write(next);current_=next;result.generation=next.generation;}
+        try {if(write)write(next);current_=next;budget_=CpuCostBudgetProof(next);result.generation=next.generation;}
         catch(const std::exception &e){result.error=e.what();result.changed=0;}
         catch(...){result.error="snapshot write failed";result.changed=0;}
     }

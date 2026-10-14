@@ -1,11 +1,13 @@
 #pragma once
 // Ported from backends/hy3/host_cache.hpp; private DeepSeek policy and tests.
 #include "../common/expert_file.hpp"
+#include "prep_profile.hpp"
 #include <algorithm>
 #include <cstring>
 #include <functional>
 #include <list>
 #include <tuple>
+#include <unordered_map>
 
 namespace strata_ds4 {
 // Immutable routed matrix chunks. Pageable by default; the optional CPU lane
@@ -53,6 +55,7 @@ public:
         uint64_t gpu_entries=0,gpu_bytes=0,gpu_pending=0,gpu_publications=0;
         uint64_t demotion_pending=0,demotion_jobs=0,demotion_admitted=0,demotion_published=0,demotion_bytes=0;
         uint64_t disposal_bytes=0;
+        uint64_t probe_ns=0,probes=0,read_meta_ns=0,read_lock_ns=0,read_load_ns=0,publish_ns=0,gpu_book_ns=0;
     };
     static Memory memory() {
 #ifdef _WIN32
@@ -140,6 +143,18 @@ private:
     // Metadata survives eviction, but never retains a file handle or payload.
     // Weak identity prevents recycled Source pointers inheriting old popularity.
     std::map<Key,Frequency> history;
+    struct KeyHash {
+        static uint64_t mix(uint64_t x) {
+            x=(x^(x>>30))*UINT64_C(0xbf58476d1ce4e5b9);
+            x=(x^(x>>27))*UINT64_C(0x94d049bb133111eb);
+            return x^(x>>31);
+        }
+        size_t operator()(const Key &key)const {
+            return size_t(mix(std::get<0>(key))^mix(std::get<1>(key)+UINT64_C(0x9e3779b97f4a7c15))^mix(std::get<2>(key)));
+        }
+    };
+    std::unordered_map<Key,Frequency,KeyHash> hashed_history;
+    const bool hash_history=[] {const char *v=std::getenv("STRATA_DS4_RAM_HISTORY_HASH");return v && std::atoi(v);}();
     uint64_t accesses=0,decay_period;
     size_t history_limit;
     bool gpu_covers_locked(const Key &key,uint64_t except=0) const {
@@ -174,12 +189,30 @@ private:
         reap_locked();
     }
     unsigned score_locked(const Key &key) const {
+        if(hash_history) {
+            const auto it=hashed_history.find(key);
+            if(it==hashed_history.end() || it->second.source.expired())return 0;
+            return unsigned(it->second.count)>>std::min<uint64_t>(8,accesses/decay_period-it->second.epoch);
+        }
         const auto it=history.find(key);
         if(it==history.end() || it->second.source.expired())return 0;
         return unsigned(it->second.count)>>std::min<uint64_t>(8,accesses/decay_period-it->second.epoch);
     }
     void record_locked(const Key &key,const std::shared_ptr<strata_expert_file::Source> &source) {
         ++accesses;
+        if(hash_history) {
+            auto it=hashed_history.find(key);
+            if(it==hashed_history.end()) {
+                if(hashed_history.size()>=history_limit)hashed_history.clear();
+                hashed_history.emplace(key,Frequency{source,accesses/decay_period,1});
+            } else {
+                auto &entry=it->second;
+                const unsigned value=entry.source.expired()?0u:
+                    unsigned(entry.count)>>std::min<uint64_t>(8,accesses/decay_period-entry.epoch);
+                entry={source,accesses/decay_period,uint8_t(std::min(255u,value+1))};
+            }
+            return;
+        }
         if(!history.count(key) && history.size()>=history_limit)history.clear();
         const auto value=score_locked(key);
         history[key]={source,accesses/decay_period,uint8_t(std::min(255u,value+1))};
@@ -255,7 +288,9 @@ private:
     }
     void refresh_locked() {
         reap_locked();
-        stats.budget=allowance(probe(),stats.bytes+stats.pending+stats.disposal_bytes,cap);
+        Memory sample;
+        {PrepTimer timer(&stats.probe_ns);sample=probe();++stats.probes;}
+        stats.budget=allowance(sample,stats.bytes+stats.pending+stats.disposal_bytes,cap);
         trim_locked(stats.budget);
     }
 public:
@@ -285,7 +320,7 @@ public:
     void set_prefill(bool enabled) {std::lock_guard<std::mutex> lock(mutex);prefill=enabled;}
     void refresh() {{std::lock_guard<std::mutex> lock(mutex);refresh_locked();}collect();}
     Stats snapshot() {
-        std::lock_guard<std::mutex> lock(mutex);reap_locked();auto s=stats;s.entries=entries.size();s.history_entries=history.size();return s;
+        std::lock_guard<std::mutex> lock(mutex);reap_locked();auto s=stats;s.entries=entries.size();s.history_entries=hash_history?hashed_history.size():history.size();return s;
     }
     void reset_counters() {
         std::lock_guard<std::mutex> lock(mutex);
@@ -419,6 +454,7 @@ private:
     // fails. Payload is published only after the complete synchronous copy.
     void publish(const Key &key,const std::shared_ptr<strata_expert_file::Source> &source,
                  const void *payload,size_t bytes,const std::atomic<bool> &cancel,std::shared_ptr<Block> block,uint64_t generation) {
+        const auto begin=prep_now_ns();
         collect(); // release displaced allocations outside the metadata lock
         bool ready=false;
         try {
@@ -435,6 +471,7 @@ private:
         } catch(const std::bad_alloc &) {std::lock_guard<std::mutex> lock(mutex);++stats.oom;}
         catch(...) {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);throw;}
         std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,std::move(block),ready && !cancel.load());
+        if(begin)stats.publish_ns+=prep_now_ns()-begin;
     }
 public:
     // Main-thread ticket for a CUDA-free I/O service. recycle_fill may take an
@@ -590,8 +627,11 @@ public:
         std::shared_ptr<Block> hit,block;
         bool admitted=false;
         uint64_t generation=0;
+        const auto metadata_start=prep_now_ns();
         {
             std::lock_guard<std::mutex> lock(mutex);reap_locked();
+            if(metadata_start)stats.read_lock_ns+=prep_now_ns()-metadata_start;
+            PrepTimer metadata_timer(&stats.read_meta_ns);
             const bool is_prefill=prefill || phase_prefill;
             bool tracked=true;
             if(policy==Policy::Frequency && !is_prefill) {
@@ -611,11 +651,12 @@ public:
         }
         if(hit) {std::memcpy(destination,hit->data,bytes);return !cancel.load();}
         bool ok=false;
+        const auto load_start=prep_now_ns();
         try {ok=load(destination,bytes);} catch(...) {
             if(admitted) {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);}
             throw;
         }
-        if(ok) {std::lock_guard<std::mutex> lock(mutex);stats.file_bytes+=bytes;}
+        if(ok) {std::lock_guard<std::mutex> lock(mutex);stats.file_bytes+=bytes;if(load_start)stats.read_load_ns+=prep_now_ns()-load_start;}
         if(admitted) {
             if(ok)publish(key,source,destination,bytes,cancel,std::move(block),generation);
             else {std::lock_guard<std::mutex> lock(mutex);finish_fill_locked(key,generation,{},false);}
@@ -646,6 +687,7 @@ public:
     GpuToken begin_gpu(const std::shared_ptr<strata_expert_file::Source> &source,uint64_t offset,size_t bytes,bool drop) {
         if(!source || !bytes || !source->contains(offset,bytes))throw std::runtime_error("invalid GPU residency range");
         std::lock_guard<std::mutex> lock(mutex);
+        PrepTimer timer(&stats.gpu_book_ns);
         GpuToken token{uintptr_t(source.get()),offset,bytes,++next_generation};
         gpu.emplace(Key{token.source,offset,bytes},GpuEntry{source,token.generation,false,drop});
         max_gpu_width=std::max(max_gpu_width,bytes);
@@ -655,6 +697,7 @@ public:
     }
     bool ready_gpu(const GpuToken &token) {
         std::lock_guard<std::mutex> lock(mutex);auto it=gpu_find_locked(token);
+        PrepTimer timer(&stats.gpu_book_ns);
         if(it==gpu.end())return false;
         if(!it->second.ready) {
             it->second.ready=true;stats.gpu_pending-=token.bytes;++stats.gpu_publications;
@@ -665,6 +708,7 @@ public:
     bool demotion_enabled() const {return demotion_limit!=0;}
     void end_gpu(const GpuToken &token) {
         std::lock_guard<std::mutex> lock(mutex);auto it=gpu_find_locked(token);
+        PrepTimer timer(&stats.gpu_book_ns);
         if(it==gpu.end())return;
         --stats.gpu_entries;stats.gpu_bytes-=token.bytes;
         if(!it->second.ready)stats.gpu_pending-=token.bytes;

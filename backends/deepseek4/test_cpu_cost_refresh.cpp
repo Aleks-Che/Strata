@@ -25,6 +25,26 @@ static void samples(CpuCostRefresh &p,double us,int n=16,bool copying=false) {
     const auto g=p.snapshot().generation;for(int i=0;i<n;++i)p.observe(g,1,1,copying,us);
 }
 int main()try {
+    {
+        auto model=base();model.budget_us_per_token=110;
+        CpuCostRefresh proof(model);
+        check(proof.budget_possible(1),"initial proof rejected feasible CPU");
+        for(int request=0;request<2;++request) {
+            proof.begin(true);samples(proof,160);
+            check(proof.budget_possible(1),"proof changed inside request");proof.finish(true);
+        }
+        check(!proof.budget_possible(1),"proof did not update after successor");
+        for(int request=0;request<2;++request) {
+            proof.begin(true);samples(proof,1);
+            proof.finish(true,[](const auto &){throw std::runtime_error("injected write failure");});
+        }
+        check(!proof.budget_possible(1),"failed publication changed cached proof");
+        for(int request=0;request<2;++request) {
+            proof.begin(true);samples(proof,1);proof.finish(true);
+        }
+        check(proof.budget_possible(1),"cached proof prevented CPU re-entry");
+        for(int t=1;t<=4;++t)check(proof.budget_possible(t)==cpu_cost_budget_possible(proof.snapshot(),t),"refresh prefix proof mismatch");
+    }
     CpuCostRefresh p(base());
     p.begin(true);samples(p,150);
     check(p.snapshot().compute[0][1]==100,"table mutated inside request");

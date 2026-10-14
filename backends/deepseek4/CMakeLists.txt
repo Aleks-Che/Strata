@@ -141,6 +141,7 @@ if(TARGET ggml-cuda)
   foreach(name CMakeLists.txt cpu_lane.cpp cpu_lane.hpp cpu_mmvq_reference.cpp cpu_mmvq_fast.cpp cpu_mmvq_avx2.cpp
       cpu_mmvq_reference.hpp cpu_mmvq_fast.hpp swiglu_compat.hpp cpu_cost_model.hpp cpu_cost_profile.cpp cpu_cost_profile.hpp cpu_cost_device.cuh cpu_gpu_router.cuh cpu_gpu_queue.cuh
       cuda_expert_transfer.inc expert_pipeline_sched.inc ordinary_cache.inc cpu_expert_lane.cuh cpu_lane_hooks.inc gpu_fetch_reader.hpp gpu_fetch_lane.cuh gpu_fetch_queue.cuh gpu_fetch_cache.inc cpu_calibrate.cu cpu_calibrate_gpu.cuh cpu_pool_probe.cuh
+      prep_profile.hpp host_cache.hpp scheduler_profile.hpp cpu_expert_plan_sched.inc
       cpu_cost_gpu_probe.hpp cpu_cost_gpu_probe.inc ShortBatchPatches.cmake cpu_cost_refresh.hpp cpu_cost_refresh.cpp)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/${name}")
     file(SHA256 "${CMAKE_CURRENT_LIST_DIR}/${name}" digest)
@@ -283,6 +284,8 @@ if(BUILD_TESTING)
     add_executable(deepseek4_host_cache_test test_host_cache.cpp)
     target_include_directories(deepseek4_host_cache_test PRIVATE "${STRATA_LLAMA_DIR}/vendor")
     add_test(NAME deepseek4_host_cache COMMAND deepseek4_host_cache_test "${CMAKE_CURRENT_BINARY_DIR}/host-cache-test/report.json")
+    add_test(NAME deepseek4_host_cache_hash COMMAND deepseek4_host_cache_test "${CMAKE_CURRENT_BINARY_DIR}/host-cache-hash-test/report.json")
+    set_tests_properties(deepseek4_host_cache_hash PROPERTIES ENVIRONMENT "STRATA_DS4_RAM_HISTORY_HASH=1")
   endif()
 
   add_executable(deepseek4_prefill_probe_test test_prefill_probe.cpp)

@@ -4,6 +4,7 @@
                                 if(strata_ordered_enabled && sched->n_copies==1 && !sched->callback_eval &&
                                    n_expert<=256 && ids_tensor->ne[1]<=8 &&
                                    std::getenv("STRATA_DS4_CPU_THREADS") && std::atoi(std::getenv("STRATA_DS4_CPU_THREADS"))) {
+                                    StrataSchedulerProfile::Timer cpu_timer(strata_sched_profile,StrataSchedulerProfile::cpu_lookahead);
                                     int found=0;bool safe=true;
                                     for(int next=split_id;next<sched->n_splits && found<3;++next) {
                                         auto &future=splits[next];

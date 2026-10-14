@@ -18,10 +18,11 @@ static void ordinary_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,Strata
         Weights w(cpu,type);w.register_files();
         std::vector<std::vector<float>> expected;
         StrataExpertCounters queue_stats;
-        for(int mode=0;mode<3;++mode) {
+        for(int mode=0;mode<4;++mode) {
             env("STRATA_EXPERT_CACHE_MIB",mode?"1":"0");
             env("STRATA_DS4_CPU_THREADS",mode==1?"4":"0");
-            env("STRATA_DS4_ORDINARY_DEMAND_CACHE",mode==2?"1":"0");
+            env("STRATA_DS4_ORDINARY_DEMAND_CACHE",mode>=2?"1":"0");
+            env("STRATA_DS4_ORDINARY_PREP_SPARSE",mode==3?"1":"0");
             ggml_backend_ptr gpu(ggml_backend_dev_init(dev,nullptr));
             Graph g(w,cpu,gpu.get(),tokens,false,0.1f);
             if(managed){StrataVramPolicy policy;StrataVramStatus status;check(control(0,&policy,&status),"managed ordinary cache");}
@@ -36,7 +37,7 @@ static void ordinary_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,Strata
             if(mode==1) {
                 check(end.gpu_fetch_branches==24 && !end.cpu_queue_jobs,"queue reference must be GPU-only");queue_stats=end;
             }
-            if(mode==2) {
+            if(mode>=2) {
                 check(end.ordinary_cache_branches==24 && !end.gpu_fetch_branches && !end.cpu_queue_jobs,"ordinary path created queue or missed planning");
                 check(end.h2d_bytes==queue_stats.h2d_bytes && end.hits==queue_stats.hits && end.misses==queue_stats.misses &&
                     end.gpu_admissions==queue_stats.gpu_admissions,"ordinary/O3 admission history diverged");
@@ -74,5 +75,6 @@ static void ordinary_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,Strata
             }
         }
     }
-    std::printf("Ordinary demand cache: %d cases, 432 exact replays, identical O3 H2D/admissions, cancel/partial recovery\n",cases);
+    env("STRATA_DS4_ORDINARY_PREP_SPARSE","0");
+    std::printf("Ordinary demand cache: %d cases, full/sparse snapshots, identical O3 H2D/admissions, cancel/partial recovery\n",cases);
 }

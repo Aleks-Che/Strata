@@ -14,8 +14,9 @@ class CpuCostRefresh {
 public:
     struct Result { uint64_t generation=0, samples=0; int changed=0; std::string error; };
     using Writer=std::function<void(const CpuCostModel &)>;
-    explicit CpuCostRefresh(const CpuCostModel &base):base_(base),current_(base) {}
+    explicit CpuCostRefresh(const CpuCostModel &base):base_(base),current_(base),budget_(base) {}
     CpuCostModel snapshot() const;
+    bool budget_possible(int tokens) const;
     void begin(bool eligible);
     void observe(uint64_t generation,int tokens,int pattern,bool copying,double us);
     Result finish(bool success,const Writer &write={});
@@ -24,6 +25,7 @@ private:
     struct Samples { std::array<float,63> values{}; uint64_t count=0; int direction=0; };
     mutable std::mutex mutex_;
     CpuCostModel base_,current_;
+    CpuCostBudgetProof budget_;
     std::map<Key,Samples> cells_;
     bool active_=false;
 };

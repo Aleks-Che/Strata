@@ -19,6 +19,8 @@ void prepare_ordinary_cache(const StrataCpuExpertBranch &branch,const ggml_tenso
         if(!selected[id]){selected[id]=true;used[n++]=id;}
     }
     GGML_ASSERT(!o.active && !fetch_loan_count());o={};o.active=true;++stats.ordinary_cache_branches;
+    const char *sparse_flag=std::getenv("STRATA_DS4_ORDINARY_PREP_SPARSE");
+    const bool sparse=sparse_flag && std::atoi(sparse_flag);
     for(int m=0;m<3;++m) {
         auto *w=branch.weights[m];auto &p=f.plan[m];auto &job=o.jobs[m];p={};
         f.weights[m]=(const uint8_t *)w->data;
@@ -28,6 +30,10 @@ void prepare_ordinary_cache(const StrataCpuExpertBranch &branch,const ggml_tenso
         // Match the queue's complete immutable hit snapshot, including current
         // branch victims. The selector may replace only unselected experts.
         for(int id=0;id<p.experts;++id) {
+            // Ordinary routing already owns the complete selection. No other
+            // expert can read this snapshot; O3 still checks current-branch
+            // victims and every other context's protection separately.
+            if(sparse && !selected[id])continue;
             const void *key=f.weights[m]+size_t(id)*p.width;
             auto it=entries.find(key);
             const size_t bytes=p.width+(id<p.experts-1?std::min<size_t>(p.width,512):0);
@@ -41,7 +47,7 @@ void prepare_ordinary_cache(const StrataCpuExpertBranch &branch,const ggml_tenso
             if(!p.cached[id]){const int j=job.count++;job.ids[j]=id;job.cache_slots[j]=-1;}
         }
     }
-    prepare_fetch_cache();
+    prepare_fetch_cache(sparse?o.jobs:nullptr);
     const auto start=std::chrono::steady_clock::now();
     for(int m=0;m<3;++m)prepare_demand_cache_matrix(m,o.jobs[m]);
     f.cache_prepare_us+=std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-start).count();
