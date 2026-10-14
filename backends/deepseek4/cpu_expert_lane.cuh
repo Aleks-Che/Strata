@@ -22,6 +22,9 @@ struct StrataCpuExpertLane {
     using Packet=strata_ds4::CpuQueuePacket;
     Packet packet{};
     bool gpu_queue_enabled=false,gpu_queue_active=false,queue_adopted=false;
+    bool fast_empty=false,empty_gpu_fallback=false,lazy_service=false,queue_empty=false,queue_lazy=false,service_armed=false;
+    uint64_t gpu_fallback_branches=0;
+    uint64_t empty_branches=0,lazy_branches=0,service_wakes=0,service_skips=0;
     bool snapshot_prune=false;
     bool snapshot_overlap=false;
     bool context_overlap=false,consumer_pending=false;
@@ -74,12 +77,13 @@ struct StrataCpuExpertLane {
     uint64_t calibrated_jobs=0,calibrated_outliers=0;
     double predicted_compute_us=0,observed_compute_us=0;
     bool calibrated_request()const{return !calibration_path.empty();}
-    strata_ds4::CpuCostModel calibration() {
+    strata_ds4::CpuCostModel calibration(const strata_ds4::CpuExpertWork &work,int device,bool bind_refresh=true) {
         const auto key=std::make_tuple(int(work.gate_type),int(work.up_type),int(work.down_type),work.columns,work.hidden,work.clamp);
         auto it=calibrated_costs.find(key);
         if(it!=calibrated_costs.end()) {
-            active_refresh=it->second.refresh;
-            return active_refresh?active_refresh->snapshot():it->second.model;
+            const auto &refresh=it->second.refresh;
+            if(bind_refresh)active_refresh=refresh;
+            return refresh?refresh->snapshot():it->second.model;
         }
         std::string reason;auto model=strata_ds4::cpu_cost_load(calibration_path,work,threads,strata_cpu_cost_gpu(device),reason);
         if(const char *v=std::getenv("STRATA_DS4_CPU_BUDGET_US")) {
@@ -89,9 +93,11 @@ struct StrataCpuExpertLane {
         GGML_LOG_INFO("STRATA_CPU_COST_PROFILE enabled=%d threads=%d types=%s/%s/%s shape=%d/%d clamp=%g budget_us=%.1f build=%s reason=%s revision=%d contention=%d gpu_compute=%d burst=%d mode=%s\n",
             int(model.enabled),threads,ggml_type_name(work.gate_type),ggml_type_name(work.up_type),ggml_type_name(work.down_type),
             work.columns,work.hidden,work.clamp,model.budget_us_per_token,strata_ds4::cpu_cost_build_id().c_str(),reason.c_str(),model.revision,int(model.contention),int(model.gpu_enabled),int(model.burst),strata_ds4::cpu_cost_mode().c_str());
-        active_refresh=force?nullptr:strata_ds4::cpu_cost_refresh_for(calibration_path,work,threads,strata_cpu_cost_gpu(device),model);
-        calibrated_costs[key]={model,active_refresh};return active_refresh?active_refresh->snapshot():model;
+        auto refresh=force?nullptr:strata_ds4::cpu_cost_refresh_for(calibration_path,work,threads,strata_cpu_cost_gpu(device),model);
+        calibrated_costs[key]={model,refresh};if(bind_refresh)active_refresh=refresh;
+        return refresh?refresh->snapshot():model;
     }
+    strata_ds4::CpuCostModel calibration(){return calibration(work,device);}
     std::vector<std::unique_ptr<Blob>> cache;
     std::vector<Blob *> leases;
     std::shared_ptr<strata_ds4::HostCache> ram;
@@ -127,6 +133,9 @@ struct StrataCpuExpertLane {
         if(const char *v=std::getenv("STRATA_DS4_CPU_THREADS"))threads=std::atoi(v);
         if(const char *v=std::getenv("STRATA_DS4_CPU_SHARED_RAM"))shared_ram=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_GPU_QUEUE"))gpu_queue_enabled=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_EMPTY_FAST"))fast_empty=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_EMPTY_GPU_FALLBACK"))empty_gpu_fallback=std::atoi(v)!=0;
+        if(const char *v=std::getenv("STRATA_DS4_CPU_SERVICE_LAZY"))lazy_service=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_SNAPSHOT_PRUNE"))snapshot_prune=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_SNAPSHOT_OVERLAP"))snapshot_overlap=std::atoi(v)!=0;
         if(const char *v=std::getenv("STRATA_DS4_CPU_CONTEXT_OVERLAP"))context_overlap=std::atoi(v)!=0;
@@ -284,7 +293,10 @@ struct StrataCpuExpertLane {
                 if(completion)CUDA_CHECK(cudaEventSynchronize(consumed));
                 else CUDA_CHECK(cudaStreamSynchronize(queue_owner));
             }
-            gpu_queue->drain(!async_park || !completion);
+            queue_kick(); // cancellation may have published before the first DMA boundary
+            if(service_armed)gpu_queue->drain(!async_park || !completion);
+            else ++service_skips;
+            service_armed=false;
             if(defer_consumer) {
                 consumer_epoch=queue_epoch;consumer_pending=true;++context_deferred;
                 const auto result=cudaEventQuery(consumed);
@@ -306,7 +318,7 @@ struct StrataCpuExpertLane {
         for(auto &p:cache)p->held=false;
         leases.clear();if(shared_ram)cache.clear();work.experts.clear();configured=pending=started=completion=false;branch={};
         for(auto &row:queue_leases)for(auto &lease:row)lease={};
-        for(auto &row:epoch_leases)for(auto &lease:row)lease={};gpu_queue_active=false;queue_adopted=false;
+        for(auto &row:epoch_leases)for(auto &lease:row)lease={};gpu_queue_active=false;queue_adopted=false;queue_empty=queue_lazy=false;
     }
     bool matches(const ggml_tensor *w)const {
         if(!configured)return false;
@@ -314,13 +326,15 @@ struct StrataCpuExpertLane {
         return false;
     }
     bool selected(const ggml_tensor *w,int id)const{return matches(w) && packet.mask[id];}
-    void prepare_work() {
+    static strata_ds4::CpuExpertWork branch_work(const StrataCpuExpertBranch &branch) {
+        strata_ds4::CpuExpertWork work;
         auto *up=branch.weights[0],*gate=branch.weights[1],*down=branch.weights[2];
         work.up_type=up->type;work.gate_type=gate->type;work.down_type=down->type;
         work.columns=int(up->ne[0]);work.hidden=int(up->ne[1]);
         work.tokens=int(branch.nodes[0]->ne[2]);work.topk=int(branch.nodes[0]->ne[1]);work.clamp=branch.clamp;
-        work.input=input;work.output=output;
+        return work;
     }
+    void prepare_work(){work=branch_work(branch);work.input=input;work.output=output;}
     static void CUDART_CB execute(void *arg) noexcept {
         auto &c=*(StrataCpuExpertLane *)arg;
         if(c.trace.enabled)c.trace.callback_us=now();
@@ -459,16 +473,39 @@ struct StrataCpuExpertLane {
         }
         if(trace.enabled)trace.callback_end_us=now();
     }
-    void queue_publish(const ggml_tensor *route,cudaStream_t owner) {
+    // Only after the existing owner route fence (or cancellation stream fence).
+    // GPU stores cannot wake a condition variable; the owner supplies the wake.
+    void queue_kick() {
+        if(service_armed || !queue_lazy || queue_empty)return;
+        for(int i=0;i<strata_ds4::cpu_queue_depth;++i) {
+            const auto &slot=gpu_queue->host[i];const auto seq=slot.request.load(cuda::memory_order_acquire);
+            if(seq && seq!=slot.reply.load(cuda::memory_order_acquire) && slot.job.epoch==queue_epoch) {
+                gpu_queue->arm();service_armed=true;++service_wakes;break;
+            }
+        }
+    }
+    void queue_publish(const ggml_tensor *route,cudaStream_t owner,bool dma_fetch=false) {
         GGML_ASSERT(gpu_queue);
         if(handoff_pending){GGML_ASSERT(owner==queue_owner);}
         else finish_consumer();
         if(trace.gpu_events)GGML_ABORT("CPU GPU queue currently supports host trace only");
         queue_owner=owner;gpu_queue_active=started=true;++queue_branches;
+        queue_lazy=lazy_service && dma_fetch;service_armed=false;
+        bool candidate=false;
+        if(fast_empty)for(int i=0;i<queue_table.experts;++i)
+            candidate|=queue_table.expert[i].ready && queue_table.expert[i].eligible;
+        queue_empty=fast_empty && (!candidate || queue_table.cap<1 ||
+            (!queue_table.force && !strata_ds4::cpu_cost_budget_possible(queue_table.calibrated,queue_table.tokens)));
+        if(queue_lazy)++lazy_branches;
         // Logical snapshot lifetime outlives the service's individual reads.
         // A later context must not gain victims according to CPU completion
         // timing. FIFO owner retirement releases these non-copying references.
         if(context_overlap)epoch_leases=queue_leases;
+        if(queue_empty) {
+            ++empty_branches;
+            strata_ds4::cpu_queue_empty<<<1,256,0,owner>>>(graph_storage->binding,gpu_queue->mapped,gpu_queue->device,device_packet);
+            CUDA_CHECK(cudaGetLastError());return;
+        }
         // The captured down graph always contains both the external event and
         // the queue join. This empty event makes that same graph valid for a
         // queue job, a callback fallback, and a short GPU-only prefill.
@@ -478,7 +515,8 @@ struct StrataCpuExpertLane {
         const auto *table=&queue_table;
         if(upload_queue_table){std::memcpy(upload_queue_table,table,sizeof(queue_table));table=upload_queue_table;}
         CUDA_CHECK(cudaMemcpyAsync(device_queue_table,table,sizeof(queue_table),cudaMemcpyHostToDevice,owner));
-        if(trace.enabled)trace.queued_us=now();gpu_queue->arm();
+        if(trace.enabled)trace.queued_us=now();
+        if(!queue_lazy){gpu_queue->arm();service_armed=true;++service_wakes;}
         strata_ds4::cpu_queue_bind<<<1,1,0,owner>>>(graph_storage->binding,gpu_queue->mapped,gpu_queue->device);
         strata_ds4::cpu_gpu_route<<<1,256,0,owner>>>(gpu_queue->mapped,gpu_queue->device,device_queue_table,
             (const int32_t *)route->data,int(route->nb[1]/4),(const float *)branch.nodes[0]->src[1]->data,device_packet);
@@ -554,6 +592,7 @@ inline void StrataCpuExpertLane::begin(cudaStream_t owner) {
     started=true;
 }
 inline void StrataCpuExpertLane::merge(ggml_tensor *dst,cudaStream_t owner) {
+    if(queue_empty)return; // reflected in the graph signature and CPU mask binding
     const bool down=dst==branch.nodes[2];
     if(down) {
         cudaStreamCaptureStatus capture;CUDA_CHECK(cudaStreamIsCapturing(owner,&capture));

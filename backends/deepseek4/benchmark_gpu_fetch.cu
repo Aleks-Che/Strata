@@ -15,11 +15,11 @@ static __global__ void mapped_copy(uint8_t *dst,const uint8_t *src,size_t n) {
 static double us(Clock::time_point start) {
     return std::chrono::duration<double,std::micro>(Clock::now()-start).count();
 }
-static void report(const char *mode,size_t bytes,int matrices,int blocks,const std::vector<double> &times) {
+static void report(const char *mode,size_t bytes,int matrices,int blocks,const std::vector<double> &times,int depth=0,uint64_t peak=0,size_t stage=0,int slots=0) {
     auto sorted=times;std::sort(sorted.begin(),sorted.end());
     const double med=(sorted[(sorted.size()-1)/2]+sorted[sorted.size()/2])*0.5;
-    std::printf("%s,%zu,%d,%d,%.3f,%.3f,%.3f,%.3f\n",mode,bytes,matrices,blocks,
-        med,sorted.front(),sorted.back(),bytes*matrices/med/1000.0);std::fflush(stdout);
+    std::printf("%s,%zu,%d,%d,%.3f,%.3f,%.3f,%.3f,%d,%llu,%zu,%d\n",mode,bytes,matrices,blocks,
+        med,sorted.front(),sorted.back(),bytes*matrices/med/1000.0,depth,(unsigned long long)peak,stage,slots);std::fflush(stdout);
 }
 int main() {try {
     int device=0;cudaDeviceProp prop{};cpu_queue_check(cudaGetDevice(&device));
@@ -34,7 +34,7 @@ int main() {try {
     cpu_queue_check(cudaMalloc((void **)&table,256*sizeof(void *)));
     int32_t route[64];std::iota(route,route+64,0);
     cpu_queue_check(cudaMemcpy(ids,route,sizeof(route),cudaMemcpyHostToDevice));
-    std::puts("mode,matrix_bytes,matrices,blocks,median_us,min_us,max_us,GB_per_s");
+    std::puts("mode,matrix_bytes,matrices,blocks,median_us,min_us,max_us,GB_per_s,depth,peak_inflight,stage_bytes,stage_slots");
     for(size_t bytes:{size_t(2ULL<<20),size_t(4ULL<<20),size_t(8ULL<<20)})for(int matrices:{1,6}) {
         const size_t total=bytes*matrices;
         for(const char *mode:{"dma","mapped_plain"})for(int blocks:{16,64,128}) {
@@ -54,9 +54,13 @@ int main() {try {
             if(std::memcmp(output.data(),src,total))throw std::runtime_error("plain/DMA payload mismatch");
             report(mode,bytes,matrices,blocks,times);
         }
-        for(const char *mode:{"queue_direct","queue_staged","queue_hit"})for(int blocks:{1,4,16,64,128}) {
+        for(const char *mode:{"queue_direct","queue_staged","queue_hit","owner_dma_direct","owner_dma_staged","owner_dma_hit",
+                             "owner_dma2_direct","owner_dma2_staged","owner_dma4_direct","owner_dma4_staged","owner_dma8_direct","owner_dma8_staged",
+                             "owner_dma4s4_staged","owner_dma8s4_staged","owner_dma8s8_staged","owner_dma16s16_staged"})for(int blocks:{16}) {
             if(blocks>prop.multiProcessorCount)continue;
-            const bool staged=std::strcmp(mode,"queue_staged")==0,hit=std::strcmp(mode,"queue_hit")==0;
+            const bool dma=std::strstr(mode,"owner_dma")!=nullptr;
+            const int depth=std::strstr(mode,"dma16")?16:std::strstr(mode,"dma8")?8:std::strstr(mode,"dma4")?4:std::strstr(mode,"dma2")?2:1;
+            const bool staged=std::strstr(mode,"staged")!=nullptr,hit=std::strstr(mode,"hit")!=nullptr;
             GpuFetchQueue q([&](int,GpuFetchSlot &slot,GpuFetchQueue &service) {
                 if(slot.job.count!=(hit?0:matrices))throw std::runtime_error("unexpected queue misses");
                 for(int i=0;i<slot.job.count;++i) {
@@ -66,7 +70,8 @@ int main() {try {
                     else service.upload(slot.job.destinations[i],src+id*bytes,bytes);
                 }
             });
-            q.copy_blocks=blocks;GpuFetchPlan plan{};plan.epoch=1;plan.experts=matrices;
+            q.owner_dma=dma;q.dma_depth=depth;q.dma_stage_slots=std::strstr(mode,"s16")?16:std::strstr(mode,"s8")?8:std::strstr(mode,"s4")?4:2;
+            q.ordered_sources=false;q.copy_blocks=blocks;GpuFetchPlan plan{};plan.epoch=1;plan.experts=matrices;
             plan.topk=matrices;plan.tokens=1;plan.width=bytes;plan.scratch=dst;
             if(hit)for(int i=0;i<matrices;++i)plan.cached[i]=dst+i*bytes;
             // Avoid the optional +512 padding: the callback transfers exactly bytes;
@@ -87,7 +92,7 @@ int main() {try {
                 std::vector<uint8_t> output(total);cpu_queue_check(cudaMemcpy(output.data(),dst,total,cudaMemcpyDeviceToHost));
                 if(std::memcmp(output.data(),src,total))throw std::runtime_error("queue payload mismatch");
             }
-            report(mode,hit?0:bytes,matrices,blocks,times);
+            report(mode,hit?0:bytes,matrices,blocks,times,depth,q.dma_peak_inflight,q.staging_bytes(),q.dma_stage_slots);
         }
     }
     cudaFree(table);cudaFree(ids);cudaFree(dst);cudaFreeHost(src);cudaStreamDestroy(stream);

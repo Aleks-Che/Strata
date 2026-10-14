@@ -66,6 +66,27 @@ struct StrataExpertTransfer {
     std::list<const void *> lru;
     using Entries=std::unordered_map<const void *,Entry>;
     Entries entries;
+    // Optional bounded audit of actual GPU-fetch evictions. No payloads or
+    // extra residency; stale FIFO records cannot erase a newer eviction.
+    bool fetch_refault_audit=false;
+    uint64_t fetch_eviction_serial=0;
+    std::unordered_map<const void *,uint64_t> fetch_evicted;
+    std::list<std::pair<const void *,uint64_t>> fetch_evicted_fifo;
+    void record_fetch_eviction(const void *key,size_t bytes) {
+        if(!fetch_refault_audit)return;
+        const auto serial=++fetch_eviction_serial;
+        fetch_evicted[key]=serial;fetch_evicted_fifo.emplace_back(key,serial);
+        stats.gpu_fetch_replaced_bytes+=bytes;
+        while(fetch_evicted_fifo.size()>8192) {
+            const auto old=fetch_evicted_fifo.front();fetch_evicted_fifo.pop_front();
+            auto it=fetch_evicted.find(old.first);if(it!=fetch_evicted.end() && it->second==old.second)fetch_evicted.erase(it);
+        }
+    }
+    void record_fetch_refault(const void *key,size_t bytes) {
+        if(fetch_refault_audit && fetch_evicted.erase(key)) {
+            ++stats.gpu_fetch_refaults;stats.gpu_fetch_refault_bytes+=bytes;
+        }
+    }
     // Extracted nodes retain their LRU positions and allocation budget. Their
     // keys are protected, but absent from lookup until the branch is drained.
     struct FetchLoan { Entries::node_type node;const void *replacement=nullptr; };
@@ -89,7 +110,13 @@ struct StrataExpertTransfer {
     StrataHashScratch hash_scratch;
     StrataExpertEarlyHitScratch early_hits;
     StrataCpuLane cpu_lane;
+    struct OrdinaryCachePlan {
+        bool active=false;
+        strata_ds4::GpuFetchRequest jobs[3]{};
+        bool copied[3][256]{};
+    };
     struct BranchContext {
+        OrdinaryCachePlan ordinary;
         StrataCpuExpertLane cpu;
         StrataGpuFetchLane fetch;
         FetchLoan loans[3][strata_ds4::gpu_fetch_cache_slots];
@@ -100,6 +127,7 @@ struct StrataExpertTransfer {
     size_t current_context=0;
     uint64_t context_rotations=0,context_reuse_waits=0;
     uint64_t demotion_clock=0;
+    auto &ordinary_cache(){return branch_contexts[current_context].ordinary;}
     auto &cpu_whole(){return branch_contexts[current_context].cpu;}
     auto &gpu_fetch(){return branch_contexts[current_context].fetch;}
     auto &fetch_loans(){return branch_contexts[current_context].loans;}
@@ -203,6 +231,7 @@ struct StrataExpertTransfer {
 
     Entries::iterator reserve_fetch_slot(size_t bytes);
 #include "gpu_fetch_cache.inc"
+#include "ordinary_cache.inc"
 
     void finish_context(bool keep_whole=false,const std::function<void()> &prepare_next={},bool overlap_context=false) {
         // A handoff receipt precedes the current fetch on this owner stream.
@@ -232,11 +261,16 @@ struct StrataExpertTransfer {
             }
             if(!gpu_fetch().reserve_limit && !gpu_fetch().cache_slots)return; // original untrained mode
             bool admitted[256]={};
-            for(int i=0;i<job.count;++i)if(p.cache_count && p.keep_ram[job.ids[i]])++gpu_fetch().cache_ram_bypasses;
+            for(int i=0;i<job.count;++i)if(gpu_fetch().cache_slots && strata_ds4::gpu_fetch_keep_ram(p,job,job.ids[i]))++gpu_fetch().cache_ram_bypasses;
+            for(int i=0;i<job.count;++i)if(gpu_fetch().cache_slots && p.keep_ram_assigned && p.keep_ram[job.ids[i]] && !job.cpu_selected[job.ids[i]]) {
+                ++gpu_fetch().cache_ram_unblocked;
+                if(job.cache_slots[i]>=0)++gpu_fetch().cache_ram_promoted;
+            }
             for(int i=0;i<job.count;++i)if(job.cache_slots[i]>=0) {
                 const int id=job.ids[i],k=job.cache_slots[i];
                 GGML_ASSERT(k<p.cache_count && !fetch_loans()[m][k].node.empty() && !fetch_loans()[m][k].replacement);
                 fetch_loans()[m][k].replacement=gpu_fetch().weights[m]+size_t(id)*p.width;admitted[id]=true;
+                if(p.cache[k].victim>=0)++gpu_fetch().cache_current_admitted;
             }
             for(int i=0;i<job.used_count;++i) {
                 const int id=job.used_ids[i];const void *key=gpu_fetch().weights[m]+size_t(id)*p.width;
@@ -245,13 +279,14 @@ struct StrataExpertTransfer {
                 if(job.cpu_only[i]) {cpu_whole().saved_bytes+=bytes;continue;}
                 if(p.cached[id]) {
                     if(host_cache && host_cache->demotion_enabled())host_cache->observe_gpu(gpu_fetch().files[m],gpu_fetch().offsets[m]+size_t(id)*p.width,bytes);
-                    const auto it=entries.find(key);GGML_ASSERT(it!=entries.end());
-                    lru.splice(lru.begin(),lru,it->second.lru);
-                    if(managed)it->second.touched=strata_expert_touch_clock(device);
+                    auto *entry=fetch_hit_entry(key);GGML_ASSERT(entry);
+                    lru.splice(lru.begin(),lru,entry->lru);
+                    if(managed)entry->touched=strata_expert_touch_clock(device);
                     ++stats.hits;++stats.direct_hits;stats.direct_bytes+=bytes;
-                } else {++stats.misses;if(!admitted[id])++stats.bypass;}
+                } else {++stats.misses;if(!admitted[id])++stats.bypass;record_fetch_refault(key,bytes);}
             }
         });
+        finish_ordinary_cache();
         if(gpu_fetch().demotion_epoch){residency.retire(gpu_fetch().demotion_epoch);gpu_fetch().demotion_epoch=0;}
         if(receipt_at_fetch)cpu_whole().finish_consumer(true);
         finish_fetch_cache();
@@ -314,13 +349,42 @@ struct StrataExpertTransfer {
         result.cpu_lane_ops+=cpu_whole().operations;result.cpu_lane_experts+=cpu_whole().experts;
         result.cpu_lane_saved_bytes+=cpu_whole().saved_bytes;
         result.cpu_queue_jobs+=cpu_whole().queue_jobs;result.cpu_queue_rows+=cpu_whole().queue_rows;
+        result.cpu_empty_branches+=cpu_whole().empty_branches;
+        result.cpu_gpu_fallback_branches+=cpu_whole().gpu_fallback_branches;
+        result.cpu_snapshot_us+=cpu_whole().snapshot_us;result.cpu_select_us+=cpu_whole().select_us;
+        result.gpu_fetch_read_us+=gpu_fetch().read_us;
+        result.cpu_service_wakes+=cpu_whole().service_wakes;result.cpu_service_skips+=cpu_whole().service_skips;
+        if(gpu_fetch().queue)result.gpu_fetch_empty_requests+=gpu_fetch().queue->empty_requests;
+        if(gpu_fetch().queue) {
+            result.gpu_fetch_service_wakes+=gpu_fetch().queue->service_wakes;
+            result.gpu_fetch_service_skips+=gpu_fetch().queue->service_skips;
+            result.gpu_fetch_route_wait_us+=gpu_fetch().queue->route_wait_us;
+            result.gpu_fetch_dma_wait_us+=gpu_fetch().queue->dma_wait_us;
+            result.gpu_fetch_service_waits+=gpu_fetch().queue->service_waits.load(std::memory_order_relaxed);
+            result.gpu_fetch_service_wait_us+=gpu_fetch().queue->service_wait_us.load(std::memory_order_relaxed);
+        }
         result.gpu_fetch_branches+=gpu_fetch().branches;result.gpu_fetch_matrices+=gpu_fetch().matrices;
         result.gpu_fetch_ram_reservations+=gpu_fetch().reserved;result.gpu_fetch_ram_completed+=gpu_fetch().completed;
         result.gpu_fetch_ram_bytes+=gpu_fetch().ram_bytes;
         result.gpu_fetch_cache_offered+=gpu_fetch().cache_offered;result.gpu_fetch_cache_admitted+=gpu_fetch().cache_admitted;
+        result.gpu_fetch_cache_prepare_us+=gpu_fetch().cache_prepare_us;
         result.gpu_fetch_cache_restored+=gpu_fetch().cache_restored;result.gpu_fetch_cache_bytes+=gpu_fetch().cache_bytes;
         result.gpu_fetch_cache_duplicates+=gpu_fetch().cache_duplicates;
+        result.gpu_fetch_current_offered+=gpu_fetch().cache_current_offered;
+        result.gpu_fetch_current_admitted+=gpu_fetch().cache_current_admitted;
+        result.gpu_fetch_current_protected+=gpu_fetch().cache_current_protected;
+        result.gpu_fetch_tail_offered+=gpu_fetch().cache_tail_offered;
+        result.gpu_fetch_tail_skipped+=gpu_fetch().cache_tail_skipped;
+        result.gpu_fetch_demand_plans+=gpu_fetch().cache_demand_plans;
+        result.gpu_fetch_demand_misses+=gpu_fetch().cache_demand_misses;
+        result.gpu_fetch_demand_scanned+=gpu_fetch().cache_demand_scanned;
+        result.gpu_fetch_rank_plans+=gpu_fetch().cache_rank_plans;
+        result.gpu_fetch_rank_rejected+=gpu_fetch().cache_rank_rejected;
+        result.gpu_fetch_rank_admitted+=gpu_fetch().cache_rank_admitted;
+        result.gpu_fetch_rank_cost+=gpu_fetch().cache_rank_cost;
         result.gpu_fetch_cache_ram_bypasses+=gpu_fetch().cache_ram_bypasses;
+        result.gpu_fetch_cache_ram_unblocked+=gpu_fetch().cache_ram_unblocked;
+        result.gpu_fetch_cache_ram_promoted+=gpu_fetch().cache_ram_promoted;
         result.gpu_fetch_ram_released_unused+=gpu_fetch().released_unused;result.gpu_fetch_ram_released_used+=gpu_fetch().released_used;
         result.cpu_snapshot_released+=cpu_whole().snapshot_released;
         result.gpu_fetch_early_retire+=gpu_fetch().early_retire_branches;result.gpu_fetch_retire_tail_pending+=gpu_fetch().retire_tail_pending;
@@ -339,7 +403,8 @@ struct StrataExpertTransfer {
         result.cpu_consumer_handoff_waits+=cpu_whole().handoff_waits;
         result.cpu_consumer_handoff_ram_fallbacks+=cpu_whole().handoff_ram_fallbacks;
         result.h2d_bytes+=gpu_fetch().h2d_bytes;
-        result.file_read_bytes+=gpu_fetch().file_bytes;
+        result.file_read_bytes+=gpu_fetch().reader.file_bytes;
+        result.mmap_read_bytes+=gpu_fetch().reader.mmap_bytes;
         }
         current_context=current;
         result.cpu_context_rotations=context_rotations;result.cpu_context_reuse_waits=context_reuse_waits;
@@ -349,11 +414,12 @@ struct StrataExpertTransfer {
             result.pipeline_groups=p.groups;result.pipeline_chunks=p.chunks;result.pipeline_unused=p.unused;
             result.h2d_bytes+=p.h2d_bytes;result.d2d_bytes+=p.d2d_bytes;result.stage_bytes+=p.h2d_bytes-p.borrowed_bytes;
             result.stage_us+=p.read_us+p.retain_us;result.wait_us+=p.wait_us;result.submit_us+=p.submit_us;
-            result.file_read_bytes+=p.file_bytes;result.mmap_read_bytes=p.mmap_bytes;result.read_peak=p.read_peak;
+            result.file_read_bytes+=p.file_bytes;result.mmap_read_bytes+=p.mmap_bytes;result.read_peak=p.read_peak;
         }
         return result;
     }
-    void plan(const StrataExpertSlice *slices,size_t count) {
+    void plan(const StrataExpertSlice *slices,size_t count,const StrataCpuExpertBranch *branch=nullptr,
+              const ggml_tensor *route=nullptr,const int32_t *ids=nullptr) {
         if(!early_slices.empty()) {
             bool same=early_slices.size()==count;
             for(size_t i=0;same && i<count;++i)
@@ -365,6 +431,7 @@ struct StrataExpertTransfer {
         finish_plan(cpu_whole().pending);cpu_whole().pending=false;
         if(!pipeline)return;
         if(host_cache)host_cache->refresh();
+        if(branch)prepare_ordinary_cache(*branch,route,ids);
         std::vector<StrataExpertSlice> misses;
         for(size_t i=0;i<count;++i) {
             if(slices[i].host_compute && cpu_lane.threads) {cpu_lane.planned.insert(slices[i].data);continue;}
@@ -407,6 +474,7 @@ struct StrataExpertTransfer {
             }
         }
         capacity=strata_expert_thread_budget<0?env_mib("STRATA_EXPERT_CACHE_MIB"):size_t(strata_expert_thread_budget)<<20;
+        if(const char *v=std::getenv("STRATA_DS4_GPU_FETCH_REFAULT_AUDIT"))fetch_refault_audit=std::atoi(v)!=0;
         const char *policy=std::getenv("STRATA_EXPERT_CACHE_POLICY");
         const char *match=std::getenv("STRATA_EXPERT_CACHE_MATCH_SIZE");
         match_size=match && std::strcmp(match,"1")==0;
@@ -671,7 +739,10 @@ struct StrataExpertTransfer {
         flush_copies(); // retain copy/padding order across cache misses and bypass
         if(pipeline) {
             if(pipeline->transfer(dst,src,bytes,stream,delivery_observer,ram_on_bypass && retain_ram && strata_cpu_decode))return;
-            ++stats.pipeline_fallbacks;finish_plan();
+            ++stats.pipeline_fallbacks;
+            // An ordinary demand plan owns cache loans until branch retirement.
+            // A missing staging item only abandons the producer, not those loans.
+            if(ordinary_cache().active)pipeline->finish(false);else finish_plan();
         }
         stats.h2d_bytes+=bytes;
         if(!stage_size) {
@@ -717,6 +788,7 @@ struct StrataExpertTransfer {
                 if(cpu_whole().selected(dest,id))cpu_whole().saved_bytes+=bytes;else cpu_lane.saved_bytes+=bytes;
                 continue;
             }
+            if(copy_ordinary_cache(source,dest,id))continue;
             void *destination=direct.destination(dest,id);
             if(tokens>8 && prefill_hit(destination,key,bytes))continue;
             if(bytes>capacity || tokens>8) {++stats.bypass;upload(destination,key,bytes,tokens<=8);continue;}
@@ -919,6 +991,7 @@ static void strata_managed_copy(StrataExpertTransfer &s,const ggml_tensor *sourc
             if(s.cpu_whole().selected(dest,id))s.cpu_whole().saved_bytes+=bytes;else s.cpu_lane.saved_bytes+=bytes;
             continue;
         }
+        if(s.copy_ordinary_cache(source,dest,id))continue;
         void *destination=s.direct.destination(dest,id);
         if(tokens>8 && s.prefill_hit(destination,key,bytes))continue;
         if(tokens>8) {++s.stats.bypass;s.upload(destination,key,bytes);continue;}
@@ -1027,19 +1100,36 @@ static void strata_cuda_expert_snapshot(uint64_t request,const char *phase) {
         uint64_t ram_hits=0,branches=0;
         for(auto &b:s.branch_contexts){ram_hits+=b.cpu.ram_hits;branches+=b.cpu.queue_branches;}
         const auto borrowed=s.pipeline?s.pipeline->counters().borrowed_bytes:0;
-        GGML_LOG_INFO("STRATA_EXPERT_SNAPSHOT request=%llu phase=%s backend=%llu cache_bytes=%llu hits=%llu misses=%llu admissions=%llu h2d_bytes=%llu d2d_bytes=%llu d2h_bytes=%llu file_bytes=%llu mmap_bytes=%llu ram_cpu_hits=%llu ram_gpu_bytes=%llu cpu_branches=%llu cpu_jobs=%llu cpu_rows=%llu fetch_branches=%llu graph_changes=%llu graph_captures=%llu graph_replays=%llu\n",
+        GGML_LOG_INFO("STRATA_EXPERT_SNAPSHOT request=%llu phase=%s backend=%llu cache_bytes=%llu hits=%llu misses=%llu admissions=%llu h2d_bytes=%llu d2d_bytes=%llu d2h_bytes=%llu file_bytes=%llu mmap_bytes=%llu ram_cpu_hits=%llu ram_gpu_bytes=%llu cpu_branches=%llu cpu_jobs=%llu cpu_rows=%llu fetch_branches=%llu graph_changes=%llu graph_captures=%llu graph_replays=%llu current_offered=%llu current_admitted=%llu current_protected=%llu tail_offered=%llu tail_skipped=%llu demand_plans=%llu demand_misses=%llu demand_scanned=%llu fetch_offered=%llu fetch_restored=%llu fetch_prepare_us=%llu rank_plans=%llu rank_rejected=%llu rank_admitted=%llu rank_cost=%llu fetch_replaced_bytes=%llu fetch_refaults=%llu fetch_refault_bytes=%llu ram_bypasses=%llu ram_unblocked=%llu ram_promoted=%llu cpu_empty=%llu cpu_wakes=%llu cpu_skips=%llu fetch_empty=%llu fetch_wakes=%llu fetch_skips=%llu\n",
             (unsigned long long)request,phase,(unsigned long long)uintptr_t(entry.first),(unsigned long long)s.capacity,
             (unsigned long long)c.hits,(unsigned long long)c.misses,(unsigned long long)c.gpu_admissions,
             (unsigned long long)c.h2d_bytes,(unsigned long long)c.d2d_bytes,(unsigned long long)c.gpu_demotion_bytes,
             (unsigned long long)c.file_read_bytes,(unsigned long long)c.mmap_read_bytes,(unsigned long long)ram_hits,
             (unsigned long long)(c.gpu_fetch_ram_bytes+borrowed),(unsigned long long)branches,
             (unsigned long long)c.cpu_queue_jobs,(unsigned long long)c.cpu_queue_rows,(unsigned long long)c.gpu_fetch_branches,
-            (unsigned long long)c.cpu_graph_changes,(unsigned long long)c.cuda_graph_captures,(unsigned long long)c.cuda_graph_replays);
+            (unsigned long long)c.cpu_graph_changes,(unsigned long long)c.cuda_graph_captures,(unsigned long long)c.cuda_graph_replays,
+            (unsigned long long)c.gpu_fetch_current_offered,(unsigned long long)c.gpu_fetch_current_admitted,(unsigned long long)c.gpu_fetch_current_protected,(unsigned long long)c.gpu_fetch_tail_offered,(unsigned long long)c.gpu_fetch_tail_skipped,
+            (unsigned long long)c.gpu_fetch_demand_plans,(unsigned long long)c.gpu_fetch_demand_misses,(unsigned long long)c.gpu_fetch_demand_scanned,
+            (unsigned long long)c.gpu_fetch_cache_offered,(unsigned long long)c.gpu_fetch_cache_restored,(unsigned long long)c.gpu_fetch_cache_prepare_us,
+            (unsigned long long)c.gpu_fetch_rank_plans,(unsigned long long)c.gpu_fetch_rank_rejected,(unsigned long long)c.gpu_fetch_rank_admitted,(unsigned long long)c.gpu_fetch_rank_cost,
+            (unsigned long long)c.gpu_fetch_replaced_bytes,(unsigned long long)c.gpu_fetch_refaults,(unsigned long long)c.gpu_fetch_refault_bytes,
+            (unsigned long long)c.gpu_fetch_cache_ram_bypasses,(unsigned long long)c.gpu_fetch_cache_ram_unblocked,(unsigned long long)c.gpu_fetch_cache_ram_promoted,
+            (unsigned long long)c.cpu_empty_branches,(unsigned long long)c.cpu_service_wakes,(unsigned long long)c.cpu_service_skips,(unsigned long long)c.gpu_fetch_empty_requests,(unsigned long long)c.gpu_fetch_service_wakes,(unsigned long long)c.gpu_fetch_service_skips);
+        GGML_LOG_INFO("STRATA_EXPERT_TIMING request=%llu phase=%s backend=%llu cpu_snapshot_us=%llu cpu_select_us=%llu fetch_read_us=%llu fetch_route_wait_us=%llu fetch_dma_wait_us=%llu fetch_service_waits=%llu fetch_service_wait_us=%llu cpu_gpu_fallback=%llu ordinary_cache_branches=%llu\n",
+            (unsigned long long)request,phase,(unsigned long long)uintptr_t(entry.first),
+            (unsigned long long)c.cpu_snapshot_us,(unsigned long long)c.cpu_select_us,(unsigned long long)c.gpu_fetch_read_us,
+            (unsigned long long)c.gpu_fetch_route_wait_us,(unsigned long long)c.gpu_fetch_dma_wait_us,
+            (unsigned long long)c.gpu_fetch_service_waits,(unsigned long long)c.gpu_fetch_service_wait_us,(unsigned long long)c.cpu_gpu_fallback_branches,(unsigned long long)c.ordinary_cache_branches);
     }
 }
 static void strata_cuda_expert_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {
     std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
     strata_expert_state(backend).plan(slices,count);
+}
+static void strata_cuda_expert_plan_routes(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count,
+    const StrataCpuExpertBranch *branch,const ggml_tensor *route,const int32_t *ids) {
+    std::lock_guard<std::mutex> lock(strata_expert_transfer_mutex);
+    strata_expert_state(backend).plan(slices,count,branch,route,ids);
 }
 static void strata_cuda_expert_early_plan(ggml_backend_t backend,const StrataExpertSlice *slices,size_t count) {
     if(!count)return;

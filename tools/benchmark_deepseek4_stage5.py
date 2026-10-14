@@ -26,12 +26,12 @@ def expert_phase_counters(log: str, cfg: dict) -> dict:
     """Difference native counters, never infer a decode delta from process totals."""
     points = {}
     for line in log.splitlines():
-        if not line.startswith(('STRATA_EXPERT_BOUNDARY ', 'STRATA_EXPERT_SNAPSHOT ')):
+        if not line.startswith(('STRATA_EXPERT_BOUNDARY ', 'STRATA_EXPERT_SNAPSHOT ', 'STRATA_EXPERT_TIMING ')):
             continue
         fields = dict(re.findall(r'(\w+)=([^\s]+)', line))
         phase = points.setdefault(int(fields['request']), {}).setdefault(fields['phase'], {})
         if 'backend' in fields:
-            phase[fields['backend']] = {k: int(v) for k, v in fields.items() if k not in ('request', 'phase', 'backend')}
+            phase.setdefault(fields['backend'], {}).update({k: int(v) for k, v in fields.items() if k not in ('request', 'phase', 'backend')})
     def option(name, default):
         args = cfg['args']
         return int(args[args.index(name)+1]) if name in args else default

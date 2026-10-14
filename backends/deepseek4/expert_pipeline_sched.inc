@@ -5,6 +5,7 @@
                                 std::vector<StrataExpertSlice> slices;
 #include "cpu_expert_plan_sched.inc"
                                 int matrices=0;
+                                StrataCpuExpertBranch cache_branch{};
                                 // Routing IDs are already known. Look ahead only
                                 // through matrices using these exact IDs. Never
                                 // guess the next layer's route or touch its inputs.
@@ -26,6 +27,7 @@
                                            ggml_backend_buffer_get_usage(weight->buffer)!=GGML_BACKEND_BUFFER_USAGE_WEIGHTS)
                                             continue;
                                         GGML_ASSERT(weight->ne[2]==n_expert);
+                                        if(matrices<3){cache_branch.weights[matrices]=weight;cache_branch.nodes[matrices]=op;}
                                         ++matrices;
                                         uint8_t cpu_selected[256]={};
                                         if(whole_ready)for(auto *w:whole_branch.weights)if(w==weight)std::memcpy(cpu_selected,whole_selected,sizeof(cpu_selected));
@@ -52,7 +54,21 @@
                                         }
                                     }
                                 }
-                                plan(split_backend,slices.data(),slices.size());
+                                auto plan_routes=(StrataExpertPlanRoutes)ggml_backend_reg_get_proc_address(reg,"strata_expert_plan_routes");
+                                const char *demand=std::getenv("STRATA_DS4_ORDINARY_DEMAND_CACHE");
+                                bool cache_ready=matrices==3 && !whole_ready && demand && std::atoi(demand) && plan_routes;
+                                if(cache_ready) {
+                                    auto *act=cache_branch.nodes[2]->src[1];
+                                    cache_ready=act->op==GGML_OP_GLU &&
+                                        ((act->src[0]==cache_branch.nodes[0] && act->src[1]==cache_branch.nodes[1]) ||
+                                         (act->src[0]==cache_branch.nodes[1] && act->src[1]==cache_branch.nodes[0]));
+                                    if(cache_ready && act->src[0]==cache_branch.nodes[0]) {
+                                        std::swap(cache_branch.nodes[0],cache_branch.nodes[1]);
+                                        std::swap(cache_branch.weights[0],cache_branch.weights[1]);
+                                    }
+                                }
+                                if(cache_ready)plan_routes(split_backend,slices.data(),slices.size(),&cache_branch,ids_tensor,ids.data());
+                                else plan(split_backend,slices.data(),slices.size());
                                 if(std::getenv("STRATA_EXPERT_PIPELINE_TRACE"))
                                     GGML_LOG_INFO("STRATA_EXPERT_PLAN matrices=%d slices=%zu first=%s\n",matrices,slices.size(),input->name);
                             }

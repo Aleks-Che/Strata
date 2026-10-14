@@ -75,12 +75,14 @@ struct Graph {
     ggml_context_ptr ctx;
     ggml_backend_sched_t sched=nullptr;
     ggml_tensor *x,*ids,*up,*gate,*act,*down,*weights,*out;
+    std::vector<ggml_tensor *> route_inputs;
     ggml_cgraph *graph;
     int tokens;
-    Graph(Weights &w,ggml_backend_t cpu,ggml_backend_t gpu,int n,bool parallel,float clamp,Weights *next=nullptr,Weights *third=nullptr):ctx(ggml_init({128*ggml_tensor_overhead()+ggml_graph_overhead(),nullptr,true})),tokens(n) {
+    Graph(Weights &w,ggml_backend_t cpu,ggml_backend_t gpu,int n,bool parallel,float clamp,Weights *next=nullptr,Weights *third=nullptr,bool distinct_routes=false):ctx(ggml_init({128*ggml_tensor_overhead()+ggml_graph_overhead(),nullptr,true})),tokens(n) {
         x=ggml_new_tensor_3d(ctx.get(),GGML_TYPE_F32,D,1,n);ggml_set_input(x);
         ids=ggml_new_tensor_2d(ctx.get(),GGML_TYPE_I32,K,n);
         ids->nb[1]=E*4;ids->nb[2]=ids->nb[3]=E*n*4;ggml_set_input(ids);
+        route_inputs.push_back(ids);
         weights=ggml_new_tensor_3d(ctx.get(),GGML_TYPE_F32,1,K,n);ggml_set_input(weights);
         up=ggml_mul_mat_id(ctx.get(),w.w[0],x,ids);
         gate=ggml_mul_mat_id(ctx.get(),w.w[1],x,ids);
@@ -95,10 +97,16 @@ struct Graph {
             // the preceding GPU consumer can still be running. Separate run()
             // calls drain at graph exit and cannot test this boundary.
             auto *input=ggml_reshape_3d(ctx.get(),out,D,1,n);
-            up=ggml_mul_mat_id(ctx.get(),following->w[0],input,ids);
-            gate=ggml_mul_mat_id(ctx.get(),following->w[1],input,ids);
+            auto *route=ids;
+            if(distinct_routes) {
+                route=ggml_new_tensor_2d(ctx.get(),GGML_TYPE_I32,K,n);
+                route->nb[1]=E*4;route->nb[2]=route->nb[3]=E*n*4;ggml_set_input(route);
+                route_inputs.push_back(route);
+            }
+            up=ggml_mul_mat_id(ctx.get(),following->w[0],input,route);
+            gate=ggml_mul_mat_id(ctx.get(),following->w[1],input,route);
             act=clamp>0?ggml_swiglu_clamp(ctx.get(),gate,up,clamp):ggml_swiglu_split(ctx.get(),gate,up);
-            down=ggml_mul_mat_id(ctx.get(),following->w[2],act,ids);ggml_set_output(down);
+            down=ggml_mul_mat_id(ctx.get(),following->w[2],act,route);ggml_set_output(down);
             weighted=ggml_mul(ctx.get(),down,weights);
             first=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],0);
             second=ggml_view_2d(ctx.get(),weighted,D,n,weighted->nb[2],weighted->nb[1]);
@@ -107,6 +115,7 @@ struct Graph {
         graph=ggml_new_graph(ctx.get());ggml_build_forward_expand(graph,out);
         ggml_backend_t backends[]={gpu,cpu};sched=ggml_backend_sched_new(backends,nullptr,2,GGML_DEFAULT_GRAPH_SIZE,parallel,true);
         for(auto *v:{x,ids,weights})ggml_backend_sched_set_tensor_backend(sched,v,gpu);
+        for(auto *v:route_inputs)ggml_backend_sched_set_tensor_backend(sched,v,gpu);
         for(int i=0;i<ggml_graph_n_nodes(graph);++i)ggml_backend_sched_set_tensor_backend(sched,ggml_graph_node(graph,i),gpu);
         check(ggml_backend_sched_alloc_graph(sched,graph),"graph allocation");
     }
@@ -114,7 +123,7 @@ struct Graph {
     std::vector<float> run(const std::vector<float> &input,const std::vector<int32_t> &route) {
         std::vector<float> weight(tokens*K);for(size_t i=0;i<weight.size();++i)weight[i]=i%K?0.37f:0.63f;
         ggml_backend_tensor_set(x,input.data(),0,input.size()*4);
-        ggml_backend_tensor_set(ids,route.data(),0,ggml_nbytes(ids));
+        for(auto *v:route_inputs)ggml_backend_tensor_set(v,route.data(),0,ggml_nbytes(v));
         ggml_backend_tensor_set(weights,weight.data(),0,weight.size()*4);
         check(ggml_backend_sched_graph_compute(sched,graph)==GGML_STATUS_SUCCESS,"compute");
         std::vector<float> result(tokens*K*D),sum(tokens*D);
@@ -176,6 +185,44 @@ static void phase_release_test(ggml_backend_t cpu) {
     }
     std::printf("CPU weight retirement: %d cases, phase poisoning, mixed formats, repeated rows, 1/4/12/16 threads\n",cases);
 }
+static void current_victim_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats) {
+#ifdef _WIN32
+    const bool ranked=std::getenv("STRATA_DS4_TEST_RANK_CACHE")!=nullptr;
+    const char *budget=ranked?"1":"8"; // force a real replacement even with a frequency penalty
+    const std::string demote=std::getenv("STRATA_DS4_RAM_DEMOTE_MIB")?std::getenv("STRATA_DS4_RAM_DEMOTE_MIB"):"0";
+    env("STRATA_DS4_RAM_DEMOTE_MIB","0");env("STRATA_DS4_GPU_FETCH_RAM_MIB","0");
+    // Only this layer owns cached entries. Route the incoming miss before the
+    // retained hit so a one-pass admission would corrupt a live reader.
+    for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
+        Weights weights(cpu,type,19),reference_weights(cpu,type,19);weights.register_files();
+        env("STRATA_EXPERT_CACHE_MIB","0");env("STRATA_DS4_CPU_THREADS","0");
+        ggml_backend_ptr reference(ggml_backend_dev_init(dev,nullptr));
+        env("STRATA_EXPERT_CACHE_MIB",budget);
+        ggml_backend_ptr hybrid(ggml_backend_dev_init(dev,nullptr));
+        // Separate backing weights keep the GPU reference from warming the
+        // candidate's RAM triples and accidentally enabling CPU arithmetic.
+        Graph ref(reference_weights,cpu,reference.get(),3,false,0.1f),actual(weights,cpu,hybrid.get(),3,false,0.1f);
+        std::vector<float> x(3*D);std::vector<int32_t> ids(3*E);
+        for(int iteration=0;iteration<18;++iteration) {
+            // Repeated demand must eventually justify replacing a colder
+            // unselected matrix; the final route position keeps expert 1 live.
+            for(int t=0;t<3;++t){ids[t*E]=ranked?(iteration>=8?6:iteration%7?1+iteration%7:0):iteration%3?2+iteration%6:0;ids[t*E+1]=1;}
+            for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+iteration*23)*0.031f);
+            env("STRATA_EXPERT_CACHE_MIB","0");env("STRATA_DS4_CPU_THREADS","0");const auto expected=ref.run(x,ids);
+            env("STRATA_EXPERT_CACHE_MIB",budget);env("STRATA_DS4_CPU_THREADS","4");
+            check(actual.run(x,ids)==expected,"current-layer loan changed GPU output");
+        }
+        StrataExpertCounters after;stats(hybrid.get(),&after);
+        check(after.gpu_fetch_branches==18 && !after.cpu_queue_jobs,"current-layer fixture did not use all-GPU queue");
+        check(after.gpu_fetch_current_admitted>0,"current-layer fixture missed admission");
+        if(after.gpu_fetch_demand_plans)check(!after.gpu_fetch_current_protected && !after.gpu_fetch_cache_restored,
+            "demand admission offered selected/unused current-layer victims");
+        else check(after.gpu_fetch_current_protected>0,"current-layer fixture missed protection");
+        check(after.gpu_fetch_cache_offered==after.gpu_fetch_cache_admitted+after.gpu_fetch_cache_restored,"current-layer loan ownership leaked");
+    }
+    env("STRATA_DS4_RAM_DEMOTE_MIB",demote.c_str());env("STRATA_DS4_GPU_FETCH_RAM_MIB","1");
+#endif
+}
 static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExpertStats stats) {
 #ifdef _WIN32
     env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","16");
@@ -186,7 +233,7 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
     auto control=(StrataExpertControl)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_control");
     check(bool(control),"missing cache controller");
     const bool demote=std::getenv("STRATA_DS4_RAM_DEMOTE_MIB") && std::atoi(std::getenv("STRATA_DS4_RAM_DEMOTE_MIB"));
-    const bool keep_ram=std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM") && std::atoi(std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM"));
+    const int keep_ram=std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM")?std::atoi(std::getenv("STRATA_DS4_GPU_FETCH_KEEP_RAM")):0;
     for(bool managed:{false,true})for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0}) {
         Weights target(cpu,type),victim(cpu,type);target.register_files();victim.register_files();
         env("STRATA_EXPERT_CACHE_MIB","0");env("STRATA_DS4_CPU_THREADS","0");
@@ -208,8 +255,11 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
         for(int iteration=0;iteration<12;++iteration) {
             if(iteration==6) {
                 StrataExpertCounters partial;stats(hybrid.get(),&partial);
-                if(keep_ram && !demote)check(partial.gpu_fetch_cache_admitted==before.gpu_fetch_cache_admitted && partial.gpu_fetch_cache_ram_bypasses>0,
+                if(keep_ram==1 && !demote)check(partial.gpu_fetch_cache_admitted==before.gpu_fetch_cache_admitted && partial.gpu_fetch_cache_ram_bypasses>0,
                     "ready RAM triple was split by a GPU admission");
+                if(keep_ram==2 && !demote)check(partial.gpu_fetch_cache_ram_unblocked>before.gpu_fetch_cache_ram_unblocked &&
+                    partial.gpu_fetch_cache_ram_promoted>before.gpu_fetch_cache_ram_promoted && partial.cpu_queue_jobs>before.cpu_queue_jobs,
+                    "assigned-only protection blocked GPU admission or lost real CPU work");
                 // Keep the CPU expert hot, but demand a GPU expert whose RAM
                 // triple is absent: protection must not disable all admissions.
                 for(int t=0;t<3;++t)ids[t*E]=5;
@@ -228,8 +278,29 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
             }
         }
         StrataExpertCounters after;stats(hybrid.get(),&after);
+        const auto *demand_env=std::getenv("STRATA_DS4_GPU_FETCH_DEMAND_CACHE");
+        if(std::getenv("STRATA_DS4_TEST_RANK_CACHE"))
+            check(after.gpu_fetch_rank_plans==3*after.gpu_fetch_branches && after.gpu_fetch_rank_admitted>0,
+                "ranked frequency admission did not execute");
+        const auto *dma_env=std::getenv("STRATA_DS4_GPU_FETCH_DMA");
+        if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_EMPTY_FAST"))if(std::atoi(v) && dma_env && std::atoi(dma_env))
+            check(after.gpu_fetch_empty_requests>0,"all-hit fetch did not retire on the owner");
+        const auto *limit_env=std::getenv("STRATA_DS4_GPU_FETCH_DEMAND_MAX_CACHE_MIB");
+        // Both arena and managed fixtures have an 8 MiB configured budget.
+        const bool demand_allowed=!limit_env || !std::atoi(limit_env) || std::atoi(limit_env)>=8;
+        if(demand_env && std::atoi(demand_env) && dma_env && std::atoi(dma_env))
+            check(bool(after.gpu_fetch_demand_plans)==demand_allowed,"demand planner ignored configured budget limit");
+        if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_CURRENT_VICTIMS"))if(std::atoi(v) && !after.gpu_fetch_demand_plans) {
+            check(after.gpu_fetch_current_offered>0 && after.gpu_fetch_current_protected>0,
+                "current-layer cache snapshots did not protect selected loans");
+        }
         check(before.gpu_fetch_branches==uint64_t(demote?4:1) && after.gpu_fetch_branches-before.gpu_fetch_branches==12,"cold or warm loan test fell back to host routing");
-        if(demote)check(after.gpu_demotion_bytes>before.gpu_demotion_bytes,"new GPU queue did not demote old weights");
+        if(demote) {
+            if(std::getenv("STRATA_DS4_TEST_RANK_CACHE"))
+                check(after.gpu_demotion_bytes==before.gpu_demotion_bytes,
+                    "ranked admission displaced hotter weights despite available cache space");
+            else check(after.gpu_demotion_bytes>before.gpu_demotion_bytes,"new GPU queue did not demote old weights");
+        }
         if(const auto *v=std::getenv("STRATA_DS4_CPU_RELEASE_WEIGHTS"))if(std::atoi(v)) {
             const bool capture=std::getenv("STRATA_DS4_CPU_CAPTURE_DIR") && *std::getenv("STRATA_DS4_CPU_CAPTURE_DIR");
             if(capture)check(after.cpu_weight_capture_jobs==after.cpu_queue_jobs &&
@@ -249,7 +320,11 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
         }
         {
             check(after.gpu_fetch_cache_admitted>0 && after.gpu_fetch_cache_bytes>0,"no GPU cache admissions");
-            check(after.gpu_fetch_cache_restored>0,"unused loans never restored");
+            if(after.gpu_fetch_demand_plans) {
+                check(after.gpu_fetch_demand_plans==3*after.gpu_fetch_branches && after.gpu_fetch_demand_misses>0,
+                    "demand admission skipped a published matrix");
+                check(!after.gpu_fetch_cache_restored,"demand admission reserved unused loans");
+            } else check(after.gpu_fetch_cache_restored>0,"unused loans never restored");
             check(after.gpu_fetch_cache_offered==after.gpu_fetch_cache_restored+after.gpu_fetch_cache_admitted,"loan ownership leaked");
             check(after.direct_hits>before.direct_hits,"admitted matrix not reused");
         }
@@ -261,6 +336,7 @@ static void fetch_cache_test(ggml_backend_t cpu,ggml_backend_dev_t dev,StrataExp
             StrataVramPolicy restore;check(control(0,&restore,&status),"restore cache policy");
         }
     }
+    if(const auto *v=std::getenv("STRATA_DS4_GPU_FETCH_CURRENT_VICTIMS"))if(std::atoi(v))current_victim_test(cpu,dev,stats);
     std::puts("GPU fetch cache: cold growth, arena/managed, three quantizations, 72 mixed replays, unused restoration, demotion and explicit release");
 #else
     throw std::runtime_error("GPU fetch cache fixture requires native Windows file registration");
@@ -381,18 +457,36 @@ static void graph_transition_test(ggml_backend_t cpu,ggml_backend_dev_t dev,
 #ifdef _WIN32
     env("STRATA_DS4_CPU_SHARED_RAM","1");env("STRATA_DS4_RAM_CACHE_MIB","4");
     env("STRATA_DS4_CPU_RAM_MIB","0");env("STRATA_DS4_CPU_MAX_EXPERTS","1");
-    env("STRATA_DS4_CPU_POLICY","force");env("STRATA_DS4_GPU_FETCH_QUEUE","0");
+    const bool empty_test=std::getenv("STRATA_DS4_TEST_EMPTY_TRANSITIONS")!=nullptr;
+    env("STRATA_DS4_CPU_POLICY","force");env("STRATA_DS4_GPU_FETCH_QUEUE",empty_test?"1":"0");
+    if(empty_test)env("STRATA_DS4_GPU_FETCH_RAM_MIB","0");
     strata_ds4::CpuLanePool pool(4);int cases=0;
     for(auto type:{GGML_TYPE_IQ3_XXS,GGML_TYPE_MXFP4,GGML_TYPE_Q8_0})for(int n:{1,3,4}) {
-        Weights w(cpu,type);w.register_files();
+        Weights w(cpu,type),reference_w(cpu,type);w.register_files();
+        if(empty_test)reference_w.register_files();
         ggml_backend_ptr hybrid(ggml_backend_dev_init(dev,nullptr)),gpu(ggml_backend_dev_init(dev,nullptr));
-        Graph a(w,cpu,hybrid.get(),n,false,0.1f),b(w,cpu,gpu.get(),n,false,0.1f);
+        Graph a(w,cpu,hybrid.get(),n,false,0.1f),b(empty_test?reference_w:w,cpu,gpu.get(),n,false,0.1f);
         std::vector<float> x(n*D);std::vector<int32_t> ids(n*E);
         for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i)*0.031f);
         for(int t=0;t<n;++t){ids[t*E]=1;ids[t*E+1]=2;}
         env("STRATA_DS4_CPU_THREADS","4");a.run(x,ids);
+        if(empty_test) {
+            StrataExpertCounters initial;stats(hybrid.get(),&initial);
+            check(initial.cpu_empty_branches==1 && !initial.cpu_service_wakes,"cold snapshot woke CPU service");
+        }
         phase(false);for(int i=0;i<24;++i)a.run(x,ids);phase(true);
         for(int transition=0;transition<4;++transition) {
+            if(empty_test) {
+                auto cold=ids;for(int t=0;t<n;++t){cold[t*E]=5;cold[t*E+1]=6;}
+                env("STRATA_DS4_CPU_THREADS","0");const auto expected=b.run(x,cold);
+                env("STRATA_DS4_CPU_THREADS","4");StrataExpertCounters before,after;stats(hybrid.get(),&before);
+                for(int i=0;i<6;++i)check(a.run(x,cold)==expected,"empty branch retained CPU scatter/mask");
+                stats(hybrid.get(),&after);
+                // Other experts are RAM-ready, so only the published GPU
+                // route can prove this branch empty. Lazy wake must stay idle.
+                check(after.cpu_service_skips-before.cpu_service_skips==6 && after.cpu_service_wakes==before.cpu_service_wakes &&
+                    after.cpu_queue_jobs==before.cpu_queue_jobs,"route-empty branch woke CPU service");
+            }
             for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+23*transition)*0.031f);
             env("STRATA_DS4_CPU_THREADS","0");const auto expected=b.run(x,ids);
             for(int i=0;i<6;++i)check(a.run(x,ids)==expected,"GPU replay retained a CPU mask or join");
@@ -430,6 +524,10 @@ static void graph_transition_test(ggml_backend_t cpu,ggml_backend_dev_t dev,
     throw std::runtime_error("graph transition fixture requires native Windows file registration");
 #endif
 }
+#include "test_ordinary_cache.inc"
+#ifdef STRATA_DS4_TEST_GPU_FALLBACK
+#include "test_cpu_fallback.inc"
+#endif
 int main(){try {
     if(std::getenv("STRATA_DS4_TEST_WEIGHT_CAPTURE")) {
         const char *base=std::getenv("STRATA_DS4_CPU_CAPTURE_DIR");check(base && *base,"capture test needs a directory");
@@ -450,6 +548,7 @@ int main(){try {
     }
     env("STRATA_EXPERT_PIPELINE","1");env("STRATA_EXPERT_STAGE_MIB","1");env("STRATA_EXPERT_CACHE_MIB","0");
     env("STRATA_EXPERT_CACHE_POLICY","lru");env("GGML_OP_OFFLOAD_MIN_BATCH","1");
+    if(std::getenv("STRATA_DS4_TEST_RANK_CACHE"))env("STRATA_EXPERT_CACHE_POLICY","frequency");
     env("STRATA_DS4_DIRECT_CACHE","1");env("STRATA_DS4_ORDERED_EXPERTS","1");
     env("STRATA_DS4_CPU_MATRIX_LEGACY","0");env("STRATA_DS4_CPU_POLICY","force");env("STRATA_DS4_CPU_RAM_MIB","16");
     ggml_backend_load_all();ggml_backend_ptr cpu(ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU,nullptr));
@@ -458,6 +557,10 @@ int main(){try {
     auto stats=(StrataExpertStats)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_expert_stats");
     auto phase=(StrataCpuExpertPhase)ggml_backend_reg_get_proc_address(ggml_backend_dev_backend_reg(dev),"strata_cpu_expert_phase");
     check(bool(phase),"missing CPU phase control");
+    if(std::getenv("STRATA_DS4_TEST_ORDINARY_CACHE")){ordinary_cache_test(cpu.get(),dev,stats);return 0;}
+#ifdef STRATA_DS4_TEST_GPU_FALLBACK
+    gpu_fallback_test(cpu.get(),dev,stats,phase);return 0;
+#endif
     if(std::getenv("STRATA_DS4_TEST_GRAPH_TRANSITIONS")){graph_transition_test(cpu.get(),dev,stats,phase);return 0;}
 #ifdef STRATA_DS4_TEST_NUMERICS
     return numerical_lane_test(cpu.get(),dev,stats,phase);
@@ -577,7 +680,7 @@ int main(){try {
         // One GPU row has no RAM entry: an eligible CPU branch must also safely
         // fetch a different expert from its retained native file source.
         if(fetch_enabled)ids[0]=5;
-        uint64_t warm_file_bytes=0;
+        uint64_t warm_source_bytes=0;
         for(int change=0;change<10;++change) {
             for(size_t i=0;i<x.size();++i)x[i]=0.8f*std::cos(float(i+change*23)*0.031f);
             // The GPU-only reference must not warm the tested shared cache.
@@ -598,7 +701,7 @@ int main(){try {
                 check(!std::memcmp(expected.data()+t*K*D,actual.data()+t*K*D,D*4),"shared mixed GPU row stale");
             }
             ++shared_cases;
-            if(change==5) {StrataExpertCounters partial;stats(hybrid.get(),&partial);warm_file_bytes=partial.file_read_bytes;}
+            if(change==5) {StrataExpertCounters partial;stats(hybrid.get(),&partial);warm_source_bytes=partial.file_read_bytes+partial.mmap_read_bytes;}
         }
         StrataExpertCounters warm;stats(hybrid.get(),&warm);
         check(warm.cpu_lane_ops==10 && warm.cpu_lane_experts==30,"shared ready matrices not used by CPU");
@@ -606,11 +709,15 @@ int main(){try {
             check(warm.cpu_queue_jobs==10 && warm.cpu_queue_rows==30,"queue test silently used host callback fallback");
         if(fetch_enabled) {
             check(warm.gpu_fetch_branches==11 && warm.gpu_fetch_matrices>0,"GPU fetch silently used host route fallback");
-            check(warm.file_read_bytes>cold.file_read_bytes,"missing native cold-matrix fetch");
+            check(warm.file_read_bytes+warm.mmap_read_bytes>cold.file_read_bytes+cold.mmap_read_bytes,"missing cold-matrix fetch");
+            const char *reader=std::getenv("STRATA_DS4_GPU_FETCH_READER");
+            if(reader && (!std::strcmp(reader,"resident") || !std::strcmp(reader,"mapped")))
+                check(warm.mmap_read_bytes>cold.mmap_read_bytes,"fetch reader did not exercise mmap");
+            else check(warm.file_read_bytes>cold.file_read_bytes,"missing native cold-matrix fetch");
             if(const char *v=std::getenv("STRATA_DS4_GPU_FETCH_RAM_MIB"))if(std::atoi(v)) {
                 check(warm.gpu_fetch_ram_reservations>=3 && warm.gpu_fetch_ram_completed>=3,"native fetch never admitted cold matrices");
                 check(warm.gpu_fetch_ram_bytes>0,"native fetch never reused pinned RAM");
-                check(warm.file_read_bytes==warm_file_bytes,"native fetch reread already admitted matrices");
+                check(warm.file_read_bytes+warm.mmap_read_bytes==warm_source_bytes,"fetch reread already admitted matrices");
             }
         } else check(!warm.gpu_fetch_branches,"unexpected GPU fetch bypassed the shadow route recorder");
         check(!warm.pipeline_unused && !warm.pipeline_fallbacks,"shared RAM transfer mismatch");

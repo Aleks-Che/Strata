@@ -14,6 +14,18 @@
 |---|---|
 | [План оптимизации подкачки и CPU lane](DEEPSEEK4_TRANSFER_OPTIMIZATION_PLAN.md) | CUDA Graph, DMA и раннее чтение, замещение GPU-кэша, пустые ветки; критерии приёмки до повторной настройки CPU |
 | [О0–О1: счётчики по фазам и исправление CUDA Graph](DEEPSEEK4_TRANSFER_O0_O1.md) | Смена CPU/GPU без устаревшего consumer, исправление CTest g0, модельная проверка logits и сессий; GPU-only пока быстрее |
+| [О2: owner DMA и раннее чтение матриц](DEEPSEEK4_TRANSFER_O2.md) | Два экспериментальных флага, порядок gate/up, защита общего scratch, сравнение транспорта и оставшаяся цена подтверждения чанков |
+| [О2: окно нескольких DMA-передач](DEEPSEEK4_TRANSFER_O2_DMA_WINDOW.md) | До восьми передач, четыре staging-сегмента без роста payload-памяти; +10,55% decode, 97,8% DMA-контроля из RAM и оставшиеся 84,8% через staging |
+| [О2: подготовка и размер staging](DEEPSEEK4_TRANSFER_O2_STAGING.md) | Проверка 4/8/16 МиБ и альтернативных подтверждений: устойчивые 90% не получены, 8 МиБ в пределах шума, 16 МиБ замедляют модель |
+| [О2: чтение весов в staging](DEEPSEEK4_TRANSFER_O2_READER.md) | Mmap при прежних 4 МиБ: 9,363 → 10,562 ток/с (+12,81%) внутри очереди; больший working set, критерий 90% DMA остаётся открытым |
+| [О3: кандидаты на замещение GPU-кэша](DEEPSEEK4_TRANSFER_O3.md) | Ограничение хвостовых слотов и окно 8: H2D −8,24%, decode +3,08% в одной A/B/B/A; замещение текущего слоя не помогло полной связке |
+| [О3: выбор по фактическим промахам](DEEPSEEK4_TRANSFER_O3_DEMAND.md) | Demand только для DSpark: общий H2D ещё −8,04%, decode +4,76%; применение к target ухудшило удержание матриц, О3 остаётся открытым |
+| [О3: частота и цена вытеснения target](DEEPSEEK4_TRANSFER_O3_TARGET.md) | Rank 1 / 256: H2D target −33,67%, общий −31,22%, decode +20,44%; короткий N0 проходит порог H2D относительно L0, GPU-only всё ещё быстрее |
+| [О3: защита RAM по фактическому CPU-назначению](DEEPSEEK4_TRANSFER_O3_RAM.md) | KEEP_RAM=2: +4,98% decode и −4,59% H2D против прежнего запрета для всех готовых троек; преимущества перед KEEP_RAM=0 не установлено, GPU-only быстрее |
+| [О4: пустые CPU-ветки и очереди](DEEPSEEK4_TRANSFER_O4_EMPTY.md) | Пропуск доказанно пустой ветки: +4,85% decode, −25,74% CPU-seconds в одной A/B/B/A; отложенное пробуждение и пустой fetch проверяются отдельно |
+| [О4: парковка I/O-service](DEEPSEEK4_TRANSFER_O4_SERVICE.md) | A/B/B/A: decode без изменения, CPU-seconds −6,18% для сочетания с пустым fetch; новые счётчики отделяют подготовку, чтение и обслуживание DMA |
+| [О4: обычный GPU-путь при исключённом CPU](DEEPSEEK4_TRANSFER_O4_GPU_FALLBACK.md) | Обход очередей: N0 −5,76% decode при −15,11% CPU-seconds и росте H2D; смешанный режим без прироста, опция выключена |
+| [О4: отбор О3 в обычном GPU-пути](DEEPSEEK4_TRANSFER_O4_ORDINARY_CACHE.md) | Общий выбор слотов без fetch queue: N0 +6,55% decode; GPU-only +11,92%, H2D −22,83%; выигрыш зависит от прогрева |
 | [Перенос идей Maya](DEEPSEEK4_MAYA_TRANSFER_REVIEW.md) | Заимствование VRAM для prefill, GPU-план, pinned RAM, история частот, CPU lane и другой lookahead |
 | [План внедрения CPU lane по архитектуре Maya](DEEPSEEK4_CPU_LANE_IMPLEMENTATION_PLAN.md) | Целевая связка RAM/VRAM, GPU-очередь, многотокенные ядра, калибровка и критерии принятия |
 | [Численная совместимость CPU/GPU, начало этапа 3](DEEPSEEK4_CPU_NUMERICS.md) | Исходный аудит Q8_K/Q8_1, эталон MMVQ и выявленные границы округления |

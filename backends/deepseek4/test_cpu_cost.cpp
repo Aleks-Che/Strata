@@ -25,6 +25,15 @@ int main()try {
     for(int t=0;t<4;++t){m.compute[t][1]=30;m.compute[t][2]=55;m.compute[t][9]=35;
         for(int r=1;r<=8;++r)m.boundary[t][r]=5;}
     auto choose=[&](int n,int cap,uint64_t bytes,int rows){return cpu_cost_choose(m,n,counts,gpu,4,ids,occ,missing,2,cap,bytes,rows);};
+    {
+        auto proof=m;proof.budget_us_per_token=0.01f;
+        check(!cpu_cost_budget_possible(proof,4),"impossible budget not recognized");
+        proof.budget_us_per_token=20;
+        check(!cpu_cost_budget_possible(proof,1) && cpu_cost_budget_possible(proof,2),"later feasible prefix discarded");
+        proof.budget_us_per_token=30;
+        check(cpu_cost_budget_possible(proof,1),"budget equality discarded");
+        proof.enabled=false;check(cpu_cost_budget_possible(proof,1),"uncalibrated routing incorrectly rejected");
+    }
     check(choose(1,1,200,0).mask==1,"deterministic equal-cost tie");
     check(choose(1,2,200,0).mask==3,"parallel cost must be max, not a sum");
     m.compute[0][1]=250;m.compute[0][2]=350;check(!choose(1,2,200,0).mask,"zero-CPU alternative lost");

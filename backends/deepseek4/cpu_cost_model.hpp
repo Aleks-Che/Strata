@@ -53,6 +53,22 @@ STRATA_COST_HD inline float cpu_cost_gpu_branch(const CpuCostModel &m,float tran
     return transfer+compute-overlap*m.gpu_overlap;
 }
 struct CpuCostDecision {unsigned mask=0;float cpu_us=0,gpu_us=0,total_us=0;uint64_t saved_bytes=0;};
+// Conservative host proof: even the cheapest unloaded computation must fit
+// the budget of some causal prefix. Ignore boundary/PCIe cost (nonnegative),
+// so this can miss an empty branch but cannot reject a feasible assignment.
+inline bool cpu_cost_budget_possible(const CpuCostModel &m,int tokens) {
+    if(!m.enabled)return true;
+    for(int t=0;t<tokens && t<cpu_cost_tokens;++t) {
+        const float budget=m.budget_us_per_token*(t+1);
+        if(!(budget>0))return true;
+        for(int k=1;k<cpu_cost_patterns;++k) {
+            const float cost=m.compute[t][k];
+            if(cost!=cost || (cost>0 && cost<=budget))return true;
+        }
+        for(int r=1;r<=cpu_cost_max_rows;++r)if(!(m.boundary[t][r]>=0))return true;
+    }
+    return false;
+}
 // Prefix-only: counts/gpu_required describe already committed tokens. No later
 // route IDs or total window length are consulted. Exhaustively compare the
 // <=8 ready candidates, including the empty assignment, within the row budget.

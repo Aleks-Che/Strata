@@ -26,6 +26,13 @@ struct StrataExpertCounters {
     uint64_t gpu_fetch_ram_reservations=0,gpu_fetch_ram_completed=0,gpu_fetch_ram_bytes=0;
     uint64_t gpu_fetch_cache_offered=0,gpu_fetch_cache_admitted=0,gpu_fetch_cache_restored=0,gpu_fetch_cache_bytes=0;
     uint64_t gpu_fetch_cache_ram_bypasses=0;
+    uint64_t ordinary_cache_branches=0;
+    uint64_t cpu_empty_branches=0,cpu_gpu_fallback_branches=0,cpu_service_wakes=0,cpu_service_skips=0,gpu_fetch_empty_requests=0;
+    uint64_t gpu_fetch_service_wakes=0,gpu_fetch_service_skips=0;
+    uint64_t cpu_snapshot_us=0,cpu_select_us=0,gpu_fetch_read_us=0;
+    uint64_t gpu_fetch_route_wait_us=0,gpu_fetch_dma_wait_us=0;
+    uint64_t gpu_fetch_service_waits=0,gpu_fetch_service_wait_us=0;
+    uint64_t gpu_fetch_cache_ram_unblocked=0,gpu_fetch_cache_ram_promoted=0;
     uint64_t gpu_fetch_ram_released_unused=0,gpu_fetch_ram_released_used=0,cpu_snapshot_released=0;
     uint64_t gpu_fetch_early_retire=0,gpu_fetch_retire_tail_pending=0;
     uint64_t cpu_weight_release_gate_up=0,cpu_weight_release_down=0,cpu_weight_release_deferred=0;
@@ -37,6 +44,12 @@ struct StrataExpertCounters {
     uint64_t cpu_context_rotations=0,cpu_context_reuse_waits=0;
     uint64_t gpu_demotion_bytes=0;
     uint64_t gpu_fetch_cache_duplicates=0;
+    uint64_t gpu_fetch_current_offered=0,gpu_fetch_current_admitted=0,gpu_fetch_current_protected=0;
+    uint64_t gpu_fetch_tail_offered=0,gpu_fetch_tail_skipped=0;
+    uint64_t gpu_fetch_cache_prepare_us=0;
+    uint64_t gpu_fetch_demand_plans=0,gpu_fetch_demand_misses=0,gpu_fetch_demand_scanned=0;
+    uint64_t gpu_fetch_rank_plans=0,gpu_fetch_rank_rejected=0,gpu_fetch_rank_admitted=0,gpu_fetch_rank_cost=0;
+    uint64_t gpu_fetch_replaced_bytes=0,gpu_fetch_refaults=0,gpu_fetch_refault_bytes=0;
 };
 using StrataExpertPlan = void (*)(ggml_backend_t, const StrataExpertSlice *, size_t);
 // Exact GPU table lookup for at most three hash-routed layers. These are input
@@ -69,6 +82,9 @@ struct StrataCpuExpertBranch {
     const ggml_tensor *weights[3]={};
     float clamp=0;
 };
+// Host-routed O3 planning. IDs are already synchronized by the scheduler.
+using StrataExpertPlanRoutes = void (*)(ggml_backend_t,const StrataExpertSlice *,size_t,
+    const StrataCpuExpertBranch *,const ggml_tensor *,const int32_t *);
 using StrataCpuExpertPlan = bool (*)(ggml_backend_t,const StrataCpuExpertBranch *,
     const ggml_tensor *route,const int32_t *ids,size_t ids_bytes,uint8_t *selected);
 // With CPU_GPU_QUEUE opt-in, null IDs publish a retained table and launch GPU

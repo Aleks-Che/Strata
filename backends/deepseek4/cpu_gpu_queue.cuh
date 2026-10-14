@@ -182,6 +182,15 @@ static __device__ inline uint32_t cpu_queue_reserve(CpuQueueSlot *ring,CpuQueueD
 static __global__ void cpu_queue_reset(CpuQueueSlot *ring,CpuQueueDevice *state) {
     state->active=0;state->error=cpu_ok;ring[0].gpu_failure.store(cpu_ok,cuda::memory_order_release);
 }
+static __global__ void cpu_queue_empty(CpuQueueBinding *binding,CpuQueueSlot *ring,
+        CpuQueueDevice *state,CpuQueuePacket *packet) {
+    const int i=threadIdx.x;
+    packet->mask[i]=0;if(i<64)packet->slots[i]=-1;
+    if(!i) {
+        binding->ring=ring;binding->state=state;
+        state->active=0;state->error=cpu_ok;ring[0].gpu_failure.store(cpu_ok,cuda::memory_order_release);
+    }
+}
 // Ordered after the old join/scatter and before any new publication. No host
 // wait and no changes to arithmetic, route choice, slot ownership or timeouts.
 static __global__ void cpu_queue_retire(CpuQueueSlot *ring,uint64_t epoch) {
